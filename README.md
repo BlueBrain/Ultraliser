@@ -57,7 +57,7 @@ _Ultraliser_ is developed by the Visualization team at the [Blue Brain Project](
 
 * The volume reconstruction code is an extension to the work of [Marwan Abdellah's](http://marwan-abdellah.com/) [PhD (In silico Brain Imaging: Physically-plausible Methods for Visualizing Neocortical Microcircuitry)](https://infoscience.epfl.ch/record/232444?ln=en). 
 
-* The mesh optimization is based on the routiens provided by the [GAMer (Geometry-preserving Adaptive MeshER) library](http://fetk.org/codes/gamer/). GAMer is developed by Z. Yu, M. Holst, Y. Cheng, and J.A. McCammon and can be redistributed and modified under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version. 
+* The mesh optimization is based on the routiens provided by the [GAMer (Geometry-preserving Adaptive MeshER) library](http://fetk.org/codes/gamer/). GAMer is developed by _Z. Yu, M. Holst, Y. Cheng, and J.A. McCammon_, and can be redistributed and modified under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version. 
 
 * The table of contents for all the user documentation pages are generated with [markdown-toc](http://ecotrust-canada.github.io/markdown-toc/).
 
