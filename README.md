@@ -24,7 +24,7 @@ _Ultraliser_ is available to download and use under the GNU General Public Licen
 
 # Contact
 
-For more information on _NeuroMorphoVis_, comments or suggestions, please contact:
+For more information on _Ultraliser_, comments or suggestions, please contact:
 
 __Marwan Abdellah__  
 Scientific Visualiation Engineer  
