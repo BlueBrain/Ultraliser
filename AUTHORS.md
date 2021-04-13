@@ -1,26 +1,31 @@
-The following people have contributed to NeuroMorphoVis:
+##### Core Author
 
-##### Core Author(s)
-
-    Marwan Abdellah (EPFL)
+    Marwan Abdellah (BBP / EPFL)
 
 ##### Version 1.0
 
-    Juan Jose Garcia Cantero (EPFL) 
+    Juan Jose Garcia Cantero (BBP / EPFL) 
+    
+##### External 
+
+    Marco Attene (IMATI-GE / CNR) 
+    
+    Zeyun Yu (UC San Diego)
+    Michael Holst (UC San Diego)
 
 ##### Advisors
 
-    Henry Markram (EPFL)
-    Felix Schürmann (EPFL)
+    Henry Markram (BBP / EPFL)
+    Felix Schürmann (BBP / EPFL)
     
 ##### Technical Support (Deployment)
 
-    Pawel Podhajski (EPFL)
+    Pawel Podhajski (BBP / EPFL)
 
 ##### Technical Support (Hardware)
 
-    Danny Dyer (EPFL)
-    Alan Garner (EPFL)
+    Danny Dyer (BBP / EPFL)
+    Alan Garner (BBP / EPFL)
 
 <p align="center">
         <img src="docs/images/logos/epfl-logo.jpg" width=200>

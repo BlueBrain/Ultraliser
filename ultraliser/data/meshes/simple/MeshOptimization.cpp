@@ -1,6 +1,7 @@
 /***************************************************************************************************
  * Copyright (c) 2010
  * Department of Mathematics, UC San Diego
+ *
  * Copyright (c) 2018 - 2021
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
  *
