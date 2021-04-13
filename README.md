@@ -37,8 +37,8 @@ The volume reconstruction algorithms in _Ultraliser_ are based on the following 
 
 ```
 @article{abdellah2017reconstruction,
-  title={Reconstruction and visualization of large-scale volumetric models of neocortical circuits 
-  for physically-plausible in silico optical studies},
+  title={Reconstruction and visualization of large-scale volumetric models of neocortical 
+  circuits for physically-plausible in silico optical studies},
   author={Abdellah, Marwan and Hernando, Juan and Antille, Nicolas and Eilemann, Stefan and 
   Markram, Henry and Sch{\"u}rmann, Felix},
   journal={BMC bioinformatics},
