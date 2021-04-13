@@ -6,9 +6,9 @@
 
 ### Software Dependencies 
 
-* H5 
-* TIFF 
-* OpenMP 
+* [OpenMP] (https://en.wikipedia.org/wiki/OpenMP), a multi-threading library for parallel processing on multi-core CPUs. 
+* [libTIFF](http://www.libtiff.org/), which gives support for the Tag Image File Format (TIFF), a widely used format for storing image data.
+* libhdf5, or the Hierarchical Data Format 5 (HDF5).
 
 ### Supported Operating Systems 
 
