@@ -30,6 +30,9 @@ Please refer to the [github issue tracker](https://github.com/BlueBrain/Ultralis
 # License 
 _Ultraliser_ is available to download and use under the GNU General Public License, version 3([GPL](https://www.gnu.org/licenses/gpl.html), or “free software”). The code is open sourced with approval from the open sourcing committee and principal coordinators of the Blue Brain Project in March 2021. 
 
+# Acknowledgement & Funding
+_Ultraliser_ is developed by the Visualization team at the [Blue Brain Project](https://bluebrain.epfl.ch/page-52063.html), [Ecole Polytechnique Federale de Lausanne (EPFL)](https://www.epfl.ch/). Financial support was provided by competitive research funding from [King Abdullah University of Science and Technology (KAUST)](https://www.kaust.edu.sa/en).
+
 # Attributions
 
 * The table of contents for all the user documentation pages are generated with [markdown-toc](http://ecotrust-canada.github.io/markdown-toc/).
