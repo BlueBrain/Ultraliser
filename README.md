@@ -6,7 +6,7 @@
 
 ### Software Dependencies 
 
-* [OpenMP] (https://en.wikipedia.org/wiki/OpenMP), a multi-threading library for parallel processing on multi-core CPUs. 
+* [OpenMP](https://en.wikipedia.org/wiki/OpenMP), a multi-threading library for parallel processing on multi-core CPUs. 
 * [libTIFF](http://www.libtiff.org/), which gives support for the Tag Image File Format (TIFF), a widely used format for storing image data.
 * libhdf5, or the Hierarchical Data Format 5 (HDF5).
 
