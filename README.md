@@ -28,13 +28,36 @@ Please refer to the [github issue tracker](https://github.com/BlueBrain/Ultralis
 
 
 # License 
-_Ultraliser_ is available to download and use under the GNU General Public License, version 3([GPL](https://www.gnu.org/licenses/gpl.html), or “free software”). The code is open sourced with approval from the open sourcing committee and principal coordinators of the Blue Brain Project in March 2021. 
+_Ultraliser_ is available to download and use under the GNU General Public License, version 3 ([GPL](https://www.gnu.org/licenses/gpl.html), or “free software”). 
+The code is open sourced with approval from the open sourcing committee and principal coordinators of the Blue Brain Project in March 2021. 
+
+# Publications 
+
+The volume reconstruction algorithms in _Ultraliser_ are based on the following paper. 
+
+```
+@article{abdellah2017reconstruction,
+  title={Reconstruction and visualization of large-scale volumetric models of neocortical circuits 
+  for physically-plausible in silico optical studies},
+  author={Abdellah, Marwan and Hernando, Juan and Antille, Nicolas and Eilemann, Stefan and 
+  Markram, Henry and Sch{\"u}rmann, Felix},
+  journal={BMC bioinformatics},
+  volume={18},
+  number={10},
+  pages={402},
+  year={2017},
+  publisher={BioMed Central}
+}
+```
 
 # Acknowledgement & Funding
 _Ultraliser_ is developed by the Visualization team at the [Blue Brain Project](https://bluebrain.epfl.ch/page-52063.html), [Ecole Polytechnique Federale de Lausanne (EPFL)](https://www.epfl.ch/). Financial support was provided by competitive research funding from [King Abdullah University of Science and Technology (KAUST)](https://www.kaust.edu.sa/en).
 
 # Attributions
 
+* The volume reconstruction code is an extension to the work of [Marwan Abdellah's](http://marwan-abdellah.com/) [PhD (In silico Brain Imaging: Physically-plausible Methods for Visualizing Neocortical Microcircuitry)](https://infoscience.epfl.ch/record/232444?ln=en). 
+
+* The core of the mesh optimization part 
 * The table of contents for all the user documentation pages are generated with [markdown-toc](http://ecotrust-canada.github.io/markdown-toc/).
 
 # Contact

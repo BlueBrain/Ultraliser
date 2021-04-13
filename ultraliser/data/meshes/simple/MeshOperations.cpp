@@ -278,15 +278,15 @@ void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& trian
                 Triangle triangle;
 
                 // First triangle
-                triangle[0] = faceVertices[0]-1;
-                triangle[1] = faceVertices[1]-1;
-                triangle[2] = faceVertices[2]-1;
+                triangle[0] = faceVertices[0] - 1;
+                triangle[1] = faceVertices[1] - 1;
+                triangle[2] = faceVertices[2] - 1;
                 triangles.push_back(triangle);
 
                 // Second triangle
-                triangle[0] = faceVertices[2]-1;
-                triangle[1] = faceVertices[3]-1;
-                triangle[2] = faceVertices[0]-1;
+                triangle[0] = faceVertices[2] - 1;
+                triangle[1] = faceVertices[3] - 1;
+                triangle[2] = faceVertices[0] - 1;
                 triangles.push_back(triangle);
             }
 
