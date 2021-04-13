@@ -31,36 +31,36 @@ namespace ColorMap
 {
 
 /**
-     * @brief getRGBColorF
-     * Return an RGB color for a given
-     * @param value
-     * @param minValue
-     * @param maxValue
-     * @param colorMap
-     * @return
-     */
+ * @brief getRGBColorF
+ * Return an RGB color for a given
+ * @param value
+ * @param minValue
+ * @param maxValue
+ * @param colorMap
+ * @return
+ */
 Vector3f getRGBColorF(const float &value,
                       const float &minValue,
                       const float &maxValue,
                       const std::string &colorMap="VIRIDIS");
 
 /**
-     * @brief getRGBColorI
-     * @param value
-     * @param minValue
-     * @param maxValue
-     * @param colorMap
-     * @return
-     */
+ * @brief getRGBColorI
+ * @param value
+ * @param minValue
+ * @param maxValue
+ * @param colorMap
+ * @return
+ */
 Vec3i_32 getRGBColorI(const float& value,
                       const float& minValue,
                       const float& maxValue,
                       const std::string &colorMap="VIRIDIS");
 
 /**
-     * A list of all the supported color-maps in Ultraliser.
-     * These color-maps were generated with a python-based utility using Matplotlib.
-     */
+ * A list of all the supported color-maps in Ultraliser.
+ * These color-maps were generated with a python-based utility using Matplotlib.
+ */
 const static std::vector<std::string> MAPS =
 {
     "VIRIDIS",
