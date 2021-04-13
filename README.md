@@ -59,7 +59,7 @@ _Ultraliser_ is developed by the Visualization team at the [Blue Brain Project](
 
 * The mesh optimization code in _Ultraliser_ is based on the routiens provided by the [GAMer (Geometry-preserving Adaptive MeshER) library](http://fetk.org/codes/gamer/). GAMer is developed by _Z. Yu, M. Holst, Y. Cheng, and J.A. McCammon_, and can be redistributed and modified under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or any later version.
 
-* The watertighness verification code in _Ultraliser_ is based on an extended version of the [_MeshFix_ library](https://github.com/MarcoAttene/MeshFix-V2.1). _MeshFix_ is developed by Marco Attene, Consiglio Nazionale delle Ricerche, Istituto di Matematica Applicata e Tecnologie Informatiche, Sezione di Genova, IMATI-GE / CNR, and can be redistributed and modified under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or any later version.    
+* The watertighness verification code in _Ultraliser_ is based on an extended version of the [MeshFix library](https://github.com/MarcoAttene/MeshFix-V2.1). MeshFix is developed by _Marco Attene_, Consiglio Nazionale delle Ricerche, Istituto di Matematica Applicata e Tecnologie Informatiche, Sezione di Genova, IMATI-GE / CNR, and can be redistributed and modified under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or any later version.    
 
 * The table of contents for all the user documentation pages are generated with [markdown-toc](http://ecotrust-canada.github.io/markdown-toc/).
 
