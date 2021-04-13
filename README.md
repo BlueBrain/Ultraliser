@@ -1,10 +1,22 @@
-Ultraliser is being open sourced. Stay tuned. 
-
 # Introduction
 
 ## Features
 
 ## Installation
+
+### Software Dependencies 
+
+* H5 
+* TIFF 
+* OpenMP 
+
+### Supported Operating Systems 
+
+Ultraliser has been tested on Unix-based operating systems including:
+
+* Ubuntu 16.04, Ubuntu 18.04, Ubuntu 20.04
+* RedHat 
+* macOS 10.12 Sierra, 10.13 High Sierra,  10.14 Mojave, 10.15 Catalina
 
 # Interfaces
 
