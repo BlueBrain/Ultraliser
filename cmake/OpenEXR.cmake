@@ -111,7 +111,7 @@ if(OPENEXR_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DULTRALISER_USE_OPENEXR")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DULTRALISER_USE_OPENEXR")
 else(OPENEXR_FOUND)
-    message(STATUS "Could NOT find OpenEXR library")
+    message(STATUS "OpenEXR NOT Found")
 endif(OPENEXR_FOUND)
 
 # Advanced variables

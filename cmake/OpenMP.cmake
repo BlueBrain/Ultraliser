@@ -40,5 +40,5 @@ if(OPENMP_FOUND)
     # Link libraries
     link_libraries(${OpenMP_CXX_LIBRARIES})
 else(OPENMP_FOUND)
-    message(STATUS "Could NOT find OpenMP library")
+    message(STATUS "OpenMP NOT Found")
 endif(OPENMP_FOUND)
