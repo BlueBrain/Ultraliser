@@ -3777,6 +3777,8 @@ AdvancedIndexedMesh AdvancedMesh::_buildIndexedMesh(AdvancedMesh& mesh)
             tempMesh._triangles.emplace_back(tri, v1it->second, v2it->second, v3it->second);
         }
     }
+
+    return tempMesh;
 }
 
 void AdvancedMesh::_computeNeighborhoods(AdvancedIndexedMesh& mesh,

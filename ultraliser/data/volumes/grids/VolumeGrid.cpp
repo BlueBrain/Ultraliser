@@ -120,6 +120,7 @@ int64_t VolumeGrid::getDimension(const int32_t &i) const
         case 0 : return getWidth();
         case 1 : return getHeight();
         case 2 : return getDepth();
+        default: return 0;
     }
 }
 
