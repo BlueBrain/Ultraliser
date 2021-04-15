@@ -97,8 +97,7 @@ private:
      * Extract quad mesh with shared vertex indices.
      * @param mesh
      */
-    void _buildSharedVerticesQuads(Vertices& vertices,
-                                   Triangles &triangles);
+    void _buildSharedVerticesQuads(Vertices& vertices, Triangles &triangles);
 
     /**
      * @brief _buildSharedVerticesQuadsParallel
@@ -106,8 +105,7 @@ private:
      * the CPUs available.
      * @param mesh
      */
-    void _buildSharedVerticesQuadsParallel(Vertices& vertices,
-                                           Triangles &triangles);
+    void _buildSharedVerticesQuadsParallel(Vertices& vertices, Triangles &triangles);
 
     /**
      * @brief _getCellCode
@@ -145,9 +143,7 @@ private:
      * @param pointCode
      * @param v
      */
-    void _calculateDualPoint(const int64_t &x,
-                             const int64_t &y,
-                             const int64_t &z,
+    void _calculateDualPoint(const int64_t &x, const int64_t &y, const int64_t &z,
                              const int32_t &pointCode, Vector3f &v) const;
 
     /**
@@ -162,11 +158,8 @@ private:
      * @param vertices
      * @return
      */
-    int64_t _getSharedDualPointIndex(const int64_t &x,
-                                     const int64_t &y,
-                                     const int64_t &z,
-                                     const DMC_EDGE_CODE &edge,
-                                     std::vector<Vector3f> &vertices);
+    int64_t _getSharedDualPointIndex(const int64_t &x, const int64_t &y, const int64_t &z,
+                                     const DMC_EDGE_CODE &edge, std::vector<Vector3f> &vertices);
 
 private:
 

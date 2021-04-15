@@ -384,10 +384,10 @@ int run(int argc , const char** argv)
                         options->stackXY, options->stackXZ, options->stackZY);
 
     // Reconstruct a watertight mesh from the volume with DMC
-    DualMarchingCubes* dmc = new DualMarchingCubes(volume.get());
+    auto dmc = new DualMarchingCubes(volume.get());
 
     // Generate the mesh
-    Mesh* generatedMesh = dmc->generateMesh();
+    auto generatedMesh = dmc->generateMesh();
 
     // Center the reconstructed mesh at the origin
     generatedMesh->centerAtOrigin();
@@ -396,8 +396,8 @@ int run(int argc , const char** argv)
     Vector3f pMaxGenerated, pMinGenerated;
     generatedMesh->computeBoundingBox(pMinGenerated, pMaxGenerated);
 
-    const Vector3f generatedBB = pMaxGenerated - pMinGenerated;
-    const Vector3f scale = inputBB / generatedBB;
+    const auto generatedBB = pMaxGenerated - pMinGenerated;
+    const auto scale = inputBB / generatedBB;
 
     // Scale the mesh
     generatedMesh->scale(scale.x(), scale.y(), scale.z());

@@ -103,9 +103,7 @@ AdvancedMesh* DualMarchingCubes::generateManifoldMesh()
     return new AdvancedMesh(vertices, triangles);
 }
 
-int DualMarchingCubes::_getCellCode(const int64_t &x,
-                                    const int64_t &y,
-                                    const int64_t &z) const
+int DualMarchingCubes::_getCellCode(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     // Determine for each cube corner if it is outside or inside
     int code = 0;
@@ -130,16 +128,12 @@ int DualMarchingCubes::_getCellCode(const int64_t &x,
     return code;
 }
 
-int64_t DualMarchingCubes::_index(const int64_t &x,
-                                  const int64_t &y,
-                                  const int64_t &z) const
+int64_t DualMarchingCubes::_index(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     return x + _volume->getWidth() * (y + _volume->getHeight() * z);
 }
 
-int DualMarchingCubes::_getDualPointCode(const int64_t x,
-                                         const int64_t y,
-                                         const int64_t z,
+int DualMarchingCubes::_getDualPointCode(const int64_t x, const int64_t y, const int64_t z,
                                          const DMC_EDGE_CODE edge) const
 {
     // Get the code of the cube that corresponds to the given XYZ voxel
@@ -218,11 +212,8 @@ int DualMarchingCubes::_getDualPointCode(const int64_t x,
     return 0;
 }
 
-void DualMarchingCubes::_calculateDualPoint(const int64_t &x,
-                                            const int64_t &y,
-                                            const int64_t &z,
-                                            const int32_t& pointCode,
-                                            Vector3f & v) const
+void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, const int64_t &z,
+                                            const int32_t& pointCode, Vector3f & v) const
 {
     // Initialize the point with lower voxel coordinates
     v.x() = x;
@@ -391,8 +382,7 @@ bool DualPointKey::operator==(DualPointKey const & other) const
             pointCode == other.pointCode);
 }
 
-void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices,
-                                                          Triangles &triangles)
+void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Triangles &triangles)
 {
     // Start timer
     TIMER_SET;
@@ -540,22 +530,14 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices,
             if (dmcVoxel.side == DMC_EDGE_SIDE::X)
             {
                 // Generate quad
-                i0 = _getSharedDualPointIndex(dmcVoxel.x,
-                                               dmcVoxel.y,
-                                               dmcVoxel.z,
-                                               EDGE0, vertices);
-                i1 = _getSharedDualPointIndex(dmcVoxel.x,
-                                               dmcVoxel.y,
-                                               dmcVoxel.z - 1,
-                                               EDGE2, vertices);
-                i2 = _getSharedDualPointIndex(dmcVoxel.x,
-                                               dmcVoxel.y - 1,
-                                               dmcVoxel.z - 1,
-                                               EDGE6, vertices);
-                i3 = _getSharedDualPointIndex(dmcVoxel.x,
-                                               dmcVoxel.y - 1,
-                                               dmcVoxel.z,
-                                               EDGE4, vertices);
+                i0 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y, dmcVoxel.z,
+                                              EDGE0, vertices);
+                i1 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y, dmcVoxel.z - 1,
+                                              EDGE2, vertices);
+                i2 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y - 1, dmcVoxel.z - 1,
+                                              EDGE6, vertices);
+                i3 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y - 1, dmcVoxel.z,
+                                              EDGE4, vertices);
 
                 // Append this quad to the list based on the voxel
                 if (dmcVoxel.entering)
@@ -582,21 +564,13 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices,
             else if (dmcVoxel.side == DMC_EDGE_SIDE::Y)
             {
                 // Generate quad
-                i0 = _getSharedDualPointIndex(dmcVoxel.x,
-                                              dmcVoxel.y,
-                                              dmcVoxel.z,
+                i0 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y, dmcVoxel.z,
                                               EDGE8, vertices);
-                i1 = _getSharedDualPointIndex(dmcVoxel.x,
-                                              dmcVoxel.y,
-                                              dmcVoxel.z - 1,
+                i1 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y, dmcVoxel.z - 1,
                                               EDGE11, vertices);
-                i2 = _getSharedDualPointIndex(dmcVoxel.x - 1,
-                                              dmcVoxel.y,
-                                              dmcVoxel.z - 1,
+                i2 = _getSharedDualPointIndex(dmcVoxel.x - 1, dmcVoxel.y, dmcVoxel.z - 1,
                                               EDGE10, vertices);
-                i3 = _getSharedDualPointIndex(dmcVoxel.x - 1,
-                                              dmcVoxel.y,
-                                              dmcVoxel.z,
+                i3 = _getSharedDualPointIndex(dmcVoxel.x - 1, dmcVoxel.y, dmcVoxel.z,
                                               EDGE9, vertices);
 
                 // Append this quad to the list based on the voxel
@@ -624,23 +598,14 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices,
             else if (dmcVoxel.side == DMC_EDGE_SIDE::Z)
             {
                 // Generate quad
-                i0 = _getSharedDualPointIndex(dmcVoxel.x,
-                                               dmcVoxel.y,
-                                               dmcVoxel.z,
-                                               EDGE3, vertices);
-                i1 = _getSharedDualPointIndex(dmcVoxel.x - 1,
-                                               dmcVoxel.y,
-                                               dmcVoxel.z,
-                                               EDGE1, vertices);
-                i2 = _getSharedDualPointIndex(dmcVoxel.x - 1,
-                                               dmcVoxel.y - 1,
-                                               dmcVoxel.z,
-                                               EDGE5, vertices);
-                i3 = _getSharedDualPointIndex(dmcVoxel.x,
-                                               dmcVoxel.y - 1,
-                                               dmcVoxel.z,
-                                               EDGE7,
-                                               vertices);
+                i0 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y, dmcVoxel.z,
+                                              EDGE3, vertices);
+                i1 = _getSharedDualPointIndex(dmcVoxel.x - 1, dmcVoxel.y, dmcVoxel.z,
+                                              EDGE1, vertices);
+                i2 = _getSharedDualPointIndex(dmcVoxel.x - 1, dmcVoxel.y - 1, dmcVoxel.z,
+                                              EDGE5, vertices);
+                i3 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y - 1, dmcVoxel.z,
+                                              EDGE7, vertices);
 
                 // Append this quad to the list based on the voxel
                 if (dmcVoxel.exiting)
@@ -719,14 +684,10 @@ void DualMarchingCubes::_buildSharedVerticesQuads(Vertices &vertices,
                     if (entering || exiting)
                     {
                         // Generate quad
-                        i0 = _getSharedDualPointIndex(x, y, z,
-                                                      EDGE0, vertices);
-                        i1 = _getSharedDualPointIndex(x, y, z - 1,
-                                                      EDGE2, vertices);
-                        i2 = _getSharedDualPointIndex(x, y - 1, z - 1,
-                                                      EDGE6, vertices);
-                        i3 = _getSharedDualPointIndex(x, y - 1, z,
-                                                      EDGE4, vertices);
+                        i0 = _getSharedDualPointIndex(x, y, z, EDGE0, vertices);
+                        i1 = _getSharedDualPointIndex(x, y, z - 1, EDGE2, vertices);
+                        i2 = _getSharedDualPointIndex(x, y - 1, z - 1, EDGE6, vertices);
+                        i3 = _getSharedDualPointIndex(x, y - 1, z, EDGE4, vertices);
 
                         if (entering)
                         {
@@ -754,14 +715,10 @@ void DualMarchingCubes::_buildSharedVerticesQuads(Vertices &vertices,
                     if (entering || exiting)
                     {
                         // Generate quad
-                        i0 = _getSharedDualPointIndex(x, y, z,
-                                                      EDGE8, vertices);
-                        i1 = _getSharedDualPointIndex(x, y, z - 1,
-                                                      EDGE11, vertices);
-                        i2 = _getSharedDualPointIndex(x - 1, y, z - 1,
-                                                      EDGE10, vertices);
-                        i3 = _getSharedDualPointIndex(x - 1, y, z,
-                                                      EDGE9, vertices);
+                        i0 = _getSharedDualPointIndex(x, y, z, EDGE8, vertices);
+                        i1 = _getSharedDualPointIndex(x, y, z - 1, EDGE11, vertices);
+                        i2 = _getSharedDualPointIndex(x - 1, y, z - 1, EDGE10, vertices);
+                        i3 = _getSharedDualPointIndex(x - 1, y, z, EDGE9, vertices);
 
                         if (exiting)
                         {
@@ -788,14 +745,10 @@ void DualMarchingCubes::_buildSharedVerticesQuads(Vertices &vertices,
                     if (entering || exiting)
                     {
                         // Generate quad
-                        i0 = _getSharedDualPointIndex(x, y, z,
-                                                      EDGE3, vertices);
-                        i1 = _getSharedDualPointIndex(x - 1, y, z,
-                                                      EDGE1, vertices);
-                        i2 = _getSharedDualPointIndex(x - 1, y - 1, z,
-                                                      EDGE5, vertices);
-                        i3 = _getSharedDualPointIndex(x, y - 1, z,
-                                                      EDGE7, vertices);
+                        i0 = _getSharedDualPointIndex(x, y, z, EDGE3, vertices);
+                        i1 = _getSharedDualPointIndex(x - 1, y, z, EDGE1, vertices);
+                        i2 = _getSharedDualPointIndex(x - 1, y - 1, z, EDGE5, vertices);
+                        i3 = _getSharedDualPointIndex(x, y - 1, z, EDGE7, vertices);
 
                         if (exiting)
                         {

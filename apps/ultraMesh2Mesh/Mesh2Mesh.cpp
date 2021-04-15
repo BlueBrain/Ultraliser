@@ -438,15 +438,15 @@ Options* parseArguments(Args* args)
     return options;
 }
 
-/*
-* @brief createMeshWithNoSelfIntersections
-* Process the two manifold mesh and create a watertight mesh using the AdvancedMesh processing.
-*
-* @param manifoldMesh
-* An input mesh that is guaranteed to be two-manifold but have some self intersections.
-* @param options
-* User-defined options given to the executable.
-*/
+/**
+ * @brief createMeshWithNoSelfIntersections
+ * Process the two manifold mesh and create a watertight mesh using the AdvancedMesh processing.
+ *
+ * @param manifoldMesh
+ * An input mesh that is guaranteed to be two-manifold but have some self intersections.
+ * @param options
+ * User-defined options given to the executable.
+ */
 void createMeshWithNoSelfIntersections(const Mesh* manifoldMesh, const Options* options)
 {
     // Create an advanced mesh to process the manifold mesh and make it watertight if it has any
