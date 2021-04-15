@@ -758,7 +758,7 @@ void exportOBJ(const std::string &prefix,
         LOG_ERROR("Cannot write mesh file [ %s ]", fileName.c_str());
     }
 
-    LOG_STATUS("Exporting Mesh : [ %s ]", fileName.c_str());
+    LOG_STATUS("Exporting OBJ Mesh : [ %s ]", fileName.c_str());
 
     // Start the time
     TIMER_SET;
@@ -818,7 +818,7 @@ void exportOFF(const std::string &prefix,
         LOG_ERROR("Cannot write mesh file [ %s ]", fileName.c_str());
     }
 
-    LOG_STATUS("Exporting Mesh : [ %s ]", fileName.c_str());
+    LOG_STATUS("Exporting OFF Mesh : [ %s ]", fileName.c_str());
 
     // Header
     outputStream << "OFF" << std::endl;
@@ -879,7 +879,7 @@ void exportSTL(const std::string &prefix,
         LOG_ERROR("Cannot write mesh file [ %s ]", fileName.c_str());
     }
 
-    LOG_STATUS("Exporting Mesh : [ %s ]", fileName.c_str());
+    LOG_STATUS("Exporting STL Mesh : [ %s ]", fileName.c_str());
 
     char headerInfo[80];
     std::strncpy(headerInfo, fileName.c_str(), sizeof(headerInfo) - 1);

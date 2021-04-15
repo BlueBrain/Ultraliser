@@ -723,31 +723,24 @@ void AdvancedMesh::init(const AdvancedTriangle* t0, const bool keepReferences)
 
 AdvancedMesh *AdvancedMesh::split()
 {
-    std::cout << "1 \n";
     if (_triangles.numberElements() == 0)
         return nullptr;
 
-    std::cout << "2 \n";
     // Deselect all the triangles
     deselectTriangles();
 
-    std::cout << "3 \n";
     // Get a list of all the triangles
     AdvancedTriangle* triangles = (AdvancedTriangle*) _triangles.head()->data;
 
-    std::cout << "4 \n";
     // Select the connected component
     selectConnectedComponent(triangles);
 
-    std::cout << "5 \n";
     // Create a new sub mesh from the original mesh
     AdvancedMesh* splitMesh = createSubMeshFromSelection(triangles);
 
-    std::cout << "6 \n";
     // Remove the selected mesh from the original mesh
     removeSelectedTriangles();
 
-    std::cout << "7 \n";
     // Return the split mesh
     return splitMesh;
 }
@@ -766,9 +759,7 @@ std::vector< AdvancedMesh* > AdvancedMesh::splitPartitions()
     while (_nShells > 1)
     {
         // Split and proceed
-        printf("before \n");
         partitions.push_back(split());
-        printf("after \n");
 
         // Update the mesh
         eulerUpdate();
