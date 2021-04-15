@@ -741,6 +741,28 @@ AdvancedMesh *AdvancedMesh::split()
     return splitMesh;
 }
 
+std::vector< AdvancedMesh* > AdvancedMesh::splitPartitions()
+{
+    // A list of all the partitions in the mesh
+    std::vector< AdvancedMesh* > partitions;
+
+    // Get the number of partitions
+    eulerUpdate();
+
+    // Ensure that the mesh has no partitions
+    while (_nShells > 1)
+    {
+        // Split and proceed
+        partitions.push_back(split());
+
+        // Update the mesh
+        eulerUpdate();
+    }
+
+    // Return a list of all the partitions
+    return partitions;
+}
+
 AdvancedMesh::~AdvancedMesh()
 {
     // Free the data

@@ -924,7 +924,9 @@ bool AdvancedMesh::strongDegeneracyRemoval(int maxIterations)
             growSelection();
 
         removeSelectedTriangles();
+
         removeSmallestComponents();
+
         fillHoles(_edges.numberElements(), false);
         coordBackApproximation();
     }

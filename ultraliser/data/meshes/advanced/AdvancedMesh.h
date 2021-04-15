@@ -1014,6 +1014,14 @@ public:
      */
      AdvancedMesh *split();
 
+     /**
+      * @brief splitPartitions
+      * Splits a mesh with more than one parition into a group of meshes for further processing.
+      * @return
+      * A list of all the mesh paritions, each of them is an independent mesh.
+      */
+     std::vector< AdvancedMesh* > splitPartitions();
+
     /**
      * @brief getRegion
      * Make a list of triangles within distance L from 'p'. O(output).
