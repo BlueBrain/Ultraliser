@@ -183,11 +183,6 @@ SectionGeometry::SectionGeometry(const Samples& samples, uint64_t numberOfSides,
     }
 }
 
-SectionGeometry::~SectionGeometry()
-{
-    
-}
-
 CrossSectionGeometry::CrossSectionGeometry(uint64_t numVertices)
     : numVertices(numVertices)
     , _position(Vector3f(0.0f, 0.0f, 0.0f))
@@ -241,7 +236,7 @@ void CrossSectionGeometry::setPosition(const Vector3f& position)
 void CrossSectionGeometry::setOrientation(const Vector3f& orientation)
 {
     const Quat4f q = Quat4f::fromTwoVectors(_orientation, orientation);
-    for (uint64_t i = 0; i < numVertices; i++)
+    for (uint64_t i = 0; i < numVertices; ++i)
     {
         vertices[i] = q.rotate(vertices[i] - _position) + _position;
     }
@@ -251,27 +246,34 @@ void CrossSectionGeometry::setOrientation(const Vector3f& orientation)
 void CrossSectionGeometry::setRadius(const float& radius)
 {
     const float radiusRatio = radius / _radius;
-    for (uint64_t i = 0; i < numVertices; i++)
+    for (uint64_t i = 0; i < numVertices; ++i)
     {
         vertices[i] = (vertices[i] - _position) * radiusRatio + _position;
     }
     _radius = radius;
 }
 
-void CrossSectionGeometry::setPositionOrientationRadius(
-    const Vector3f& position,
-    const Vector3f& orientation,
-    float radius)
+void CrossSectionGeometry::setPositionOrientationRadius(const Vector3f& position,
+                                                        const Vector3f& orientation,
+                                                        float radius)
 {
     const Quat4f q = Quat4f::fromTwoVectors(_orientation, orientation);
     const float radiusRatio = radius / _radius;
-    for (uint64_t i = 0; i < numVertices; i++)
+
+    for (uint64_t i = 0; i < numVertices; ++i)
     {
         vertices[i] = q.rotate(vertices[i] - _position) * radiusRatio + position;
     }
+
     _position = position;
     _orientation = orientation;
     _radius = radius;
 }
+
+SectionGeometry::~SectionGeometry()
+{
+    /// EMPTY
+}
+
 
 }

@@ -36,7 +36,6 @@ class CrossSectionGeometry;
  */
 class SectionGeometry
 {
-
 public:
 
     /**
@@ -110,7 +109,6 @@ public:
  */
 class CrossSectionGeometry
 {
-
 public:
 
     /**
@@ -221,8 +219,6 @@ private:
 
 public:
     ~CrossSectionGeometry(void);
-
-    
 };
 
 }
