@@ -763,6 +763,14 @@ std::vector< AdvancedMesh* > AdvancedMesh::splitPartitions()
     return partitions;
 }
 
+void AdvancedMesh::appendMeshes(std::vector< AdvancedMesh* > listMeshes)
+{
+    for (auto mesh : listMeshes)
+    {
+        append(mesh);
+    }
+}
+
 AdvancedMesh::~AdvancedMesh()
 {
     // Free the data

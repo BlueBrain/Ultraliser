@@ -438,7 +438,6 @@ Options* parseArguments(Args* args)
     return options;
 }
 
-
 /*
 * @brief createMeshWithNoSelfIntersections
 * Process the two manifold mesh and create a watertight mesh using the AdvancedMesh processing.
@@ -457,8 +456,17 @@ void createMeshWithNoSelfIntersections(const Mesh* manifoldMesh, const Options* 
             (manifoldMesh->getVertices(), manifoldMesh->getNumberVertices(),
              manifoldMesh->getTriangles(), manifoldMesh->getNumberTriangles());
 
+    std::vector < Ultraliser::AdvancedMesh* > partitions = toBeWatertightMesh->splitPartitions();
+
     // Ensures that the mesh is truly two-advanced with no self intersections
     toBeWatertightMesh->ensureWatertightness();
+
+    // Ensure watertightness for the rest of the partitions
+    for (auto mesh : partitions)
+        mesh->ensureWatertightness();
+
+    // Merge back after checking the watertightness
+    toBeWatertightMesh->appendMeshes(partitions);
 
     // Print the mesh statistcs
     if (options->writeStatistics)
@@ -493,10 +501,10 @@ void createMeshWithNoSelfIntersections(const Mesh* manifoldMesh, const Options* 
  * @param options
  * User-defined options given to the executable.
  */
-void optimizeMesh(Mesh *dmcMEsh, const Options* options)
+void optimizeMesh(Mesh *dmcMesh, const Options* options)
 {
     // Optimize the mesh adaptively
-    dmcMEsh->optimizeAdaptively(options->optimizationIterations, options->smoothingIterations,
+    dmcMesh->optimizeAdaptively(options->optimizationIterations, options->smoothingIterations,
                                 options->flatFactor, options->denseFactor);
 
     // Print the mesh statistcs
@@ -506,7 +514,7 @@ void optimizeMesh(Mesh *dmcMEsh, const Options* options)
         const std::string prefix = options->outputDirectory + "/" + STATISTIC_DIRECTORY +  "/";
 
         // Statistics
-        dmcMEsh->printMeshStats(OPTIMIZED_STRING, &prefix);
+        dmcMesh->printMeshStats(OPTIMIZED_STRING, &prefix);
     }
 
     // Export the mesh
@@ -517,7 +525,7 @@ void optimizeMesh(Mesh *dmcMEsh, const Options* options)
                 options->prefix + OPTIMIZED_SUFFIX;
 
         // Export
-        dmcMEsh->exportMesh(prefix,
+        dmcMesh->exportMesh(prefix,
                             options->exportOBJ, options->exportPLY,
                             options->exportOFF, options->exportSTL);
     }
@@ -525,7 +533,7 @@ void optimizeMesh(Mesh *dmcMEsh, const Options* options)
     // Fix self-intersections if any
     if (!options->ignoreSelfIntersections)
     {
-        createMeshWithNoSelfIntersections(dmcMEsh, options);
+        createMeshWithNoSelfIntersections(dmcMesh, options);
     }
 }
 

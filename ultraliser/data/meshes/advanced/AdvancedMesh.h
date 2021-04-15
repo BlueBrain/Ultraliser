@@ -1022,6 +1022,15 @@ public:
       */
      std::vector< AdvancedMesh* > splitPartitions();
 
+     /**
+      * @brief appendMeshes
+      * Appends a list of meshes to this mesh.
+      * @param listMeshes
+      * A list of meshes to be appended to this mesh.
+      */
+     void appendMeshes(std::vector< AdvancedMesh* > listMeshes);
+
+
     /**
      * @brief getRegion
      * Make a list of triangles within distance L from 'p'. O(output).

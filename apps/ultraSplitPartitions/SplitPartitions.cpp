@@ -318,7 +318,6 @@ int main(int argc , const char** argv)
     std::unique_ptr<Ultraliser::AdvancedMesh> inputMesh =
             std::make_unique<Ultraliser::AdvancedMesh>(options->inputMesh);
 
-    // inputMesh->removeSmallestComponents();
     std::vector < Ultraliser::AdvancedMesh* > partitions = inputMesh->splitPartitions();
 
     for (uint64_t i = 0; i < partitions.size(); ++i)
@@ -333,8 +332,20 @@ int main(int argc , const char** argv)
                                   options->exportSTL);
 
     }
+
     // Export the repaired mesh
     std::string filePrefix = options->outputPrefix + MANIFOLD_SUFFIX;
+    inputMesh->exportMesh(filePrefix,
+                          options->exportOBJ,
+                          options->exportPLY,
+                          options->exportOFF,
+                          options->exportSTL);
+
+    // Simply append all the partitions before saving the final mesh
+    inputMesh->appendMeshes(partitions);
+
+    // Export the repaired mesh
+    filePrefix = options->outputPrefix + "FULL" + MANIFOLD_SUFFIX;
     inputMesh->exportMesh(filePrefix,
                           options->exportOBJ,
                           options->exportPLY,
