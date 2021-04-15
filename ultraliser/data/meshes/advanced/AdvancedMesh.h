@@ -343,7 +343,7 @@ public:
      * ASCII STL
      * An ASCII STL file begins with the line
      *      solid name
-     * where name is optional string (though if name is omitted there must still be a space after solid).
+     * where name is optional string (though if name is omitted there must still be space after solid).
      * The file continues with any number of triangles, each represented as follows:
      *
      * facet normal ni nj nk

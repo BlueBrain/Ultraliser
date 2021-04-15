@@ -451,22 +451,26 @@ void createMeshWithNoSelfIntersections(const Mesh* manifoldMesh, const Options* 
 {
     // Create an advanced mesh to process the manifold mesh and make it watertight if it has any
     // self intersections
-    std::unique_ptr<Ultraliser::AdvancedMesh> toBeWatertightMesh =
-        std::make_unique<Ultraliser::AdvancedMesh>
+    Ultraliser::AdvancedMesh* toBeWatertightMesh = new
+        Ultraliser::AdvancedMesh
             (manifoldMesh->getVertices(), manifoldMesh->getNumberVertices(),
              manifoldMesh->getTriangles(), manifoldMesh->getNumberTriangles());
 
     std::vector < Ultraliser::AdvancedMesh* > partitions = toBeWatertightMesh->splitPartitions();
 
-    // Ensures that the mesh is truly two-advanced with no self intersections
-    toBeWatertightMesh->ensureWatertightness();
-
     // Ensure watertightness for the rest of the partitions
     for (auto mesh : partitions)
         mesh->ensureWatertightness();
 
+    // Ensures that the mesh is truly two-advanced with no self intersections
+    toBeWatertightMesh->ensureWatertightness();
+
     // Merge back after checking the watertightness
     toBeWatertightMesh->appendMeshes(partitions);
+
+    // Free
+    for (auto mesh : partitions)
+        mesh->~AdvancedMesh();
 
     // Print the mesh statistcs
     if (options->writeStatistics)
@@ -490,6 +494,9 @@ void createMeshWithNoSelfIntersections(const Mesh* manifoldMesh, const Options* 
                                        options->exportOBJ, options->exportPLY,
                                        options->exportOFF, options->exportSTL);
     }
+
+    // Free
+    toBeWatertightMesh->~AdvancedMesh();
 }
 
 /**

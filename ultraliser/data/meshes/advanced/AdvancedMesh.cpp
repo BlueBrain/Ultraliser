@@ -220,17 +220,21 @@ AdvancedMesh::AdvancedMesh(const Vertex *vertices,
     {
         TIMER_RESET;
         LOOP_STARTS("Cleaning Extended Data");
-
         for (uint64_t i = 0; i < numberVertices; ++i)
             delete(vertexList[i]);
         free(vertexList);
 
         LOOP_DONE;
         LOG_STATS(GET_TIME_SECONDS);
-    }
 
-    // Fix the connectivity, to reconstruct the topology
-    fixConnectivity();
+        // Fix the connectivity of the mesh
+        fixConnectivity();
+
+        // Update the data
+        eulerUpdate();
+
+        // _dBoundaries = _dHandles = _dShells = 1;
+    }
 
     LOG_STATUS_IMPORTANT("Building an Advanced Mesh Stats.");
     LOG_STATS(statsTimer.elapsedTimeInSeconds());
@@ -447,7 +451,7 @@ void AdvancedMesh::init(const AdvancedMesh *input, const bool cloneInfo)
     void **tInfo = new void *[input->_triangles.numberElements()];
     FOR_EACH_VT_TRIANGLE((&(input->_triangles)), iTriangle, iNode)
     {
-        tInfo[++i] = iTriangle->info;
+        tInfo[i++] = iTriangle->info;
     }
 
     // Edges
@@ -455,7 +459,7 @@ void AdvancedMesh::init(const AdvancedMesh *input, const bool cloneInfo)
     void **eInfo = new void *[input->_edges.numberElements()];
     FOR_EACH_VE_EDGE((&(input->_edges)), iEdge, iNode)
     {
-        eInfo[++i]=iEdge->info;
+        eInfo[i++]=iEdge->info;
     }
 
     // Vertices
@@ -463,7 +467,7 @@ void AdvancedMesh::init(const AdvancedMesh *input, const bool cloneInfo)
     void **vInfo = new void *[input->_vertices.numberElements()];
     FOR_EACH_VV_VERTEX((&(input->_vertices)), iVertex, iNode)
     {
-        vInfo[++i] = iVertex->info;
+        vInfo[i++] = iVertex->info;
     }
 
     FOR_EACH_VV_VERTEX((&(input->_vertices)), iVertex, iNode)
@@ -512,19 +516,19 @@ void AdvancedMesh::init(const AdvancedMesh *input, const bool cloneInfo)
     i = 0;
     FOR_EACH_VT_TRIANGLE((&(input->_triangles)), iTriangle, iNode)
     {
-        iTriangle->info=tInfo[++i];
+        iTriangle->info=tInfo[i++];
     }
 
     i = 0;
     FOR_EACH_VE_EDGE((&(input->_edges)), iEdge, iNode)
     {
-        iEdge->info=eInfo[++i];
+        iEdge->info=eInfo[i++];
     }
 
     i = 0;
     FOR_EACH_VV_VERTEX((&(input->_vertices)), iVertex, iNode)
     {
-        iVertex->info=vInfo[++i];
+        iVertex->info=vInfo[i++];
     }
 
     if (cloneInfo)
@@ -533,19 +537,19 @@ void AdvancedMesh::init(const AdvancedMesh *input, const bool cloneInfo)
 
         FOR_EACH_TRIANGLE(iTriangle, iNode)
         {
-            iTriangle->info=tInfo[++i];
+            iTriangle->info=tInfo[i++];
         }
 
         i = 0;
         FOR_EACH_EDGE(iEdge, iNode)
         {
-            iEdge->info=eInfo[++i];
+            iEdge->info=eInfo[i++];
         }
 
         i = 0;
         FOR_EACH_VERTEX(iVertex, iNode)
         {
-            iVertex->info=vInfo[++i];
+            iVertex->info=vInfo[i++];
         }
     }
 
@@ -719,30 +723,39 @@ void AdvancedMesh::init(const AdvancedTriangle* t0, const bool keepReferences)
 
 AdvancedMesh *AdvancedMesh::split()
 {
+    std::cout << "1 \n";
     if (_triangles.numberElements() == 0)
         return nullptr;
 
+    std::cout << "2 \n";
     // Deselect all the triangles
     deselectTriangles();
 
+    std::cout << "3 \n";
     // Get a list of all the triangles
     AdvancedTriangle* triangles = (AdvancedTriangle*) _triangles.head()->data;
 
+    std::cout << "4 \n";
     // Select the connected component
     selectConnectedComponent(triangles);
 
+    std::cout << "5 \n";
     // Create a new sub mesh from the original mesh
     AdvancedMesh* splitMesh = createSubMeshFromSelection(triangles);
 
+    std::cout << "6 \n";
     // Remove the selected mesh from the original mesh
     removeSelectedTriangles();
 
+    std::cout << "7 \n";
     // Return the split mesh
     return splitMesh;
 }
 
 std::vector< AdvancedMesh* > AdvancedMesh::splitPartitions()
 {
+    LOG_TITLE("Splitting Partitions");
+
     // A list of all the partitions in the mesh
     std::vector< AdvancedMesh* > partitions;
 
@@ -753,7 +766,9 @@ std::vector< AdvancedMesh* > AdvancedMesh::splitPartitions()
     while (_nShells > 1)
     {
         // Split and proceed
+        printf("before \n");
         partitions.push_back(split());
+        printf("after \n");
 
         // Update the mesh
         eulerUpdate();
@@ -1723,7 +1738,7 @@ AdvancedMesh *AdvancedMesh::createSubMeshFromSelection(AdvancedTriangle* selecti
         i = 0;
         FOR_EACH_VV_VERTEX((&listVertices), iVertex, iNode)
         {
-            vertexInfo[++i] = iVertex->info;
+            vertexInfo[i++] = iVertex->info;
         }
 
         edgeInfo = new void *[listEdges.numberElements()];
@@ -1732,7 +1747,7 @@ AdvancedMesh *AdvancedMesh::createSubMeshFromSelection(AdvancedTriangle* selecti
         i = 0;
         FOR_EACH_VE_EDGE((&listEdges), iEdge, iNode)
         {
-            edgeInfo[++i] = iEdge->info;
+            edgeInfo[i++] = iEdge->info;
         }
 
         // Triangle
@@ -1741,7 +1756,7 @@ AdvancedMesh *AdvancedMesh::createSubMeshFromSelection(AdvancedTriangle* selecti
         i = 0;
         FOR_EACH_VT_TRIANGLE((&listTriangles), iTriangle, iNode)
         {
-            triangleInfo[++i] = iTriangle->info;
+            triangleInfo[i++] = iTriangle->info;
         }
     }
 
@@ -1794,7 +1809,7 @@ AdvancedMesh *AdvancedMesh::createSubMeshFromSelection(AdvancedTriangle* selecti
     {
         FOR_EACH_VV_VERTEX((&listVertices), iVertex, iNode)
         {
-            iVertex->info = vertexInfo[++i];
+            iVertex->info = vertexInfo[i++];
         }
     }
 
@@ -1803,7 +1818,7 @@ AdvancedMesh *AdvancedMesh::createSubMeshFromSelection(AdvancedTriangle* selecti
     {
         FOR_EACH_VE_EDGE((&listEdges), iEdge, iNode)
         {
-            iEdge->info = edgeInfo[++i];
+            iEdge->info = edgeInfo[i++];
         }
     }
 
@@ -1812,7 +1827,7 @@ AdvancedMesh *AdvancedMesh::createSubMeshFromSelection(AdvancedTriangle* selecti
     {
         FOR_EACH_VT_TRIANGLE((&listTriangles), iTriangle, iNode)
         {
-            iTriangle->info = triangleInfo[++i];
+            iTriangle->info = triangleInfo[i++];
         }
     }
 
@@ -2825,17 +2840,17 @@ void AdvancedMesh::addNormalNoise(double ns)
         noise = ns*(((((double)rand()))-(((double) RAND_MAX) / 2.0f)) / ((double) RAND_MAX));
         np = (*v)+((v->getNormal())*noise);
 
-        xyz[++i] = np.x;
-        xyz[++i] = np.y;
-        xyz[++i] = np.z;
+        xyz[i++] = np.x;
+        xyz[i++] = np.y;
+        xyz[i++] = np.z;
     }
 
     i = 0;
     FOR_EACH_VERTEX(v, n)
     {
-        v->x = xyz[++i];
-        v->y = xyz[++i];
-        v->z = xyz[++i];
+        v->x = xyz[i++];
+        v->y = xyz[i++];
+        v->z = xyz[i++];
     }
 
     free(xyz);
