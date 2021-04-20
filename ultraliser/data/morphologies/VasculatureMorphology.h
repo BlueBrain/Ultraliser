@@ -23,8 +23,7 @@
 #ifndef ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_MORPHOLOGY_H
 #define ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_MORPHOLOGY_H
 
-#include <data/morphologies/Sample.h>
-#include <data/morphologies/Section.h>
+#include <data/morphologies/Morphology.h>
 #include <data/morphologies/VasculatureH5Sample.hh>
 #include <data/morphologies/VasculatureH5Section.hh>
 #include <data/morphologies/VasculatureH5Connectivity.hh>
@@ -32,7 +31,7 @@
 namespace Ultraliser
 {
 
-class VasculatureMorphology
+class VasculatureMorphology: public Morphology
 {
 public:
 
@@ -50,36 +49,6 @@ public:
                           const VasculatureH5Sections& h5Sections,
                           const VasculatureH5ConnectivityList& h5Connectivity);
 
-public:
-
-    /**
-     * @brief getSections
-     * @return Returns a reference to the list of sections in the morphology.
-     */
-    Sections getSections() const;
-
-    /**
-     * @brief getConnectedPathsFromParentsToChildren
-     * @param section
-     * @return
-     */
-    Paths getConnectedPathsFromParentsToChildren(const Section* section) const;
-
-    /**
-     * @brief getBoundingBox
-     * Returns the bounding box of the morphology.
-     * @param pMin
-     * The computed pMin of the bounding box.
-     * @param pMax
-     * The computed pMax of the bounding box.
-     * @param bounds
-     * The computed bounds of the bounding box.
-     * @param center
-     * The center of the bounding box.
-     */
-    void getBoundingBox(Vector3f& pMin, Vector3f& pMax,
-                        Vector3f& bounds, Vector3f &center);
-
 private:
 
     /**
@@ -94,13 +63,6 @@ private:
      * _h5Connectivity list.
      */
     void _connectSections();
-
-    /**
-     * @brief getConnectedSamplesFromParentToChild
-     * @return Returns a list of samples corresponding to each section in
-     * the morphology starting from the parents to the children.
-     */
-    std::vector< Samples > _getConnectedSamplesFromParentToChild() const;
 
 private:
 
@@ -121,28 +83,6 @@ private:
      * Morphology connectivity list as loaded from the .h5 morphology file.
      */
     const VasculatureH5ConnectivityList _h5Connectivity;
-
-    /**
-     * @brief _samples
-     * A list of all the actual samples of the morphology.
-     */
-    Samples _samples;
-
-    /**
-     * @brief _sections
-     * A list of all the actual sections of the morphology.
-     */
-    Sections _sections;
-
-    /**
-     * @brief _pMin
-     */
-    Vector3f _pMin;
-
-    /**
-     * @brief _pMax
-     */
-    Vector3f _pMax;
 };
 
 }
