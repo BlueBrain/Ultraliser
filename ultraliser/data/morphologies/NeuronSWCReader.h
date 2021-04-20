@@ -36,6 +36,12 @@ class NeuronSWCReader
 {
 public:
 
+    /**
+     * @brief NeuronSWCReader
+     * Constructor
+     * @param swcMorphologyFilePath
+     * The path to the morphology file.
+     */
     NeuronSWCReader(const std::string &swcMorphologyFilePath);
     
     ~NeuronSWCReader();

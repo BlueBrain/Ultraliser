@@ -44,8 +44,7 @@ NeuronSWCReader::~NeuronSWCReader()
 
 NeuronMorphology* NeuronSWCReader::getMorphology()
 {
-    NeuronMorphology* neuronMorphology =
-            new NeuronMorphology(_samples);
+    NeuronMorphology* neuronMorphology = new NeuronMorphology(_samples);
 
     // Return the pointer to the neuron morphology
     return neuronMorphology;
@@ -67,19 +66,25 @@ void NeuronSWCReader::_readSamples(const std::string &swcMorphologyFilePath)
         while(!swcFile.eof())
         {
             std::getline(swcFile, line);
+
             // Remove whitespaces at the beginning of the line 
             line.erase(0, line.find_first_not_of(" "));
-            if (line.empty() || line[0] == '#') continue;
+            if (line.empty() || line[0] == '#')
+                continue;
+
             NeuronSWCSample* sample = new NeuronSWCSample();
             int64_t parentId, type;
             std::stringstream sstr(line);
-            sstr >> sample->id >> type >> sample->x >> sample->y >> sample->z >>
-                    sample->r >> parentId;
-            if (type==1)
+            sstr >> sample->id >> type >>
+                    sample->x >> sample->y >> sample->z >> sample->r >> parentId;
+
+            if (type == 1)
                 sample->type = SWCSampleType::SOMA;
             else
                 sample->type = SWCSampleType::NEURITE;
+
             _samples.push_back(sample);
+
             samplesMap[sample->id] = sample;
             if (parentId >= 0)
             {
@@ -95,8 +100,7 @@ void NeuronSWCReader::_readSamples(const std::string &swcMorphologyFilePath)
     }
     catch(const std::exception&)
     {
-        LOG_WARNING("Unable to load an SWC morphology file [ %s ]",
-                    swcMorphologyFilePath.c_str());
+        LOG_WARNING("Unable to load an SWC morphology file [ %s ]", swcMorphologyFilePath.c_str());
     }
 }
 

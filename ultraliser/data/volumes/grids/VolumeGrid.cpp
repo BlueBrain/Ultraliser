@@ -482,10 +482,10 @@ void VolumeGrid::writeProjection(const std::string &prefix,
     }
 }
 void VolumeGrid::projectVolume(const std::string &prefix,
-                                  const bool &xyProjection,
-                                  const bool &xzProjection,
-                                  const bool &zyProjection,
-                                  const bool &colorCodedProjection)
+                               const bool &xyProjection,
+                               const bool &xzProjection,
+                               const bool &zyProjection,
+                               const bool &colorCodedProjection)
 {
     if (xyProjection || xzProjection || zyProjection)
     {

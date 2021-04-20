@@ -19,7 +19,6 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-
 #include "BitVolumeGrid.h"
 #include <algorithms/FloodFiller.h>
 #include <common/Common.h>

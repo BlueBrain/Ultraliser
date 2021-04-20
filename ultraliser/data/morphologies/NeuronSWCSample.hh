@@ -33,7 +33,7 @@ typedef enum SWCSampleType
 {
     SOMA,
     NEURITE
-}SWCSampleType;
+} SWCSampleType;
 
 /**
  * @brief The NeuronSWCSample struct
