@@ -135,7 +135,7 @@ private:
     /**
      * @brief _imageBuffer
      */
-    std::vector< uint32 > _imageBuffer;
+    std::vector< uint32_t > _imageBuffer;
 
     /**
      * @brief _imageWidth
@@ -150,7 +150,7 @@ private:
     /**
      * @brief _imageOrientation
      */
-    uint32 _imageOrientation;
+    uint32_t _imageOrientation;
 
     /**
      * @brief imageFile

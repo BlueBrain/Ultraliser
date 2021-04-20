@@ -64,7 +64,7 @@ uint32_t TiffImage::getCompressionOuput()
     return this->_compressionOutput;
 }
 
-uint32 rgbaFloatToInt(uint32 r, uint32 g, uint32 b, uint32 a)
+uint32_t rgbaFloatToInt(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
 {
 
     return a<<24 | b<<16 | g<<8 | r;
@@ -75,12 +75,12 @@ bool TiffImage::isPixelFilled(int32_t x, int32_t y)
 {
 #ifdef ULTRALISER_USE_TIFF
     int32 index = x + (_imageWidth * y);
-    uint32 value = _imageBuffer[I2UI32(index)];
+    uint32_t value = _imageBuffer[I2UI32(index)];
 
-    uint32 r = TIFFGetR(value);
-    uint32 g = TIFFGetG(value);
-    uint32 b = TIFFGetB(value);
-    uint32 a = TIFFGetA(value);
+    uint32_t r = TIFFGetR(value);
+    uint32_t g = TIFFGetG(value);
+    uint32_t b = TIFFGetB(value);
+    uint32_t a = TIFFGetA(value);
     if (r > 0 || g > 0 || b > 0)
         return true;
     return false;
@@ -107,7 +107,7 @@ void TiffImage::readImage()
         TIFFGetField(tiffImage, TIFFTAG_ORIENTATION, &_imageOrientation);
 
         numberPixels = _imageWidth * _imageHeight;
-        raster = static_cast< uint32* >
+        raster = static_cast< uint32_t* >
                 (_TIFFmalloc(I2UI32(numberPixels) * sizeof (uint32_t)));
 
         if (raster != nullptr)
@@ -118,7 +118,7 @@ void TiffImage::readImage()
             {
                 // Process raster data
                 // Write data in vector member so we can do with it what we want
-                uint32 *rasterPrint = raster;
+                uint32_t *rasterPrint = raster;
                 for ( int32_t n = 0; n < numberPixels; ++n)
                 {
                     uint32_t r, g, b, a;
@@ -127,7 +127,7 @@ void TiffImage::readImage()
                     b = TIFFGetB(*rasterPrint);
                     a = TIFFGetA(*rasterPrint);
 
-                    uint32 value;
+                    uint32_t value;
                     if (r > 0 || g > 0 || b > 0)
                     {
                         value = rgbaFloatToInt(255,255,255,255);
@@ -273,7 +273,7 @@ std::string TiffImage::subtractHex(const std::string &hexValue)
     std::string subtractedHex;
     std::stringstream stringStream;
 
-    for (int64 i = I2I64(hexValue.length()) - 1; i >= 0 ; --i)
+    for (int64_t i = I2I64(hexValue.length()) - 1; i >= 0 ; --i)
     {
         // Get hex value when we subtract two other hex values
         uint64_t posHexWhite = this->_hexadecimal.find(hexWhite[I2UI64(i)]);
