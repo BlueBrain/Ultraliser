@@ -329,6 +329,12 @@ Options* parseArguments(Args* args)
                 "Export the output mesh to an .STL file.");
     args->addArgument(&exportSTL);
 
+    Argument preservePartitions(
+                "--preserve-partitions",
+                ARGUMENT_TYPE::BOOL,
+                "Keeps all the partitions of the mesh in the optimized one.");
+    args->addArgument(&preservePartitions);
+
     Argument writeStatistics(
                 "--stats",
                 ARGUMENT_TYPE::BOOL,
@@ -374,7 +380,7 @@ Options* parseArguments(Args* args)
     options->projectColorCoded = args->getBoolValue(&projectColorCoded);
     options->stackXY = args->getBoolValue(&stackXY);
     options->stackXZ = args->getBoolValue(&stackXZ);
-
+    options->preservePartitions = args->getBoolValue(&preservePartitions);
     options->stackZY = args->getBoolValue(&stackZY);
     options->prefix = args->getStringValue(&prefix);
     options->writeStatistics = args->getBoolValue(&writeStatistics);
@@ -456,21 +462,31 @@ void createMeshWithNoSelfIntersections(const Mesh* manifoldMesh, const Options* 
             (manifoldMesh->getVertices(), manifoldMesh->getNumberVertices(),
              manifoldMesh->getTriangles(), manifoldMesh->getNumberTriangles());
 
-    std::vector < Ultraliser::AdvancedMesh* > partitions = toBeWatertightMesh->splitPartitions();
+    if (options->preservePartitions)
+    {
+        // Split the mesh into partitions
+        std::vector < Ultraliser::AdvancedMesh* > partitions =
+                toBeWatertightMesh->splitPartitions();
 
-    // Ensure watertightness for the rest of the partitions
-    for (auto mesh : partitions)
-        mesh->ensureWatertightness();
+        // Ensure watertightness for the rest of the partitions
+        for (auto mesh : partitions)
+            mesh->ensureWatertightness();
 
-    // Ensures that the mesh is truly two-advanced with no self intersections
-    toBeWatertightMesh->ensureWatertightness();
+        // Ensures that the mesh is truly two-manifold with no self intersections
+        toBeWatertightMesh->ensureWatertightness();
 
-    // Merge back after checking the watertightness
-    toBeWatertightMesh->appendMeshes(partitions);
+        // Merge back after checking the watertightness
+        toBeWatertightMesh->appendMeshes(partitions);
 
-    // Free
-    for (auto mesh : partitions)
-        mesh->~AdvancedMesh();
+        // Free
+        for (auto mesh : partitions)
+            mesh->~AdvancedMesh();
+    }
+    else
+    {
+        // Ensures that the mesh is truly two-advanced with no self intersections
+        toBeWatertightMesh->ensureWatertightness();
+    }
 
     // Print the mesh statistcs
     if (options->writeStatistics)

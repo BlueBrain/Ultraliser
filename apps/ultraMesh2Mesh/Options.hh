@@ -217,6 +217,12 @@ struct Options
     bool exportSTL;
 
     /**
+     * @brief preservePartitions
+     * Keeps all the mesh partitions in the optimized mesh.
+     */
+    bool preservePartitions;
+
+    /**
      * @brief prefix
      * Just a prefix that will be used to label the output files. If this
      * is not given by the user, the name of the mesh file will be used.
