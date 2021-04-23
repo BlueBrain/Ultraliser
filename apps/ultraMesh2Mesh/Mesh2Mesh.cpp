@@ -202,6 +202,13 @@ Options* parseArguments(Args* args)
                 "Create an NRRD volume that is compatible with VTK.");
     args->addArgument(&writeNRRDVolume);
 
+    Argument exportVolumeMesh(
+                "--export-volume-mesh",
+                ARGUMENT_TYPE::BOOL,
+                "Export a mesh that represents the volume where each voxel will "
+                "be represented by a cube.");
+    args->addArgument(&exportVolumeMesh);
+
     Argument writeByteVolume(
                 "--write-byte-volume",
                 ARGUMENT_TYPE::BOOL,
@@ -374,6 +381,7 @@ Options* parseArguments(Args* args)
     options->exportPLY = args->getBoolValue(&exportPLY);
     options->exportOFF = args->getBoolValue(&exportOFF);
     options->exportSTL = args->getBoolValue(&exportSTL);
+    options->exportVolumeMesh = args->getBoolValue(&exportVolumeMesh);
     options->projectXY = args->getBoolValue(&projectXY);
     options->projectXZ = args->getBoolValue(&projectXZ);
     options->projectZY = args->getBoolValue(&projectZY);
@@ -698,6 +706,18 @@ void runMesh2Mesh(int argc , const char** argv)
     if (options->useSolidVoxelization)
     {
         volume->solidVoxelization(options->VoxelizationAxis);
+    }
+
+    if (options->exportVolumeMesh)
+    {
+        // Prefix
+        const std::string prefix =
+                options->outputDirectory + "/" + MESHES_DIRECTORY +  "/" + options->prefix;
+
+        // Export the mesh
+        volume->exportToMesh(prefix, options->exportOBJ, options->exportPLY,
+                             options->exportOFF, options->exportSTL);
+
     }
 
     // Projecting the volume to validate its content

@@ -140,6 +140,12 @@ struct Options
     bool writeNRRDVolume;
 
     /**
+     * @brief exportVolumeMesh
+     * Export a mesh that represents the volume where each voxel will be represented by a cube.
+     */
+    bool exportVolumeMesh;
+
+    /**
      * @brief reconstructMesh
      * Reconstruct a watertight mesh from the generated volume.
      */

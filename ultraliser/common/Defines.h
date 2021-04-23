@@ -87,6 +87,7 @@
 #define OPTIMIZED_SUFFIX                        STRING("-optimized")
 #define MANIFOLD_SUFFIX                         STRING("-advanced")
 #define WATERTIGHT_SUFFIX                       STRING("-watertight")
+#define VOLUME_MESH_SUFFIX                      STRING("-volume-mesh")
 #define PROJECTION_SUFFIX                       STRING("-projection")
 #define XY_SUFFIX                               STRING("-xy")
 #define XZ_SUFFIX                               STRING("-xz")

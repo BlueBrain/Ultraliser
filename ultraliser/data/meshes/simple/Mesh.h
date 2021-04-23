@@ -88,6 +88,7 @@ public:
      */
     Mesh* instanciate(const uint64_t &numVertices,
                       const uint64_t &numTriangles);
+
     /**
      * @brief getVertices
      * @return

@@ -117,10 +117,10 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
  * @param numberTriangles
  */
 void exportOBJ(const std::string &prefix,
-                 const Vertex* vertices,
-                 const uint64_t &numberVertices,
-                 const Triangle* triangles,
-                 const uint64_t &numberTriangles);
+               const Vertex* vertices,
+               const uint64_t &numberVertices,
+               const Triangle* triangles,
+               const uint64_t &numberTriangles);
 
 /**
  * @brief exportToOFF
@@ -131,10 +131,10 @@ void exportOBJ(const std::string &prefix,
  * @param numberTriangles
  */
 void exportOFF(const std::string &prefix,
-                 const Vertex* vertices,
-                 const uint64_t &numberVertices,
-                 const Triangle* triangles,
-                 const uint64_t &numberTriangles);
+               const Vertex* vertices,
+               const uint64_t &numberVertices,
+               const Triangle* triangles,
+               const uint64_t &numberTriangles);
 
 /**
  * @brief exportToSTL
@@ -145,10 +145,10 @@ void exportOFF(const std::string &prefix,
  * @param numberTriangles
  */
 void exportSTL(const std::string &prefix,
-                 const Vertex *vertices,
-                 const uint64_t &numberVertices,
-                 const Triangle* triangles,
-                 const uint64_t &numberTriangles);
+               const Vertex *vertices,
+               const uint64_t &numberVertices,
+               const Triangle* triangles,
+               const uint64_t &numberTriangles);
 
 /**
  * @brief exportPLY

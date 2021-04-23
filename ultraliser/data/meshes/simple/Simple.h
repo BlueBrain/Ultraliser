@@ -27,6 +27,7 @@
 #include <data/meshes/simple/MeshOperations.h>
 #include <data/meshes/simple/TriangleOperations.h>
 #include <data/meshes/simple/NeighbourTriangle.h>
+#include <data/meshes/simple/VolumeMesh.h>
 #include <data/meshes/simple/UnitCube.h>
 
 #endif // ULTRALISER_DATA_MESH_SIMPLE_H

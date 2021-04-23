@@ -84,13 +84,6 @@ void BBox(const std::vector< Vector3f > & points,
  */
 bool pInside(const Vector3f& pMin, const Vector3f& pMax, const Vector3f& p);
 
-/**
- * @brief makeCube
- * @param mesh
- * @param pMin
- * @param pMax
- */
-//void makeCube(OriginalMesh& mesh, const Vector3f& pMin, const Vector3f& pMax);
 
 /**
  * @brief isNbr

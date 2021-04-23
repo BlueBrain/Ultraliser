@@ -39,17 +39,17 @@ UnitCube::UnitCube(const float scale)
 
     // Build the triangles
     _triangles[0] = Triangle(0, 3, 1);
-    _triangles[0] = Triangle(1, 3, 2);
-    _triangles[0] = Triangle(5, 4, 0);
-    _triangles[0] = Triangle(5, 0, 1);
-    _triangles[0] = Triangle(6, 5, 1);
-    _triangles[0] = Triangle(1, 2, 6);
-    _triangles[0] = Triangle(3, 6, 2);
-    _triangles[0] = Triangle(3, 7, 6);
-    _triangles[0] = Triangle(4, 3, 0);
-    _triangles[0] = Triangle(4, 7, 3);
-    _triangles[0] = Triangle(7, 4, 5);
-    _triangles[0] = Triangle(7, 5, 6);
+    _triangles[1] = Triangle(1, 3, 2);
+    _triangles[2] = Triangle(5, 4, 0);
+    _triangles[3] = Triangle(5, 0, 1);
+    _triangles[4] = Triangle(6, 5, 1);
+    _triangles[5] = Triangle(1, 2, 6);
+    _triangles[6] = Triangle(3, 6, 2);
+    _triangles[7] = Triangle(3, 7, 6);
+    _triangles[8] = Triangle(4, 3, 0);
+    _triangles[9] = Triangle(4, 7, 3);
+    _triangles[10] = Triangle(7, 4, 5);
+    _triangles[11] = Triangle(7, 5, 6);
 }
 
 Vertex* UnitCube::getVertices()

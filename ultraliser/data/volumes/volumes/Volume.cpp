@@ -32,19 +32,11 @@
 #include "../grids/ByteVolumeGrid.h"
 #include "../grids/VoxelGrid.h"
 #include <data/volumes/grids/Grids.h>
+#include <data/meshes/simple/VolumeMesh.h>
+#include <data/meshes/simple/MeshOperations.h>
 
 namespace Ultraliser
 {
-
-/**
- * @brief Voxel::cube
- */
-// OriginalMesh Volume::_boundingBox;
-
-/**
- * @brief UNIT_CUBE
- */
-// extern OriginalMesh UNIT_CUBE;
 
 Volume::Volume(const Vector3f& pMin,
                const Vector3f& pMax,
@@ -1154,52 +1146,94 @@ void Volume::writeStacks(const std::string &outputDirectory,
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Volume::saveToObjMesh(const std::string &prefix)
+void Volume::exportToMesh(const std::string &prefix,
+                          const bool &formatOBJ, const bool &formatPLY,
+                          const bool &formatOFF, const bool &formatSTL)
 {
-//    // A mesh representing the bounding box of the volume
-//    OriginalMesh boundingBoxMesh;
+    if (!(formatOBJ || formatPLY || formatOFF || formatSTL))
+    {
+        LOG_WARNING("Exporto mesh option must be enabled to export this mesh. "
+                    "User one of the following: "
+                    "[--export-obj, --export-ply, --export-off, --export-stl]");
+        return;
+    }
 
-//    // The generated mesh from the volume
-//    OriginalMesh volumeMesh;
+    TIMER_SET;
+    LOG_TITLE("Constructing Volume Mesh");
 
-//    // Delta value
-//    const Vector3f delta(1, 1, 1);
+    // The generated mesh from the volume
+    std::unique_ptr< VolumeMesh > volumeMesh = std::make_unique< VolumeMesh >();
 
-//    for (int64_t i = 0; i <  _grid->getWidth(); ++i)
-//    {
-//        for (int64_t j = 0; j < _grid->getHeight(); ++j)
-//        {
-//            for (int64_t k = 0; k < _grid->getDepth(); ++k)
-//            {
-//                if (_grid->isEmpty(i, j, k))
-//                    continue;
+    // Delta value
+    const Vector3f delta(1, 1, 1);
+    LOOP_STARTS("Searching Filled Voxels")
+    for (int64_t i = 0; i <  _grid->getWidth(); ++i)
+    {
+        LOOP_PROGRESS(i, _grid->getWidth());
 
-//                Vector3f coordinate(0.5f + i, 0.5f + j, 0.5f + k);
-//                Vector3f pMin = _voxelResolution *
-//                                (coordinate - 0.5f * delta) + _meshOrigin;
-//                Vector3f bMax = _voxelResolution *
-//                                (coordinate + 0.5f * delta) + _meshOrigin;
+        for (int64_t j = 0; j < _grid->getHeight(); ++j)
+        {
+            for (int64_t k = 0; k < _grid->getDepth(); ++k)
+            {
+                // Skip empty voxels
+                if (_grid->isEmpty(i, j, k))
+                    continue;
 
-//                // Just make a cube around
-//                Utilities::makeCube(boundingBoxMesh, pMin, bMax);
+                Vector3f coordinate(0.5f + i, 0.5f + j, 0.5f + k);
+                Vector3f pMin = _baseResolution * (coordinate - 0.5f * delta) + _meshOrigin;
+                Vector3f pMax = _baseResolution * (coordinate + 0.5f * delta) + _meshOrigin;
 
-//                volumeMesh.append(boundingBoxMesh);
-//            }
-//        }
-//    }
+                // A mesh representing the bounding box of the cube
+                VolumeMesh* voxelCube = VolumeMesh::constructVoxelCube(pMin, pMax);
 
-//    // Export the volume to an .OBJ mesh
-//    volumeMesh.exportMesh(prefix, true, false);
+                // Append it to the volume mesh
+                volumeMesh->append(voxelCube);
+
+                // Free the voxel cube
+                voxelCube->~VolumeMesh();
+            }
+        }
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    LOG_STATUS_IMPORTANT("Volume Mesh Construction Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
+
+    LOG_TITLE("Exporting Volume Mesh");
+    TIMER_RESET;
+    const std::string outputPrefix = prefix + VOLUME_MESH_SUFFIX;
+    if (formatOBJ)
+    {
+        exportOBJ(outputPrefix,
+                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
+                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+    }
+
+    if (formatPLY)
+    {
+        exportPLY(outputPrefix,
+                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
+                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+    }
+
+    if (formatSTL)
+    {
+        exportSTL(outputPrefix,
+                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
+                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+    }
+
+    if (formatOFF)
+    {
+        exportOFF(outputPrefix,
+                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
+                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+    }
+
+    LOG_STATUS_IMPORTANT("Exporting Volume Mesh Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
 }
-
-//void Volume::printBenchmarks(OriginalMesh* mesh) const
-//{
-//    LOG_INFO("\tStats. [ %s ]: [%zu] Triangles, "
-//             "Surface: [%2.2f] Seconds \n",
-//             mesh->getMeshName().c_str(),
-//             mesh->triangles.size(),
-//             _surfaceVoxelizationTime);
-//}
 
 uint8_t Volume::getByte(const uint64_t index) const
 {

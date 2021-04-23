@@ -115,19 +115,6 @@ bool pInside(const Vector3f& pMin, const Vector3f& pMax, const Vector3f& p)
     return true;
 }
 
-//void makeCube(OriginalMesh& mesh, const Vector3f& pMin, const Vector3f& pMax)
-//{
-//    Vector3f diagonal = pMax - pMin;
-//    Matrix3f transform = Matrix3f::identity();
-
-//    for (int32_t i = 0; i < DIMENSIONS; ++i)
-//        transform(i, i) = diagonal[i];
-
-//    mesh = UNIT_CUBE;
-//    for (size_t i = 0; i < mesh.vertices.size(); ++i)
-//        mesh.vertices[i] = pMin + transform * mesh.vertices[i];
-//}
-
 bool isNbr(const Vec3i_64& a, const Vec3i_64& b, int64_t vert)
 {
     for (int32_t i = 0; i < DIMENSIONS; ++i)

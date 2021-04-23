@@ -197,10 +197,14 @@ public:
     void solidVoxelization(const SOLID_VOXELIZATION_AXIS& axis=X);
 
     /**
-     * @brief saveToObjMesh
+     * @brief exportToMesh
      * @param prefix
      */
-    void saveToObjMesh(const std::string &prefix);
+    void exportToMesh(const std::string &prefix,
+                      const bool &formatOBJ = false,
+                      const bool &formatPLY = false,
+                      const bool &formatOFF = false,
+                      const bool &formatSTL = false);
 
     /**
      * @brief writeStackXY
