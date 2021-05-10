@@ -1805,6 +1805,7 @@ void Mesh::refine()
         }
     }
     LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     // A counter for adding new faces or triangles
     int64_t triangleNumber = refinedMesh->_numberTriangles;
@@ -1882,7 +1883,7 @@ void Mesh::refine()
     createNeighbourList();
 
     // Statistics
-    LOG_STATS(GET_TIME_SECONDS);
+    // LOG_STATS(GET_TIME_SECONDS);
 }
 
 bool Mesh::coarse(const float& coarseRate,
@@ -2429,18 +2430,14 @@ void Mesh::optimizeAdaptively(const uint64_t &optimizationIterations,
     // Starting the timer
     TIMER_SET;
 
-    // Optimization, if required
-    for (uint64_t i = 0; i < optimizationIterations; ++i)
-    {
-        // Coarse flat
-        coarseFlat(flatFactor);
+    // Coarse flat
+    coarseFlat(flatFactor, optimizationIterations);
 
-        // Coarse dense
-        coarseDense(denseFactor);
+    // Coarse dense
+    coarseDense(denseFactor, optimizationIterations);
 
-        // Smooth normals
-        smoothNormals();
-    }
+    // Smooth normals
+    smoothNormals();
 
     // Smooth
     smooth(15, 150, smoothingIterations);
@@ -2456,8 +2453,9 @@ void Mesh::optimizeAdaptively(const uint64_t &optimizationIterations,
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Mesh::optimize(const int64_t &smoothingIterations,
-                    const float& smoothingFactor)
+void Mesh::optimize(const uint64_t &optimizationIterations,
+                    const int64_t &smoothingIterations,
+                    const float& denseFactor)
 {
     LOG_TITLE("Mesh Optimization");
 
@@ -2465,12 +2463,13 @@ void Mesh::optimize(const int64_t &smoothingIterations,
     TIMER_SET;
 
     // Remove the unnecessary vertices in multiple iterations
-    coarseDense(smoothingFactor, smoothingIterations);
+    coarseDense(denseFactor, optimizationIterations);
 
     // Smooth the normals
     smoothNormals();
 
-    smooth(60, 60, smoothingIterations);
+    // Smoothing the surface
+    smooth(15, 150, smoothingIterations);
 
     // Smooth the normals again
     smoothNormals();

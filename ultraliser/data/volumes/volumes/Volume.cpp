@@ -1166,6 +1166,7 @@ void Volume::exportToMesh(const std::string &prefix,
 
     // Delta value
     const Vector3f delta(1, 1, 1);
+
     LOOP_STARTS("Searching Filled Voxels")
     for (int64_t i = 0; i <  _grid->getWidth(); ++i)
     {

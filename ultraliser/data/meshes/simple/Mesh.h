@@ -379,10 +379,11 @@ public:
     /**
      * @brief optimize
      * @param smoothingIterations
-     * @param smoothingFactor
+     * @param denseFactor
      */
-    void optimize(const int64_t &smoothingIterations,
-                  const float& smoothingFactor);
+    void optimize(const uint64_t &optimizationIterations,
+                  const int64_t &smoothingIterations,
+                  const float& denseFactor);
 
     /**
      * @brief optimizeAdaptively

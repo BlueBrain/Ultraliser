@@ -21,6 +21,7 @@
  **************************************************************************************************/
 
 #include "Morphology.h"
+#include <utilities/Utilities.h>
 
 namespace Ultraliser
 {
@@ -195,12 +196,106 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section)
 void Morphology::getBoundingBox(Vector3f& pMin,
                                 Vector3f& pMax,
                                 Vector3f& bounds,
-                                Vector3f& center)
+                                Vector3f& center) const
 {
     pMin = _pMin;
     pMax = _pMax;
     bounds = _pMax - _pMin;
     center = _pMin + (0.5f * bounds);
+}
+
+float Morphology::computeTotalLength() const
+{
+    auto length = 0.f;
+    for (const auto section: _sections)
+    {
+        length += section->computeLength();
+    }
+    return length;
+}
+
+float Morphology::computeTotalSurfaceArea() const
+{
+    auto area = 0.f;
+    for (const auto section: _sections)
+    {
+        area += section->computeSurfaceArea();
+    }
+    return area;
+}
+
+float Morphology::computeTotalVolume() const
+{
+    auto volume = 0.f;
+    for (const auto section: _sections)
+    {
+        volume += section->computeVolume();
+    }
+    return volume;
+}
+
+void Morphology::printMorphologyStats(const std::string &reference, const std::string *prefix) const
+{
+    LOG_TITLE("Morphology Statistics");
+
+    LOG_STATUS("Collecting Stats.");
+
+    // Write the distributions
+    const float length = computeTotalLength();
+    const float area = computeTotalSurfaceArea();
+    const float volume = computeTotalVolume();
+
+    Vector3f pMin, pMax, bounds, center;
+    getBoundingBox(pMin, pMax, bounds, center);
+
+    // Write the statistics to a file
+    if (prefix != nullptr)
+    {
+        // Create the file
+        std::string fileName = *prefix + "-" + reference + MORPHOLOGY_INFO_EXTENSION;
+        LOG_STATUS("Writing Info. [ %s ] \n", fileName.c_str());
+
+        FILE* info = fopen(fileName.c_str(), "w");
+        fprintf(info, "Stats. [ %s ] \n", reference.c_str());
+
+        fprintf(info, "\t* Bounding Box:         | [%f, %f, %f] \n",
+                F2D(bounds.x()), F2D(bounds.y()), F2D(bounds.z()));
+        fprintf(info, "\t* pMin:                 | [%f, %f, %f] \n",
+                F2D(pMin.x()), F2D(pMin.y()), F2D(pMin.z()));
+        fprintf(info, "\t* pMax:                 | [%f, %f, %f] \n",
+                F2D(pMax.x()), F2D(pMax.y()), F2D(pMax.z()));
+        fprintf(info, "\t* Morphology Length     | %f \n",
+                F2D(length));
+        fprintf(info, "\t* Number Samples        | %s \n",
+                FORMAT(_samples.size()));
+        fprintf(info, "\t* Number Sections       | %s \n",
+                FORMAT(_sections.size()));
+        fprintf(info, "\t* Surface Area          | %f² \n",
+                F2D(area));
+        fprintf(info, "\t* Volume                | %f³ \n",
+                F2D(volume));
+
+        // Close the file
+        fclose(info);
+    }
+
+    LOG_STATUS_IMPORTANT("Mesh Stats. [ %s ]", reference.c_str());
+    LOG_INFO("\t* Bounding Box:         | [%f, %f, %f]",
+             F2D(bounds.x()), F2D(bounds.y()), F2D(bounds.z()));
+    LOG_INFO("\t* pMin:                 | [%f, %f, %f]",
+             F2D(pMin.x()), F2D(pMin.y()), F2D(pMin.z()));
+    LOG_INFO("\t* pMax:                 | [%f, %f, %f]",
+             F2D(pMax.x()), F2D(pMax.y()), F2D(pMax.z()));
+    LOG_INFO("\t* Morphology Length     | %f",
+             F2D(length));
+    LOG_INFO("\t* Number Samples        | %s",
+             FORMAT(_samples.size()));
+    LOG_INFO("\t* Number Sections       | %s",
+             FORMAT(_sections.size()));
+    LOG_INFO("\t* Surface Area          | %f²",
+             F2D(area));
+    LOG_INFO("\t* Volume                | %f³",
+             F2D(volume));
 }
 
 }

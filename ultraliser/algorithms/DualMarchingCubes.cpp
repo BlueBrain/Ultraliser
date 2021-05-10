@@ -231,8 +231,7 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     if (I2UI32(pointCode) & EDGE0)
     {
         p.x() += (_isoValue - _volume->getValue(x, y, z)) /
-                (_volume->getValue(x + 1, y, z) -
-                 _volume->getValue(x, y, z));
+                (_volume->getValue(x + 1, y, z) - _volume->getValue(x, y, z));
         points++;
     }
 
@@ -240,16 +239,14 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     {
         p.x() += 1.0f;
         p.z() += (_isoValue - _volume->getValue(x + 1, y, z)) /
-                (_volume->getValue(x + 1, y, z + 1) -
-                 _volume->getValue(x + 1, y, z));
+                (_volume->getValue(x + 1, y, z + 1) - _volume->getValue(x + 1, y, z));
         points++;
     }
 
     if (I2UI32(pointCode) & EDGE2)
     {
         p.x() += (_isoValue - _volume->getValue(x, y, z + 1)) /
-                (_volume->getValue(x + 1, y, z + 1) -
-                 _volume->getValue(x, y, z + 1));
+                (_volume->getValue(x + 1, y, z + 1) - _volume->getValue(x, y, z + 1));
         p.z() += 1.0f;
         points++;
     }
@@ -257,16 +254,14 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     if (I2UI32(pointCode) & EDGE3)
     {
         p.z() += (_isoValue - _volume->getValue(x, y, z)) /
-                (_volume->getValue(x, y, z + 1) -
-                 _volume->getValue(x, y, z));
+                (_volume->getValue(x, y, z + 1) - _volume->getValue(x, y, z));
         points++;
     }
 
     if (I2UI32(pointCode) & EDGE4)
     {
         p.x() += (_isoValue - _volume->getValue(x, y + 1, z)) /
-                (_volume->getValue(x + 1, y + 1, z) -
-                 _volume->getValue(x, y + 1, z));
+                (_volume->getValue(x + 1, y + 1, z) - _volume->getValue(x, y + 1, z));
         p.y() += 1.0f;
         points++;
     }
@@ -275,8 +270,7 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     {
         p.x() += 1.0f;
         p.z() += (_isoValue - _volume->getValue(x + 1, y + 1, z)) /
-                (_volume->getValue(x + 1, y + 1, z + 1) -
-                 _volume->getValue(x + 1, y + 1, z));
+                (_volume->getValue(x + 1, y + 1, z + 1) - _volume->getValue(x + 1, y + 1, z));
         p.y() += 1.0f;
         points++;
     }
@@ -284,8 +278,7 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     if (I2UI32(pointCode) & EDGE6)
     {
         p.x() += (_isoValue - _volume->getValue(x, y + 1, z + 1)) /
-                (_volume->getValue(x + 1, y + 1, z + 1) -
-                 _volume->getValue(x, y + 1, z + 1));
+                (_volume->getValue(x + 1, y + 1, z + 1) - _volume->getValue(x, y + 1, z + 1));
         p.z() += 1.0f;
         p.y() += 1.0f;
         points++;
@@ -294,8 +287,7 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     if (I2UI32(pointCode) & EDGE7)
     {
         p.z() += (_isoValue - _volume->getValue(x, y + 1 , z)) /
-                (_volume->getValue(x, y + 1, z + 1) -
-                 _volume->getValue(x, y + 1 , z));
+                (_volume->getValue(x, y + 1, z + 1) - _volume->getValue(x, y + 1 , z));
         p.y() += 1.0f;
         points++;
     }
@@ -303,8 +295,7 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     if (I2UI32(pointCode) & EDGE8)
     {
         p.y() += (_isoValue - _volume->getValue(x, y, z)) /
-                (_volume->getValue(x, y + 1, z) -
-                 _volume->getValue(x, y, z));
+                (_volume->getValue(x, y + 1, z) - _volume->getValue(x, y, z));
         points++;
     }
 
@@ -312,8 +303,7 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     {
         p.x() += 1.0f;
         p.y() += (_isoValue - _volume->getValue(x + 1, y, z)) /
-                (_volume->getValue(x + 1, y + 1, z) -
-                 _volume->getValue(x + 1, y, z));
+                (_volume->getValue(x + 1, y + 1, z) - _volume->getValue(x + 1, y, z));
         points++;
     }
 
@@ -321,8 +311,7 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     {
         p.x() += 1.0f;
         p.y() += (_isoValue - _volume->getValue(x + 1, y, z + 1)) /
-                (_volume->getValue(x + 1, y + 1, z + 1) -
-                 _volume->getValue(x + 1, y, z + 1));
+                (_volume->getValue(x + 1, y + 1, z + 1) - _volume->getValue(x + 1, y, z + 1));
         p.z() += 1.0f;
         points++;
     }
@@ -331,8 +320,7 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     {
         p.z() += 1.0f;
         p.y() += (_isoValue - _volume->getValue(x, y, z + 1)) /
-                (_volume->getValue(x, y + 1, z + 1) -
-                 _volume->getValue(x, y, z + 1));
+                (_volume->getValue(x, y + 1, z + 1) - _volume->getValue(x, y, z + 1));
         points++;
     }
 
@@ -378,8 +366,7 @@ int64_t DualMarchingCubes::_getSharedDualPointIndex(
 
 bool DualPointKey::operator==(DualPointKey const & other) const
 {
-    return (linearizedCellID == other.linearizedCellID &&
-            pointCode == other.pointCode);
+    return (linearizedCellID == other.linearizedCellID && pointCode == other.pointCode);
 }
 
 void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Triangles &triangles)

@@ -481,7 +481,8 @@ int main(int argc , const char** argv)
         prefix = options->outputPrefix + OPTIMIZED_SUFFIX;
 
         // Optimize the mesh using the default parameters
-        generatedMesh->optimize(options->smoothingIterations,
+        generatedMesh->optimize(1,
+                                options->smoothingIterations,
                                 options->smoothingFactor);
 
         if (options->writeStatistics)

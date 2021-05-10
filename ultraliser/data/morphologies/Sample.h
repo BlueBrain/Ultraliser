@@ -81,7 +81,7 @@ private:
  * @brief Samples
  * A list of samples.
  */
-typedef std::vector<Sample*> Samples;
+typedef std::vector< Sample* > Samples;
 
 /**
  * @brief Paths

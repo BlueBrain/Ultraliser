@@ -162,8 +162,7 @@ MeshStatistics::computeTriangleRadiusRatioDistribution() const
     return distribution;
 }
 
-std::vector< float >
-MeshStatistics::computeTriangleEdgeRatioDistribution() const
+std::vector< float > MeshStatistics::computeTriangleEdgeRatioDistribution() const
 {
     std::vector< float > distribution;
     distribution.resize(_numberTriangles);
@@ -201,8 +200,7 @@ MeshStatistics::computeTriangleEdgeRatioDistribution() const
     return distribution;
 }
 
-std::vector< float >
-MeshStatistics::computeTriangleRadiusToEdgeRatioDistribution() const
+std::vector< float > MeshStatistics::computeTriangleRadiusToEdgeRatioDistribution() const
 {
     std::vector< float > distribution;
     distribution.resize(_numberTriangles);

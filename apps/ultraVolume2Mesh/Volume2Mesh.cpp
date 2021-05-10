@@ -353,7 +353,10 @@ int main(int argc , const char** argv)
     if (options->optimizeMesh)
     {
         // Optimize
-        mesh->optimize(options->smoothingIterations,
+        mesh->optimize(1,
+
+
+                       options->smoothingIterations,
                        options->smoothingFactor);
 
         // Export the original mesh

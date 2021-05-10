@@ -48,6 +48,9 @@ add_subdirectory(ultraCleanMesh)
 # ultraSplitPartitions
 add_subdirectory(ultraSplitPartitions)
 
+# ultraMesh2Mesh
+add_subdirectory(ultraMeshQualityChecker)
+
 # ultraVasculatureMorphology2Mesh
 if(${ULTRALISER_USE_H5})
     add_subdirectory(ultraVasculatureMorphology2Mesh)

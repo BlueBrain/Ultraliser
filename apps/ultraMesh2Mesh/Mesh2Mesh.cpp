@@ -247,8 +247,14 @@ Options* parseArguments(Args* args)
     Argument optimizeMesh(
                 "--optimize-mesh",
                 ARGUMENT_TYPE::BOOL,
-                "Optimize the reconstructed mesh.");
+                "Optimize the reconstructed mesh using the default optimization strategy.");
     args->addArgument(&optimizeMesh);
+
+    Argument adaptiveOptimization(
+                "--adaptive-optimization",
+                ARGUMENT_TYPE::BOOL,
+                "Optimize the reconstructed mesh using the adaptive optimization strategy.");
+    args->addArgument(&adaptiveOptimization);
 
     Argument optimizationIterations(
                 "--optimization-iterations",
@@ -262,9 +268,9 @@ Options* parseArguments(Args* args)
     Argument smoothingIterations(
                 "--smooth-iterations",
                 ARGUMENT_TYPE::INTEGER,
-                "Number of iterations to smooth the reconstructed mesh, default 5.",
+                "Number of iterations to smooth the reconstructed mesh, default 1.",
                 ARGUMENT_PRESENCE::OPTIONAL,
-                "5");
+                "1");
     args->addArgument(&smoothingIterations);
 
     Argument flatFactor(
@@ -280,7 +286,7 @@ Options* parseArguments(Args* args)
                 ARGUMENT_TYPE::FLOAT,
                 "A factor that is used for the coarseDense function, default value is 4.0.",
                 ARGUMENT_PRESENCE::OPTIONAL,
-                "4.0");
+                "5.0");
     args->addArgument(&denseFactor);
 
     Argument laplacianFilter(
@@ -311,6 +317,13 @@ Options* parseArguments(Args* args)
                 ARGUMENT_TYPE::BOOL,
                 "Ignore the resulting mesh from the DMC operation.");
     args->addArgument(&ignoreDMCMesh);
+
+    Argument ignoreOptimizedNonWatertightMesh(
+                "--ignore-optimized-non-watertight-mesh",
+                ARGUMENT_TYPE::BOOL,
+                "Ignore the resulting mesh from the optimization process without removing self "
+                "intersections.");
+    args->addArgument(&ignoreOptimizedNonWatertightMesh);
 
     Argument exportOBJ(
                 "--export-obj",
@@ -370,6 +383,7 @@ Options* parseArguments(Args* args)
             Volume::getSolidVoxelizationAxis(args->getStringValue(&VoxelizationAxis));
     options->volumeType = args->getStringValue(&volumeType);
     options->optimizeMesh = args->getBoolValue(&optimizeMesh);
+    options->optimizeMeshAdaptively = args->getBoolValue(&adaptiveOptimization);
     options->smoothingIterations = args->getUnsignedIntegrValue(&smoothingIterations);
     options->optimizationIterations = args->getUnsignedIntegrValue(&optimizationIterations);
     options->smoothingIterations = args->getUnsignedIntegrValue(&smoothingIterations);
@@ -377,6 +391,7 @@ Options* parseArguments(Args* args)
     options->denseFactor = args->getFloatValue(&denseFactor);
     options->ignoreDMCMesh = args->getBoolValue(&ignoreDMCMesh);
     options->ignoreSelfIntersections = args->getBoolValue(&ignoreSelfIntersections);
+    options->ignoreOptimizedNonWatertightMesh = args->getBoolValue(&ignoreOptimizedNonWatertightMesh);
     options->exportOBJ = args->getBoolValue(&exportOBJ);
     options->exportPLY = args->getBoolValue(&exportPLY);
     options->exportOFF = args->getBoolValue(&exportOFF);
@@ -500,7 +515,8 @@ void createMeshWithNoSelfIntersections(const Mesh* manifoldMesh, const Options* 
     if (options->writeStatistics)
     {
         // Prefix
-        const std::string prefix = options->outputDirectory + "/" + STATISTIC_DIRECTORY  + "/";
+        const std::string prefix = options->outputDirectory + "/" + STATISTIC_DIRECTORY  + "/" +
+                options->prefix;
 
         // Statistics
         toBeWatertightMesh->printMeshStats(WATERTIGHT_STRING, &prefix);
@@ -534,31 +550,51 @@ void createMeshWithNoSelfIntersections(const Mesh* manifoldMesh, const Options* 
  */
 void optimizeMesh(Mesh *dmcMesh, const Options* options)
 {
-    // Optimize the mesh adaptively
-    dmcMesh->optimizeAdaptively(options->optimizationIterations, options->smoothingIterations,
-                                options->flatFactor, options->denseFactor);
-
-    // Print the mesh statistcs
-    if (options->writeStatistics)
+    // Further adaptive optimization
+    if (options->optimizeMeshAdaptively)
     {
-        // Prefix
-        const std::string prefix = options->outputDirectory + "/" + STATISTIC_DIRECTORY +  "/";
+        dmcMesh->optimizeAdaptively(options->optimizationIterations, options->smoothingIterations,
+                                    options->flatFactor, options->denseFactor);
 
-        // Statistics
-        dmcMesh->printMeshStats(OPTIMIZED_STRING, &prefix);
+        dmcMesh->smooth();
+        dmcMesh->smoothNormals();
+    }
+    else
+    {
+        // Default optimization
+        if (options->optimizeMesh)
+        {
+            dmcMesh->optimize(options->optimizationIterations,
+                              options->smoothingIterations,
+                              options->denseFactor);
+        }
     }
 
-    // Export the mesh
-    if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
+    if (!options->ignoreOptimizedNonWatertightMesh)
     {
-        // Prefix
-        const std::string prefix = options->outputDirectory + "/" + MESHES_DIRECTORY + "/" +
-                options->prefix + OPTIMIZED_SUFFIX;
+        // Print the mesh statistcs
+        if (options->writeStatistics)
+        {
+            // Prefix
+            const std::string prefix = options->outputDirectory + "/" + STATISTIC_DIRECTORY + "/" +
+                    options->prefix;
 
-        // Export
-        dmcMesh->exportMesh(prefix,
-                            options->exportOBJ, options->exportPLY,
-                            options->exportOFF, options->exportSTL);
+            // Statistics
+            dmcMesh->printMeshStats(OPTIMIZED_STRING, &prefix);
+        }
+
+        // Export the mesh
+        if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
+        {
+            // Prefix
+            const std::string prefix = options->outputDirectory + "/" + MESHES_DIRECTORY + "/" +
+                    options->prefix + OPTIMIZED_SUFFIX;
+
+            // Export
+            dmcMesh->exportMesh(prefix,
+                                options->exportOBJ, options->exportPLY,
+                                options->exportOFF, options->exportSTL);
+        }
     }
 
     // Fix self-intersections if any
@@ -776,6 +812,9 @@ void runMesh2Mesh(int argc , const char** argv)
     // Generate the mesh using the DMC algorithm
     Mesh* generatedMesh = dmc->generateMesh();
 
+    // Scane and translate the generated mesh to fit the origin mesh
+    scaleAndTranslateGeneratedMesh(generatedMesh, inputCenter, inputBB);
+
     // Free the volume
     volume->~Volume();
 
@@ -811,7 +850,7 @@ void runMesh2Mesh(int argc , const char** argv)
     scaleAndTranslateGeneratedMesh(generatedMesh, inputCenter, inputBB);
 
     // Optimize the mesh
-    if (options->optimizeMesh)
+    if (options->optimizeMesh || options->optimizeMeshAdaptively)
     {
         optimizeMesh(generatedMesh, options);
     }

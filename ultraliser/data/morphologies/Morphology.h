@@ -72,8 +72,41 @@ public:
      * @param center
      * The center of the bounding box.
      */
-    void getBoundingBox(Vector3f& pMin, Vector3f& pMax,
-                        Vector3f& bounds, Vector3f &center);
+    void getBoundingBox(Vector3f& pMin, Vector3f& pMax, Vector3f& bounds, Vector3f &center) const;
+
+    /**
+     * @brief computeTotalLength
+     * Computes the total length of the morphology.
+     * @return
+     * The total length of the morphology.
+     */
+    float computeTotalLength() const;
+
+    /**
+     * @brief computeTotalSurfaceArea
+     * Computes the total surface area of the morphology.
+     * @return
+     * The total surface area of the morphology.
+     */
+    float computeTotalSurfaceArea() const;
+
+    /**
+     * @brief computeTotalVolume
+     * Computes the total volume of the morphology.
+     * @return
+     * The total volume of the morphology.
+     */
+    float computeTotalVolume() const;
+
+    /**
+     * @brief printMorphologyStats
+     * Prints the morphology stats.
+     * @param reference
+     * Reference string for the morphology.
+     * @param prefix
+     * File prefix.
+     */
+    void printMorphologyStats(const std::string &reference, const std::string *prefix) const;
 
 protected:
 

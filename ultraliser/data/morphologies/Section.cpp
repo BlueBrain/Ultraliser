@@ -21,6 +21,7 @@
  **************************************************************************************************/
 
 #include "Section.h"
+#include "MorphologyOpertions.h"
 
 namespace Ultraliser
 {
@@ -65,5 +66,36 @@ std::vector< uint64_t > Section::getChildrenIndices() const
 {
     return _childrenIndices;
 }
+
+float Section::computeLength() const
+{
+    auto sectionLength = 0.f;
+    for (uint64_t i = 0; i < _samples.size() - 1; ++i)
+    {
+        sectionLength += computeSegmentLength(_samples[i], _samples[i + 1]);
+    }
+    return sectionLength;
+}
+
+float Section::computeSurfaceArea() const
+{
+    auto sectionSurfaceArea = 0.f;
+    for (uint64_t i = 0; i < _samples.size() - 1; ++i)
+    {
+        sectionSurfaceArea += computeSegmentSurfaceArea(_samples[i], _samples[i + 1]);
+    }
+    return sectionSurfaceArea;
+}
+
+float Section::computeVolume() const
+{
+    auto sectionVolume = 0.f;
+    for (uint64_t i = 0; i < _samples.size() - 1; ++i)
+    {
+        sectionVolume += computeSegmentVolume(_samples[i], _samples[i + 1]);
+    }
+    return sectionVolume;
+}
+
 
 }

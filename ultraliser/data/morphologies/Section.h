@@ -96,6 +96,30 @@ public:
      */
     std::vector< uint64_t > getChildrenIndices() const;
 
+    /**
+     * @brief computeLength
+     * Computes the length of the section.
+     * @return
+     * The length of the section.
+     */
+    float computeLength() const;
+
+    /**
+     * @brief computeSurfaceArea
+     * Computes the surface area of the section.
+     * @return
+     * The surface area of the section.
+     */
+    float computeSurfaceArea() const;
+
+    /**
+     * @brief computeVolume
+     * Computes the volume of the section.
+     * @return
+     * The volume of the section.
+     */
+    float computeVolume() const;
+
 private:
 
     /**

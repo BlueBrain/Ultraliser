@@ -343,6 +343,9 @@ int run(int argc , const char** argv)
     vasculatureMorphology->getBoundingBox(pMinInput, pMaxInput,
                                           boundsInput, centerInput);
 
+    if (options->writeStatistics)
+        vasculatureMorphology->printMorphologyStats("Morphology", &options->outputPrefix);
+
     // Extend the bounding box a little bit to avoid edge issues
     Vector3f inputBB = pMaxInput - pMinInput;
     Vector3f inputCenter = pMinInput + 0.5 * ( pMaxInput - pMinInput);

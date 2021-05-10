@@ -21,6 +21,9 @@
  **************************************************************************************************/
 
 #include "VasculatureMorphology.h"
+#include <common/Common.h>
+#include <utilities/Utilities.h>
+#include <utilities/TypeConversion.h>
 
 namespace Ultraliser
 {
@@ -48,9 +51,7 @@ void VasculatureMorphology::_constructSections()
     for (auto h5Sample : _h5Samples)
     {
         Ultraliser::Vector3f position(h5Sample.x, h5Sample.y, h5Sample.z);
-        Sample* sample = new Sample(Ultraliser::Vector3f(h5Sample.x,
-                                                         h5Sample.y,
-                                                         h5Sample.z),
+        Sample* sample = new Sample(Ultraliser::Vector3f(h5Sample.x, h5Sample.y, h5Sample.z),
                                     h5Sample.r * 0.5f);
         _samples.push_back(sample);
 
@@ -72,8 +73,7 @@ void VasculatureMorphology::_constructSections()
         Section* section = new Section(i);
 
         // The initial sample always stays the same
-        const uint64_t startingSampleIndex =
-                I2UI64(_h5Sections[i].firstSampleIndex);
+        const uint64_t startingSampleIndex = I2UI64(_h5Sections[i].firstSampleIndex);
 
         // The last sample is different
         uint64_t endSampleIndex;
@@ -96,16 +96,12 @@ void VasculatureMorphology::_connectSections()
     for (uint64_t i = 0; i < _h5Connectivity.size(); ++i)
     {
         // Get the parent section and add to it the index of a child section
-        Section* parentSection = _sections[
-                I2UI64(_h5Connectivity[i].parentSectionIndex)];
-        parentSection->addChildIndex(
-                    I2UI64(_h5Connectivity[i].childSectionIndex));
+        Section* parentSection = _sections[I2UI64(_h5Connectivity[i].parentSectionIndex)];
+        parentSection->addChildIndex(I2UI64(_h5Connectivity[i].childSectionIndex));
 
         // Get the child section and add to it the index of a parent section
-        Section* childSection = _sections[
-                I2UI64(_h5Connectivity[i].childSectionIndex)];
-        childSection->addParentIndex(
-                    I2UI64(_h5Connectivity[i].parentSectionIndex));
+        Section* childSection = _sections[I2UI64(_h5Connectivity[i].childSectionIndex)];
+        childSection->addParentIndex(I2UI64(_h5Connectivity[i].parentSectionIndex));
     }
 }
 

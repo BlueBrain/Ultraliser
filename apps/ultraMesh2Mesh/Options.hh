@@ -165,10 +165,15 @@ struct Options
 
     /**
      * @brief optimizeMesh
-     * Optimize the reconstructed mesh. The reconstruct mesh flag must be set
-     * for this option to work.
+     * Optimize the reconstructed mesh using the default optimization strategy.
      */
     bool optimizeMesh;
+
+    /**
+     * @brief optimizeMeshAdaptively
+     * Optimize the mesh using the adaptive optimization strategy.
+     */
+    bool optimizeMeshAdaptively;
 
     /**
      * @brief optimizationIterations
@@ -261,6 +266,12 @@ struct Options
      * Ignore if the mesh has self intersections, and do NOT repair them.
      */
     bool ignoreSelfIntersections;
+
+    /**
+     * @brief ignoreOptimizedNonWatertightMesh
+     * Ignores writing the optimized mesh that is not watertight.
+     */
+    bool ignoreOptimizedNonWatertightMesh;
 };
 
 #endif // OPTIONS_HH
