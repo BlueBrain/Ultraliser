@@ -99,6 +99,113 @@ public:
     float computeTotalVolume() const;
 
     /**
+     * @brief computeNumberSegments
+     * Computes the numbers of segments in the morphology.
+     * @return
+     * The number of segments in the morphology.
+     */
+    uint64_t computeNumberSegments() const;
+
+    /**
+     * @brief computeMinMaxAvgSampleRadius
+     * Computes the minimum, maximum and average sample radius in the morphology.
+     * @param minSampleRadius
+     * Returned minimum sample radius.
+     * @param maxSampleRadius
+     * Returned maximum sample radius.
+     * @param avgSampleRadius
+     * Returned average sample radius.
+     */
+    void computeMinMaxAvgSampleRadius(float& minSampleRadius,
+                                      float& maxSampleRadius,
+                                      float& avgSampleRadius) const;
+
+    /**
+     * @brief computeMinMaxAvgSegmentLength
+     * Computes the minimum, maximum and average segment length in the morphology.
+     * @param minSegmentLength
+     * Resulting minimum segment length.
+     * @param maxSegmentLength
+     * Resulting maximum segment length.
+     * @param avgSegmentLength
+     * Resulting average segment length.
+     */
+    void computeMinMaxAvgSegmentLength(float& minSegmentLength,
+                                       float& maxSegmentLength,
+                                       float& avgSegmentLength) const;
+
+    /**
+     * @brief computeMinMaxAvgSegmentSurfaceArea
+     * Computes the minimum, maximum and average segments surface areas.
+     * @param minSegmentSurfaceArea
+     * Resulting minimum segment surface area.
+     * @param maxSegmentSurfaceArea
+     * Resulting maximum segment surface area.
+     * @param avgSegmentSurfaceArea
+     * Resulting average segment surface area.
+     */
+    void computeMinMaxAvgSegmentSurfaceArea(float& minSegmentSurfaceArea,
+                                            float& maxSegmentSurfaceArea,
+                                            float& avgSegmentSurfaceArea) const;
+
+    /**
+     * @brief computeMinMaxAvgSegmentVolume
+     * Computes the minimum, maximum and average segments volumes.
+     * @param minSegmentVolume
+     * Resulting minimum segment volume.
+     * @param maxSegmentVolume
+     * Resulting maximum segment volume.
+     * @param avgSegmentVolume
+     * Resulting average segment volume.
+     */
+    void computeMinMaxAvgSegmentVolume(float& minSegmentVolume,
+                                       float& maxSegmentVolume,
+                                       float& avgSegmentVolume) const;
+
+    /**
+     * @brief computeMinMaxAvgSectionLength
+     * Computes the minimum, maximum and average segment length in the morphology.
+     * @param minSectionLength
+     * Resulting minimum section length.
+     * @param maxSectionLength
+     * Resulting maximum section length.
+     * @param avgSectionLength
+     * Resulting average section length.
+     */
+    void computeMinMaxAvgSectionLength(float& minSectionLength,
+                                       float& maxSectionLength,
+                                       float& avgSectionLength) const;
+
+    /**
+     * @brief computeMinMaxAvgSectionSurfaceArea
+     * omputes the minimum, maximum and average sections surface areas.
+     * @param minSectionSurfaceArea
+     * Resulting minimum section surface area.
+     * @param maxSectionSurfaceArea
+     * Resulting maximum section surface area.
+     * @param avgSectionSurfaceArea
+     * Resulting average section surface area.
+     */
+    void computeMinMaxAvgSectionSurfaceArea(float& minSectionSurfaceArea,
+                                            float& maxSectionSurfaceArea,
+                                            float& avgSectionSurfaceArea) const;
+
+    /**
+     * @brief computeMinMaxAvgSectionVolume
+     * Computes the minimum, maximum and average sections volumes.
+     * @param minSectionVolume
+     * Resulting minimum section volume.
+     * @param maxSectionVolume
+     * Resulting maximum  section volume.
+     * @param avgSectionVolume
+     * Resulting average section volume.
+     */
+    void computeMinMaxAvgSectionVolume(float& minSectionVolume,
+                                       float& maxSectionVolume,
+                                       float& avgSectionVolume) const;
+
+
+    /**
      * @brief printMorphologyStats
      * Prints the morphology stats.
      * @param reference

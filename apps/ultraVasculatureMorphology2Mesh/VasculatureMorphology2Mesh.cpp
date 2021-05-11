@@ -305,6 +305,31 @@ Options* parseArguments(Args* args)
     return options;
 }
 
+VasculatureMorphology* readVascularMorphology(std::string morphologyFilePath)
+{
+
+    if (String::subStringFound(morphologyFilePath, std::string(".h5")) ||
+            String::subStringFound(morphologyFilePath, std::string(".H5")))
+    {
+        // Read the file
+        auto reader = std::make_unique<VasculatureH5Reader>(morphologyFilePath);
+
+        // Get a pointer to the morphology to start using it
+        return reader->getMorphology();
+    }
+    else if (String::subStringFound(morphologyFilePath, std::string(".vmv")) ||
+             String::subStringFound(morphologyFilePath, std::string(".VMV")))
+    {
+        // Read the file
+        auto reader = std::make_unique<VasculatureVMVReader>(morphologyFilePath);
+
+        // Get a pointer to the morphology to start using it
+        return reader->getMorphology();
+    }
+    else
+        LOG_ERROR("Unrecognized file format");
+}
+
 /**
  * @brief run
  * Entry function to run the tool.
@@ -333,10 +358,7 @@ int run(int argc , const char** argv)
     auto options = parseArguments(&args);
 
     // Read the file
-    auto h5Reader = std::make_unique<VasculatureH5Reader>(options->inputMorphology);
-
-    // Get a pointer to the morphology to start using it
-    auto vasculatureMorphology = h5Reader->getMorphology();
+    auto vasculatureMorphology = readVascularMorphology(options->inputMorphology);
 
     // Get relaxed bounding box to build the volume
     Vector3f pMinInput, pMaxInput, boundsInput, centerInput;

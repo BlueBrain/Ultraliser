@@ -85,21 +85,17 @@ std::string formatStringToMultiLine(const std::string &input,
                                     const uint64_t limit = 60,
                                     const bool &aligned = false);
 
-
-
-
-
-
 bool sameString(char *a, char *b);
 
 bool sameString(std::string s1, std::string s2);
 
-
-
-// Swap endian-ness for four-byte elements
-
-void endianSwapLong(unsigned char *p);
-// Read one line (max 1024 chars) and exit if EOF
+/**
+ * @brief removeExtraSpaces
+ * Removes extra spaces from a given string.
+ * @param inputString
+ * String to be cleaned.
+ */
+void removeExtraSpaces(std::string &inputString);
 
 }
 }

@@ -112,9 +112,7 @@ void Volume::_allocateGrid()
     {
     case VolumeGrid::TYPE::BIT:
     {
-        _grid = new BitVolumeGrid(_gridDimensions.v[0],
-                                  _gridDimensions.v[1],
-                                  _gridDimensions.v[2]);
+        _grid = new BitVolumeGrid(_gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
         break;
     }
     case VolumeGrid::TYPE::BYTE:
@@ -127,9 +125,7 @@ void Volume::_allocateGrid()
 
     case VolumeGrid::TYPE::VOXEL:
     {
-        _grid = new VoxelGrid(_gridDimensions.v[0],
-                              _gridDimensions.v[1],
-                              _gridDimensions.v[2]);
+        _grid = new VoxelGrid(_gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
         break;
     }
     }
@@ -141,24 +137,24 @@ void Volume::_createGrid(void)
     Vector3f bbox = _pMax - _pMin;
     Vector3f delta;
 
-    if (isZero(_voxelPadding))
-    {
-        // If the resolution is greater than 64, use 2.5% padding
-        if (_baseResolution > 64)
-            delta = bbox * 0.025f;
+//    if (isZero(_voxelPadding))
+//    {
+//        // If the resolution is greater than 64, use 2.5% padding
+//        if (_baseResolution > 64)
+//            delta = bbox * 0.025f;
 
-        // Otherwise, use 10%
-        else
-            delta = bbox * 0.25f;
-    }
+//        // Otherwise, use 10%
+//        else
+//            delta = bbox * 0.25f;
+//    }
 
-    // Use the specified voxel padding
-    else
-        delta = bbox * _voxelPadding;
+//    // Use the specified voxel padding
+//    else
+//        delta = bbox * _voxelPadding;
 
-    // Increment the bounding box
-    _pMax += delta;
-    _pMin -= delta;
+//    // Increment the bounding box
+//    _pMax += delta;
+//    _pMin -= delta;
 
     // Compute the bounding box size
     Vector3f boundingBoxSize = (_pMax - _pMin);
@@ -168,8 +164,7 @@ void Volume::_createGrid(void)
     _largestDimensionIdx = getLargestDimension(boundingBoxSize);
 
     // Compute the voxel size
-    _voxelSize = (boundingBoxSize[_largestDimensionIdx]) /
-            I2F(_baseResolution);
+    _voxelSize = (boundingBoxSize[_largestDimensionIdx]) / I2F(_baseResolution);
 
     int64_t width = D2I64(std::ceil(boundingBoxSize[0] / _voxelSize));
     int64_t height = D2I64(std::ceil(boundingBoxSize[1] / _voxelSize));
@@ -277,10 +272,8 @@ void Volume::surfaceVoxelizeVasculatureMorphology(
 
         LOOP_PROGRESS(processedSections, sections.size());
 
-        //
-        Paths paths =
-                vasculatureMorphology->getConnectedPathsFromParentsToChildren(
-                    sections[i]);
+        // Construct the paths
+        Paths paths = vasculatureMorphology->getConnectedPathsFromParentsToChildren(sections[i]);
         for (uint64_t j = 0; j < paths.size(); ++j)
         {
             auto mesh = new Ultraliser::Mesh(paths[j]);

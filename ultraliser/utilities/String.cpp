@@ -131,6 +131,24 @@ bool sameString(std::string s1, std::string s2)
     return (a[i] == '\0' && b[i] == '\0');
 }
 
+
+bool areBothSpaces(char lhs, char rhs)
+{
+    return (lhs == rhs) && (lhs == ' ');
+}
+
+void removeExtraSpaces(std::string &inputString)
+{
+    // Replace all the = with spaces for generality
+    std::replace(inputString.begin(), inputString.end(), '=', ' ');
+
+    // Replace multiple spaces with a single one
+    std::string::iterator newEnd = std::unique(inputString.begin(),
+                                               inputString.end(),
+                                               areBothSpaces);
+    inputString.erase(newEnd, inputString.end());
+}
+
 }
 }
 

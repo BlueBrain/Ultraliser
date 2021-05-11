@@ -55,8 +55,8 @@ void VasculatureMorphology::_constructSections()
                                     h5Sample.r * 0.5f);
         _samples.push_back(sample);
 
-        Vector3f pMaxSample = position + Vector3f(h5Sample.r * 0.5);
-        Vector3f pMinSample = position - Vector3f(h5Sample.r * 0.5);
+        Vector3f pMaxSample = position + Vector3f(h5Sample.r * 0.5f);
+        Vector3f pMinSample = position - Vector3f(h5Sample.r * 0.5f);
 
         if (pMaxSample.x() > _pMax.x()) _pMax.x() = pMaxSample.x();
         if (pMaxSample.y() > _pMax.y()) _pMax.y() = pMaxSample.y();
@@ -102,6 +102,34 @@ void VasculatureMorphology::_connectSections()
         // Get the child section and add to it the index of a parent section
         Section* childSection = _sections[I2UI64(_h5Connectivity[i].childSectionIndex)];
         childSection->addParentIndex(I2UI64(_h5Connectivity[i].parentSectionIndex));
+    }
+}
+
+VasculatureMorphology::VasculatureMorphology(Samples samples, Sections sections)
+{
+    _samples = samples;
+    _sections = sections;
+
+    // Bounding box data
+    _pMin = Vector3f(std::numeric_limits<float>::max());
+    _pMax = Vector3f(std::numeric_limits<float>::lowest());
+
+    // Construct the samples list that will be used later to build the sections
+    for (auto sample : _samples)
+    {
+        const Ultraliser::Vector3f position = sample->getPosition();
+        const float radius = sample->getRadius();
+
+        Vector3f pMaxSample = position + Vector3f(radius);
+        Vector3f pMinSample = position - Vector3f(radius);
+
+        if (pMaxSample.x() > _pMax.x()) _pMax.x() = pMaxSample.x();
+        if (pMaxSample.y() > _pMax.y()) _pMax.y() = pMaxSample.y();
+        if (pMaxSample.z() > _pMax.z()) _pMax.z() = pMaxSample.z();
+
+        if (pMinSample.x() < _pMin.x()) _pMin.x() = pMinSample.x();
+        if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
+        if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
     }
 }
 

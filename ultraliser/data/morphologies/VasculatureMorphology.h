@@ -49,6 +49,16 @@ public:
                           const VasculatureH5Sections& h5Sections,
                           const VasculatureH5ConnectivityList& h5Connectivity);
 
+    /**
+     * @brief VasculatureMorphology
+     * Constructor using a list of samples and sections only.
+     * @param samples
+     * A list of the samples in the morphology
+     * @param sections
+     * A list of the sections in the morphology.
+     */
+    VasculatureMorphology(Samples samples, Sections sections);
+
 private:
 
     /**

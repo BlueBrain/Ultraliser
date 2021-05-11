@@ -34,6 +34,8 @@
 #include <data/morphologies/VasculatureH5Section.hh>
 #include <data/morphologies/VasculatureH5Connectivity.hh>
 #include <data/morphologies/VasculatureMorphology.h>
+#include <data/morphologies/VasculatureVMVReader.h>
+
 
 #endif // ULTRALISER_DATA_MORPHOLOGIES_DATA_H
 

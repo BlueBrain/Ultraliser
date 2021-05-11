@@ -44,10 +44,10 @@
 #define F2D(NUMBER) static_cast< double >(NUMBER)
 
 // Safe conversion of string to any integer number
-#define S2I(STRING_NUMBER) Ultraliser::Utilities::string2int(STRING_NUMBER)
+#define S2I(STRING_NUMBER) static_cast< int64_t >(atoi(STRING_NUMBER.c_str()))
 
 // Safe conversion of string to any integer number
-#define S2UI(STRING_NUMBER) Ultraliser::Utilities::string2uint(STRING_NUMBER)
+#define S2UI(STRING_NUMBER) static_cast< uint64_t >(atoi(STRING_NUMBER.c_str()))
 
 // Safe conversion of string to any float number
 #define S2F(STRING_NUMBER) static_cast< float >(atof(STRING_NUMBER.c_str()))
