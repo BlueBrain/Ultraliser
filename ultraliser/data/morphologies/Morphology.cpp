@@ -22,7 +22,10 @@
 
 #include "Morphology.h"
 #include "MorphologyOpertions.h"
+#include "MorphologyStatistics.h"
+#include <common/Common.h>
 #include <utilities/Utilities.h>
+
 
 namespace Ultraliser
 {
@@ -451,14 +454,23 @@ void Morphology::computeMinMaxAvgSectionVolume(float& minSectionVolume,
     avgSectionVolume = avgValue / _sections.size();
 }
 
-
-void Morphology::printMorphologyDistributions(const std::string &reference,
-                                              const std::string *prefix) const
+void Morphology::printDistributions(const std::string *prefix) const
 {
+    // Starting the timer
+    TIMER_SET;
 
+    LOG_TITLE("Morphology Distributions");
+
+    LOG_STATUS("Collecting Stats.");
+
+    std::unique_ptr< MorphologyStatistics > stats = std::make_unique< MorphologyStatistics >(this);
+    stats->writeStatsDistributions(*prefix);
+
+    LOG_STATUS_IMPORTANT("Gathering Morphology Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Morphology::printMorphologyStats(const std::string &reference, const std::string *prefix) const
+void Morphology::printStats(const std::string &reference, const std::string *prefix) const
 {
     // Starting the timer
     TIMER_SET;
@@ -567,6 +579,8 @@ void Morphology::printMorphologyStats(const std::string &reference, const std::s
              F2D(minSegmentVolume), F2D(maxSegmentVolume), F2D(avgSegmentVolume));
     LOG_INFO("\t* Sections Volumes      | [Min.: %.5f, Max.: %.5f, Avg.: %.5f]",
              F2D(minSectionVolume), F2D(maxSectionVolume), F2D(avgSectionVolume));
+    LOG_INFO("");
+
     LOG_STATUS_IMPORTANT("Gathering Morphology Stats.");
     LOG_STATS(GET_TIME_SECONDS);
 }

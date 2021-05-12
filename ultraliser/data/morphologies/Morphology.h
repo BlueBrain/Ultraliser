@@ -216,25 +216,24 @@ public:
 
 
     /**
-     * @brief printMorphologyStats
+     * @brief printStats
      * Prints the morphology stats.
      * @param reference
      * Reference string for the morphology.
      * @param prefix
      * File prefix.
      */
-    void printMorphologyStats(const std::string &reference, const std::string *prefix) const;
+    void printStats(const std::string &reference, const std::string *prefix) const;
 
     /**
-     * @brief printMorphologyDistributions
+     * @brief printDistributions
      * Prints the distributions of the morphology.
      * @param reference
      * Reference string for the morphology.
      * @param prefix
      * Output file prefix.
      */
-    void printMorphologyDistributions(const std::string &reference,
-                                      const std::string *prefix) const;
+    void printDistributions(const std::string *prefix) const;
 
 protected:
 

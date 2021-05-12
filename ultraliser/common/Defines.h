@@ -119,6 +119,14 @@
 #define RELATIVE_SIZE_SUFFIX                    std::string("-relative-size")
 #define SAMPLES_RADII                           std::string("-samples-radii")
 #define SECTION_AVERAGE_RADIUS                  std::string("-section-average-radius")
+#define NUMBER_SAMPLES_PER_SECTION              std::string("-number-samples-per-section")
+#define SEGMENTS_LENGTH                         std::string("segments-length")
+#define SECTIONS_LENGTH                         std::string("sections-length")
+#define SEGMENTS_SURFACE_AREA                   std::string("segments-surface-area")
+#define SECTIONS_SURFACE_AREA                   std::string("sections-surface-area")
+#define SEGMENTS_VOLUME                         std::string("segments-volume")
+#define SECTIONS_VOLUME                         std::string("sections-volume")
+
 
 // OBJ flags
 #define OBJ_VERTEX_FLAG                         STRING("v")

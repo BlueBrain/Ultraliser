@@ -224,7 +224,6 @@ Options* parseArguments(Args* args)
                 "10");
     args->addArgument(&smoothingFactor);
 
-
     Argument preservePartitions(
                 "--preserve-partitions",
                 ARGUMENT_TYPE::BOOL,
@@ -277,7 +276,7 @@ Options* parseArguments(Args* args)
     args->addArgument(&exportOFF);
 
     Argument writeStatistics(
-                "--stats",
+                "--statistics",
                 ARGUMENT_TYPE::BOOL,
                 "Write data and operation statistics.");
     args->addArgument(&writeStatistics);
@@ -286,7 +285,7 @@ Options* parseArguments(Args* args)
                 "--distributions",
                 ARGUMENT_TYPE::BOOL,
                 "Write distributions of attributes of the morphology and the resulting meshes.");
-    args->addArgument(&writeStatistics);
+    args->addArgument(&writeDistributions);
 
     // Parse the command line options
     args->parse();
@@ -600,11 +599,10 @@ int run(int argc , const char** argv)
     auto vasculatureMorphology = readVascularMorphology(options->inputMorphology);
 
     if (options->writeStatistics)
-        vasculatureMorphology->printMorphologyStats(options->prefix, &options->statisticsPrefix);
+        vasculatureMorphology->printStats(options->prefix, &options->statisticsPrefix);
 
     if (options->writeDistributions)
-        vasculatureMorphology->printMorphologyDistributions(
-                    options->prefix, &options->distributionsPrefix);
+        vasculatureMorphology->printDistributions(&options->distributionsPrefix);
 
     // Get relaxed bounding box to build the volume
     Vector3f pMinInput, pMaxInput, inputBB, inputCenter;

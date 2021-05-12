@@ -106,7 +106,7 @@ public:
 
     /**
      * @brief computeSegmentsLengthDistribution
-     * Computes the distributions of teh lengths of the segments in the section.
+     * Computes the distribution of the lengths of the segments in the section.
      * @return
      */
     std::vector< float > computeSegmentsLengthDistribution() const;
@@ -120,12 +120,28 @@ public:
     float computeSurfaceArea() const;
 
     /**
+     * @brief computeSegmentsSurfaceAreaDistribution
+     * Computes the distribution of the surface area of the segments in the section.
+     * @return
+     * The distribution of the surface area of the segments in the section.
+     */
+    std::vector< float > computeSegmentsSurfaceAreaDistribution() const;
+
+    /**
      * @brief computeVolume
      * Computes the volume of the section.
      * @return
      * The volume of the section.
      */
     float computeVolume() const;
+
+    /**
+     * @brief computeSegmentsVolumeDistribution
+     * Computes the distribution of the volume of the segments in the section.
+     * @return
+     * The distribution of the volume of the segments in the section.
+     */
+    std::vector< float > computeSegmentsVolumeDistribution() const;
 
     /**
      * @brief computeAverageRadius

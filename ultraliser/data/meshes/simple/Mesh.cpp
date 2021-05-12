@@ -592,7 +592,7 @@ void Mesh::exportMesh(const std::string &prefix,
 
 void Mesh::writeDistributions(const std::string &reference, const std::string *prefix) const
 {
-    LOG_TITLE("Mesh Verdict");
+    LOG_TITLE("Mesh Distributions");
 
     // Write the distributions
     MeshStatistics stats (_vertices, _triangles, _numberVertices, _numberTriangles);
