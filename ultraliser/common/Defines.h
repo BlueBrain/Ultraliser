@@ -100,8 +100,10 @@
 #define VOLUMES_DIRECTORY                       STRING("volumes")
 #define PROJECTIONS_DIRECTORY                   STRING("projections")
 #define STACKS_SIRECTORY                        STRING("stacks")
-#define STATISTIC_DIRECTORY                     STRING("statistics")
+#define STATISTICS_DIRECTORY                    STRING("statistics")
+#define DISTRIBUTIONS_DIRECTORY                 STRING("distributions")
 
+// Distributions stats
 #define DISTRIBUTION_EXTENSION                  std::string(".dist")
 #define ASPECT_RATIO_SUFFIX                     std::string("-aspect-ratio")
 #define RADIUS_RATIO_SUFFIX                     std::string("-radius-ratio")
@@ -115,6 +117,8 @@
 #define CONDITION_NUMBER_SUFFIX                 std::string("-condition-number")
 #define DISTORTION_SUFFIX                       std::string("-distortion")
 #define RELATIVE_SIZE_SUFFIX                    std::string("-relative-size")
+#define SAMPLES_RADII                           std::string("-samples-radii")
+#define SECTION_AVERAGE_RADIUS                  std::string("-section-average-radius")
 
 // OBJ flags
 #define OBJ_VERTEX_FLAG                         STRING("v")

@@ -21,6 +21,7 @@
 
 #include "Directory.h"
 #include "String.h"
+#include <common/Common.h>
 
 namespace Ultraliser
 {

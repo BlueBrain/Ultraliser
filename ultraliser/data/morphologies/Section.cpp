@@ -77,6 +77,16 @@ float Section::computeLength() const
     return sectionLength;
 }
 
+std::vector < float > Section:: computeSegmentsLengthDistribution() const
+{
+    std::vector < float > distribution;
+    for (uint64_t i = 0; i < _samples.size() - 1; ++i)
+    {
+        distribution.push_back(computeSegmentLength(_samples[i], _samples[i + 1]));
+    }
+    return distribution;
+}
+
 float Section::computeSurfaceArea() const
 {
     auto sectionSurfaceArea = 0.f;
@@ -96,6 +106,17 @@ float Section::computeVolume() const
     }
     return sectionVolume;
 }
+
+float Section::computeAverageRadius() const
+{
+    auto sectionAverageRadius = 0.f;
+    for (const auto sample: _samples)
+    {
+        sectionAverageRadius += sample->getRadius();
+    }
+    return sectionAverageRadius / _samples.size();
+}
+
 
 
 }

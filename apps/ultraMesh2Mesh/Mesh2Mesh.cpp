@@ -27,56 +27,6 @@ namespace Ultraliser
 {
 
 /**
- * @brief createRespectiveDirectories
- * Create the directory tree where the artifacts will be genrated.
- *
- * @param options
- * Tool options
- */
-void createRespectiveDirectories(const Options* options)
-{
-    // Meshes directory
-    if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
-    {
-        std::stringstream path;
-        path << options->outputDirectory << "/" << MESHES_DIRECTORY;
-        mkdir(path.str().c_str(), 0777);
-    }
-
-    // Volumes directory
-    if (options->writeBitVolume || options->writeByteVolume || options->writeNRRDVolume)
-    {
-        std::stringstream path;
-        path << options->outputDirectory << "/" << VOLUMES_DIRECTORY;
-        mkdir(path.str().c_str(), 0777);
-    }
-
-    // Projections directory
-    if (options->projectXY || options->projectXZ || options->projectZY)
-    {
-        std::stringstream path;
-        path << options->outputDirectory << "/" << PROJECTIONS_DIRECTORY;
-        mkdir(path.str().c_str(), 0777);
-    }
-
-    // Stacks directory
-    if (options->stackXY || options->stackXZ || options->stackZY)
-    {
-        std::stringstream path;
-        path << options->outputDirectory << "/" << STACKS_SIRECTORY;
-        mkdir(path.str().c_str(), 0777);
-    }
-
-    // Statistics directory
-    if (options->writeStatistics)
-    {
-        std::stringstream path;
-        path << options->outputDirectory << "/" << STATISTIC_DIRECTORY;
-        mkdir(path.str().c_str(), 0777);
-    }
-}
-
-/**
  * @brief parseArguments
  * Parse the arguments of the tool.
  *
@@ -196,6 +146,12 @@ Options* parseArguments(Args* args)
                 "Create a bit volume, where each voxel is stored in a single bit.");
     args->addArgument(&writeBitVolume);
 
+    Argument writeByteVolume(
+                "--write-byte-volume",
+                ARGUMENT_TYPE::BOOL,
+                "Create a byte volume, where each voxel is stored in a single byte.");
+    args->addArgument(&writeByteVolume);
+
     Argument writeNRRDVolume(
                 "--write-nrrd-volume",
                 ARGUMENT_TYPE::BOOL,
@@ -208,12 +164,6 @@ Options* parseArguments(Args* args)
                 "Export a mesh that represents the volume where each voxel will "
                 "be represented by a cube.");
     args->addArgument(&exportVolumeMesh);
-
-    Argument writeByteVolume(
-                "--write-byte-volume",
-                ARGUMENT_TYPE::BOOL,
-                "Create a byte volume, where each voxel is stored in a single byte.");
-    args->addArgument(&writeByteVolume);
 
     Argument volumeType(
                 "--volume-type",
@@ -361,6 +311,12 @@ Options* parseArguments(Args* args)
                 "Write the statistics.");
     args->addArgument(&writeStatistics);
 
+    Argument writeDistributions(
+                "--dists",
+                ARGUMENT_TYPE::BOOL,
+                "Write the distributions.");
+    args->addArgument(&writeDistributions);
+
     // Parse the command line options
     args->parse();
 
@@ -392,21 +348,30 @@ Options* parseArguments(Args* args)
     options->ignoreDMCMesh = args->getBoolValue(&ignoreDMCMesh);
     options->ignoreSelfIntersections = args->getBoolValue(&ignoreSelfIntersections);
     options->ignoreOptimizedNonWatertightMesh = args->getBoolValue(&ignoreOptimizedNonWatertightMesh);
+
+    // Mesh exports, file formats
     options->exportOBJ = args->getBoolValue(&exportOBJ);
     options->exportPLY = args->getBoolValue(&exportPLY);
     options->exportOFF = args->getBoolValue(&exportOFF);
     options->exportSTL = args->getBoolValue(&exportSTL);
     options->exportVolumeMesh = args->getBoolValue(&exportVolumeMesh);
+
+    // Projections
     options->projectXY = args->getBoolValue(&projectXY);
     options->projectXZ = args->getBoolValue(&projectXZ);
     options->projectZY = args->getBoolValue(&projectZY);
     options->projectColorCoded = args->getBoolValue(&projectColorCoded);
+
+    // Stacks
     options->stackXY = args->getBoolValue(&stackXY);
     options->stackXZ = args->getBoolValue(&stackXZ);
-    options->preservePartitions = args->getBoolValue(&preservePartitions);
     options->stackZY = args->getBoolValue(&stackZY);
+
+    // Mesh partitions
+    options->preservePartitions = args->getBoolValue(&preservePartitions);
     options->prefix = args->getStringValue(&prefix);
     options->writeStatistics = args->getBoolValue(&writeStatistics);
+    options->writeDistributions = args->getBoolValue(&writeDistributions);
     options->useLaplacian = args->getBoolValue(&laplacianFilter);
     options->laplacianIterations = args->getIntegrValue(&laplacianIterations);
 
@@ -515,7 +480,7 @@ void createMeshWithNoSelfIntersections(const Mesh* manifoldMesh, const Options* 
     if (options->writeStatistics)
     {
         // Prefix
-        const std::string prefix = options->outputDirectory + "/" + STATISTIC_DIRECTORY  + "/" +
+        const std::string prefix = options->outputDirectory + "/" + STATISTICS_DIRECTORY  + "/" +
                 options->prefix;
 
         // Statistics
@@ -576,7 +541,7 @@ void optimizeMesh(Mesh *dmcMesh, const Options* options)
         if (options->writeStatistics)
         {
             // Prefix
-            const std::string prefix = options->outputDirectory + "/" + STATISTIC_DIRECTORY + "/" +
+            const std::string prefix = options->outputDirectory + "/" + STATISTICS_DIRECTORY + "/" +
                     options->prefix;
 
             // Statistics
@@ -605,39 +570,6 @@ void optimizeMesh(Mesh *dmcMesh, const Options* options)
 }
 
 /**
- * @brief scaleAndTranslateGeneratedMesh
- * Scale the translate the generated mesh to fit the dimensions of the input mesh.
- *
- * @param generatedMesh
- * The generated mesh from the DMC algorithm.
- * @param inputCenter
- * The center of the input mesh.
- * @param inputBB
- * The bounding box of the input mesh.
- */
-void scaleAndTranslateGeneratedMesh(Mesh *generatedMesh,
-                                    const Vector3f &inputCenter,
-                                    const Vector3f &inputBB)
-{
-    // Center the reconstructed mesh at the origin
-    generatedMesh->centerAtOrigin();
-
-    // Compute the bounding box of the created mesh
-    Ultraliser::Vector3f pMaxGenerated, pMinGenerated;
-    generatedMesh->computeBoundingBox(pMinGenerated, pMaxGenerated);
-
-    // Compute the scale needed
-    const Ultraliser::Vector3f generatedBB = pMaxGenerated - pMinGenerated;
-    const Ultraliser::Vector3f scale = inputBB / generatedBB;
-
-    // Scale the mesh
-    generatedMesh->scale(scale.x(), scale.y(), scale.z());
-
-    // Translate it back to the original center of the input mesh
-    generatedMesh->translate(inputCenter);
-}
-
-/**
  * @brief writeDMCMesh
  * Writes the resulting mesh from the DMC algorithm.
  *
@@ -653,7 +585,7 @@ void writeDMCMesh(const Mesh *dmcMesh, const Options* options)
     {
         // Prefix
         const std::string prefix =
-                options->outputDirectory + "/" + STATISTIC_DIRECTORY +  "/" + options->prefix;
+                options->outputDirectory + "/" + STATISTICS_DIRECTORY +  "/" + options->prefix;
 
         // Print statistics
         dmcMesh->printMeshStats(DMC_STRING, &prefix);
@@ -700,7 +632,7 @@ void runMesh2Mesh(int argc , const char** argv)
     {
         // Prefix
         const std::string prefix =
-                options->outputDirectory + "/" + STATISTIC_DIRECTORY + "/" + options->prefix;
+                options->outputDirectory + "/" + STATISTICS_DIRECTORY + "/" + options->prefix;
 
         // Print statistics
         inputMesh->printMeshStats(INPUT_STRING, &prefix);
@@ -719,13 +651,9 @@ void runMesh2Mesh(int argc , const char** argv)
 
     uint64_t resolution;
     if (options->autoResolution)
-    {
         resolution = uint64_t(options->voxelsPerMicron * largestDimension);
-    }
     else
-    {
         resolution = options->volumeResolution;
-    }
     LOG_WARNING("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);
 
     // Construct the volume
@@ -788,7 +716,7 @@ void runMesh2Mesh(int argc , const char** argv)
     {
         // Prefix
         const std::string prefix =
-                options->outputDirectory + "/" + STATISTIC_DIRECTORY +  "/" + options->prefix;
+                options->outputDirectory + "/" + STATISTICS_DIRECTORY +  "/" + options->prefix;
 
         // Print the volume statistics
         volume->printVolumeStats(VOLUME_STRING, &prefix);
@@ -810,10 +738,10 @@ void runMesh2Mesh(int argc , const char** argv)
             std::make_unique<Ultraliser::DualMarchingCubes>(volume);
 
     // Generate the mesh using the DMC algorithm
-    Mesh* generatedMesh = dmc->generateMesh();
+    Mesh* dmcMesh = dmc->generateMesh();
 
-    // Scane and translate the generated mesh to fit the origin mesh
-    scaleAndTranslateGeneratedMesh(generatedMesh, inputCenter, inputBB);
+    // Scane and translate the generated mesh to fit the original mesh
+    dmcMesh->scaleAndTranslate(inputCenter, inputBB);
 
     // Free the volume
     volume->~Volume();
@@ -821,38 +749,33 @@ void runMesh2Mesh(int argc , const char** argv)
     // DMC mesh output
     if (!options->ignoreDMCMesh)
     {
-        writeDMCMesh(generatedMesh, options);
+        writeDMCMesh(dmcMesh, options);
     }
 
     // Laplacian smoorhing
     if (options->useLaplacian)
     {
         // Apply the Laplacian filter
-        generatedMesh->applyLaplacianSmooth(options->laplacianIterations,
+        dmcMesh->applyLaplacianSmooth(options->laplacianIterations,
                                             0.2, 0.1);
         // Prefix
         const std::string prefix  = options->outputDirectory + "/" + MESHES_DIRECTORY + "/" +
                 options->prefix + LAPLACIAN_SUFFIX;
 
         // Export the mesh
-        generatedMesh->exportMesh(prefix,
-                                  options->exportOBJ,
-                                  options->exportPLY,
-                                  options->exportOFF,
-                                  options->exportSTL);
+        dmcMesh->exportMesh(prefix,
+                                  options->exportOBJ, options->exportPLY,
+                                  options->exportOFF, options->exportSTL);
 
         // Print the mesh statistcs
         if (options->writeStatistics)
-            generatedMesh->printMeshStats(LAPLACIAN_STRING, &options->outputPrefix);
+            dmcMesh->printMeshStats(LAPLACIAN_STRING, &options->outputPrefix);
     }
-
-    // Scane and translate the generated mesh to fit the origin mesh
-    scaleAndTranslateGeneratedMesh(generatedMesh, inputCenter, inputBB);
 
     // Optimize the mesh
     if (options->optimizeMesh || options->optimizeMeshAdaptively)
     {
-        optimizeMesh(generatedMesh, options);
+        optimizeMesh(dmcMesh, options);
     }
 }
 

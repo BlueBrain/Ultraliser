@@ -412,6 +412,14 @@ public:
                     const bool & formatSTL = false) const;
 
     /**
+     * @brief writeDistributions
+     * @param reference
+     * @param prefix
+     */
+    void writeDistributions(const std::string &reference,
+                            const std::string *prefix) const;
+
+    /**
      * @brief printMeshStats
      * @param reference
      * @param prefix
@@ -456,6 +464,16 @@ public:
     void applyLaplacianSmooth(const uint32_t &numIterations = 1,
                               const float& smoothLambda = 0.2,
                               const float& inflateMu = 0.1);
+
+    /**
+     * @brief scaleAndTranslateGeneratedMesh
+     * Scale the translate the generated mesh to fit the dimensions of the input mesh.
+     * @param center
+     * The center of the input mesh.
+     * @param BoundingBox
+     * The bounding box of the input mesh.
+     */
+    void scaleAndTranslate(const Vector3f &center, const Vector3f &BoundingBox);
 
 private:
 

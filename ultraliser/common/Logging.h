@@ -118,61 +118,61 @@ void log(const LOG_LEVEL& logLevel,
           const char* lstring, ...);
 
 
-#define LOG_HEADER(ARG...)                                                      \
+#define LOG_HEADER(ARG...)                                                                          \
     log(LOG_LEVEL::HEADER, __FILE__, __LINE__, __FUNCTION__, ARG)
 
-#define LOG_STATUS(ARG...)                                                      \
+#define LOG_STATUS(ARG...)                                                                          \
     log(LOG_LEVEL::STATUS, __FILE__, __LINE__, __FUNCTION__, ARG)
 
-#define LOG_STATUS_IMPORTANT(ARG...)                                            \
+#define LOG_STATUS_IMPORTANT(ARG...)                                                                \
     log(LOG_LEVEL::GREEN_STATUS, __FILE__, __LINE__, __FUNCTION__, ARG)
 
-#define LOG_DETAIL(ARG...)                                                      \
+#define LOG_DETAIL(ARG...)                                                                          \
     log(LOG_LEVEL::DETAIL, __FILE__, __LINE__, __FUNCTION__, ARG)
 
-#define LOG_INFO(ARG...)                                                        \
+#define LOG_INFO(ARG...)                                                                            \
     log(LOG_LEVEL::INFO, __FILE__, __LINE__, __FUNCTION__, ARG)
 
-#define LOG_DEBUG(ARG...)                                                       \
+#define LOG_DEBUG(ARG...)                                                                           \
     log(LOG_LEVEL::DEBUG, __FILE__, __LINE__, __FUNCTION__, ARG)
 
-#define LOG_WARNING(ARG...)                                                     \
+#define LOG_WARNING(ARG...)                                                                         \
     log(LOG_LEVEL::WARNING, __FILE__, __LINE__, __FUNCTION__, ARG)
 
-#define LOG_SUCCESS(ARG...)                                                     \
+#define LOG_SUCCESS(ARG...)                                                                         \
     log(LOG_LEVEL::SUCCESS, __FILE__, __LINE__, __FUNCTION__, ARG)
 
-#define LOG_ERROR(ARG...)                                                       \
+#define LOG_ERROR(ARG...)                                                                           \
     log(LOG_LEVEL::ERROR, __FILE__, __LINE__, __FUNCTION__, ARG)
 
-#define LOG_EXIT(ARG...)                                                        \
+#define LOG_EXIT(ARG...)                                                                            \
     log(LOG_LEVEL::EXIT, __FILE__, __LINE__, __FUNCTION__, ARG)
 
 // Print the statistics
-#define LOG_STATS(TIME)                                                         \
-{                                                                               \
-    {                                                                           \
-        std::cout << "\t* Time     | " << TIME << " Seconds \n" << std::endl;   \
-    }                                                                           \
+#define LOG_STATS(TIME)                                                                             \
+{                                                                                                   \
+    {                                                                                               \
+        std::cout << "\t* Time     | " << TIME << " Seconds \n" << std::endl;                       \
+    }                                                                                               \
 }
 
 // Print the title
-#define LOG_TITLE(STRING)                                                       \
-{                                                                               \
-    {                                                                           \
-        int size = I2I32(std::string(STRING).size());                           \
-        int SPACES = TITLE_LENGTH - size;                                       \
-        std::string BAR = "";                                                   \
-        for(int i = 0; i < TITLE_LENGTH + 2; i++) BAR += "-";                   \
-        printf("\n%s\n", BAR.c_str()); BAR = " ";                               \
-        for(int i = 0; i < int(0.5 * SPACES) - 2; i++) BAR += "-";              \
-        BAR += "| " + std::string(STRING) + " |";                               \
-        for(int i = 0; i < int(0.5 * SPACES) - 2; i++) BAR += "-";              \
-        printf("%s\n", BAR.c_str());                                            \
-        BAR = "" ; for(int i = 0; i < TITLE_LENGTH + 2; i++) BAR += "-";        \
-        printf("%s\n\n", BAR.c_str()); BAR = "";                                \
-        fflush(stdout);                                                         \
-    }                                                                           \
+#define LOG_TITLE(STRING)                                                                           \
+{                                                                                                   \
+    {                                                                                               \
+        int size = I2I32(std::string(STRING).size());                                               \
+        int SPACES = TITLE_LENGTH - size;                                                           \
+        std::string BAR = "";                                                                       \
+        for(int i = 0; i < TITLE_LENGTH + 2; i++) BAR += "-";                                       \
+        printf("\n%s\n", BAR.c_str()); BAR = " ";                                                   \
+        for(int i = 0; i < int(0.5 * SPACES) - 2; i++) BAR += "-";                                  \
+        BAR += "| " + std::string(STRING) + " |";                                                   \
+        for(int i = 0; i < int(0.5 * SPACES) - 2; i++) BAR += "-";                                  \
+        printf("%s\n", BAR.c_str());                                                                \
+        BAR = "" ; for(int i = 0; i < TITLE_LENGTH + 2; i++) BAR += "-";                            \
+        printf("%s\n\n", BAR.c_str()); BAR = "";                                                    \
+        fflush(stdout);                                                                             \
+    }                                                                                               \
 }
 
 #endif // ULTRALISER_COMMON_LOGGING_H

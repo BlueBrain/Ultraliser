@@ -2466,7 +2466,7 @@ void Mesh::optimize(const uint64_t &optimizationIterations,
     coarseDense(denseFactor, optimizationIterations);
 
     // Smooth the normals
-    smoothNormals();
+    // smoothNormals();
 
     // Smoothing the surface
     smooth(15, 150, smoothingIterations);

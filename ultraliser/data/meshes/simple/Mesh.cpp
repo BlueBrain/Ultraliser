@@ -465,7 +465,25 @@ Vertex Mesh::_smoothVertex(Mesh& mesh,
     return pos;
 }
 
-#include <algorithm>
+void Mesh::scaleAndTranslate(const Vector3f &center, const Vector3f &BoundingBox)
+{
+    // Center the reconstructed mesh at the origin
+    centerAtOrigin();
+
+    // Compute the bounding box of the mesh
+    Ultraliser::Vector3f pMaxGenerated, pMinGenerated;
+    computeBoundingBox(pMinGenerated, pMaxGenerated);
+
+    // Compute the scale needed
+    const Ultraliser::Vector3f currentBoundingBox = pMaxGenerated - pMinGenerated;
+    const Ultraliser::Vector3f scaleValue = BoundingBox / currentBoundingBox;
+
+    // Scale the mesh
+    scale(scaleValue.x(), scaleValue.y(), scaleValue.z());
+
+    // Translate it back to the original center of the input mesh
+    translate(center);
+}
 
 void Mesh::applyLaplacianSmooth(const uint32_t& numIterations,
                                 const float& smoothLambda,
@@ -536,39 +554,49 @@ void Mesh::exportMesh(const std::string &prefix,
                       const bool &formatOFF,
                       const bool &formatSTL) const
 {
-    TIMER_SET;
-    if (formatOBJ || formatOFF || formatSTL)
+    if (formatOBJ || formatPLY || formatOFF || formatSTL)
+    {
+        // Start timer
+        TIMER_SET;
+
         LOG_TITLE("Exporting Mesh");
 
-    if (formatOBJ)
-    {
-        exportOBJ(prefix,
-                    _vertices, _numberVertices, _triangles, _numberTriangles);
-    }
+        if (formatOBJ)
+        {
+            exportOBJ(prefix,
+                      _vertices, _numberVertices, _triangles, _numberTriangles);
+        }
 
-    if (formatPLY)
-    {
-        exportPLY(prefix, _vertices, _numberVertices, _triangles, _numberTriangles);
-    }
+        if (formatPLY)
+        {
+            exportPLY(prefix, _vertices, _numberVertices, _triangles, _numberTriangles);
+        }
 
 
-    if (formatOFF)
-    {
-        exportOFF(prefix,
-                    _vertices, _numberVertices, _triangles, _numberTriangles);
-    }
+        if (formatOFF)
+        {
+            exportOFF(prefix,
+                      _vertices, _numberVertices, _triangles, _numberTriangles);
+        }
 
-    if (formatSTL)
-    {
-        exportSTL(prefix,
-                    _vertices, _numberVertices, _triangles, _numberTriangles);
-    }
+        if (formatSTL)
+        {
+            exportSTL(prefix,
+                      _vertices, _numberVertices, _triangles, _numberTriangles);
+        }
 
-    if (formatOBJ || formatOFF || formatSTL)
-    {
         LOG_STATUS_IMPORTANT("Exporting Mesh Stats.");
         LOG_STATS(GET_TIME_SECONDS);
     }
+}
+
+void Mesh::writeDistributions(const std::string &reference, const std::string *prefix) const
+{
+    LOG_TITLE("Mesh Verdict");
+
+    // Write the distributions
+    MeshStatistics stats (_vertices, _triangles, _numberVertices, _numberTriangles);
+    stats.writeStatsDistributions(*prefix + "-" + reference);
 }
 
 void Mesh::printMeshStats(const std::string &reference,
@@ -577,11 +605,6 @@ void Mesh::printMeshStats(const std::string &reference,
     LOG_TITLE("Mesh Statistics");
 
     LOG_STATUS("Collecting Stats.");
-
-    // Write the distributions
-    MeshStatistics stats (_vertices, _triangles,
-                          _numberVertices, _numberTriangles);
-    stats.writeStatsDistributions(*prefix + "-" + reference);
 
     float area = computeMeshSurfaceArea(_vertices, _triangles, _numberTriangles);
     float volume = computeMeshVolume(_vertices, _triangles, _numberTriangles);

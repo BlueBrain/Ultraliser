@@ -22,12 +22,10 @@
 #ifndef ULTRALISER_DATA_VOLUME_BYTE_VOLUME_GRID_H
 #define ULTRALISER_DATA_VOLUME_BYTE_VOLUME_GRID_H
 
+#include <math/Math.h>
 #include <data/common/BitArray.h>
 #include <data/images/Image.h>
 #include <data/volumes/grids/VolumeGrid.h>
-
-#include <math/Math.h>
-
 
 namespace Ultraliser
 {

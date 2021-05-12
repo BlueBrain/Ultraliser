@@ -54,7 +54,8 @@ set(DIRECTORIES "algorithms"
                 "geometry"
                 "math"
                 "microscopes"
-                "utilities")
+                "utilities"
+                "system")
 
 # Removing the include directory from the build one
 file(REMOVE ${CMAKE_BINARY_DIR}/include)

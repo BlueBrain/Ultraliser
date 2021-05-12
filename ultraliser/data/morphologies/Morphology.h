@@ -54,6 +54,13 @@ public:
     Sections getSections() const;
 
     /**
+     * @brief getSamples
+     * Return a reference to the list of samples in the morphology.
+     * @return
+     */
+    Samples getSamples() const;
+
+    /**
      * @brief getConnectedPathsFromParentsToChildren
      * @param section
      * @return
@@ -132,7 +139,8 @@ public:
      */
     void computeMinMaxAvgSegmentLength(float& minSegmentLength,
                                        float& maxSegmentLength,
-                                       float& avgSegmentLength) const;
+                                       float& avgSegmentLength,
+                                       const uint64_t &numberMorphologySegments) const;
 
     /**
      * @brief computeMinMaxAvgSegmentSurfaceArea
@@ -146,7 +154,8 @@ public:
      */
     void computeMinMaxAvgSegmentSurfaceArea(float& minSegmentSurfaceArea,
                                             float& maxSegmentSurfaceArea,
-                                            float& avgSegmentSurfaceArea) const;
+                                            float& avgSegmentSurfaceArea,
+                                            const uint64_t& numberMorphologySegments) const;
 
     /**
      * @brief computeMinMaxAvgSegmentVolume
@@ -160,7 +169,8 @@ public:
      */
     void computeMinMaxAvgSegmentVolume(float& minSegmentVolume,
                                        float& maxSegmentVolume,
-                                       float& avgSegmentVolume) const;
+                                       float& avgSegmentVolume,
+                                       const uint64_t &numberMorphologySegments) const;
 
     /**
      * @brief computeMinMaxAvgSectionLength
@@ -214,6 +224,17 @@ public:
      * File prefix.
      */
     void printMorphologyStats(const std::string &reference, const std::string *prefix) const;
+
+    /**
+     * @brief printMorphologyDistributions
+     * Prints the distributions of the morphology.
+     * @param reference
+     * Reference string for the morphology.
+     * @param prefix
+     * Output file prefix.
+     */
+    void printMorphologyDistributions(const std::string &reference,
+                                      const std::string *prefix) const;
 
 protected:
 

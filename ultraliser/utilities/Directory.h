@@ -23,6 +23,7 @@
 #define ULTRALISER_UTILITIES_DIRECTORY_H
 
 #include <common/Common.h>
+#include <arguments/Arguments.h>
 
 namespace Ultraliser
 {

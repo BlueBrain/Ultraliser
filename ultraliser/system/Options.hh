@@ -1,5 +1,25 @@
-#ifndef OPTIONS_HH
-#define OPTIONS_HH
+#ifndef ULTRALISER_SYSTEM_OPTIONS_HH
+#define ULTRALISER_SYSTEM_OPTIONS_HH
+/***************************************************************************************************
+ * Copyright (c) 2016 - 2021
+ * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
+ *
+ * Author(s)
+ *      Marwan Abdellah < marwan.abdellah@epfl.ch >
+ *
+ * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
+ *
+ * This library is free software; you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License version 3.0 as published by the Free Software Foundation.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * You should have received a copy of the GNU General Public License along with this library;
+ * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+ * MA 02111-1307, USA.
+ * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
+ **************************************************************************************************/
 
 #include <common/Common.h>
 #include <data/volumes/Volumes.h>
@@ -13,30 +33,42 @@ namespace Ultraliser
 struct Options
 {
     /**
+     * @brief inputMesh
+     * An input mesh file.
+     */
+    std::string inputMesh;
+
+    /**
      * @brief inputMorphology
-     * Input mesh file
+     * An input morphology file, whether for neurons, astrocytes or vasculature.
      */
     std::string inputMorphology;
 
     /**
      * @brief outputDirectory
-     * The directory where the volume will be created.
-     * Output directory
+     * The directory where the resulting data or artifacts will be created including meshes,
+     * volumes, projections, stacks, etc.
      */
     std::string outputDirectory;
 
+    std::string projectionPrefix;
+    std::string meshPrefix;
+    std::string volumePrefix;
+    std::string statisticsPrefix;
+    std::string distributionsPrefix;
+
+
     /**
      * @brief boundsFile
-     * Use a bounds file to only voxelize part of the mesh or even a greater
-     * space. If the file is not given, the bounding box of the input mesh will
-     * be used in addition to a little delta to avoid intersection.
+     * Use a bounds file to only voxelize part of the mesh or even a greater space. If the file
+     * is not given, the bounding box of the input mesh will be used in addition to a little delta
+     * to avoid intersection.
      */
     std::string boundsFile;
 
     /**
      * @brief volumeResolution
-     * The base resolution of the volume that corresponds to the largest
-     * dimension.
+     * The base resolution of the volume that corresponds to the largest dimension.
      */
     uint64_t volumeResolution;
 
@@ -45,6 +77,12 @@ struct Options
      * Sets the resolution of the volume based on mesh dimensions.
      */
     bool autoResolution;
+
+    /**
+     * @brief voxelsPerMicron
+     * Number of voxels per micron in case of auto resolution.
+     */
+    uint64_t voxelsPerMicron;
 
     /**
      * @brief edgeGap
@@ -61,7 +99,7 @@ struct Options
      * @brief solid
      * Fill the interior of the volume using solid voxelization.
      */
-    Volume::SOLID_VOXELIZATION_AXIS VoxelizationAxis;
+    Ultraliser::Volume::SOLID_VOXELIZATION_AXIS VoxelizationAxis;
 
     /**
      * @brief volumeType
@@ -71,21 +109,21 @@ struct Options
 
     /**
      * @brief projectXY
-     * If this flag is set, the XY projection (Z-axis) of the volume will be saved to an image.
+     * If this flag is set, the XY projection of the volume will be saved to a PNG image.
      * This flag is set to validate the output volume.
      */
     bool projectXY;
 
     /**
      * @brief projectXZ
-     * If this flag is set, the XZ projection (Y-axis) of the volume will be saved to an image.
+     * If this flag is set, the XY projection of the volume will be saved to a PNG image.
      * This flag is set to validate the output volume.
      */
     bool projectXZ;
 
     /**
      * @brief projectZY
-     * If this flag is set, the ZY projection (X-axis) of the volume will be saved to an image.
+     * If this flag is set, the ZY projection of the volume will be saved to a PNG image.
      * This flag is set to validate the output volume.
      */
     bool projectZY;
@@ -124,7 +162,7 @@ struct Options
 
     /**
      * @brief createByteVolume
-     * If this flag is set, a default raw volume will be created.This volume
+     * If this flag is set, a default raw volume will be created. This volume
      * has 1 byte per voxel.
      */
     bool writeByteVolume;
@@ -137,11 +175,42 @@ struct Options
     bool writeNRRDVolume;
 
     /**
+     * @brief exportVolumeMesh
+     * Export a mesh that represents the volume where each voxel will be represented by a cube.
+     */
+    bool exportVolumeMesh;
+
+    /**
+     * @brief useLaplacian
+     * Use Laplacian smoothing to clear the grid artifacts.
+     */
+    bool useLaplacian;
+
+    /**
+     * @brief laplacianIterations
+     * Number of iterations of the Laplacian smoothing filter.
+     */
+    int64_t laplacianIterations;
+
+    /**
      * @brief optimizeMesh
-     * Optimize the reconstructed mesh. The reconstruct mesh flag must be set
-     * for this option to work.
+     * Optimize the reconstructed mesh using the default optimization strategy.
      */
     bool optimizeMesh;
+
+    /**
+     * @brief optimizeMeshAdaptively
+     * Optimize the mesh using the adaptive optimization strategy.
+     */
+    bool optimizeMeshAdaptively;
+
+    /**
+     * @brief optimizationIterations
+     * Number of iterations of optimizing the mesh surface.
+     * By default it is set to 1, but more accurate numbers depend on the
+     * given mesh with trial and error.
+     */
+    float optimizationIterations;
 
     /**
      * @brief smoothingIterations
@@ -150,12 +219,18 @@ struct Options
     int64_t smoothingIterations;
 
     /**
-     * @brief smoothingFactor
-     * The rate at which the unnecessary vertices will be removed from the
-     * optimized mesh. This fator has impact on the mesh size. The higher this
-     * factor is the lower the mesh size becomes. By default 10.
+     * @brief flatFactor
+     * A factor that is used for the coarseFlat function.
+     * Default value is 0.1.
      */
-    float smoothingFactor;
+    float flatFactor;
+
+    /**
+     * @brief denseFactor
+     * A factor that is used for the coarseDense function.
+     * Default value is 5.0.
+     */
+    float denseFactor;
 
     /**
      * @brief exportOBJ
@@ -182,10 +257,10 @@ struct Options
     bool exportSTL;
 
     /**
-     * @brief exportVolumeMesh
-     * Export a mesh that represents the volume where each voxel will be represented by a cube.
+     * @brief preservePartitions
+     * Keeps all the mesh partitions in the optimized mesh.
      */
-    bool exportVolumeMesh;
+    bool preservePartitions;
 
     /**
      * @brief prefix
@@ -200,6 +275,10 @@ struct Options
      */
     bool writeStatistics;
 
+    float smoothingFactor;
+
+
+
     /**
      * @brief writeDistributions
      * Write distributions of morphologies and meshes.
@@ -208,8 +287,7 @@ struct Options
 
     /**
      * @brief outputPrefix
-     * Simply, the [OUTPUT_DIRECTORY]/[PREFIX]. This variable is just added to
-     * make the code simpler.
+     * Simply, the [OUTPUT_DIRECTORY]/[PREFIX]. This variable is just added to make the code simpler.
      */
     std::string outputPrefix;
 
@@ -234,8 +312,8 @@ struct Options
      */
     bool ignoreOptimizedNonWatertightMesh;
 };
-};
 
 }
 
-#endif // OPTIONS_HH
+#endif // ULTRALISER_ARGUMENTS_ARGUMENTS_ULTRALISER_OPTIONS_HH
+

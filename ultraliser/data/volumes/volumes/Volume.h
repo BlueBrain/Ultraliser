@@ -182,12 +182,8 @@ public:
     /**
      * @brief surfaceVoxelizeVasculatureMorphology
      * @param morphology
-     * @param verbose
-     * @param parallel
      */
-    void surfaceVoxelizeVasculatureMorphology(VasculatureMorphology* vasculatureMorphology,
-                                              const bool& verbose,
-                                              const bool parallel);
+    void surfaceVoxelizeVasculatureMorphologyParallel(VasculatureMorphology* vasculatureMorphology);
 
     /**
      * @brief solidVoxelization

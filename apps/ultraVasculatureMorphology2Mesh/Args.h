@@ -1,8 +1,8 @@
 #ifndef ARGS_H
 #define ARGS_H
 
-#include <arguments/ArgumentParser.h>
-#include "Options.hh"
+#include <arguments/Arguments.h>
+#include <system/System.h>
 
 namespace Ultraliser
 {

@@ -27,10 +27,15 @@
 #include <data/morphologies/VasculatureH5Sample.hh>
 #include <data/morphologies/VasculatureH5Section.hh>
 #include <data/morphologies/VasculatureH5Connectivity.hh>
+#include <utilities/Utilities.h>
 
 namespace Ultraliser
 {
 
+/**
+ * @brief The VasculatureMorphology class
+ * Vasculature morphology
+ */
 class VasculatureMorphology: public Morphology
 {
 public:
@@ -94,6 +99,8 @@ private:
      */
     const VasculatureH5ConnectivityList _h5Connectivity;
 };
+
+VasculatureMorphology* readVascularMorphology(std::string& morphologyPath);
 
 }
 

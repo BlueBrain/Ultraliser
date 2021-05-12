@@ -24,6 +24,8 @@
 #include <common/Common.h>
 #include <utilities/Utilities.h>
 #include <utilities/TypeConversion.h>
+#include <data/morphologies/VasculatureH5Reader.h>
+#include <data/morphologies/VasculatureVMVReader.h>
 
 namespace Ultraliser
 {
@@ -131,6 +133,36 @@ VasculatureMorphology::VasculatureMorphology(Samples samples, Sections sections)
         if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
         if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
     }
+}
+
+VasculatureMorphology* readVascularMorphology(std::string& morphologyPath)
+{
+
+    if (String::subStringFound(morphologyPath, std::string(".h5")) ||
+            String::subStringFound(morphologyPath, std::string(".H5")))
+    {
+        // Read the file
+        auto reader = std::make_unique<VasculatureH5Reader>(morphologyPath);
+
+        // Get a pointer to the morphology to start using it
+        return reader->getMorphology();
+    }
+    else if (String::subStringFound(morphologyPath, std::string(".vmv")) ||
+             String::subStringFound(morphologyPath, std::string(".VMV")))
+    {
+        // Read the file
+        auto reader = std::make_unique<VasculatureVMVReader>(morphologyPath);
+
+        // Get a pointer to the morphology to start using it
+        return reader->getMorphology();
+    }
+    else
+    {
+        LOG_ERROR("Unrecognized morphology file format [ %s ]", morphologyPath.c_str());
+    }
+
+    // To avoid any warning issues.
+    return nullptr;
 }
 
 }

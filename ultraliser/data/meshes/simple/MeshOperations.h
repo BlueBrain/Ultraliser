@@ -166,7 +166,6 @@ void exportPLY(const std::string &prefix,
                const uint64_t &numberTriangles,
                bool writeASCII = false);
 
-
 }
 
 #endif // ULTRALISER_DATA_MESH_SIMPLE_MESH_OPERATIONS_H

@@ -21,6 +21,7 @@
  **************************************************************************************************/
 
 #include "Morphology.h"
+#include "MorphologyOpertions.h"
 #include <utilities/Utilities.h>
 
 namespace Ultraliser
@@ -28,7 +29,7 @@ namespace Ultraliser
 
 Morphology::Morphology()
 {
-
+    /// EMPTY CONSTRUCTOR
 }
 
 Morphology::~Morphology()
@@ -48,6 +49,11 @@ Morphology::~Morphology()
 Sections Morphology::getSections() const
 {
     return _sections;
+}
+
+Samples Morphology::getSamples() const
+{
+    return _samples;
 }
 
 Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section) const
@@ -272,11 +278,33 @@ uint64_t Morphology::computeNumberSegments() const
 
 void Morphology::computeMinMaxAvgSegmentLength(float& minSegmentLength,
                                                float& maxSegmentLength,
-                                               float& avgSegmentLength) const
+                                               float& avgSegmentLength,
+                                               const uint64_t& numberMorphologySegments) const
 {
     float minValue = std::numeric_limits<float>::max();
     float maxValue = std::numeric_limits<float>::min();
     float avgValue = 0.f;
+
+    for (const Section* section : _sections)
+    {
+        for (uint64_t i = 0; i < section->getSamples().size(); ++i)
+        {
+            const auto segmentLength = computeSegmentLength(_samples[i], _samples[i + 1]);
+
+            if (segmentLength < minValue)
+                minValue = segmentLength;
+
+            if (segmentLength > maxValue)
+                maxValue = segmentLength;
+
+            avgValue += segmentLength;
+        }
+    }
+
+    // Return the values
+    minSegmentLength = minValue;
+    maxSegmentLength = maxValue;
+    avgSegmentLength = avgValue / numberMorphologySegments;
 }
 
 void Morphology::computeMinMaxAvgSectionLength(float& minSectionLength,
@@ -308,11 +336,33 @@ void Morphology::computeMinMaxAvgSectionLength(float& minSectionLength,
 
 void Morphology::computeMinMaxAvgSegmentSurfaceArea(float& minSegmentSurfaceArea,
                                                     float& maxSegmentSurfaceArea,
-                                                    float& avgSegmentSurfaceArea) const
+                                                    float& avgSegmentSurfaceArea,
+                                                    const uint64_t& numberMorphologySegments) const
 {
     float minValue = std::numeric_limits<float>::max();
     float maxValue = std::numeric_limits<float>::min();
     float avgValue = 0.f;
+
+    for (const Section* section : _sections)
+    {
+        for (uint64_t i = 0; i < section->getSamples().size(); ++i)
+        {
+            const auto segmentSurfaceArea = computeSegmentSurfaceArea(_samples[i], _samples[i + 1]);
+
+            if (segmentSurfaceArea < minValue)
+                minValue = segmentSurfaceArea;
+
+            if (segmentSurfaceArea > maxValue)
+                maxValue = segmentSurfaceArea;
+
+            avgValue += segmentSurfaceArea;
+        }
+    }
+
+    // Return the values
+    minSegmentSurfaceArea = minValue;
+    maxSegmentSurfaceArea = maxValue;
+    avgSegmentSurfaceArea = avgValue / numberMorphologySegments;
 }
 
 void Morphology::computeMinMaxAvgSectionSurfaceArea(float& minSectionSurfaceArea,
@@ -345,11 +395,33 @@ void Morphology::computeMinMaxAvgSectionSurfaceArea(float& minSectionSurfaceArea
 
 void Morphology::computeMinMaxAvgSegmentVolume(float& minSegmentVolume,
                                                float& maxSegmentVolume,
-                                               float& avgSegmentVolume) const
+                                               float& avgSegmentVolume,
+                                               const uint64_t& numberMorphologySegments) const
 {
     float minValue = std::numeric_limits<float>::max();
     float maxValue = std::numeric_limits<float>::min();
     float avgValue = 0.f;
+
+    for (const Section* section : _sections)
+    {
+        for (uint64_t i = 0; i < section->getSamples().size(); ++i)
+        {
+            const auto segmentVolume = computeSegmentVolume(_samples[i], _samples[i + 1]);
+
+            if (segmentVolume < minValue)
+                minValue = segmentVolume;
+
+            if (segmentVolume > maxValue)
+                maxValue = segmentVolume;
+
+            avgValue += segmentVolume;
+        }
+    }
+
+    // Return the values
+    minSegmentVolume = minValue;
+    maxSegmentVolume = maxValue;
+    avgSegmentVolume = avgValue / numberMorphologySegments;
 }
 
 void Morphology::computeMinMaxAvgSectionVolume(float& minSectionVolume,
@@ -379,6 +451,13 @@ void Morphology::computeMinMaxAvgSectionVolume(float& minSectionVolume,
     avgSectionVolume = avgValue / _sections.size();
 }
 
+
+void Morphology::printMorphologyDistributions(const std::string &reference,
+                                              const std::string *prefix) const
+{
+
+}
+
 void Morphology::printMorphologyStats(const std::string &reference, const std::string *prefix) const
 {
     // Starting the timer
@@ -399,13 +478,22 @@ void Morphology::printMorphologyStats(const std::string &reference, const std::s
     computeMinMaxAvgSampleRadius(minSampleRadius, maxSampleRadius, avgSampleRadius);
 
     float minSegmentLength, maxSegmentLength, avgSegmentLength;
-    computeMinMaxAvgSegmentLength(minSegmentLength, maxSegmentLength, avgSegmentLength);
+    computeMinMaxAvgSegmentLength(minSegmentLength, maxSegmentLength, avgSegmentLength,
+                                  numberSegments);
 
     float minSectionLength, maxSectionLength, avgSectionLength;
     computeMinMaxAvgSectionLength(minSectionLength, maxSectionLength, avgSectionLength);
 
+    float minSegmentArea, maxSegmentArea, avgSegmentArea;
+    computeMinMaxAvgSegmentSurfaceArea(minSegmentArea, maxSegmentArea, avgSegmentArea,
+                                       numberSegments);
+
     float minSectionArea, maxSectionArea, avgSectionArea;
     computeMinMaxAvgSectionSurfaceArea(minSectionArea, maxSectionArea, avgSectionArea);
+
+    float minSegmentVolume, maxSegmentVolume, avgSegmentVolume;
+    computeMinMaxAvgSegmentVolume(minSegmentVolume, maxSegmentVolume, avgSegmentVolume,
+                                  numberSegments);
 
     float minSectionVolume, maxSectionVolume, avgSectionVolume;
     computeMinMaxAvgSectionVolume(minSectionVolume, maxSectionVolume, avgSectionVolume);
@@ -466,15 +554,19 @@ void Morphology::printMorphologyStats(const std::string &reference, const std::s
     LOG_INFO("\t* Distributions:");
     LOG_INFO("\t* Samples Radii         | [Min.: %.5f, Max.: %.5f, Avg.: %.5f]",
              F2D(minSampleRadius), F2D(maxSampleRadius), F2D(avgSampleRadius));
+    LOG_INFO("\t* Segments Lengths      | [Min.: %.5f, Max.: %.5f, Avg.: %.5f]",
+             F2D(minSegmentLength), F2D(maxSegmentLength), F2D(avgSegmentLength));
     LOG_INFO("\t* Sections Lengths      | [Min.: %.5f, Max.: %.5f, Avg.: %.5f]",
              F2D(minSectionLength), F2D(maxSectionLength), F2D(avgSectionLength));
-    LOG_INFO("\t* Segments Lengths      | [Min.: %.5f, Max.: %.5f, Avg.: %.5f]",
-             F2D(minSectionLength), F2D(maxSectionLength), F2D(avgSectionLength));
+
+    LOG_INFO("\t* Segments Surf. Areas  | [Min.: %.5f, Max.: %.5f, Avg.: %.5f]",
+             F2D(minSegmentArea), F2D(maxSegmentArea), F2D(avgSegmentArea));
     LOG_INFO("\t* Sections Surf. Areas  | [Min.: %.5f, Max.: %.5f, Avg.: %.5f]",
              F2D(minSectionArea), F2D(maxSectionArea), F2D(avgSectionArea));
+    LOG_INFO("\t* Segments Volumes      | [Min.: %.5f, Max.: %.5f, Avg.: %.5f]",
+             F2D(minSegmentVolume), F2D(maxSegmentVolume), F2D(avgSegmentVolume));
     LOG_INFO("\t* Sections Volumes      | [Min.: %.5f, Max.: %.5f, Avg.: %.5f]",
              F2D(minSectionVolume), F2D(maxSectionVolume), F2D(avgSectionVolume));
-
     LOG_STATUS_IMPORTANT("Gathering Morphology Stats.");
     LOG_STATS(GET_TIME_SECONDS);
 }

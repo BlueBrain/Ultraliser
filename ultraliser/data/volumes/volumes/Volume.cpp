@@ -134,8 +134,12 @@ void Volume::_allocateGrid()
 void Volume::_createGrid(void)
 {
     // Compute the bounding box of the mesh
-    Vector3f bbox = _pMax - _pMin;
-    Vector3f delta;
+    const Vector3f originalBoundingBox = _pMax - _pMin;
+
+    Vector3f delta = originalBoundingBox * 0.1;
+    Vector3f pMin = _pMin - delta;
+    Vector3f pMax = _pMax + delta;
+
 
 //    if (isZero(_voxelPadding))
 //    {
@@ -157,7 +161,7 @@ void Volume::_createGrid(void)
 //    _pMin -= delta;
 
     // Compute the bounding box size
-    Vector3f boundingBoxSize = (_pMax - _pMin);
+    Vector3f boundingBoxSize = (pMax - pMin);
 
     // Find the largest dimension of the mesh model to be able to create a
     // scaled grid.
@@ -172,17 +176,16 @@ void Volume::_createGrid(void)
 
     // Compute the volume grid dimensions
     const int64_t extraVoxels = 0;
-    _gridDimensions.v[0] = width + extraVoxels;
-    _gridDimensions.v[1] = height + extraVoxels;
-    _gridDimensions.v[2] = depth + extraVoxels;
+    _gridDimensions.v[0] = width + extraVoxels * _voxelSize;
+    _gridDimensions.v[1] = height + extraVoxels * _voxelSize;
+    _gridDimensions.v[2] = depth + extraVoxels * _voxelSize;
 
     // Allocating the grid
     _allocateGrid();
 
     // Compute the origin of the mesh.
-    // NOTE: This is not the center of the bounding box, it is just the point
-    // at the base of the bounding box
-    _meshOrigin = _pMin - (0.5f * extraVoxels) * Vector3f(_voxelSize);
+    // NOTE: This is not the center of the bounding box, it is just the point at the base of the bounding box
+    _meshOrigin = pMin; // - (0.5f * extraVoxels * Vector3f(_voxelSize));
 }
 
 void Volume::_loadHeaderData(const std::string &prefix)
@@ -249,11 +252,10 @@ void Volume::surfaceVoxelization(Mesh* mesh,
     }
 }
 
-void Volume::surfaceVoxelizeVasculatureMorphology(
-        VasculatureMorphology* vasculatureMorphology, const bool& verbose,
-        const bool parallel)
+void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
+        VasculatureMorphology* vasculatureMorphology)
 {
-    if (verbose) LOG_TITLE("Surface Voxelization");
+    LOG_TITLE("Surface Voxelization (Parallel)");
 
     // Start the timer
     TIMER_SET;
@@ -264,34 +266,39 @@ void Volume::surfaceVoxelizeVasculatureMorphology(
     LOG_STATUS("Creating Volume Shell from Sections");
     uint64_t processedSections = 0;
     LOOP_STARTS("Rasterization");
+#ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
+#endif
     for (uint64_t i = 0; i < sections.size(); i++)
     {
+#ifdef ULTRALISER_USE_OPENMP
         #pragma omp atomic
+#endif
         processedSections++;
 
-        LOOP_PROGRESS(processedSections, sections.size());
+#ifdef ULTRALISER_USE_OPENMP
+         if (omp_get_thread_num() == 0)
+#endif
+         {
+             LOOP_PROGRESS(processedSections, sections.size());
+         }
 
         // Construct the paths
         Paths paths = vasculatureMorphology->getConnectedPathsFromParentsToChildren(sections[i]);
         for (uint64_t j = 0; j < paths.size(); ++j)
         {
             auto mesh = new Ultraliser::Mesh(paths[j]);
-            _rasterize(mesh , _grid, verbose);
+            _rasterize(mesh , _grid);
         }
     }
     LOOP_DONE;
 
-    if (verbose) LOG_STATUS("Creating Volume Shell");
-
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
 
     // Statistics
-    if (verbose)
-    {
-        LOG_STATUS_IMPORTANT("Rasterization Stats.");
-        LOG_STATS(_surfaceVoxelizationTime);
-    }
+    LOG_STATUS_IMPORTANT("Rasterization Stats.");
+    LOG_STATS(_surfaceVoxelizationTime);
+
 }
 
 void Volume::surfaceVoxelization(AdvancedMesh *mesh)
@@ -667,9 +674,7 @@ int Volume::_triangleCubeSign(Mesh *mesh,
     return -1;
 }
 
-bool Volume::_testTriangleCubeIntersection(Mesh* mesh,
-                                           uint64_t triangleIdx,
-                                           const GridIndex& voxel)
+bool Volume::_testTriangleCubeIntersection(Mesh* mesh, uint64_t triangleIdx, const GridIndex& voxel)
 {
     // Voxel center
     double voxelCenter[3];
@@ -752,8 +757,7 @@ void Volume::_vec2grid(const Vector3f& v, GridIndex& grid)
     }
 }
 
-void Volume::_getTriangleBoundingBox(AdvancedTriangle triangle,
-                                     int64_t *tMin, int64_t *tMax)
+void Volume::_getTriangleBoundingBox(AdvancedTriangle triangle, int64_t *tMin, int64_t *tMax)
 {
     // Find the index of the voxel that intersects the triangle
     GridIndex vIdx;
@@ -907,33 +911,35 @@ void Volume::writeVolumes(const std::string &prefix,
                           const bool& rawFormat,
                           const bool &nrrdFormat) const
 {
-    // Start the timer
-    TIMER_SET;
-
     if (binaryFormat || rawFormat || nrrdFormat)
+    {
+        // Start the timer
+        TIMER_SET;
+
         LOG_TITLE("Writing Volumes");
 
-    if (binaryFormat)
-    {
-        LOG_STATUS("Bit Volume");
-        _grid->writeBIN(prefix);
-    }
+        if (binaryFormat)
+        {
+            LOG_STATUS("Bit Volume");
+            _grid->writeBIN(prefix);
+        }
 
-    if (rawFormat)
-    {
-        LOG_STATUS("Byte Volume");
-        _grid->writeRAW(prefix);
-    }
+        if (rawFormat)
+        {
+            LOG_STATUS("Byte Volume");
+            _grid->writeRAW(prefix);
+        }
 
-    if (nrrdFormat)
-    {
-        LOG_STATUS("NRRD Volume");
-        _grid->writeNRRD(prefix);
-    }
+        if (nrrdFormat)
+        {
+            LOG_STATUS("NRRD Volume");
+            _grid->writeNRRD(prefix);
+        }
 
-    // Statictics
-    LOG_STATUS_IMPORTANT("Writing Volumes Stats.");
-    LOG_STATS(GET_TIME_SECONDS);
+        // Statictics
+        LOG_STATUS_IMPORTANT("Writing Volumes Stats.");
+        LOG_STATS(GET_TIME_SECONDS);
+    }
 }
 
 void Volume::writeStackXY(const std::string &outputDirectory, const std::string &prefix) const
