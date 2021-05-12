@@ -200,7 +200,7 @@ public:
                       const bool &formatOBJ = false,
                       const bool &formatPLY = false,
                       const bool &formatOFF = false,
-                      const bool &formatSTL = false);
+                      const bool &formatSTL = false) const;
 
     /**
      * @brief writeStackXY
@@ -292,10 +292,10 @@ public:
     uint64_t computeNumberNonZeroVoxels(void) const;
 
     /**
-     * @brief computeVolume3
+     * @brief computeVolume
      * @return
      */
-    float computeVolume3();
+    float computeVolume() const;
 
     /**
      * @brief getNumberBytes
@@ -407,8 +407,8 @@ public:
      * @param reference
      * @param prefix
      */
-    void printVolumeStats(const std::string &reference,
-                          const std::string* prefix = nullptr);
+    void printStats(const std::string &reference,
+                          const std::string* prefix = nullptr) const;
 
 public:
 

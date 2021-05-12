@@ -695,16 +695,22 @@ public:
      void getVerticesAndTrianglesArray(Vertex *&vertexArray,
                                        Triangle *&triangleArray,
                                        uint64_t &numberVertices,
-                                       uint64_t &numberTriangles);
+                                       uint64_t &numberTriangles) const;
 
      /**
-      * @brief printMeshStats
+      * @brief printStats
       * Prints the statistics of the mesh
       * @param reference
       * @param prefix
       */
-     void printMeshStats(const std::string &reference,
-                         const std::string *prefix= nullptr);
+     void printStats(const std::string &reference, const std::string *prefix= nullptr);
+
+     /**
+      * @brief writeDistributions
+      * @param reference
+      * @param prefix
+      */
+     void writeDistributions(const std::string &reference, const std::string *prefix) const;
 
     /**
      * @brief splitTriangle

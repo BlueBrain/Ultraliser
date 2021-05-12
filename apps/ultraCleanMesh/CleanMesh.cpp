@@ -371,7 +371,7 @@ int main(int argc , const char** argv)
 
         // Print the volume statistics
         if (options->writeStatistics)
-            volume->printVolumeStats("Volume", &options->outputPrefix);
+            volume->printStats("Volume", &options->outputPrefix);
 
         // Write the stacks
         volume->writeStacks(options->outputDirectory, options->prefix,
@@ -383,7 +383,7 @@ int main(int argc , const char** argv)
 
     // Write the statistics of the original mesh
     if (options->writeStatistics)
-        inputMesh->printMeshStats("input", &options->outputPrefix);
+        inputMesh->printStats("input", &options->outputPrefix);
 
     Ultraliser::Vertex* vertexArray;
     Ultraliser::Triangle* triangleArray;
@@ -424,7 +424,7 @@ int main(int argc , const char** argv)
 
         // Print the mesh statistcs
         if (options->writeStatistics)
-            advancedMesh->printMeshStats("watertight",
+            advancedMesh->printStats("watertight",
                                          &options->outputPrefix);
 
         // Export the repaired mesh
@@ -439,7 +439,7 @@ int main(int argc , const char** argv)
     {
         // Print the mesh statistcs
         if (options->writeStatistics)
-            inputMesh->printMeshStats("watertight", &options->outputPrefix);
+            inputMesh->printStats("watertight", &options->outputPrefix);
 
         // Export the repaired mesh
         std::string filePrefix = options->outputPrefix + MANIFOLD_SUFFIX;

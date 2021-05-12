@@ -484,7 +484,7 @@ void createMeshWithNoSelfIntersections(const Mesh* manifoldMesh, const Options* 
                 options->prefix;
 
         // Statistics
-        toBeWatertightMesh->printMeshStats(WATERTIGHT_STRING, &prefix);
+        toBeWatertightMesh->printStats(WATERTIGHT_STRING, &prefix);
     }
 
     // Export the repaired mesh
@@ -545,7 +545,7 @@ void optimizeMesh(Mesh *dmcMesh, const Options* options)
                     options->prefix;
 
             // Statistics
-            dmcMesh->printMeshStats(OPTIMIZED_STRING, &prefix);
+            dmcMesh->printStats(OPTIMIZED_STRING, &prefix);
         }
 
         // Export the mesh
@@ -588,7 +588,7 @@ void writeDMCMesh(const Mesh *dmcMesh, const Options* options)
                 options->outputDirectory + "/" + STATISTICS_DIRECTORY +  "/" + options->prefix;
 
         // Print statistics
-        dmcMesh->printMeshStats(DMC_STRING, &prefix);
+        dmcMesh->printStats(DMC_STRING, &prefix);
     }
 
     // Export the DMC mesh
@@ -635,7 +635,7 @@ void runMesh2Mesh(int argc , const char** argv)
                 options->outputDirectory + "/" + STATISTICS_DIRECTORY + "/" + options->prefix;
 
         // Print statistics
-        inputMesh->printMeshStats(INPUT_STRING, &prefix);
+        inputMesh->printStats(INPUT_STRING, &prefix);
     }
 
     // Get relaxed bounding box to build the volume
@@ -719,7 +719,7 @@ void runMesh2Mesh(int argc , const char** argv)
                 options->outputDirectory + "/" + STATISTICS_DIRECTORY +  "/" + options->prefix;
 
         // Print the volume statistics
-        volume->printVolumeStats(VOLUME_STRING, &prefix);
+        volume->printStats(VOLUME_STRING, &prefix);
     }
 
     // Write the stacks
@@ -769,7 +769,7 @@ void runMesh2Mesh(int argc , const char** argv)
 
         // Print the mesh statistcs
         if (options->writeStatistics)
-            dmcMesh->printMeshStats(LAPLACIAN_STRING, &options->outputPrefix);
+            dmcMesh->printStats(LAPLACIAN_STRING, &options->outputPrefix);
     }
 
     // Optimize the mesh

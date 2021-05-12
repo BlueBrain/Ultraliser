@@ -3982,7 +3982,7 @@ void AdvancedMesh::applyLaplacianSmooth(const uint64_t &numIterations,
 void AdvancedMesh::getVerticesAndTrianglesArray(Vertex *& vertexArray,
                                                 Triangle *& triangleArray,
                                                 uint64_t& numberVertices,
-                                                uint64_t& numberTriangles)
+                                                uint64_t& numberTriangles) const
 {
     // Generic
     Node *node;
@@ -4038,14 +4038,9 @@ void AdvancedMesh::getVerticesAndTrianglesArray(Vertex *& vertexArray,
     delete[] auxVertices;
 }
 
-void AdvancedMesh::printMeshStats(const std::string &reference,
-                                  const std::string *prefix)
+void AdvancedMesh::writeDistributions(const std::string &reference, const std::string *prefix) const
 {
-    LOG_TITLE("Mesh Statistics");
-
-    LOG_STATUS("Collecting Stats.");
-    double area = this->area();
-    double volume = this->volume();
+    LOG_TITLE("Mesh Distributions");
 
     // Get the data
     Vertex *vertexArray;
@@ -4053,8 +4048,20 @@ void AdvancedMesh::printMeshStats(const std::string &reference,
     uint64_t numberVertices;
     uint64_t numberTriangles;
     getVerticesAndTrianglesArray(vertexArray, triangleArray, numberVertices, numberTriangles);
-    Ultraliser::MeshStatistics stats(vertexArray, triangleArray, numberVertices, numberTriangles);
+
+    // Write the distributions
+    MeshStatistics stats(vertexArray, triangleArray, numberVertices, numberTriangles);
     stats.writeStatsDistributions(*prefix + "-" + reference);
+}
+
+void AdvancedMesh::printStats(const std::string &reference,
+                                  const std::string *prefix)
+{
+    LOG_TITLE("Mesh Statistics");
+
+    LOG_STATUS("Collecting Stats.");
+    double area = this->area();
+    double volume = this->volume();
 
     AdvancedPoint pMin, pMax;
     getBoundingBox(pMin, pMax);

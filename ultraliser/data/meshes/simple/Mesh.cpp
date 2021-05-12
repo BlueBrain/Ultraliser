@@ -599,7 +599,7 @@ void Mesh::writeDistributions(const std::string &reference, const std::string *p
     stats.writeStatsDistributions(*prefix + "-" + reference);
 }
 
-void Mesh::printMeshStats(const std::string &reference,
+void Mesh::printStats(const std::string &reference,
                           const std::string *prefix) const
 {
     LOG_TITLE("Mesh Statistics");

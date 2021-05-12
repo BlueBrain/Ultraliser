@@ -420,11 +420,11 @@ public:
                             const std::string *prefix) const;
 
     /**
-     * @brief printMeshStats
+     * @brief printStats
      * @param reference
      * @param prefix
      */
-    void printMeshStats(const std::string &reference,
+    void printStats(const std::string &reference,
                         const std::string* prefix = nullptr) const;
 
     /**

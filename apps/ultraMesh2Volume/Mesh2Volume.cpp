@@ -316,7 +316,7 @@ int main(int argc , const char** argv)
 
     // Write the statistics of the original mesh
     if (options->writeStatistics)
-        inputMesh->printMeshStats("input", &options->outputPrefix);
+        inputMesh->printStats("input", &options->outputPrefix);
 
     // Get relaxed bounding box to build the volume
     Ultraliser::Vector3f pMinInput, pMaxInput;
@@ -369,7 +369,7 @@ int main(int argc , const char** argv)
 
     // Print the volume statistics
     if (options->writeStatistics)
-        volume->printVolumeStats("Volume", &options->outputPrefix);
+        volume->printStats("Volume", &options->outputPrefix);
 
     // Write the stacks
     volume->writeStacks(options->outputDirectory, options->prefix,
@@ -405,7 +405,7 @@ int main(int argc , const char** argv)
 
         std::string prefix = options->outputPrefix + "-reconstructed";
         if (options->writeStatistics)
-            generatedMesh->printMeshStats("DMC", &prefix);
+            generatedMesh->printStats("DMC", &prefix);
 
         // Export it as a .OBJ mesh, and optionally an .OFF mesh
         generatedMesh->exportMesh(prefix, options->exportOBJ, options->exportOFF,
@@ -425,7 +425,7 @@ int main(int argc , const char** argv)
             if (options->writeStatistics)
             {
                 // Print the mesh statistcs
-                generatedMesh->printMeshStats("Optimized", &prefix);
+                generatedMesh->printStats("Optimized", &prefix);
             }
 
             // Export it as a .OBJ mesh
@@ -451,7 +451,7 @@ int main(int argc , const char** argv)
                 if (options->writeStatistics)
                 {
                     // Print the mesh statistcs
-                    advancedMesh->printMeshStats("Manifold", &prefix);
+                    advancedMesh->printStats("Manifold", &prefix);
                 }
 
                 // Export the repaired mesh

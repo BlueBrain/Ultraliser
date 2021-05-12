@@ -759,4 +759,13 @@ void DualMarchingCubes::_buildSharedVerticesQuads(Vertices &vertices,
     LOG_STATS(GET_TIME_SECONDS);
 }
 
+Mesh* DualMarchingCubes::generateMeshFromVolume(Volume* volume)
+{
+    // Reconstruct a watertight mesh from the volume with DMC
+    auto dmc = new DualMarchingCubes(volume);
+
+    // Generate the DMC mesh
+    return dmc->generateMesh();
+}
+
 }

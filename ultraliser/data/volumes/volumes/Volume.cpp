@@ -1147,7 +1147,7 @@ void Volume::writeStacks(const std::string &outputDirectory,
 
 void Volume::exportToMesh(const std::string &prefix,
                           const bool &formatOBJ, const bool &formatPLY,
-                          const bool &formatOFF, const bool &formatSTL)
+                          const bool &formatOFF, const bool &formatSTL) const
 {
     if (!(formatOBJ || formatPLY || formatOFF || formatSTL))
     {
@@ -1360,7 +1360,7 @@ std::string Volume::getFormatString() const
     return VolumeGrid::getTypeString(_gridType);
 }
 
-float Volume::computeVolume3()
+float Volume::computeVolume() const
 {
     // Compute the number of non zero voxels
     const uint64_t numberNonZeroVoxels = _grid->computeNumberNonZeroVoxels();
@@ -1373,14 +1373,13 @@ float Volume::computeVolume3()
     return voxelVolume * numberNonZeroVoxels;
 }
 
-void Volume::printVolumeStats(const std::string &reference,
-                              const std::string *prefix)
+void Volume::printStats(const std::string &reference, const std::string *prefix) const
 {
     LOG_TITLE("Volume Statistics");
 
     LOG_STATUS("Collecting Stats.");
     Vector3f bounds = _pMax - _pMin;
-    float volumeSize = computeVolume3();
+    float volumeSize = computeVolume();
 
     // Write the statistics to a file
     if (prefix != nullptr)
@@ -1456,10 +1455,7 @@ void Volume::addVolumePass(const Volume* volume)
         return;
     }
 
-    // Loop over the volume elements byte-by-byte and add
-    // them to the corresponding one in this voume
-    size_t progress = 0;
-    // #pragma omp parallel for schedule(guided, 1)
+    // Loop over the volume elements byte-by-byte and add them to the corresponding one in this voume
     for (size_t i = 0; i < volume->getNumberBytes(); ++i)
     {
         addByte(i, volume->getByte(i));

@@ -4,7 +4,6 @@
  *
  * Author(s)
  *      Marwan Abdellah < marwan.abdellah@epfl.ch >
- *      Juan Jose Garcia Cantero < juanjose.garcia@epfl.ch>
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -63,6 +62,27 @@ float computeSegmentVolume(const Sample* sample1, const Sample* sample2)
 
     const float volume = (1.f / 3.f) * ULTRALISER_PIF * length * (r1 * r1 + r1 * r2 + r2 * r2);
     return volume;
+}
+
+void resampleSectionRelaxed(Section* section)
+{
+
+}
+
+void resampleSectionPacked(Section* section)
+{
+
+}
+
+void resampleSectionWithFixedStep(Section* section, const float& step)
+{
+    // Initially, compute section length
+
+    // If the section length if less than the step, do not resample it and return
+
+    // If the section length is less than double the step, add a new bi-centric sample
+
+    // Otherwise, resample the section.
 }
 
 }

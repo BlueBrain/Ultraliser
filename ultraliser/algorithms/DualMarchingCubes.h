@@ -81,6 +81,18 @@ public:
      */
     AdvancedMesh* generateManifoldMesh();
 
+public:
+
+    /**
+     * @brief generateMeshFromVolume
+     * Generate a mesh from the DMC algorithm given an input volume.
+     * @param volume
+     * An input volume that will be used to create the mesh.
+     * @return
+     * A pointer to the mesh.
+     */
+    static Mesh* generateMeshFromVolume(Volume* volume);
+
 private:
 
     /**
