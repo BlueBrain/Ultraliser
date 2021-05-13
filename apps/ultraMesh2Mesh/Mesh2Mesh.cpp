@@ -734,8 +734,7 @@ void runMesh2Mesh(int argc , const char** argv)
     }
 
     // Reconstruct a watertight mesh from the volume with DMC
-    std::unique_ptr<Ultraliser::DualMarchingCubes> dmc =
-            std::make_unique<Ultraliser::DualMarchingCubes>(volume);
+    Ultraliser::DualMarchingCubes* dmc = new Ultraliser::DualMarchingCubes(volume);
 
     // Generate the mesh using the DMC algorithm
     Mesh* dmcMesh = dmc->generateMesh();
@@ -743,14 +742,14 @@ void runMesh2Mesh(int argc , const char** argv)
     // Scane and translate the generated mesh to fit the original mesh
     dmcMesh->scaleAndTranslate(inputCenter, inputBB);
 
-    // Free the volume
-    volume->~Volume();
-
     // DMC mesh output
     if (!options->ignoreDMCMesh)
     {
         writeDMCMesh(dmcMesh, options);
     }
+
+    // Free the volume
+    volume->~Volume();
 
     // Laplacian smoorhing
     if (options->useLaplacian)
@@ -766,7 +765,6 @@ void runMesh2Mesh(int argc , const char** argv)
         dmcMesh->exportMesh(prefix,
                                   options->exportOBJ, options->exportPLY,
                                   options->exportOFF, options->exportSTL);
-
         // Print the mesh statistcs
         if (options->writeStatistics)
             dmcMesh->printStats(LAPLACIAN_STRING, &options->outputPrefix);
@@ -777,6 +775,9 @@ void runMesh2Mesh(int argc , const char** argv)
     {
         optimizeMesh(dmcMesh, options);
     }
+
+    dmcMesh->~Mesh();
+    dmc->~DualMarchingCubes();
 }
 
 }

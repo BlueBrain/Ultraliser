@@ -278,7 +278,7 @@ int main(int argc , const char** argv)
                         options->projectXY, options->projectZY);
 
     // Print the volume statistics
-    maskVolume->printVolumeStats(options->prefix, &options->outputPrefix);
+    maskVolume->printStats(options->prefix, &options->outputPrefix);
 
     // Write the volume
     maskVolume->writeVolumes(options->outputPrefix,
@@ -317,9 +317,10 @@ int main(int argc , const char** argv)
     // Optimize the mesh if required
     if (options->optimizeMesh)
     {
-
         // Optimize
-        mesh->optimize(options->smoothingIterations, options->smoothingFactor);
+        mesh->optimize(options->smoothingIterations,
+                       options->smoothingIterations,
+                       options->smoothingFactor);
 
         // Print statistics of the reconstructed mesh
         mesh->printStats("optimized", &options->outputPrefix);
