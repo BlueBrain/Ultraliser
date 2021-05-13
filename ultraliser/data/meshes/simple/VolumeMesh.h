@@ -65,6 +65,56 @@ public:
      */
     static VolumeMesh* constructVoxelCube(const Vector3f &pMin, const Vector3f &pMax);
 
+    /**
+     * @brief translate
+     * @param to
+     */
+    void translate(const Vector3f& to);
+
+    /**
+     * @brief rotate
+     * @param matrix
+     */
+    void rotate(const Matrix4f &matrix);
+
+    /**
+     * @brief transform
+     * @param matrix
+     */
+    void transform(const Matrix4f &matrix);
+
+    /**
+     * @brief uniformScale
+     * @param factor
+     */
+    void uniformScale(const float factor);
+
+    /**
+     * @brief scale
+     * @param x
+     * @param y
+     * @param z
+     */
+    void scale(const float x = 1.0, const float y = 1.0, const float z = 1.0);
+
+    /**
+     * @brief scale
+     * @param factor
+     */
+    void scale(const Vector3f& factor);
+
+    /**
+     * @brief computeBoundingBox
+     * @param pMin
+     * @param pMax
+     */
+    void computeBoundingBox(Vector3f& pMin, Vector3f& pMax);
+
+    /**
+     * @brief centerAtOrigin
+     */
+    void centerAtOrigin(void);
+
     ~VolumeMesh();
 
 public:

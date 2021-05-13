@@ -81,6 +81,102 @@ VolumeMesh* VolumeMesh::constructVoxelCube(const Vector3f &pMin, const Vector3f 
     return voxelCube;
 }
 
+void VolumeMesh::computeBoundingBox(Vector3f& pMinIn, Vector3f& pMaxIn)
+{
+    // Create new variables to avoid any mess if the inputs are already
+    // initialized with some values
+    Vector3f pMin(std::numeric_limits<float>::max());
+    Vector3f pMax(std::numeric_limits<float>::min());
+
+    for (uint64_t i = 0; i < vertices.size(); ++i)
+    {
+        Vertex vertex = vertices[i];
+        for (int iDim = 0; iDim < DIMENSIONS; ++iDim)
+        {
+            if (vertex[iDim] < pMin[iDim])
+                pMin[iDim] = vertex[iDim];
+
+            if (vertex[iDim] > pMax[iDim])
+                pMax[iDim] = vertex[iDim];
+        }
+    }
+
+    // Update the bounding box data
+    pMinIn = pMin;
+    pMaxIn = pMax;
+}
+
+void VolumeMesh::centerAtOrigin(void)
+{
+    // Compute the bounding box
+    Vector3f pMin, pMax;
+    computeBoundingBox(pMin, pMax);
+
+    // Compute the center
+    Vector3f boundingBoxSize = pMax - pMin;
+    Vector3f center = pMin + (0.5 * boundingBoxSize);
+
+    // Shift the vertices to the origin to center the mesh
+    for (uint64_t i = 0; i < vertices.size(); ++i)
+    {
+        vertices[i] -= center;
+    }
+}
+
+void VolumeMesh::rotate(const Matrix4f& matrix)
+{
+    for (uint64_t i = 0; i < vertices.size(); ++i)
+    {
+        Vector4f result = matrix * Vector4f(vertices[i]);
+        vertices[i] = Vector3f(result.x(), result.y(), result.z());
+    }
+}
+
+void VolumeMesh::transform(const Matrix4f& matrix)
+{
+    for (uint64_t i = 0; i < vertices.size(); ++i)
+    {
+        Vector4f result = matrix * Vector4f(vertices[i], 1.0);
+        vertices[i] = Vector3f(result.x(), result.y(), result.z());
+    }
+}
+
+void VolumeMesh::translate(const Vector3f& to)
+{
+    for (uint64_t i = 0; i < vertices.size(); ++i)
+    {
+        vertices[i] += to;
+    }
+}
+
+void VolumeMesh::uniformScale(const float factor)
+{
+    for (uint64_t i = 0; i < vertices.size(); ++i)
+    {
+        vertices[i] *= factor;
+    }
+}
+
+void VolumeMesh::scale(const float x, const float y, const float z)
+{
+    for (uint64_t i = 0; i < vertices.size(); ++i)
+    {
+        vertices[i].x() *= x;
+        vertices[i].y() *= y;
+        vertices[i].z() *= z;
+    }
+}
+
+void VolumeMesh::scale(const Vector3f& factor)
+{
+    for (uint64_t i = 0; i < vertices.size(); ++i)
+    {
+        vertices[i].x() *= factor.x();
+        vertices[i].y() *= factor.y();
+        vertices[i].z() *= factor.z();
+    }
+}
+
 VolumeMesh::~VolumeMesh()
 {
     // Cleaning vertices

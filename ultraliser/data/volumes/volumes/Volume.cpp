@@ -117,9 +117,7 @@ void Volume::_allocateGrid()
     }
     case VolumeGrid::TYPE::BYTE:
     {
-        _grid = new ByteVolumeGrid(_gridDimensions.v[0],
-                                   _gridDimensions.v[1],
-                                   _gridDimensions.v[2]);
+        _grid = new ByteVolumeGrid(_gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
         break;
     }
 
@@ -1199,6 +1197,22 @@ void Volume::exportToMesh(const std::string &prefix,
 
     LOG_STATUS_IMPORTANT("Volume Mesh Construction Stats.");
     LOG_STATS(GET_TIME_SECONDS);
+
+    /// Adjust the dimensions of the resulting mesh
+    // Compute the dimensions of the resulting volume mesh
+    Vector3f inputMeshbounds = _pMax - _pMin;
+    Vector3f inputMeshCenter = _pMin + inputMeshbounds * 0.5;
+    Vector3f pMin, pMax, volumeMeshBounds;
+    volumeMesh->computeBoundingBox(pMin, pMax);
+    volumeMeshBounds = pMax - pMin;
+
+    // Compute the scale factor
+    Vector3f scaleFactor = inputMeshbounds / volumeMeshBounds;
+
+    // Transform the resulting volume mesh to align with the input mesh
+    volumeMesh->centerAtOrigin();
+    volumeMesh->scale(scaleFactor);
+    volumeMesh->translate(inputMeshCenter);
 
     LOG_TITLE("Exporting Volume Mesh");
     TIMER_RESET;
