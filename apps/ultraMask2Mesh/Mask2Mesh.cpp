@@ -307,7 +307,7 @@ int main(int argc , const char** argv)
     }
 
     // Print statistics of the reconstructed mesh
-    mesh->printMeshStats("dmc", &options->outputPrefix);
+    mesh->printStats("dmc", &options->outputPrefix);
 
     // Export the original mesh
     mesh->exportMesh(options->outputPrefix,
@@ -319,11 +319,10 @@ int main(int argc , const char** argv)
     {
 
         // Optimize
-        mesh->optimize(options->smoothingIterations,
-                          options->smoothingFactor);
+        mesh->optimize(options->smoothingIterations, options->smoothingFactor);
 
         // Print statistics of the reconstructed mesh
-        mesh->printMeshStats("optimized", &options->outputPrefix);
+        mesh->printStats("optimized", &options->outputPrefix);
 
         // Export the original mesh
         mesh->exportMesh(options->outputPrefix,
