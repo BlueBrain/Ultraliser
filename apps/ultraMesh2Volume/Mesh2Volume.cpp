@@ -1,207 +1,195 @@
-/*******************************************************************************
- * Copyright (c) 2016 - 2019
+/***************************************************************************************************
+ * Copyright (c) 2016 - 2021
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
+ *
  * Author(s): Marwan Abdellah <marwan.abdellah@epfl.ch>
  *
  * This file is part of Ultraliser <https://github.com/BlueBrain/Ultraliser>
  *
- * This library is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Lesser General Public License version 3.0 as published
- * by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it under the terms of the
+ * GNU Lesser General Public License version 3.0 as published by the Free Software Foundation.
  *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- ******************************************************************************/
+ * You should have received a copy of the GNU Lesser General Public License along with this library;
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301 USA.
+ **************************************************************************************************/
 
 #include <Ultraliser.h>
-#include "Args.h"
+#include <AppCommon.h>
 
-Options* parseArguments(Args* args)
+namespace Ultraliser
 {
-    Ultraliser::Argument inputMesh(
+
+Options* parseArguments(const int& argc , const char** argv)
+{
+    std::unique_ptr< Args > args = std::make_unique <Args>(argc, argv,
+              "This tool reconstructs a volume from an input mesh.");
+
+    Argument inputMesh(
                 "--mesh",
                 ARGUMENT_TYPE::STRING,
-                "The full path to the mesh.",
+                "The full path to the input mesh that will be remeshed using voxelization.",
                 ARGUMENT_PRESENCE::MANDATORY);
     args->addArgument(&inputMesh);
 
-    Ultraliser::Argument outputDirectory(
+    Argument outputDirectory(
                 "--output-directory",
                 ARGUMENT_TYPE::STRING,
-                "Output directory where the volume will be generated.",
+                "Output directory where the results will be generated.",
                 ARGUMENT_PRESENCE::MANDATORY);
     args->addArgument(&outputDirectory);
 
-    Ultraliser::Argument prefix(
+    Argument prefix(
                 "--prefix",
                 ARGUMENT_TYPE::STRING,
-                "Just a prefix that will be used to label the output files. "
-                "If this is not given by the user, the name of the mesh file "
-                "will be used.");
+                "A prefix that will be used to label the output files. "
+                "If this is not given by the user, the name of the morphology file will be used.");
     args->addArgument(&prefix);
 
-    Ultraliser::Argument boundsFile(
+    Argument boundsFile(
                 "--bounds-file",
                 ARGUMENT_TYPE::STRING,
-                "A file that defines the bounding box that will be voxelized.");
+                "A file that defines the bounding box that will be voxelized and meshed."
+                "This option is used to select a region of interest from the space to voxelize.");
     args->addArgument(&boundsFile);
 
-    Ultraliser::Argument volumeResolution(
+    Argument volumeResolution(
                 "--resolution",
                 ARGUMENT_TYPE::INTEGER,
-                "The basic resolution of the volume, default 512.",
+                "The base resolution of the volume, default 512."
+                "This resolution is set to the larget dimension of the bounding box of the input "
+                "dataset, and the resolution of the other dimensions are computed accordingly.",
                 ARGUMENT_PRESENCE::OPTIONAL,
                 "512");
     args->addArgument(&volumeResolution);
 
-    Ultraliser::Argument autoResolution(
+    Argument autoResolution(
                 "--auto-resolution",
                 ARGUMENT_TYPE::BOOL,
-                "Sets the resolution of the volume based on the mesh "
-                "dimensions.");
+                "Sets the resolution of the volume based on the mesh dimensions.");
     args->addArgument(&autoResolution);
 
-    Ultraliser::Argument voxelsPerMicron(
+    Argument voxelsPerMicron(
                 "--voxels-per-micron",
                 ARGUMENT_TYPE::INTEGER,
-                "Number of voxels per micron in case --auto-resolution is used, "
-                "default 3.",
+                "Number of voxels per micron in case --auto-resolution is used, default 5.",
                 ARGUMENT_PRESENCE::OPTIONAL,
-                "3");
+                "5");
     args->addArgument(&voxelsPerMicron);
 
-    Ultraliser::Argument edgeGap(
+    Argument edgeGap(
                 "--edge-gap",
                 ARGUMENT_TYPE::FLOAT,
-                "Some little extra space to avoid edges intersection, "
-                "default 0.0 for automatic selection.",
+                "Some little extra space to avoid edges intersection, default 0.0.",
                 ARGUMENT_PRESENCE::OPTIONAL,
                 "0.0");
     args->addArgument(&edgeGap);
 
-    Ultraliser::Argument projectXY(
+    Argument projectXY(
                 "--project-xy",
                 ARGUMENT_TYPE::BOOL,
-                "Project an XY projection of the volume.");
+                "Project the volume along the Z-axis.");
     args->addArgument(&projectXY);
 
-    Ultraliser::Argument projectZY(
+    Argument projectXZ(
+                "--project-xz",
+                ARGUMENT_TYPE::BOOL,
+                "Project the volume along the Y-axis.");
+    args->addArgument(&projectXZ);
+
+    Argument projectZY(
                 "--project-zy",
                 ARGUMENT_TYPE::BOOL,
-                "Project an ZY projection of the volume.");
+                "Project the volume along the X-axis.");
     args->addArgument(&projectZY);
 
-    Ultraliser::Argument stackXY(
+    Argument projectColorCoded(
+                "--project-color-coded",
+                ARGUMENT_TYPE::BOOL,
+                "Generate color-coded projections of the volume to help debugging it.");
+    args->addArgument(&projectColorCoded);
+
+    Argument stackXY(
                 "--stack-xy",
                 ARGUMENT_TYPE::BOOL,
-                "Create an image stack along the XY direction.");
+                "Create an image stack along the Z-axis of the volume.");
     args->addArgument(&stackXY);
 
-    Ultraliser::Argument stackZY(
+    Argument stackXZ(
+                "--stack-xz",
+                ARGUMENT_TYPE::BOOL,
+                "Create an image stack along the Y-axis of the volume.");
+    args->addArgument(&stackXZ);
+
+    Argument stackZY(
                 "--stack-zy",
                 ARGUMENT_TYPE::BOOL,
-                "Create an image stack along the ZY direction.");
+                "Create an image stack along the X-axis of the volume.");
     args->addArgument(&stackZY);
 
-    Ultraliser::Argument writeBitVolume(
+    Argument writeBitVolume(
                 "--write-bit-volume",
                 ARGUMENT_TYPE::BOOL,
-                "Create a bit volume, where each voxel is stored in "
-                "a single bit.");
+                "Create a bit volume, where each voxel is stored in a single bit.");
     args->addArgument(&writeBitVolume);
 
-    Ultraliser::Argument writeByteVolume(
+    Argument writeByteVolume(
                 "--write-byte-volume",
                 ARGUMENT_TYPE::BOOL,
-                "Create a byte volume, where each voxel is stored in "
-                "a single byte.");
+                "Create a byte volume, where each voxel is stored in a single byte.");
     args->addArgument(&writeByteVolume);
 
-    Ultraliser::Argument writeNRRDVolume(
+    Argument writeNRRDVolume(
                 "--write-nrrd-volume",
                 ARGUMENT_TYPE::BOOL,
                 "Create an NRRD volume that is compatible with VTK.");
     args->addArgument(&writeNRRDVolume);
 
-    Ultraliser::Argument volumeType(
+    Argument volumeType(
                 "--volume-type",
                 ARGUMENT_TYPE::STRING,
-                "Specify a volume format to perform the voxelization: "
-                "[bit, byte, voxel]. By default, it is a bit volume.",
+                "Specify a volume format to perform the voxelization: [bit, byte, voxel]. "
+                "By default, it is a bit volume to reduce the memory foot print.",
                 ARGUMENT_PRESENCE::OPTIONAL,
                 "bit");
     args->addArgument(&volumeType);
 
-    Ultraliser::Argument solid(
+    Argument useSolidVoxelization(
                 "--solid",
                 ARGUMENT_TYPE::BOOL,
-                "Create a solid volume where the interior is filled.");
-    args->addArgument(&solid);
+                "Use solid voxelization to fill the interior of the surface volume.");
+    args->addArgument(&useSolidVoxelization);
 
-    Ultraliser::Argument reconstructMesh(
-                "--reconstruct-mesh",
-                ARGUMENT_TYPE::BOOL,
-                "Reconstruct an output watertight mesh from the resulting "
-                "volume and export it to .OBJ file.");
-    args->addArgument(&reconstructMesh);
-
-    Ultraliser::Argument optimizeMesh(
-                "--optimize-mesh",
-                ARGUMENT_TYPE::BOOL,
-                "Optimize the reconstructed mesh.");
-    args->addArgument(&optimizeMesh);
-
-    Ultraliser::Argument smoothingIterations(
-                "--smooth-iterations",
-                ARGUMENT_TYPE::INTEGER,
-                "Number of iterations to smooth the reconstructed mesh, "
-                "default 10.",
+    Argument VoxelizationAxis(
+                "--vozelization-axis",
+                ARGUMENT_TYPE::STRING,
+                "The axis where solid voxelization operation will be performed. "
+                "Use one of the following options [x, y, z, or xyz]. "
+                "If you use x or y or z the voxelization will happen on a single axis, "
+                "otherwise, using xyz will perform the solid voxelization along the three main "
+                "axes of the volume to avoid filling any loops in the morphology."
+                "By default, the Z-axis solid voxelization with xyz is applied if the --solid "
+                "flag is set.",
                 ARGUMENT_PRESENCE::OPTIONAL,
-                "10");
-    args->addArgument(&smoothingIterations);
+                "z");
+    args->addArgument(&VoxelizationAxis);
 
-    Ultraliser::Argument smoothingFactor(
-                "--smooth-factor",
-                ARGUMENT_TYPE::FLOAT,
-                "A factor used to remove unnecessary geometry from the "
-                "reconstructed mesh, by default 10.",
-                ARGUMENT_PRESENCE::OPTIONAL,
-                "10");
-    args->addArgument(&smoothingFactor);
-
-    Ultraliser::Argument ignoreSelfIntersections(
-                "--ignore-self-intersections",
-                ARGUMENT_TYPE::BOOL,
-                "Ignore, and take no action if the mesh has self intersecting "
-                "faces. This process will speed up the generation of the final "
-                "mesh, but the output mesh has no guarntees to be perfectly "
-                "watertight.");
-    args->addArgument(&ignoreSelfIntersections);
-
-    Ultraliser::Argument exportOBJ(
-                "--export-obj",
-                ARGUMENT_TYPE::BOOL,
-                "Export the output mesh to an .OBJ file.");
-    args->addArgument(&exportOBJ);
-
-    Ultraliser::Argument exportOFF(
-                "--export-off",
-                ARGUMENT_TYPE::BOOL,
-                "Export the output mesh to an .OFF file.");
-    args->addArgument(&exportOFF);
-
-    Ultraliser::Argument writeStatistics(
+    Argument writeStatistics(
                 "--stats",
                 ARGUMENT_TYPE::BOOL,
                 "Write the statistics.");
     args->addArgument(&writeStatistics);
+
+    Argument writeDistributions(
+                "--dists",
+                ARGUMENT_TYPE::BOOL,
+                "Write the distributions.");
+    args->addArgument(&writeDistributions);
 
     // Parse the command line options
     args->parse();
@@ -209,32 +197,35 @@ Options* parseArguments(Args* args)
     // Construct the options
     Options* options = new Options();
 
-    // Get all the options
+    /// Get all the options
+    // Input / output
     options->inputMesh = args->getStringValue(&inputMesh);
     options->outputDirectory = args->getStringValue(&outputDirectory);
+    options->prefix = args->getStringValue(&prefix);
+
+    // Bounds file for ROI
     options->boundsFile = args->getStringValue(&boundsFile);
+
+    // Volume attributes
     options->autoResolution = args->getBoolValue(&autoResolution);
     options->voxelsPerMicron = args->getUnsignedIntegrValue(&voxelsPerMicron);
     options->volumeResolution = args->getUnsignedIntegrValue(&volumeResolution);
+    options->volumeType = args->getStringValue(&volumeType);
     options->edgeGap = args->getFloatValue(&edgeGap);
+    options->useSolidVoxelization = args->getBoolValue(&useSolidVoxelization);
+    options->VoxelizationAxis = Volume::getSolidVoxelizationAxis(args->getStringValue(&VoxelizationAxis));
+
+    // Volume export, file format
     options->writeBitVolume = args->getBoolValue(&writeBitVolume);
     options->writeByteVolume = args->getBoolValue(&writeByteVolume);
     options->writeNRRDVolume = args->getBoolValue(&writeNRRDVolume);
-    options->solid = args->getBoolValue(&solid);
-    options->volumeType = args->getStringValue(&volumeType);
-    options->reconstructMesh = args->getBoolValue(&reconstructMesh);
-    options->optimizeMesh = args->getBoolValue(&optimizeMesh);
-    options->smoothingFactor = args->getFloatValue(&smoothingFactor);
-    options->smoothingIterations = args->getUnsignedIntegrValue(&smoothingIterations);
-    options->ignoreSelfIntersections = args->getBoolValue(&ignoreSelfIntersections);
-    options->exportOBJ = args->getBoolValue(&exportOBJ);
-    options->exportOFF = args->getBoolValue(&exportOFF);
-    options->projectXY = args->getBoolValue(&projectXY);
-    options->projectZY = args->getBoolValue(&projectZY);
-    options->stackXY = args->getBoolValue(&stackXY);
-    options->stackZY = args->getBoolValue(&stackZY);
-    options->prefix = args->getStringValue(&prefix);
+
+    // Statistics and distributions
     options->writeStatistics = args->getBoolValue(&writeStatistics);
+    options->writeDistributions = args->getBoolValue(&writeDistributions);
+
+
+    LOG_TITLE("Creating Context");
 
     /// Validate the arguments
     if (!Ultraliser::File::exists(options->inputMesh))
@@ -246,38 +237,24 @@ Options* parseArguments(Args* args)
     mkdir(options->outputDirectory.c_str(), 0777);
     if (!Ultraliser::Directory::exists(options->outputDirectory))
     {
-        LOG_ERROR("The directory [ %s ] does NOT exist!",
-                  options->outputDirectory.c_str());
+        LOG_ERROR("The directory [ %s ] does NOT exist!", options->outputDirectory.c_str());
     }
 
-    if (!(options->writeBitVolume || options->writeByteVolume))
+    /// Validate the arguments
+    if (!Ultraliser::File::exists(options->inputMesh))
+    {
+        LOG_ERROR("The file [ %s ] does NOT exist! ", options->inputMesh.c_str());
+    }
+
+    if (!(options->writeBitVolume || options->writeByteVolume || options->writeNRRDVolume))
     {
         LOG_ERROR("The user must specify at least one output format of the "
-                  "volume: [--write-bit-volume, --write-byte-volume]");
-    }
-
-    if (options->optimizeMesh)
-    {
-        if (!options->reconstructMesh)
-        {
-            LOG_ERROR("The flag --reconstruct-mesh must be set to create a mesh "
-                      "that we can optimize.");
-        }
-    }
-
-    if (options->reconstructMesh)
-    {
-        if (!(options->exportOBJ || options->exportOFF))
-        {
-            LOG_ERROR("The user must specify at least one output format of the "
-                      "mesh to export: [--export-obj, --export-off]");
-        }
+                  "volume: [--write-bit-volume, --write-byte-volume, --write-nrrd-volume]");
     }
 
     if (options->boundsFile == NO_DEFAULT_VALUE)
     {
-        LOG_WARNING("The bounding box of the volume will be computed "
-                    "on the fly");
+        LOG_WARNING("The bounding box of the volume will be computed on the fly");
         options->boundsFile = EMPTY;
     }
     else
@@ -292,177 +269,92 @@ Options* parseArguments(Args* args)
         options->prefix = Ultraliser::File::getName(options->inputMesh);
     }
 
-    // Construct the output prefix
-    options->outputPrefix = options->outputDirectory + "/" + options->prefix;
+    // Construct the prefixes once and for all
+    options->outputPrefix =
+            options->outputDirectory + "/" + options->prefix;
+    options->meshPrefix =
+            options->outputDirectory + "/" + MESHES_DIRECTORY +  "/" + options->prefix;
+    options->volumePrefix =
+            options->outputDirectory + "/" + VOLUMES_DIRECTORY +  "/" + options->prefix;
+    options->projectionPrefix =
+            options->outputDirectory + "/" + PROJECTIONS_DIRECTORY +  "/" + options->prefix;
+    options->statisticsPrefix =
+            options->outputDirectory + "/" + STATISTICS_DIRECTORY +  "/" + options->prefix;
+    options->distributionsPrefix =
+            options->outputDirectory + "/" + DISTRIBUTIONS_DIRECTORY +  "/" + options->prefix;
+
+    // Create the respective directories
+    createRespectiveDirectories(options);
 
     LOG_TITLE("Ultralizing");
-    LOG_STATUS("Output Directory [ %s ]", options->outputDirectory.c_str());
+    LOG_SUCCESS("Output Directory [ %s ]", options->outputDirectory.c_str());
 
     // Return the executable options
     return options;
 }
 
-int main(int argc , const char** argv)
+void run(int argc , const char** argv)
 {
-    // Arguments
-    Args args(argc, argv,
-              "This tool reconstructs a volume from an input mesh.");
-
-    // Parse the arguments and get the values
-    Options* options = parseArguments(&args);
+    // Parse the arguments and get the tool options
+    auto options = parseArguments(argc, argv);
 
     // Load the mesh
-    Ultraliser::Mesh* inputMesh = new Ultraliser::Mesh(options->inputMesh);
+    Mesh* inputMesh = new Mesh(options->inputMesh);
 
     // Write the statistics of the original mesh
     if (options->writeStatistics)
-        inputMesh->printStats("input", &options->outputPrefix);
+        inputMesh->printStats(INPUT_STRING, &options->statisticsPrefix);
+
+    // Write the statistics of the original mesh
+    if (options->writeDistributions)
+        inputMesh->writeDistributions(INPUT_STRING, &options->statisticsPrefix);
 
     // Get relaxed bounding box to build the volume
     Ultraliser::Vector3f pMinInput, pMaxInput;
     inputMesh->computeBoundingBox(pMinInput, pMaxInput);
 
-
     // Extend the bounding box a little bit to avoid edge issues
     Ultraliser::Vector3f inputBB = pMaxInput - pMinInput;
-    Ultraliser::Vector3f inputCenter = pMinInput + 0.5 * (pMaxInput - pMinInput);
 
     // Get the largest dimension
-    float largestDimension = inputBB.x();
-    if (inputBB.y() > largestDimension)
-        largestDimension = inputBB.y();
-    if (inputBB.z() > largestDimension)
-        largestDimension = inputBB.z();
+    const float largestDimension = inputBB.getLargestDimension();
 
     uint64_t resolution;
     if (options->autoResolution)
         resolution = uint64_t(options->voxelsPerMicron * largestDimension);
     else
         resolution = options->volumeResolution;
-    LOG_WARNING("Volume resolution [%d], Largest dimension [%f]", resolution,
-                largestDimension);
+    LOG_SUCCESS("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);
 
-    Ultraliser::Volume* volume = new Ultraliser::Volume(
-                pMinInput, pMaxInput, resolution,
-                options->edgeGap,
-                Ultraliser::VolumeGrid::getType(options->volumeType));
+    // Construct the volume
+    Volume *volume = new Volume(pMinInput, pMaxInput, resolution, options->edgeGap,
+                                Ultraliser::VolumeGrid::getType(options->volumeType));
 
     // Surface voxelization
-    volume->surfaceVoxelization(inputMesh, true, false);
+    volume->surfaceVoxelization(inputMesh, true, true);
 
-    // Free the mesh
-    inputMesh->~Mesh();
+    // Free the input mesh
+    delete inputMesh;
 
     // Enable solid voxelization
-    if (options->solid)
-        volume->solidVoxelization();
+    if (options->useSolidVoxelization)
+        volume->solidVoxelization(options->VoxelizationAxis);
 
-    // Projecting the volume to validate its content
-    volume->project(options->outputPrefix,
-                    options->projectXY, options->projectZY);
+    // Generate the volume artifacts based on the given options
+    generateVolumeArtifacts(volume, options);
+}
 
-    // Write the volume
-    volume->writeVolumes(options->outputPrefix,
-                         options->writeBitVolume,
-                         options->writeByteVolume,
-                         options->writeNRRDVolume);
+}
 
-    // Print the volume statistics
-    if (options->writeStatistics)
-        volume->printStats("Volume", &options->outputPrefix);
+int main(int argc , const char** argv)
+{
+    TIMER_SET;
 
-    // Write the stacks
-    volume->writeStacks(options->outputDirectory, options->prefix,
-                        options->stackXY, options->stackZY);
+    Ultraliser::run(argc, argv);
 
-    if (options->reconstructMesh)
-    {
-        // Reconstruct a watertight mesh from the volume with DMC
-        Ultraliser::DualMarchingCubes* dmc =
-                new Ultraliser::DualMarchingCubes(volume);
-
-        // Generate the mesh
-        Ultraliser::Mesh* generatedMesh = dmc->generateMesh();
-
-        // Free the volume
-        volume->~Volume();
-
-        // Center the reconstructed mesh at the origin
-        generatedMesh->centerAtOrigin();
-
-        // Compute the bounding box of the created mesh
-        Ultraliser::Vector3f pMaxGenerated, pMinGenerated;
-        generatedMesh->computeBoundingBox(pMinGenerated, pMaxGenerated);
-
-        const Ultraliser::Vector3f generatedBB = pMaxGenerated - pMinGenerated;
-        const Ultraliser::Vector3f scale = inputBB / generatedBB;
-
-        // Scale the mesh
-        generatedMesh->scale( scale.x(), scale.y(), scale.z());
-
-        // Translate it back to the original center of the input mesh
-        generatedMesh->translate(inputCenter);
-
-        std::string prefix = options->outputPrefix + "-reconstructed";
-        if (options->writeStatistics)
-            generatedMesh->printStats("DMC", &prefix);
-
-        // Export it as a .OBJ mesh, and optionally an .OFF mesh
-        generatedMesh->exportMesh(prefix, options->exportOBJ, options->exportOFF,
-                                  false);
-
-        // Optimize the mesh
-        if (options->optimizeMesh)
-        {
-            // Set the prefix
-            prefix = options->outputPrefix + OPTIMIZED_SUFFIX;
-
-            // Optimize the mesh using the default parameters
-            generatedMesh->optimize(1,
-                                    options->smoothingIterations,
-                                    options->smoothingFactor);
-
-            if (options->writeStatistics)
-            {
-                // Print the mesh statistcs
-                generatedMesh->printStats("Optimized", &prefix);
-            }
-
-            // Export it as a .OBJ mesh
-            generatedMesh->exportMesh(prefix,
-                                options->exportOBJ,
-                                options->exportOFF, false);
-
-            // Fix self0intersections if any
-            if (!options->ignoreSelfIntersections)
-            {
-                // Fix the mesh if it has any self intersections
-                std::unique_ptr<Ultraliser::AdvancedMesh> advancedMesh =
-                        std::make_unique<Ultraliser::AdvancedMesh>
-                        (generatedMesh->getVertices(),
-                         generatedMesh->getNumberVertices(),
-                         generatedMesh->getTriangles(),
-                         generatedMesh->getNumberTriangles());
-
-                // Ensures that the mesh is truly two-advanced with no
-                // self intersections
-                advancedMesh->ensureWatertightness();
-
-                if (options->writeStatistics)
-                {
-                    // Print the mesh statistcs
-                    advancedMesh->printStats("Manifold", &prefix);
-                }
-
-                // Export the repaired mesh
-                std::string fileName = prefix + MANIFOLD_SUFFIX + OBJ_EXTENSION;
-                advancedMesh->exportOBJ(fileName.c_str());
-            }
-        }
-
-        // Free the DMC mesh
-        generatedMesh->~Mesh();
-    }
+    LOG_STATUS_IMPORTANT("Ultralization Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
 
     ULTRALISER_DONE;
 }
+

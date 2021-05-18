@@ -40,10 +40,25 @@ Argument::Argument(const std::string name,
     _value = defaultValue;
 }
 
+Argument* Argument::ARGUMENT(const std::string name,
+                             const ARGUMENT_TYPE type,
+                             const std::string help,
+                             const ARGUMENT_PRESENCE presence,
+                             const std::string defaultValue)
+{
+    return new Argument(name, type, help, presence, defaultValue);
+}
+
+Argument::~Argument()
+{
+    /// EMPTY
+}
+
 Argument* Argument::getCopy()
 {
     return new Argument(_name, _type, _help, _presence, _defaultValue);
 }
+
 
 size_t getArgumentCount(std::string argvString, std::string argument)
 {

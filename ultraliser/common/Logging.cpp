@@ -47,15 +47,13 @@ void log(const LOG_LEVEL& logLevel,
     char timeStamp[TIME_STAMP_CHAR_LENGTH];
 
     // Format the time string and get the local time
-    strftime(timeStamp, sizeof(timeStamp),
-              (char*)"%H:%M:%S", localtime(&timeNow));
+    strftime(timeStamp, sizeof(timeStamp), (char*)"%H:%M:%S", localtime(&timeNow));
 
     switch (logLevel)
     {
         case INFO:
 #ifdef ULTRALISER_RELEASE
-        printf(STD_WHITE "%s \n" STD_RESET,
-               logMessage);
+        printf(STD_WHITE "%s \n" STD_RESET, logMessage);
 #else
         printf(STD_RED "[%d]" STD_RESET
                STD_YELLOW "[ %s ]" STD_RESET
@@ -74,8 +72,7 @@ void log(const LOG_LEVEL& logLevel,
 
     case DETAIL:
 #ifdef ULTRALISER_RELEASE
-    printf(STD_BOLD_CYAN "        * %s \n\n" STD_RESET,
-           logMessage);
+    printf(STD_BOLD_CYAN "        * %s \n\n" STD_RESET, logMessage);
 #else
     printf(STD_RED "[%d]" STD_RESET
            STD_YELLOW "[ %s ]" STD_RESET
@@ -94,8 +91,7 @@ void log(const LOG_LEVEL& logLevel,
 
     case STATUS:
 #ifdef ULTRALISER_RELEASE
-    printf(STD_WHITE "    %s \n" STD_RESET,
-           logMessage);
+    printf(STD_WHITE "    %s \n" STD_RESET, logMessage);
 #else
     printf(STD_RED "[%d]" STD_RESET
            STD_YELLOW "[ %s ]" STD_RESET
@@ -114,8 +110,7 @@ void log(const LOG_LEVEL& logLevel,
 
     case GREEN_STATUS:
 #ifdef ULTRALISER_RELEASE
-    printf(STD_GREEN "    %s \n" STD_RESET,
-           logMessage);
+    printf(STD_GREEN "    %s \n" STD_RESET, logMessage);
 #else
     printf(STD_RED "[%d]" STD_RESET
            STD_YELLOW "[ %s ]" STD_RESET
@@ -134,8 +129,7 @@ void log(const LOG_LEVEL& logLevel,
 
     case HEADER:
 #ifdef ULTRALISER_RELEASE
-    printf(STD_WHITE "%s \n" STD_RESET,
-           logMessage);
+    printf(STD_WHITE "%s \n" STD_RESET, logMessage);
 #else
     printf(STD_RED "[%d]" STD_RESET
            STD_YELLOW "[ %s ]" STD_RESET
@@ -171,8 +165,7 @@ void log(const LOG_LEVEL& logLevel,
 
         case WARNING:
 #ifdef ULTRALISER_RELEASE
-        printf(STD_BOLD_YELLOW "    WARNING: %s \n\n" STD_RESET,
-               logMessage);
+        printf(STD_BOLD_YELLOW "    WARNING: %s \n\n" STD_RESET, logMessage);
 #else
         printf(STD_RED "[%d]" STD_RESET
                STD_YELLOW "[ %s ]" STD_RESET
@@ -192,8 +185,7 @@ void log(const LOG_LEVEL& logLevel,
 
     case SUCCESS:
 #ifdef ULTRALISER_RELEASE
-    printf(STD_BOLD_GREEN "    NOTE: %s \n\n" STD_RESET,
-           logMessage);
+    printf(STD_BOLD_GREEN "    NOTE: %s \n\n" STD_RESET, logMessage);
 #else
     printf(STD_RED "[%d]" STD_RESET
            STD_YELLOW "[ %s ]" STD_RESET
@@ -213,8 +205,7 @@ void log(const LOG_LEVEL& logLevel,
 
     case ERROR:
 #ifdef ULTRALISER_RELEASE
-        printf(STD_BOLD_RED "%s \n" STD_RESET,
-               logMessage);
+        printf(STD_BOLD_RED "%s \n" STD_RESET, logMessage);
         exit(EXIT_SUCCESS);
 #else
         printf(STD_RED "[%d]" STD_RESET
@@ -235,8 +226,7 @@ void log(const LOG_LEVEL& logLevel,
             break;
 
         case EXIT:
-        printf(STD_BOLD_RED
-               "\t Exitting due to an error! ...\n " STD_RESET);
+        printf(STD_BOLD_RED "\t Exitting due to an error! ...\n " STD_RESET);
         exit(EXIT_FAILURE);
     }
 

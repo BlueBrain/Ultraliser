@@ -300,7 +300,7 @@ void BitVolumeGrid::_allocateMemory()
 void BitVolumeGrid::_freeMemory()
 {
     // Free the bit array
-    _data->~BitArray();
+    delete _data;
 }
 
 BitVolumeGrid::~BitVolumeGrid()

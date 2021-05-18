@@ -39,6 +39,7 @@ public:
     ArgumentParser(const int argc,
                    const char** argv,
                    const std::string &applicationHelp = "");
+    ~ArgumentParser();
 
     /**
      * @brief parse

@@ -41,6 +41,18 @@ ArgumentParser::ArgumentParser(const int argc, const char** argv,
     }
 }
 
+ArgumentParser::~ArgumentParser()
+{
+    for (auto& argument : _arguments)
+    {
+        delete argument;
+    }
+
+    // Clean the std::vector
+    _arguments.clear();
+    _arguments.shrink_to_fit();
+}
+
 bool areBothSpaces(char lhs, char rhs)
 {
     return (lhs == rhs) && (lhs == ' ');

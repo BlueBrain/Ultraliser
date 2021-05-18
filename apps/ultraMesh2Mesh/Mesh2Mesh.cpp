@@ -1,42 +1,30 @@
-/*******************************************************************************
- * Copyright (c) 2016 - 2019
+/***************************************************************************************************
+ * Copyright (c) 2016 - 2021
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
+ *
  * Author(s): Marwan Abdellah <marwan.abdellah@epfl.ch>
  *
  * This file is part of Ultraliser <https://github.com/BlueBrain/Ultraliser>
  *
- * This library is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Lesser General Public License version 3.0 as published
- * by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it under the terms of the
+ * GNU Lesser General Public License version 3.0 as published by the Free Software Foundation.
  *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- ******************************************************************************/
+ * You should have received a copy of the GNU Lesser General Public License along with this library;
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301 USA.
+ **************************************************************************************************/
 
 #include <Ultraliser.h>
-#include "Args.h"
+#include <AppCommon.h>
 
 namespace Ultraliser
 {
 
-/**
- * @brief parseArguments
- * Parse the arguments of the tool.
- *
- * @param argc
- * Arguments count.
- * @param argv
- * Arguments list.
- * @return
- * User defined options object.
- */
 Options* parseArguments(const int& argc , const char** argv)
 {
     std::unique_ptr< Args > args = std::make_unique <Args>(argc, argv,
@@ -332,38 +320,35 @@ Options* parseArguments(const int& argc , const char** argv)
     // Construct the options
     Options* options = new Options();
 
-    // Get all the options
+    /// Get all the options
+    // Input / output
     options->inputMesh = args->getStringValue(&inputMesh);
     options->outputDirectory = args->getStringValue(&outputDirectory);
+    options->prefix = args->getStringValue(&prefix);
+
+    // Bounds file for ROI
     options->boundsFile = args->getStringValue(&boundsFile);
-    options->volumeResolution = args->getUnsignedIntegrValue(&volumeResolution);
+
+    // Volume attributes
     options->autoResolution = args->getBoolValue(&autoResolution);
     options->voxelsPerMicron = args->getUnsignedIntegrValue(&voxelsPerMicron);
+    options->volumeResolution = args->getUnsignedIntegrValue(&volumeResolution);
+    options->volumeType = args->getStringValue(&volumeType);
     options->edgeGap = args->getFloatValue(&edgeGap);
+    options->useSolidVoxelization = args->getBoolValue(&useSolidVoxelization);
+    options->VoxelizationAxis = Volume::getSolidVoxelizationAxis(args->getStringValue(&VoxelizationAxis));
+
+    // Volume export, file format
     options->writeBitVolume = args->getBoolValue(&writeBitVolume);
     options->writeByteVolume = args->getBoolValue(&writeByteVolume);
     options->writeNRRDVolume = args->getBoolValue(&writeNRRDVolume);
-    options->useSolidVoxelization = args->getBoolValue(&useSolidVoxelization);
-    options->VoxelizationAxis =
-            Volume::getSolidVoxelizationAxis(args->getStringValue(&VoxelizationAxis));
-    options->volumeType = args->getStringValue(&volumeType);
-    options->optimizeMesh = args->getBoolValue(&optimizeMesh);
-    options->optimizeMeshAdaptively = args->getBoolValue(&adaptiveOptimization);
-    options->smoothingIterations = args->getUnsignedIntegrValue(&smoothingIterations);
-    options->optimizationIterations = args->getUnsignedIntegrValue(&optimizationIterations);
-    options->smoothingIterations = args->getUnsignedIntegrValue(&smoothingIterations);
-    options->flatFactor = args->getFloatValue(&flatFactor);
-    options->denseFactor = args->getFloatValue(&denseFactor);
-    options->ignoreDMCMesh = args->getBoolValue(&ignoreDMCMesh);
-    options->ignoreSelfIntersections = args->getBoolValue(&ignoreSelfIntersections);
-    options->ignoreOptimizedNonWatertightMesh = args->getBoolValue(&ignoreOptimizedNonWatertightMesh);
+    options->exportVolumeMesh = args->getBoolValue(&exportVolumeMesh);
 
     // Mesh exports, file formats
     options->exportOBJ = args->getBoolValue(&exportOBJ);
     options->exportPLY = args->getBoolValue(&exportPLY);
     options->exportOFF = args->getBoolValue(&exportOFF);
     options->exportSTL = args->getBoolValue(&exportSTL);
-    options->exportVolumeMesh = args->getBoolValue(&exportVolumeMesh);
 
     // Projections
     options->projectXY = args->getBoolValue(&projectXY);
@@ -376,13 +361,29 @@ Options* parseArguments(const int& argc , const char** argv)
     options->stackXZ = args->getBoolValue(&stackXZ);
     options->stackZY = args->getBoolValue(&stackZY);
 
-    // Mesh partitions
+    // Mesh optimization attributes
+    options->optimizeMeshHomogenous = args->getBoolValue(&optimizeMesh);
+    options->optimizeMeshAdaptively = args->getBoolValue(&adaptiveOptimization);
+    options->smoothingIterations = args->getUnsignedIntegrValue(&smoothingIterations);
+    options->optimizationIterations = args->getUnsignedIntegrValue(&optimizationIterations);
+    options->smoothingIterations = args->getUnsignedIntegrValue(&smoothingIterations);
+    options->flatFactor = args->getFloatValue(&flatFactor);
+    options->denseFactor = args->getFloatValue(&denseFactor);
+    options->smoothingIterations = args->getUnsignedIntegrValue(&smoothingIterations);
     options->preservePartitions = args->getBoolValue(&preservePartitions);
-    options->prefix = args->getStringValue(&prefix);
-    options->writeStatistics = args->getBoolValue(&writeStatistics);
-    options->writeDistributions = args->getBoolValue(&writeDistributions);
     options->useLaplacian = args->getBoolValue(&laplacianFilter);
     options->laplacianIterations = args->getIntegrValue(&laplacianIterations);
+
+    // Suppression flags
+    options->ignoreDMCMesh = args->getBoolValue(&ignoreDMCMesh);
+    options->ignoreSelfIntersections = args->getBoolValue(&ignoreSelfIntersections);
+    options->ignoreOptimizedNonWatertightMesh = args->getBoolValue(&ignoreOptimizedNonWatertightMesh);
+
+    // Statistics and distributions
+    options->writeStatistics = args->getBoolValue(&writeStatistics);
+    options->writeDistributions = args->getBoolValue(&writeDistributions);
+
+    LOG_TITLE("Creating Context");
 
     /// Validate the arguments
     if (!Ultraliser::File::exists(options->inputMesh))
@@ -394,8 +395,7 @@ Options* parseArguments(const int& argc , const char** argv)
     mkdir(options->outputDirectory.c_str(), 0777);
     if (!Ultraliser::Directory::exists(options->outputDirectory))
     {
-        LOG_ERROR("The directory [ %s ] does NOT exist!",
-                  options->outputDirectory.c_str());
+        LOG_ERROR("The directory [ %s ] does NOT exist!", options->outputDirectory.c_str());
     }
 
     // Exporting formats, at least one of them must be there
@@ -431,6 +431,20 @@ Options* parseArguments(const int& argc , const char** argv)
         options->prefix = Ultraliser::File::getName(options->inputMesh);
     }
 
+    // Construct the prefixes once and for all
+    options->outputPrefix =
+            options->outputDirectory + "/" + options->prefix;
+    options->meshPrefix =
+            options->outputDirectory + "/" + MESHES_DIRECTORY +  "/" + options->prefix;
+    options->volumePrefix =
+            options->outputDirectory + "/" + VOLUMES_DIRECTORY +  "/" + options->prefix;
+    options->projectionPrefix =
+            options->outputDirectory + "/" + PROJECTIONS_DIRECTORY +  "/" + options->prefix;
+    options->statisticsPrefix =
+            options->outputDirectory + "/" + STATISTICS_DIRECTORY +  "/" + options->prefix;
+    options->distributionsPrefix =
+            options->outputDirectory + "/" + DISTRIBUTIONS_DIRECTORY +  "/" + options->prefix;
+
     // Create the respective directories
     createRespectiveDirectories(options);
 
@@ -441,185 +455,7 @@ Options* parseArguments(const int& argc , const char** argv)
     return options;
 }
 
-/**
- * @brief createMeshWithNoSelfIntersections
- * Process the two manifold mesh and create a watertight mesh using the AdvancedMesh processing.
- *
- * @param manifoldMesh
- * An input mesh that is guaranteed to be two-manifold but have some self intersections.
- * @param options
- * User-defined options given to the executable.
- */
-void createMeshWithNoSelfIntersections(const Mesh* manifoldMesh, const Options* options)
-{
-    // Create an advanced mesh to process the manifold mesh and make it watertight if it has any
-    // self intersections
-    Ultraliser::AdvancedMesh* toBeWatertightMesh = new
-        Ultraliser::AdvancedMesh
-            (manifoldMesh->getVertices(), manifoldMesh->getNumberVertices(),
-             manifoldMesh->getTriangles(), manifoldMesh->getNumberTriangles());
-
-    if (options->preservePartitions)
-    {
-        // Split the mesh into partitions
-        std::vector < Ultraliser::AdvancedMesh* > partitions =
-                toBeWatertightMesh->splitPartitions();
-
-        // Ensure watertightness for the rest of the partitions
-        for (auto mesh : partitions)
-            mesh->ensureWatertightness();
-
-        // Ensures that the mesh is truly two-manifold with no self intersections
-        toBeWatertightMesh->ensureWatertightness();
-
-        // Merge back after checking the watertightness
-        toBeWatertightMesh->appendMeshes(partitions);
-
-        // Free
-        for (auto mesh : partitions)
-            mesh->~AdvancedMesh();
-    }
-    else
-    {
-        // Ensures that the mesh is truly two-advanced with no self intersections
-        toBeWatertightMesh->ensureWatertightness();
-    }
-
-    // Print the mesh statistcs
-    if (options->writeStatistics)
-    {
-        // Prefix
-        const std::string prefix = options->outputDirectory + "/" + STATISTICS_DIRECTORY  + "/" +
-                options->prefix;
-
-        // Statistics
-        toBeWatertightMesh->printStats(WATERTIGHT_STRING, &prefix);
-    }
-
-    // Export the repaired mesh
-    if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
-    {
-        // Prefix
-        const std::string prefix = options->outputDirectory + "/" + MESHES_DIRECTORY + "/" +
-                options->prefix + WATERTIGHT_SUFFIX;
-
-        // Export
-        toBeWatertightMesh->exportMesh(prefix,
-                                       options->exportOBJ, options->exportPLY,
-                                       options->exportOFF, options->exportSTL);
-    }
-
-    // Free
-    toBeWatertightMesh->~AdvancedMesh();
-}
-
-/**
- * @brief optimizeMesh
- * Optimize the resulting mesh from the DMC algorithm.
- *
- * @param dmcMesh
- * The resulting mesh from the DMC algorithm.
- * @param options
- * User-defined options given to the executable.
- */
-void optimizeMesh(Mesh *dmcMesh, const Options* options)
-{
-    // Further adaptive optimization
-    if (options->optimizeMeshAdaptively)
-    {
-        dmcMesh->optimizeAdaptively(options->optimizationIterations, options->smoothingIterations,
-                                    options->flatFactor, options->denseFactor);
-
-        dmcMesh->smooth();
-        dmcMesh->smoothNormals();
-    }
-    else
-    {
-        // Default optimization
-        if (options->optimizeMesh)
-        {
-            dmcMesh->optimize(options->optimizationIterations,
-                              options->smoothingIterations,
-                              options->denseFactor);
-        }
-    }
-
-    if (!options->ignoreOptimizedNonWatertightMesh)
-    {
-        // Print the mesh statistcs
-        if (options->writeStatistics)
-        {
-            // Prefix
-            const std::string prefix = options->outputDirectory + "/" + STATISTICS_DIRECTORY + "/" +
-                    options->prefix;
-
-            // Statistics
-            dmcMesh->printStats(OPTIMIZED_STRING, &prefix);
-        }
-
-        // Export the mesh
-        if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
-        {
-            // Prefix
-            const std::string prefix = options->outputDirectory + "/" + MESHES_DIRECTORY + "/" +
-                    options->prefix + OPTIMIZED_SUFFIX;
-
-            // Export
-            dmcMesh->exportMesh(prefix,
-                                options->exportOBJ, options->exportPLY,
-                                options->exportOFF, options->exportSTL);
-        }
-    }
-
-    // Fix self-intersections if any
-    if (!options->ignoreSelfIntersections)
-    {
-        createMeshWithNoSelfIntersections(dmcMesh, options);
-    }
-}
-
-/**
- * @brief writeDMCMesh
- * Writes the resulting mesh from the DMC algorithm.
- *
- * @param dmcMesh
- * THe generetd mesh from the DMC algorithm.
- * @param options
- * User-defined options given to the executable.
- */
-void writeDMCMesh(const Mesh *dmcMesh, const Options* options)
-{
-    // Write the statistics of the DMC mesh
-    if (options->writeStatistics)
-    {
-        // Prefix
-        const std::string prefix =
-                options->outputDirectory + "/" + STATISTICS_DIRECTORY +  "/" + options->prefix;
-
-        // Print statistics
-        dmcMesh->printStats(DMC_STRING, &prefix);
-    }
-
-    // Export the DMC mesh
-    if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
-    {
-        // Prefix
-        const std::string prefix = options->outputDirectory + "/" + MESHES_DIRECTORY + "/" +
-                options->prefix + DMC_SUFFIX;
-
-        // Export the mesh
-        dmcMesh->exportMesh(prefix,
-                            options->exportOBJ, options->exportPLY,
-                            options->exportOFF, options->exportSTL);
-    }
-}
-
-/**
- * @brief runMesh2Mesh
- * @param argc
- * @param argv
- */
-void runMesh2Mesh(int argc , const char** argv)
+void run(int argc , const char** argv)
 {
     // Parse the arguments and get the tool options
     auto options = parseArguments(argc, argv);
@@ -629,14 +465,11 @@ void runMesh2Mesh(int argc , const char** argv)
 
     // Write the statistics of the original mesh
     if (options->writeStatistics)
-    {
-        // Prefix
-        const std::string prefix =
-                options->outputDirectory + "/" + STATISTICS_DIRECTORY + "/" + options->prefix;
+        inputMesh->printStats(INPUT_STRING, &options->statisticsPrefix);
 
-        // Print statistics
-        inputMesh->printStats(INPUT_STRING, &prefix);
-    }
+    // Write the statistics of the original mesh
+    if (options->writeDistributions)
+        inputMesh->writeDistributions(INPUT_STRING, &options->statisticsPrefix);
 
     // Get relaxed bounding box to build the volume
     Ultraliser::Vector3f pMinInput, pMaxInput;
@@ -647,14 +480,14 @@ void runMesh2Mesh(int argc , const char** argv)
     Ultraliser::Vector3f inputCenter = pMinInput + 0.5 * (pMaxInput - pMinInput);
 
     // Get the largest dimension
-    float largestDimension = inputBB.getLargestDimension();
+    const float largestDimension = inputBB.getLargestDimension();
 
     uint64_t resolution;
     if (options->autoResolution)
         resolution = uint64_t(options->voxelsPerMicron * largestDimension);
     else
         resolution = options->volumeResolution;
-    LOG_WARNING("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);
+    LOG_SUCCESS("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);
 
     // Construct the volume
     Volume *volume = new Volume(pMinInput, pMaxInput, resolution, options->edgeGap,
@@ -664,117 +497,37 @@ void runMesh2Mesh(int argc , const char** argv)
     volume->surfaceVoxelization(inputMesh, true, true);
 
     // Free the input mesh
-    inputMesh->~Mesh();
+    delete inputMesh;
 
     // Enable solid voxelization
     if (options->useSolidVoxelization)
-    {
         volume->solidVoxelization(options->VoxelizationAxis);
-    }
 
-    if (options->exportVolumeMesh)
-    {
-        // Prefix
-        const std::string prefix =
-                options->outputDirectory + "/" + MESHES_DIRECTORY +  "/" + options->prefix;
+    // Generate the volume artifacts based on the given options
+    generateVolumeArtifacts(volume, options);
 
-        // Export the mesh
-        volume->exportToMesh(prefix, options->exportOBJ, options->exportPLY,
-                             options->exportOFF, options->exportSTL);
+    // Generate the mesh using the DMC algorithm and adjust its scale
+    auto reconstructedMesh = DualMarchingCubes::generateMeshFromVolume(volume);
+    reconstructedMesh->scaleAndTranslate(inputCenter, inputBB);
 
-    }
-
-    // Projecting the volume to validate its content
-    if (options->projectXY || options->projectXZ || options->projectZY)
-    {
-        // Prefix
-        const std::string prefix =
-                options->outputDirectory + "/" + PROJECTIONS_DIRECTORY +  "/" + options->prefix;
-
-        // Project the volume
-        volume->project(prefix,
-                        options->projectXY, options->projectXZ, options->projectZY,
-                        options->projectColorCoded);
-    }
-
-    // Write the volume
-    if (options->writeBitVolume || options->writeByteVolume || options->writeNRRDVolume)
-    {
-        // Prefix
-        const std::string prefix =
-                options->outputDirectory + "/" + VOLUMES_DIRECTORY +  "/" + options->prefix;
-
-        // Write the volume
-        volume->writeVolumes(prefix,
-                             options->writeBitVolume,
-                             options->writeByteVolume,
-                             options->writeNRRDVolume);
-    }
-
-    // Write the statistics of the reconstructed volume
-    if (options->writeStatistics)
-    {
-        // Prefix
-        const std::string prefix =
-                options->outputDirectory + "/" + STATISTICS_DIRECTORY +  "/" + options->prefix;
-
-        // Print the volume statistics
-        volume->printStats(VOLUME_STRING, &prefix);
-    }
-
-    // Write the stacks
-    if (options->stackXY || options->stackXZ || options->stackZY)
-    {
-        // Output directory
-        std::string outputDirectory = options->outputDirectory + "/" + STACKS_SIRECTORY;
-
-        // Write the stacks
-        volume->writeStacks(outputDirectory, options->prefix,
-                            options->stackXY, options->stackXZ, options->stackZY);
-    }
-
-    // Generate the mesh using the DMC algorithm
-    Mesh* dmcMesh = DualMarchingCubes::generateMeshFromVolume(volume);
-
-    // Scane and translate the generated mesh to fit the original mesh
-    dmcMesh->scaleAndTranslate(inputCenter, inputBB);
+    // Free the volume, it is not needed any further
+    delete volume;
 
     // DMC mesh output
     if (!options->ignoreDMCMesh)
-    {
-        writeDMCMesh(dmcMesh, options);
-    }
-
-    // Free the volume
-    volume->~Volume();
+        generateDMCMeshArtifacts(reconstructedMesh, options);
 
     // Laplacian smoorhing
     if (options->useLaplacian)
-    {
-        // Apply the Laplacian filter
-        dmcMesh->applyLaplacianSmooth(options->laplacianIterations,
-                                            0.2, 0.1);
-        // Prefix
-        const std::string prefix  = options->outputDirectory + "/" + MESHES_DIRECTORY + "/" +
-                options->prefix + LAPLACIAN_SUFFIX;
+        applyLaplacianOperator(reconstructedMesh, options);
 
-        // Export the mesh
-        dmcMesh->exportMesh(prefix,
-                                  options->exportOBJ, options->exportPLY,
-                                  options->exportOFF, options->exportSTL);
-        // Print the mesh statistcs
-        if (options->writeStatistics)
-            dmcMesh->printStats(LAPLACIAN_STRING, &options->outputPrefix);
-    }
-
-    // Optimize the mesh
-    if (options->optimizeMesh || options->optimizeMeshAdaptively)
-    {
-        optimizeMesh(dmcMesh, options);
-    }
+    // Optimize the mesh and create a watertight mesh
+    if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)
+        optimizeMesh(reconstructedMesh, options);
 
     // Free
-    options->~Options();
+    delete reconstructedMesh;
+    delete options;
 }
 
 }
@@ -783,7 +536,7 @@ int main(int argc , const char** argv)
 {
     TIMER_SET;
 
-    Ultraliser::runMesh2Mesh(argc, argv);
+    Ultraliser::run(argc, argv);
 
     LOG_STATUS_IMPORTANT("Ultralization Stats.");
     LOG_STATS(GET_TIME_SECONDS);

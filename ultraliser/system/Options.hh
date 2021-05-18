@@ -39,6 +39,24 @@ struct Options
     std::string inputMesh;
 
     /**
+     * @brief inputVolume
+     * An input volume file.
+     */
+    std::string inputVolume;
+
+    /**
+     * @brief inputMeshesDirectory
+     * A directory that contains a lists of meshes that will be all loaded in Ultraliser at once.
+     */
+    std::string inputMeshesDirectory;
+
+    /**
+     * @brief inputMaskDirectory
+     * The directory that contains a list of .tiff files that correspond to a segmented mask.
+     */
+    std::string inputMaskDirectory;
+
+    /**
      * @brief inputMorphology
      * An input morphology file, whether for neurons, astrocytes or vasculature.
      */
@@ -51,12 +69,40 @@ struct Options
      */
     std::string outputDirectory;
 
+    /**
+     * @brief projectionPrefix
+     */
     std::string projectionPrefix;
+
+    /**
+     * @brief meshPrefix
+     */
     std::string meshPrefix;
+
+    /**
+     * @brief volumePrefix
+     */
     std::string volumePrefix;
+
+    /**
+     * @brief statisticsPrefix
+     */
     std::string statisticsPrefix;
+
+    /**
+     * @brief distributionsPrefix
+     */
     std::string distributionsPrefix;
 
+    /**
+     * @brief maskWidth
+     */
+    uint64_t maskWidth;
+
+    /**
+     * @brief maskHeight
+     */
+    uint64_t maskHeight;
 
     /**
      * @brief boundsFile
@@ -65,6 +111,18 @@ struct Options
      * to avoid intersection.
      */
     std::string boundsFile;
+
+    /**
+     * @brief isoValue
+     * The iso value where the volume will get segmented, default 127.
+     */
+    uint64_t isoValue;
+
+    /**
+     * @brief fullRangeIsoValue
+     * If the voxel contains any value, then use it.
+     */
+    bool fullRangeIsoValue;
 
     /**
      * @brief volumeResolution
@@ -88,6 +146,13 @@ struct Options
      * @brief edgeGap
      */
     float edgeGap;
+
+    /**
+     * @brief zeroPaddingVoxels
+     * The number of zero-padding voxels that will be appended to the volume to avoid any clipping
+     * artifacts, default 0.
+     */
+    uint64_t zeroPaddingVoxels;
 
     /**
      * @brief solid
@@ -193,10 +258,16 @@ struct Options
     int64_t laplacianIterations;
 
     /**
-     * @brief optimizeMesh
+     * @brief optimizeMeshHomogenous
      * Optimize the reconstructed mesh using the default optimization strategy.
      */
-    bool optimizeMesh;
+    bool optimizeMeshHomogenous;
+
+    /**
+     * @brief voxelizeMesh
+     * If this flag is set in some application, the input mesh will be voxelized.
+     */
+    bool voxelizeMesh;
 
     /**
      * @brief optimizeMeshAdaptively
@@ -224,6 +295,13 @@ struct Options
      * Default value is 0.1.
      */
     float flatFactor;
+
+    /**
+     * @brief smoothingFactor
+     */
+    float smoothingFactor;
+
+
 
     /**
      * @brief denseFactor
@@ -275,15 +353,17 @@ struct Options
      */
     bool writeStatistics;
 
-    float smoothingFactor;
-
-
-
     /**
      * @brief writeDistributions
      * Write distributions of morphologies and meshes.
      */
     bool writeDistributions;
+
+    /**
+     * @brief writeHistogram
+     * Write the histogram of the volume into a text file.
+     */
+    bool writeHistogram;
 
     /**
      * @brief outputPrefix
@@ -311,6 +391,24 @@ struct Options
      * Ignores writing the optimized mesh that is not watertight.
      */
     bool ignoreOptimizedNonWatertightMesh;
+
+    /**
+     * @brief xScaleFactor
+     * A scale factor along the X-axis.
+     */
+    float xScaleFactor = 1.f;
+
+    /**
+     * @brief yScaleFactor
+     * A scale factor along the Y-axis.
+     */
+    float yScaleFactor = 1.f;
+
+    /**
+     * @brief zScaleFactor
+     * A scale factor along the Z-axis.
+     */
+    float zScaleFactor = 1.f;
 };
 
 }

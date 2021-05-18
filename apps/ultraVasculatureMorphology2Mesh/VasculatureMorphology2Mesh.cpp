@@ -19,9 +19,8 @@
  * Boston, MA 02110-1301 USA.
  **************************************************************************************************/
 
-#include "Args.h"
 #include <Ultraliser.h>
-#include <system/System.h>
+#include <AppCommon.h>
 
 namespace Ultraliser
 {
@@ -36,8 +35,16 @@ namespace Ultraliser
  * @return
  * An object of the user defined options.
  */
-Options* parseArguments(Args* args)
+Options* parseArguments(const int& argc , const char** argv)
 {
+    // Arguments
+    std::unique_ptr< Args > args = std::make_unique <Args>(argc, argv,
+              "This tool reconstructs a watertight polygonal mesh from an input vasculature "
+              "morphology. The generated mesh can be also optimized to reduce the number of "
+              "triangles while preserving the volume. "
+              "The output mesh is guaranteed in all cases to be two-advanced with no self-intersecting "
+              "faces unless the --ignore-self-intersections flag is enabled.");
+
     Argument inputMorphology(
                 "--morphology",
                 ARGUMENT_TYPE::STRING,
@@ -352,7 +359,7 @@ Options* parseArguments(Args* args)
     options->stackZY = args->getBoolValue(&stackZY);
 
     // Mesh optimization attributes
-    options->optimizeMesh = args->getBoolValue(&optimizeMesh);
+    options->optimizeMeshHomogenous = args->getBoolValue(&optimizeMesh);
     options->optimizeMeshAdaptively = args->getBoolValue(&adaptiveOptimization);
     options->smoothingIterations = args->getUnsignedIntegrValue(&smoothingIterations);
     options->optimizationIterations = args->getUnsignedIntegrValue(&optimizationIterations);
@@ -367,10 +374,11 @@ Options* parseArguments(Args* args)
     options->ignoreSelfIntersections = args->getBoolValue(&ignoreSelfIntersections);
     options->ignoreOptimizedNonWatertightMesh = args->getBoolValue(&ignoreOptimizedNonWatertightMesh);
 
-
     // Statistics and distributions
     options->writeStatistics = args->getBoolValue(&writeStatistics);
     options->writeDistributions = args->getBoolValue(&writeDistributions);
+
+    LOG_TITLE("Creating Context");
 
     /// Validate the arguments
     if (!File::exists(options->inputMorphology))
@@ -397,10 +405,9 @@ Options* parseArguments(Args* args)
         options->prefix = File::getName(options->inputMorphology);
     }
 
-    // Construct the output prefix
-    options->outputPrefix = options->outputDirectory + "/" + options->prefix;
-
     // Construct the prefixes once and for all
+    options->outputPrefix =
+            options->outputDirectory + "/" + options->prefix;
     options->meshPrefix =
             options->outputDirectory + "/" + MESHES_DIRECTORY +  "/" + options->prefix;
     options->volumePrefix =
@@ -416,7 +423,7 @@ Options* parseArguments(Args* args)
     createRespectiveDirectories(options);
 
     LOG_TITLE("Ultralizing");
-    LOG_WARNING("Output Directory [ %s ]", options->outputDirectory.c_str());
+    LOG_SUCCESS("Output Directory [ %s ]", options->outputDirectory.c_str());
 
     if (options->boundsFile == NO_DEFAULT_VALUE)
     {
@@ -433,224 +440,10 @@ Options* parseArguments(Args* args)
     return options;
 }
 
-/**
- * @brief generateDMCMeshArtifacts
- * Write
- * @param dmcMesh
- * @param options
- */
-void generateDMCMeshArtifacts(const Mesh *dmcMesh, const Options* options)
+void run(int argc , const char** argv)
 {
-    // Write the statistics of the DMC mesh
-    if (options->writeStatistics)
-        dmcMesh->printStats(DMC_STRING, &options->statisticsPrefix);
-
-    // Distributions
-    if (options->writeDistributions)
-        dmcMesh->writeDistributions(DMC_STRING, &options->distributionsPrefix);
-
-    // Export the DMC mesh
-    if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
-        dmcMesh->exportMesh(options->meshPrefix + DMC_SUFFIX,
-                            options->exportOBJ, options->exportPLY,
-                            options->exportOFF, options->exportSTL);
-}
-
-/**
- * @brief createMeshWithNoSelfIntersections
- * Process the two manifold mesh and create a watertight mesh using the AdvancedMesh processing.
- *
- * @param manifoldMesh
- * An input mesh that is guaranteed to be two-manifold but have some self intersections.
- * @param options
- * User-defined options given to the executable.
- */
-void createMeshWithNoSelfIntersections(const Mesh* manifoldMesh, const Options* options)
-{
-    // Create an advanced mesh to process the manifold mesh and make it watertight if it has any
-    // self intersections
-    std::unique_ptr< Ultraliser::AdvancedMesh > toBeWatertightMesh = std::make_unique
-        < Ultraliser::AdvancedMesh > (manifoldMesh->getVertices(),
-                                      manifoldMesh->getNumberVertices(),
-                                      manifoldMesh->getTriangles(),
-                                      manifoldMesh->getNumberTriangles());
-
-    if (options->preservePartitions)
-    {
-        // Split the mesh into partitions
-        std::vector < Ultraliser::AdvancedMesh* > partitions =
-                toBeWatertightMesh->splitPartitions();
-
-        // Ensure watertightness for the rest of the partitions
-        for (auto mesh : partitions)
-            mesh->ensureWatertightness();
-
-        // Ensures that the mesh is truly two-manifold with no self intersections
-        toBeWatertightMesh->ensureWatertightness();
-
-        // Merge back after checking the watertightness
-        toBeWatertightMesh->appendMeshes(partitions);
-
-        // Free
-        for (auto mesh : partitions)
-            mesh->~AdvancedMesh();
-    }
-    else
-    {
-        // Ensures that the mesh is truly two-advanced with no self intersections
-        toBeWatertightMesh->ensureWatertightness();
-    }
-
-    // Print the mesh statistcs
-    if (options->writeStatistics)
-        toBeWatertightMesh->printStats(WATERTIGHT_STRING, &options->statisticsPrefix);
-
-    // Print the mesh distributions
-    if (options->writeDistributions)
-        toBeWatertightMesh->writeDistributions(WATERTIGHT_STRING, &options->distributionsPrefix);
-
-    // Export the repaired mesh
-    if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
-    {
-        // Prefix
-        const std::string prefix = options->meshPrefix + WATERTIGHT_SUFFIX;
-
-        // Export
-        toBeWatertightMesh->exportMesh(prefix,
-                                       options->exportOBJ, options->exportPLY,
-                                       options->exportOFF, options->exportSTL);
-    }
-}
-
-/**
- * @brief optimizeMesh
- * Optimize the resulting mesh from the DMC algorithm.
- *
- * @param dmcMesh
- * The resulting mesh from the DMC algorithm.
- * @param options
- * User-defined options given to the executable.
- */
-void optimizeMesh(Mesh *dmcMesh, const Options* options)
-{
-    // Further adaptive optimization
-    if (options->optimizeMeshAdaptively)
-    {
-        dmcMesh->optimizeAdaptively(options->optimizationIterations, options->smoothingIterations,
-                                    options->flatFactor, options->denseFactor);
-    }
-    else
-    {
-        // Default optimization
-        if (options->optimizeMesh)
-        {
-            dmcMesh->optimize(options->optimizationIterations,
-                              options->smoothingIterations,
-                              options->denseFactor);
-        }
-    }
-
-    if (!options->ignoreOptimizedNonWatertightMesh)
-    {
-        // Print the mesh statistcs
-        if (options->writeStatistics)
-            dmcMesh->printStats(OPTIMIZED_STRING, &options->statisticsPrefix);
-
-        // Print the mesh statistcs
-        if (options->writeDistributions)
-            dmcMesh->writeDistributions(OPTIMIZED_STRING, &options->distributionsPrefix);
-
-        // Export the mesh
-        if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
-        {
-            // Prefix
-            const std::string prefix = options->meshPrefix + OPTIMIZED_SUFFIX;
-
-            // Export
-            dmcMesh->exportMesh(prefix,
-                                options->exportOBJ, options->exportPLY,
-                                options->exportOFF, options->exportSTL);
-        }
-    }
-
-    // Fix self-intersections if any
-    if (!options->ignoreSelfIntersections)
-    {
-        createMeshWithNoSelfIntersections(dmcMesh, options);
-    }
-}
-
-void generateVolumeArtifacts(const Volume* volume, const Options* options)
-{
-    // Projecting the volume to validate its content
-    if (options->projectXY || options->projectXZ || options->projectZY)
-    {
-        // Project the volume
-        volume->project(options->projectionPrefix,
-                        options->projectXY, options->projectXZ, options->projectZY,
-                        options->projectColorCoded);
-    }
-
-    // Write the volume
-    if (options->writeBitVolume || options->writeByteVolume || options->writeNRRDVolume)
-    {
-        // Write the volume
-        volume->writeVolumes(options->volumePrefix,
-                             options->writeBitVolume,
-                             options->writeByteVolume,
-                             options->writeNRRDVolume);
-    }
-
-    // Write the stacks
-    if (options->stackXY || options->stackXZ || options->stackZY)
-    {
-        // Output directory
-        std::string outputDirectory = options->outputDirectory + "/" + STACKS_SIRECTORY;
-
-        // Write the stacks
-        volume->writeStacks(outputDirectory, options->prefix,
-                            options->stackXY, options->stackXZ, options->stackZY);
-    }
-
-    // Export volume mesh
-    if (options->exportVolumeMesh)
-    {
-        // Export the mesh
-        volume->exportToMesh(options->meshPrefix,
-                             options->exportOBJ, options->exportPLY,
-                             options->exportOFF, options->exportSTL);
-    }
-
-    // Print the volume statistics
-    if (options->writeStatistics)
-        volume->printStats(options->prefix, &options->statisticsPrefix);
-}
-
-/**
- * @brief run
- * Entry function to run the tool.
- *
- * @param argc
- * Argument count
- *
- * @param argv
- * Arguments array
- *
- * @return
- * EXIT_SUCCESS
- */
-int run(int argc , const char** argv)
-{
-    // Arguments
-    Args args(argc, argv,
-              "This tool reconstructs a watertight polygonal mesh from an input vasculature "
-              "morphology. The generated mesh can be also optimized to reduce the number of "
-              "triangles while preserving the volume. "
-              "The output mesh is guaranteed in all cases to be two-advanced with no self-intersecting "
-              "faces unless the --ignore-self-intersections flag is enabled.");
-
-    // Parse the arguments and get the values
-    auto options = parseArguments(&args);
+    // Parse the arguments and get the tool options
+    auto options = parseArguments(argc, argv);
 
     // Read the file into a morphology structure
     auto vasculatureMorphology = readVascularMorphology(options->inputMorphology);
@@ -691,30 +484,39 @@ int run(int argc , const char** argv)
     generateVolumeArtifacts(volume, options);
 
     // Generate the DMC mesh, scaled and translated to the original location
-    auto dmcMesh = DualMarchingCubes::generateMeshFromVolume(volume);
-    dmcMesh->scaleAndTranslate(inputCenter, inputBB);
+    auto reconstructedMesh = DualMarchingCubes::generateMeshFromVolume(volume);
+    reconstructedMesh->scaleAndTranslate(inputCenter, inputBB);
 
     // Free the volume, we do not need it anymore
-    volume->~Volume();
+    delete volume;
 
     // Generate the artifacts of the optimized mesh
     if (!options->ignoreDMCMesh)
-        generateDMCMeshArtifacts(dmcMesh, options);
+        generateDMCMeshArtifacts(reconstructedMesh, options);
+
+    // Laplacian smoorhing
+    if (options->useLaplacian)
+        applyLaplacianOperator(reconstructedMesh, options);
 
     // Optimize the mesh
-    if (options->optimizeMesh || options->optimizeMeshAdaptively)
-    {
-        optimizeMesh(dmcMesh, options);
-    }
+    if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)
+        optimizeMesh(reconstructedMesh, options);
 
-    // Free the DMC mesh
-    dmcMesh->~Mesh();
-
-    ULTRALISER_DONE;
+    // Free
+    delete reconstructedMesh;
+    delete options;
 }
+
 }
 
 int main(int argc , const char** argv)
 {
-    return Ultraliser::run(argc, argv);
+    TIMER_SET;
+
+    Ultraliser::run(argc, argv);
+
+    LOG_STATUS_IMPORTANT("Ultralization Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
+
+    ULTRALISER_DONE;
 }

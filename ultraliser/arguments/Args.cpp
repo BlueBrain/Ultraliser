@@ -11,7 +11,7 @@ Args::Args(const int argc, const char **argv, const std::string &help)
 
 Args::~Args()
 {
-    _parser->~ArgumentParser();
+    delete _parser;
 }
 
 void Args::addArgument(Ultraliser::Argument* argument)

@@ -1,9 +1,14 @@
-#ifndef ARGS_H
-#define ARGS_H
+#ifndef ULTRALISER_ARGUMENTS_ARGS_H
+#define ULTRALISER_ARGUMENTS_ARGS_H
 
-#include <arguments/ArgumentParser.h>
-#include "Options.hh"
+#include "ArgumentParser.h"
 
+namespace Ultraliser
+{
+
+/**
+ * @brief The Args class
+ */
 class Args
 {
 public:
@@ -16,7 +21,8 @@ public:
      * @param argv
      * Arguments
      */
-    Args(const int argc, const char** argv,  const std::string &help = "");
+    Args(const int argc, const char** argv, const std::string &help = "");
+    ~Args();
 
     /**
      * @brief addArgument
@@ -39,7 +45,14 @@ public:
      * @param argument
      * @return
      */
-    int getIntegrValue(Ultraliser::Argument* argument);
+    int32_t getIntegrValue(Ultraliser::Argument* argument);
+
+    /**
+     * @brief getUnsignedIntegrValue
+     * @param argument
+     * @return
+     */
+    uint32_t getUnsignedIntegrValue(Ultraliser::Argument* argument);
 
     /**
      * @brief getFloatValue
@@ -67,13 +80,9 @@ private:
      * @brief _parser
      * Command lines arguments parser.
      */
-    Ultraliser::ArgumentParser* _parser;
-
-    /**
-     * @brief _options
-     * Executable options will be encapsulated in this object.
-     */
-    Options* _options;
+     ArgumentParser* _parser;
 };
 
-#endif // ARGS_H
+}
+
+#endif // ULTRALISER_ARGUMENTS_ARGS_H

@@ -333,7 +333,7 @@ void Volume::surfaceVoxelization(const std::string &inputDirectory,
         if( inputDirectory != EMPTY )
             meshFile = inputDirectory + "/" + meshFile;
 
-        if( Ultraliser::File::exists(meshFile))
+        if (File::exists(meshFile))
         {
             #pragma omp atomic
             processedMeshCount++;
@@ -348,7 +348,7 @@ void Volume::surfaceVoxelization(const std::string &inputDirectory,
             surfaceVoxelization(mesh, verbose);
 
             // Free the mesh
-            mesh->~Mesh();
+            delete mesh;
         }
     }
     LOOP_DONE;
@@ -621,9 +621,9 @@ void Volume::_floodFillAlongXYZ(VolumeGrid *grid)
     _grid->orWithAnotherGrid(xGrid);
 
     // Release the auxiliary grids
-    xGrid->~VolumeGrid();
-    yGrid->~VolumeGrid();
-    zGrid->~VolumeGrid();
+    delete xGrid;
+    delete yGrid;
+    delete zGrid;
 }
 
 int Volume::_triangleCubeSign(Mesh *mesh,
@@ -1500,7 +1500,7 @@ void Volume::addVolume(const std::string &volumePrefix)
     }
 
     // Release the gird to save some memory
-    volume->~Volume();
+    delete volume;
 }
 
 uint64_t Volume::getNumberBytes(void) const
@@ -1527,7 +1527,7 @@ int32_t Volume::getLargestDimension(const Vector3f& dimensions)
 
 Volume::~Volume()
 {
-    _grid->~VolumeGrid();
+    delete _grid;
 }
 
 Volume* Volume::constructIsoValueVolume(const Volume* volume,

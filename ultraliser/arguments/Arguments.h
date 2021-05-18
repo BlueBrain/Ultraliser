@@ -22,6 +22,7 @@
 #ifndef ULTRALISER_ARGUMENTS_ARGUMENTS_H
 #define ULTRALISER_ARGUMENTS_ARGUMENTS_H
 
+#include <arguments/Args.h>
 #include <arguments/Argument.h>
 #include <arguments/ArgumentEnums.hh>
 #include <arguments/ArgumentParser.h>

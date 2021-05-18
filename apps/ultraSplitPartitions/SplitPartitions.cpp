@@ -1,30 +1,37 @@
-/*******************************************************************************
- * Copyright (c) 2016 - 2020
+/***************************************************************************************************
+ * Copyright (c) 2016 - 2021
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
+ *
  * Author(s): Marwan Abdellah <marwan.abdellah@epfl.ch>
  *
  * This file is part of Ultraliser <https://github.com/BlueBrain/Ultraliser>
  *
- * This library is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Lesser General Public License version 3.0 as published
- * by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it under the terms of the
+ * GNU Lesser General Public License version 3.0 as published by the Free Software Foundation.
  *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- ******************************************************************************/
+ * You should have received a copy of the GNU Lesser General Public License along with this library;
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301 USA.
+ **************************************************************************************************/
 
 #include <Ultraliser.h>
-#include "Args.h"
+#include <AppCommon.h>
 
-Options* parseArguments(Args* args)
+namespace Ultraliser
 {
+
+Options* parseArguments(const int& argc , const char** argv)
+{
+    // Arguments
+    std::unique_ptr< Args > args = std::make_unique <Args>(argc, argv,
+              "This application splits an input mesh with multiple partitions into multiple "
+              "meshes with single partitions.");
+
     Ultraliser::Argument inputMesh(
                 "--mesh",
                 ARGUMENT_TYPE::STRING,
@@ -46,146 +53,6 @@ Options* parseArguments(Args* args)
                 "If this is not given by the user, the name of the mesh file "
                 "will be used.");
     args->addArgument(&prefix);
-
-    Ultraliser::Argument boundsFile(
-                "--bounds-file",
-                ARGUMENT_TYPE::STRING,
-                "A file that defines the bounding box that will be voxelized.");
-    args->addArgument(&boundsFile);
-
-    Ultraliser::Argument voxelizeMesh(
-                "--voxelize-input-mesh",
-                ARGUMENT_TYPE::BOOL,
-                "Voxelize the input mesh.");
-    args->addArgument(&voxelizeMesh);
-
-    Ultraliser::Argument volumeResolution(
-                "--resolution",
-                ARGUMENT_TYPE::INTEGER,
-                "The basic resolution of the volume, default 512.",
-                ARGUMENT_PRESENCE::OPTIONAL,
-                "512");
-    args->addArgument(&volumeResolution);
-
-    Ultraliser::Argument autoResolution(
-                "--auto-resolution",
-                ARGUMENT_TYPE::BOOL,
-                "Sets the resolution of the volume based on the mesh dimensions.");
-    args->addArgument(&autoResolution);
-
-    Ultraliser::Argument voxelsPerMicron(
-                "--voxels-per-micron",
-                ARGUMENT_TYPE::INTEGER,
-                "Number of voxels per micron in case auto resolution is used, "
-                "default 5.",
-                ARGUMENT_PRESENCE::OPTIONAL,
-                "3");
-    args->addArgument(&voxelsPerMicron);
-
-    Ultraliser::Argument edgeGap(
-                "--edge-gap",
-                ARGUMENT_TYPE::FLOAT,
-                "Some little extra space to avoid edges intersection, "
-                "default 0.0 for automatic selection.",
-                ARGUMENT_PRESENCE::OPTIONAL,
-                "0.0");
-    args->addArgument(&edgeGap);
-
-    Ultraliser::Argument projectXY(
-                "--project-xy",
-                ARGUMENT_TYPE::BOOL,
-                "Project an XY projection of the volume.");
-    args->addArgument(&projectXY);
-
-    Ultraliser::Argument projectZY(
-                "--project-zy",
-                ARGUMENT_TYPE::BOOL,
-                "Project an ZY projection of the volume.");
-    args->addArgument(&projectZY);
-
-    Ultraliser::Argument stackXY(
-                "--stack-xy",
-                ARGUMENT_TYPE::BOOL,
-                "Create an image stack along the XY direction.");
-    args->addArgument(&stackXY);
-
-    Ultraliser::Argument stackZY(
-                "--stack-zy",
-                ARGUMENT_TYPE::BOOL,
-                "Create an image stack along the ZY direction.");
-    args->addArgument(&stackZY);
-
-    Ultraliser::Argument writeBitVolume(
-                "--write-bit-volume",
-                ARGUMENT_TYPE::BOOL,
-                "Create a bit volume, where each voxel is stored in "
-                "a single bit.");
-    args->addArgument(&writeBitVolume);
-
-    Ultraliser::Argument writeNRRDVolume(
-                "--write-nrrd-volume",
-                ARGUMENT_TYPE::BOOL,
-                "Create an NRRD volume that is compatible with VTK.");
-    args->addArgument(&writeNRRDVolume);
-
-    Ultraliser::Argument writeByteVolume(
-                "--write-byte-volume",
-                ARGUMENT_TYPE::BOOL,
-                "Create a byte volume, where each voxel is stored in "
-                "a single byte.");
-    args->addArgument(&writeByteVolume);
-
-    Ultraliser::Argument volumeType(
-                "--volume-type",
-                ARGUMENT_TYPE::STRING,
-                "Specify a volume format to perform the voxelization: "
-                "[bit, byte, voxel]. By default, it is a bit volume.",
-                ARGUMENT_PRESENCE::OPTIONAL,
-                "bit");
-    args->addArgument(&volumeType);
-
-    Ultraliser::Argument solid(
-                "--solid",
-                ARGUMENT_TYPE::BOOL,
-                "Create a solid volume where the interior is filled.");
-    args->addArgument(&solid);
-
-    Ultraliser::Argument optimizationIterations(
-                "--optimization-iterations",
-                ARGUMENT_TYPE::INTEGER,
-                "Number of iterations to optimize the given mesh, "
-                "default value 1. If this value is set to 0, the optimization "
-                "process will be ignored.",
-                ARGUMENT_PRESENCE::OPTIONAL,
-                "1");
-    args->addArgument(&optimizationIterations);
-
-    Ultraliser::Argument smoothingIterations(
-                "--smooth-iterations",
-                ARGUMENT_TYPE::INTEGER,
-                "Number of iterations to smooth the reconstructed mesh, "
-                "default 5.",
-                ARGUMENT_PRESENCE::OPTIONAL,
-                "5");
-    args->addArgument(&smoothingIterations);
-
-    Ultraliser::Argument flatFactor(
-                "--flat-factor",
-                ARGUMENT_TYPE::FLOAT,
-                "A factor that is used for the coarseFlat function. "
-                "Default value is 0.05.",
-                ARGUMENT_PRESENCE::OPTIONAL,
-                "0.05");
-    args->addArgument(&flatFactor);
-
-    Ultraliser::Argument denseFactor(
-                "--dense-factor",
-                ARGUMENT_TYPE::FLOAT,
-                "A factor that is used for the coarseDense function. "
-                "Default value is 4.0.",
-                ARGUMENT_PRESENCE::OPTIONAL,
-                "4.0");
-    args->addArgument(&denseFactor);
 
     Ultraliser::Argument exportOBJ(
                 "--export-obj",
@@ -211,11 +78,17 @@ Options* parseArguments(Args* args)
                 "Export the output mesh to an .STL file.");
     args->addArgument(&exportSTL);
 
-    Ultraliser::Argument writeStatistics(
+    Argument writeStatistics(
                 "--stats",
                 ARGUMENT_TYPE::BOOL,
                 "Write the statistics.");
     args->addArgument(&writeStatistics);
+
+    Argument writeDistributions(
+                "--dists",
+                ARGUMENT_TYPE::BOOL,
+                "Write the distributions.");
+    args->addArgument(&writeDistributions);
 
     // Parse the command line options
     args->parse();
@@ -226,32 +99,17 @@ Options* parseArguments(Args* args)
     // Get all the options
     options->inputMesh = args->getStringValue(&inputMesh);
     options->outputDirectory = args->getStringValue(&outputDirectory);
-    options->boundsFile = args->getStringValue(&boundsFile);
-    options->voxelizeMesh = args->getBoolValue(&voxelizeMesh);
-    options->solid = args->getBoolValue(&solid);
-    options->volumeType = args->getStringValue(&volumeType);
-    options->volumeResolution = args->getUnsignedIntegrValue(&volumeResolution);
-    options->autoResolution = args->getBoolValue(&autoResolution);
-    options->voxelsPerMicron = args->getUnsignedIntegrValue(&voxelsPerMicron);
-    options->edgeGap = args->getFloatValue(&edgeGap);
-    options->projectXY = args->getBoolValue(&projectXY);
-    options->projectZY = args->getBoolValue(&projectZY);
-    options->stackXY = args->getBoolValue(&stackXY);
-    options->stackZY = args->getBoolValue(&stackZY);
-    options->writeBitVolume = args->getBoolValue(&writeBitVolume);
-    options->writeByteVolume = args->getBoolValue(&writeByteVolume);
-    options->writeNRRDVolume = args->getBoolValue(&writeNRRDVolume);
-    options->optimizationIterations = args->getUnsignedIntegrValue(&optimizationIterations);
-    options->smoothingIterations = args->getUnsignedIntegrValue(&smoothingIterations);
-    options->flatFactor = args->getFloatValue(&flatFactor);
-    options->denseFactor = args->getFloatValue(&denseFactor);
+    options->prefix = args->getStringValue(&prefix);
+
+    // Mesh exports, file formats
     options->exportOBJ = args->getBoolValue(&exportOBJ);
     options->exportPLY = args->getBoolValue(&exportPLY);
     options->exportOFF = args->getBoolValue(&exportOFF);
     options->exportSTL = args->getBoolValue(&exportSTL);
-    options->prefix = args->getStringValue(&prefix);
-    options->writeStatistics = args->getBoolValue(&writeStatistics);
 
+    // Statistics and distributions
+    options->writeStatistics = args->getBoolValue(&writeStatistics);
+    options->writeDistributions = args->getBoolValue(&writeDistributions);
 
     /// Validate the arguments
     if (!Ultraliser::File::exists(options->inputMesh))
@@ -263,94 +121,81 @@ Options* parseArguments(Args* args)
     mkdir(options->outputDirectory.c_str(), 0777);
     if (!Ultraliser::Directory::exists(options->outputDirectory))
     {
-        LOG_ERROR("The directory [ %s ] does NOT exist!",
-                  options->outputDirectory.c_str());
+        LOG_ERROR("The directory [ %s ] does NOT exist!", options->outputDirectory.c_str());
     }
 
-    if (!(options->exportOBJ || options->exportOFF || options->exportSTL))
+    // Exporting formats, at least one of them must be there
+    if (!(options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL))
     {
         LOG_ERROR("The user must specify at least one output format of the "
-                  "mesh to export: [--export-obj, --export-off, --export-stl]");
+                  "mesh to export: [--export-obj, --export-ply, --export-off, --export-stl]");
     }
 
-    LOG_TITLE("Ultralizing");
-    if (options->boundsFile == NO_DEFAULT_VALUE)
-    {
-        LOG_SUCCESS("The bounding box of the volume will be computed "
-                    "on the fly!");
-        options->boundsFile = EMPTY;
-    }
-    else
-    {
-        LOG_SUCCESS("The bounding box of the volume will be loaded from [ %s ]",
-                    options->boundsFile.c_str());
-    }
-
-    // If no prefix is given, use the file name
+    // If no prefix is given, use the directory name
     if (options->prefix == NO_DEFAULT_VALUE)
     {
-        options->prefix = Ultraliser::File::getName(options->inputMesh);
+        options->prefix = Ultraliser::Directory::getName(options->inputMaskDirectory);
     }
 
-    // Construct the output prefix
-    options->outputPrefix = options->outputDirectory + "/" + options->prefix;
+    // Construct the prefixes once and for all
+    options->outputPrefix =
+            options->outputDirectory + "/" + options->prefix;
+    options->meshPrefix =
+            options->outputDirectory + "/" + MESHES_DIRECTORY +  "/" + options->prefix;
+    options->volumePrefix =
+            options->outputDirectory + "/" + VOLUMES_DIRECTORY +  "/" + options->prefix;
+    options->projectionPrefix =
+            options->outputDirectory + "/" + PROJECTIONS_DIRECTORY +  "/" + options->prefix;
+    options->statisticsPrefix =
+            options->outputDirectory + "/" + STATISTICS_DIRECTORY +  "/" + options->prefix;
+    options->distributionsPrefix =
+            options->outputDirectory + "/" + DISTRIBUTIONS_DIRECTORY +  "/" + options->prefix;
+
+
+    // Create the respective directories
+    createRespectiveDirectories(options);
+
+    LOG_TITLE("Ultralizing");
     LOG_SUCCESS("Output Directory [ %s ]", options->outputDirectory.c_str());
 
     // Return the executable options
     return options;
 }
 
-int main(int argc , const char** argv)
+void run(int argc , const char** argv)
 {
-    // Arguments
-    Args args(argc, argv,
-              "This tool takes an input mesh that is relatively valid, i.e "
-              "with no crappy geometries, but might have holes, non advanced "
-              "edges and vertices or have self-intersections. The resulting "
-              "mesh will be watertight, and could be optimized too."
-              "This tool is better than using the voxelization-based remeshing "
-              "in ultraMesh2Mesh in terms of time and space complexity.");
-
     // Parse the arguments and get the values
-    Options* options = parseArguments(&args);
+    auto options = parseArguments(argc , argv);
 
     // Load the mesh
     std::unique_ptr<Ultraliser::AdvancedMesh> inputMesh =
             std::make_unique<Ultraliser::AdvancedMesh>(options->inputMesh);
 
+    // Split the partitions
     std::vector < Ultraliser::AdvancedMesh* > partitions = inputMesh->splitPartitions();
 
+    // Export the partitions
     for (uint64_t i = 0; i < partitions.size(); ++i)
     {
         // Export the repaired mesh
         std::stringstream filePrefix;
-        filePrefix << options->outputPrefix << i <<  MANIFOLD_SUFFIX;
+        filePrefix << options->meshPrefix << i <<  MANIFOLD_SUFFIX;
         partitions[i]->exportMesh(filePrefix.str(),
-                                  options->exportOBJ,
-                                  options->exportPLY,
-                                  options->exportOFF,
-                                  options->exportSTL);
-
+                                  options->exportOBJ, options->exportPLY,
+                                  options->exportOFF, options->exportSTL);
     }
+}
 
-    // Export the repaired mesh
-    std::string filePrefix = options->outputPrefix + MANIFOLD_SUFFIX;
-    inputMesh->exportMesh(filePrefix,
-                          options->exportOBJ,
-                          options->exportPLY,
-                          options->exportOFF,
-                          options->exportSTL);
+}
 
-    // Simply append all the partitions before saving the final mesh
-    inputMesh->appendMeshes(partitions);
+int main(int argc , const char** argv)
+{
+    TIMER_SET;
 
-    // Export the repaired mesh
-    filePrefix = options->outputPrefix + "FULL" + MANIFOLD_SUFFIX;
-    inputMesh->exportMesh(filePrefix,
-                          options->exportOBJ,
-                          options->exportPLY,
-                          options->exportOFF,
-                          options->exportSTL);
+    Ultraliser::run(argc, argv);
+
+    LOG_STATUS_IMPORTANT("Ultralization Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
 
     ULTRALISER_DONE;
 }

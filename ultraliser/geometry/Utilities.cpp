@@ -208,14 +208,6 @@ void printBoundingBoxData(const Vector3f &pMin, const Vector3f &pMax,
     header.close();
 }
 
-/**
- * @brief printVoxelData
- * @param pMin
- * @param pMax
- * @param volumeSize
- * @param prefix
- * @return
- */
 void printVoxelData(const Vector3f &pMin, const Vector3f &pMax,
                     const Vector3f volumeSize,
                     std::string prefix)
@@ -232,113 +224,6 @@ void printVoxelData(const Vector3f &pMin, const Vector3f &pMax,
            << voxelSize.z() << std::endl;
     header.close();
 }
-
-///**
-// * @brief getBoundingBox
-// * @param options
-// * @param neurons
-// * @param pMax
-// * @param pMin
-// */
-//void getBoundingBox(const NeuroVoxyOptions* options, Neurons neurons,
-//                     Vector3f& pMax, Vector3f& pMin)
-//{
-//    if (options->boundsFile == EMPTY)
-//    {
-//        printf("* The bounding box will be computed on-the-fly \n");
-
-//        // Vectors containing all the pMin and pMax of all the neurons
-//        std::vector< Vector3f > pMinVector, pMaxVector;
-
-//        pMinVector.resize(neurons.size());
-//        pMaxVector.resize(neurons.size());
-
-//        /// Compute the bounding box of the entire volume that contains all the
-//        /// loaded meshes
-//        size_t loadedMeshCount = 0;
-//        printf("* Loading Meshes ... \n");
-//        #pragma omp parallel for schedule(dynamic, 1)
-//        for (size_t iNeuron = 0; iNeuron < neurons.size(); iNeuron++)
-//        {
-//            // Create and load the mesh from the file
-//            std::stringstream meshNameStream;
-//            meshNameStream << "neuron_" <<  neurons[iNeuron].gid << ".ply";
-//            std::string meshName = meshNameStream.str();
-//            std::string meshFile = meshName;
-//            if (options->inputDirectory != EMPTY)
-//                meshFile = options->inputDirectory + "/" + meshName;
-
-//            if (Utilities::fileExists(meshFile))
-//            {
-//                #pragma omp atomic
-//                loadedMeshCount++;
-
-//                // Load the mesh
-//                Mesh* mesh = new Mesh(meshFile, meshName, false, true);
-
-//                // Transform the neuron if required
-//                if (options->transformNeuron)
-//                {
-//                    mesh->transform(neurons[iNeuron].localToGlobalTransform);
-//                }
-
-//                // Compute its bounding box
-//                Vector3f pMinMesh, pMaxMesh;
-//                mesh->computeBoundingBox(pMinMesh, pMaxMesh);
-//                pMinVector[iNeuron] = pMinMesh;
-//                pMaxVector[iNeuron] = pMaxMesh;
-
-//                // Free the mesh
-//                mesh->~Mesh();
-//            }
-//            else
-//            {
-//                std::cout << "Missing: " << meshFile << std::endl;
-//            }
-//        }
-//        printf("** [%zu/%zu] meshes were loaded \n",
-//               loadedMeshCount, neurons.size());
-
-//        if (loadedMeshCount == 0)
-//            LOG_ERROR("Zero loaded meshes");
-
-//        // Compute the bounding box of the neuron group
-//        printf("* Computing Bounding Box \n");
-//        pMax[0] = std::numeric_limits< float >::min();
-//        pMax[1] = std::numeric_limits< float >::min();
-//        pMax[2] = std::numeric_limits< float >::min();
-
-//        pMin[0] = std::numeric_limits< float >::max();
-//        pMin[1] = std::numeric_limits< float >::max();
-//        pMin[2] = std::numeric_limits< float >::max();
-
-//        for (uint64_t iNeuron = 0; iNeuron < neurons.size(); iNeuron++)
-//        {
-//            Vector3f pMinNeuron = pMinVector[iNeuron];
-//            Vector3f pMaxNeuron = pMaxVector[iNeuron];
-
-//            if (pMinNeuron.x() < pMin.x()) pMin.x() = pMinNeuron.x();
-//            if (pMinNeuron.y() < pMin.y()) pMin.y() = pMinNeuron.y();
-//            if (pMinNeuron.z() < pMin.z()) pMin.z() = pMinNeuron.z();
-
-//            if (pMaxNeuron.x() > pMax.x()) pMax.x() = pMaxNeuron.x();
-//            if (pMaxNeuron.y() > pMax.y()) pMax.y() = pMaxNeuron.y();
-//            if (pMaxNeuron.z() > pMax.z()) pMax.z() = pMaxNeuron.z();
-//        }
-//    }
-//    else
-//    {
-//        printf("* Loading the bounding box from [ %s ] \n",
-//                options->boundsFile.c_str());
-
-//        // Verify the bounding box file
-//        if (Utilities::fileExists(options->boundsFile))
-//            Utilities::parseBoundsFile(options->boundsFile, pMin, pMax);
-//        else
-//            LOG_ERROR("No bounding box file is provided !");
-
-//    }
-//}
 
 }
 }
