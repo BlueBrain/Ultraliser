@@ -613,7 +613,7 @@ void writeDMCMesh(const Mesh *dmcMesh, const Options* options)
 void runMesh2Mesh(int argc , const char** argv)
 {
     // Arguments
-    Args args(argc, argv,
+    Args* args = new Args(argc, argv,
               "This tool reconstructs a watertight polygonal mesh from an input "
               "non-watertight mesh. The generated mesh can be also optimized to "
               "reduce the number of triangles while preserving the volume. "
@@ -622,7 +622,7 @@ void runMesh2Mesh(int argc , const char** argv)
               "--ignore-self-intersections flag is enabled.");
 
     // Parse the arguments and get the tool options
-    auto options = parseArguments(&args);
+    auto options = parseArguments(args);
 
     // Load the mesh and construct the mesh object
     Mesh* inputMesh = new Mesh(options->inputMesh);
@@ -734,7 +734,8 @@ void runMesh2Mesh(int argc , const char** argv)
     }
 
     // Reconstruct a watertight mesh from the volume with DMC
-    Ultraliser::DualMarchingCubes* dmc = new Ultraliser::DualMarchingCubes(volume);
+    std::unique_ptr< Ultraliser::DualMarchingCubes > dmc = std::make_unique <Ultraliser::DualMarchingCubes>(volume);
+
 
     // Generate the mesh using the DMC algorithm
     Mesh* dmcMesh = dmc->generateMesh();
@@ -775,9 +776,6 @@ void runMesh2Mesh(int argc , const char** argv)
     {
         optimizeMesh(dmcMesh, options);
     }
-
-    dmcMesh->~Mesh();
-    dmc->~DualMarchingCubes();
 }
 
 }

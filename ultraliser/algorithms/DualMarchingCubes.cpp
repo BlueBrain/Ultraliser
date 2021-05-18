@@ -622,6 +622,7 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
     }
     LOOP_DONE;
 
+
     // Statistics
     _buildingSharedVerticesTime = GET_TIME_SECONDS;
     LOG_STATS(GET_TIME_SECONDS);
