@@ -20,6 +20,7 @@ public:
      * Arguments
      */
     Args(const int argc, const char** argv, const std::string &help = "");
+    ~Args();
 
     /**
      * @brief addArgument
@@ -70,6 +71,8 @@ public:
      * Parse the command line options.
      */
     void parse();
+
+    Options* parseAndGetOptions();
 
 private:
 

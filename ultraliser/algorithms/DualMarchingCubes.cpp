@@ -33,7 +33,7 @@
 namespace Ultraliser
 {
 
-DualMarchingCubes::DualMarchingCubes(Volume* volume,
+DualMarchingCubes::DualMarchingCubes(Volume *volume,
                                      const uint8_t isoValue,
                                      const bool& generateManifold)
     : _volume(volume)
@@ -763,10 +763,11 @@ void DualMarchingCubes::_buildSharedVerticesQuads(Vertices &vertices,
 Mesh* DualMarchingCubes::generateMeshFromVolume(Volume* volume)
 {
     // Reconstruct a watertight mesh from the volume with DMC
-    auto dmc = new DualMarchingCubes(volume);
+    std::unique_ptr< DualMarchingCubes > workflowDMC =
+            std::make_unique< DualMarchingCubes >(volume);
 
     // Generate the DMC mesh
-    return dmc->generateMesh();
+    return workflowDMC->generateMesh();
 }
 
 }

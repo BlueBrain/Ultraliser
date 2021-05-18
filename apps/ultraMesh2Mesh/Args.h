@@ -23,6 +23,7 @@ public:
      * Arguments
      */
     Args(const int argc, const char** argv, const std::string &help = "");
+    ~Args();
 
     /**
      * @brief addArgument
@@ -80,13 +81,7 @@ private:
      * @brief _parser
      * Command lines arguments parser.
      */
-    std::unique_ptr< ArgumentParser > _parser;
-
-    /**
-     * @brief _options
-     * Executable options will be encapsulated in this object.
-     */
-    std::unique_ptr< Options > _options;
+     ArgumentParser* _parser;
 };
 
 }

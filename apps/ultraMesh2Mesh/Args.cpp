@@ -7,10 +7,12 @@ namespace Ultraliser
 Args::Args(const int argc, const char **argv, const std::string &help)
 {
     // Argument parser
-    _parser = std::make_unique< ArgumentParser >(argc, argv, help);
+    _parser = new Ultraliser::ArgumentParser(argc, argv, help);
+}
 
-    // Application options
-    _options = std::make_unique< Options >();
+Args::~Args()
+{
+    _parser->~ArgumentParser();
 }
 
 void Args::addArgument(Ultraliser::Argument* argument)

@@ -7,9 +7,11 @@ Args::Args(const int argc, const char **argv, const std::string &help)
 {
     // Argument parser
     _parser = new Ultraliser::ArgumentParser(argc, argv, help);
+}
 
-    // Application options
-    _options = new Options;
+Args::~Args()
+{
+    _parser->~ArgumentParser();
 }
 
 void Args::addArgument(Ultraliser::Argument* argument)

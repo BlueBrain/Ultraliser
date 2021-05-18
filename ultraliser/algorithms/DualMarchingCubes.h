@@ -91,7 +91,7 @@ public:
      * @return
      * A pointer to the mesh.
      */
-    static Mesh* generateMeshFromVolume(Volume* volume);
+    static Mesh* generateMeshFromVolume(Volume *volume);
 
 private:
 

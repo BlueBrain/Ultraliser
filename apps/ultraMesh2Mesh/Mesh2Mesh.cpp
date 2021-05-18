@@ -30,14 +30,23 @@ namespace Ultraliser
  * @brief parseArguments
  * Parse the arguments of the tool.
  *
- * @param args
- * The command line input arguments given by the user.
- *
+ * @param argc
+ * Arguments count.
+ * @param argv
+ * Arguments list.
  * @return
  * User defined options object.
  */
-Options* parseArguments(Args* args)
+Options* parseArguments(const int& argc , const char** argv)
 {
+    std::unique_ptr< Args > args = std::make_unique <Args>(argc, argv,
+              "This tool reconstructs a watertight polygonal mesh from an input "
+              "non-watertight mesh. The generated mesh can be also optimized to "
+              "reduce the number of triangles while preserving the volume. "
+              "The output mesh is guaranteed in all cases to be two-advanced "
+              "with no self-intersecting faces unless the "
+              "--ignore-self-intersections flag is enabled.");
+
     Argument inputMesh(
                 "--mesh",
                 ARGUMENT_TYPE::STRING,
@@ -612,17 +621,8 @@ void writeDMCMesh(const Mesh *dmcMesh, const Options* options)
  */
 void runMesh2Mesh(int argc , const char** argv)
 {
-    // Arguments
-    Args* args = new Args(argc, argv,
-              "This tool reconstructs a watertight polygonal mesh from an input "
-              "non-watertight mesh. The generated mesh can be also optimized to "
-              "reduce the number of triangles while preserving the volume. "
-              "The output mesh is guaranteed in all cases to be two-advanced "
-              "with no self-intersecting faces unless the "
-              "--ignore-self-intersections flag is enabled.");
-
     // Parse the arguments and get the tool options
-    auto options = parseArguments(args);
+    auto options = parseArguments(argc, argv);
 
     // Load the mesh and construct the mesh object
     Mesh* inputMesh = new Mesh(options->inputMesh);
@@ -733,12 +733,8 @@ void runMesh2Mesh(int argc , const char** argv)
                             options->stackXY, options->stackXZ, options->stackZY);
     }
 
-    // Reconstruct a watertight mesh from the volume with DMC
-    std::unique_ptr< Ultraliser::DualMarchingCubes > dmc = std::make_unique <Ultraliser::DualMarchingCubes>(volume);
-
-
     // Generate the mesh using the DMC algorithm
-    Mesh* dmcMesh = dmc->generateMesh();
+    Mesh* dmcMesh = DualMarchingCubes::generateMeshFromVolume(volume);
 
     // Scane and translate the generated mesh to fit the original mesh
     dmcMesh->scaleAndTranslate(inputCenter, inputBB);
@@ -776,6 +772,9 @@ void runMesh2Mesh(int argc , const char** argv)
     {
         optimizeMesh(dmcMesh, options);
     }
+
+    // Free
+    options->~Options();
 }
 
 }
