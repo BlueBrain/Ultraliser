@@ -24,6 +24,26 @@
 namespace Ultraliser
 {
 
+
+/**
+ * @brief computeBoundingBoxForMeshes
+ * Computes the bounding box for a group of meshes.
+ *
+ * @param boundsFile
+ * Input bounding file containg a region of interest.
+ * @param inputMeshesDirectory
+ * A directory that contains all list of meshes.
+ * @param meshFiles
+ * A list of all the meshes.
+ * @param pMax
+ * Return pMax.
+ * @param pMin
+ * Return pMin.
+ */
+void computeBoundingBoxForMeshes(const std::string& boundsFile,
+                                 const std::string& inputMeshesDirectory,
+                                 std::vector< std::string > meshFiles,
+                                 Vector3f& pMax, Vector3f& pMin);
 /**
  * @brief applyLaplacianOperator
  * Apply the laplacian operator on the mesh.
@@ -55,7 +75,7 @@ void createWatertightMesh(const Mesh* manifoldMesh, const Options* options);
  * @param options
  * User-defined options given to the executable.
  */
-void optimizeMesh(Mesh *dmcMesh, const Options* options);
+void generateOptimizedMesh(Mesh *dmcMesh, const Options* options);
 
 /**
  * @brief writeDMCMesh

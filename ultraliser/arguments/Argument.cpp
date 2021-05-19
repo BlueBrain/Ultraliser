@@ -40,15 +40,6 @@ Argument::Argument(const std::string name,
     _value = defaultValue;
 }
 
-Argument* Argument::ARGUMENT(const std::string name,
-                             const ARGUMENT_TYPE type,
-                             const std::string help,
-                             const ARGUMENT_PRESENCE presence,
-                             const std::string defaultValue)
-{
-    return new Argument(name, type, help, presence, defaultValue);
-}
-
 Argument::~Argument()
 {
     /// EMPTY
@@ -74,6 +65,26 @@ size_t getArgumentCount(std::string argvString, std::string argument)
     }
 
     return count;
+}
+
+void Argument::validateCurrentOptionalArguments(const std::string &argvString)
+{
+    // Get the number of times this argument was added in the command line
+    size_t count = getArgumentCount(argvString, _name);
+
+    // If count is 0 and the argument is optional, then it is always valid
+    if (count == 0 && _presence == ARGUMENT_PRESENCE::OPTIONAL)
+    {
+        // The optional argument is not set, use the default value
+        _optionalSet = false;
+    }
+
+    // If the count is 1, then it is valud
+    if (count == 1 && _presence == ARGUMENT_PRESENCE::OPTIONAL)
+    {
+        // The optional argument is set, use the given value
+        _optionalSet = true;
+    }
 }
 
 bool Argument::isValid(const std::string &argvString)

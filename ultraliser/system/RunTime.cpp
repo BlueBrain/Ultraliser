@@ -77,4 +77,27 @@ void createRespectiveDirectories(const Options* options)
     }
 }
 
+void initializeContext(Options* options)
+{
+    // Construct the prefixes once and for all
+    options->outputPrefix =
+            options->outputDirectory + "/" + options->prefix;
+    options->meshPrefix =
+            options->outputDirectory + "/" + MESHES_DIRECTORY +  "/" + options->prefix;
+    options->volumePrefix =
+            options->outputDirectory + "/" + VOLUMES_DIRECTORY +  "/" + options->prefix;
+    options->projectionPrefix =
+            options->outputDirectory + "/" + PROJECTIONS_DIRECTORY +  "/" + options->prefix;
+    options->statisticsPrefix =
+            options->outputDirectory + "/" + STATISTICS_DIRECTORY +  "/" + options->prefix;
+    options->distributionsPrefix =
+            options->outputDirectory + "/" + DISTRIBUTIONS_DIRECTORY +  "/" + options->prefix;
+
+    // Create the respective directories
+    createRespectiveDirectories(options);
+
+    LOG_TITLE("Ultralizing");
+    LOG_SUCCESS("Output Directory [ %s ]", options->outputDirectory.c_str());
+}
+
 }

@@ -296,25 +296,65 @@ bool exists(const std::string &path)
     return (stat (path.c_str(), &buffer) == 0);
 }
 
-std::string getName(std::string& filePath)
+std::string getName(std::string& filePath, bool withExtension)
 {
-    char seprator = '/';
-
-#ifdef _WIN32
-    seprator = '\\';
-#endif
-
-    size_t i = filePath.rfind(seprator, filePath.length());
-    if (i != std::string::npos)
+    struct tokensBS: std::ctype<char>
     {
-        // Get the file
-        std::string file = filePath.substr(i + 1, filePath.length() - i);
+        tokensBS(): std::ctype<char>(get_table()) {}
 
-        // Return the file name
-        return(file.substr(0, file.find_last_of(".")));
-    }
+        static std::ctype_base::mask const* get_table()
+        {
+            typedef std::ctype<char> cctype;
+            static const cctype::mask *const_rc= cctype::classic_table();
 
-    return("");
+            static cctype::mask rc[cctype::table_size];
+            std::memcpy(rc, const_rc, cctype::table_size * sizeof(cctype::mask));
+
+            rc['/'] = std::ctype_base::space;
+            return &rc[0];
+        }
+    };
+
+    struct tokensDot: std::ctype<char>
+    {
+        tokensDot(): std::ctype<char>(get_table()) {}
+
+        static std::ctype_base::mask const* get_table()
+        {
+            typedef std::ctype<char> cctype;
+            static const cctype::mask *const_rc= cctype::classic_table();
+
+            static cctype::mask rc[cctype::table_size];
+            std::memcpy(rc, const_rc, cctype::table_size * sizeof(cctype::mask));
+
+            rc['.'] = std::ctype_base::space;
+            return &rc[0];
+        }
+    };
+
+    // Split the file path to a std::vector with the  back slach separator
+    std::stringstream streamBS(filePath);
+    streamBS.imbue(std::locale(std::locale(), new tokensBS()));
+    std::istream_iterator<std::string> begin(streamBS);
+    std::istream_iterator<std::string> end;
+    std::vector<std::string> stringsVectorBS(begin, end);
+    std::copy(stringsVectorBS.begin(), stringsVectorBS.end(),
+              std::ostream_iterator<std::string>(std::cout, "\n"));
+
+    // Now, we have the file name with the extension
+    std::string fileNameWithExtension = stringsVectorBS.at(stringsVectorBS.size() - 1);
+    if (withExtension)
+        return  fileNameWithExtension;
+
+    // Split the file name to a std::vector with the . separator
+    std::stringstream streamDot(filePath);
+    streamDot.imbue(std::locale(std::locale(), new tokensDot()));
+    std::istream_iterator<std::string> beginDot(streamDot);
+    std::istream_iterator<std::string> endDot;
+    std::vector<std::string> stringsVectorDot(beginDot, endDot);
+    std::copy(stringsVectorDot.begin(), stringsVectorDot.end(),
+              std::ostream_iterator<std::string>(std::cout, "\n"));
+    return stringsVectorDot.at(0);
 }
 
 void writeFloatDistributionToFile(const std::string &filePath,

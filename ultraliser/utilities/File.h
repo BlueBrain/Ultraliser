@@ -110,7 +110,7 @@ bool exists(const std::string &path);
  * @return
  * The file name.
  */
-std::string getName(std::string &filePath);
+std::string getName(std::string &filePath, bool withExtension = false);
 
 /**
  * @brief writeFloatDistributionToFile

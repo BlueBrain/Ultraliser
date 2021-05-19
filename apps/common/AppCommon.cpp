@@ -24,10 +24,119 @@
 namespace Ultraliser
 {
 
+void computeBoundingBoxForMeshes(const std::string& boundsFile,
+                                 const std::string& inputMeshesDirectory,
+                                 std::vector< std::string > meshFiles,
+                                 Vector3f& pMax, Vector3f& pMin)
+{
+    if (boundsFile == EMPTY)
+    {
+        LOG_STATUS("Computing Bounding Box");
+        TIMER_SET;
+
+        // Vectors containing all the pMin and pMax of all the objects
+        std::vector< Ultraliser::Vector3f > pMinVector, pMaxVector;
+
+        // Resize to perform in parallel
+        pMinVector.resize(meshFiles.size());
+        pMaxVector.resize(meshFiles.size());
+
+        LOOP_STARTS("Loading Meshes");
+        size_t loadedMeshCount = 0;
+#ifdef ULTRALISER_USE_OPENMP
+        #pragma omp parallel for
+#endif
+        for (uint64_t iMesh = 0; iMesh < meshFiles.size(); ++iMesh)
+        {
+            // Create and load the mesh from the file
+            std::string meshName= meshFiles[iMesh];
+            std::string meshFile = meshName;
+            if (inputMeshesDirectory != EMPTY )
+                meshFile = inputMeshesDirectory + "/" + meshName;
+
+            if (Ultraliser::File::exists(meshFile))
+            {
+
+#ifdef ULTRALISER_USE_OPENMP
+                #pragma omp atomic
+                ++loadedMeshCount;
+                if (omp_get_thread_num() == 0)
+                    LOOP_PROGRESS(loadedMeshCount,  meshFiles.size());
+#else
+                ++loadedMeshCount;
+                LOOP_PROGRESS(loadedMeshCount,  meshFiles.size());
+#endif
+
+                // Load the mesh
+                Ultraliser::Mesh* mesh = new Ultraliser::Mesh (meshFile);
+
+                // Compute its bounding box
+                Ultraliser::Vector3f pMinMesh, pMaxMesh;
+                mesh->computeBoundingBox(pMinMesh, pMaxMesh);
+                pMinVector[iMesh] = pMinMesh;
+                pMaxVector[iMesh] = pMaxMesh;
+                mesh->~Mesh();
+            }
+            else
+            {
+                LOG_WARNING("Ignoring Mesh: [ %s ]", meshFile.c_str());
+            }
+        }
+        LOOP_DONE;
+        LOG_STATS(GET_TIME_SECONDS);
+
+        if (loadedMeshCount == 0 )
+            LOG_ERROR("No Loaded Meshes");
+        else
+            LOG_DETAIL("Loaded Meshes: [%zu/%zu]", loadedMeshCount, meshFiles.size());
+
+
+        // Compute the bounding box of the group
+        pMax.x() = std::numeric_limits< float >::min();
+        pMax.y() = std::numeric_limits< float >::min();
+        pMax.z() = std::numeric_limits< float >::min();
+
+        pMin.x() = std::numeric_limits< float >::max();
+        pMin.z() = std::numeric_limits< float >::max();
+        pMin.y() = std::numeric_limits< float >::max();
+
+        LOOP_STARTS("Computing Bounding Box");
+        TIMER_RESET;
+        for(uint64_t iMesh = 0; iMesh < meshFiles.size(); ++iMesh)
+        {
+            LOOP_PROGRESS(iMesh,  meshFiles.size());
+
+            Ultraliser::Vector3f pMinObject = pMinVector[ iMesh ];
+            Ultraliser::Vector3f pMaxObject = pMaxVector[ iMesh ];
+
+            if (pMinObject.x() < pMin.x()) pMin.x() = pMinObject.x();
+            if (pMinObject.y() < pMin.y()) pMin.y() = pMinObject.y();
+            if (pMinObject.z() < pMin.z()) pMin.z() = pMinObject.z();
+
+            if (pMaxObject.x() > pMax.x()) pMax.x() = pMaxObject.x();
+            if (pMaxObject.y() > pMax.y()) pMax.y() = pMaxObject.y();
+            if (pMaxObject.z() > pMax.z()) pMax.z() = pMaxObject.z();
+        }
+        LOOP_DONE;
+        LOG_STATS(GET_TIME_SECONDS);
+    }
+    else
+    {
+        LOG_STATUS_IMPORTANT("Loading Bounding Box from [ %s ]", boundsFile.c_str());
+
+        // Verify the bounding box file
+        if (File::exists(boundsFile))
+            File::parseBoundsFile(boundsFile, pMin, pMax);
+        else
+            LOG_ERROR("No Bounding Box File is Provided !");
+    }
+}
+
+
 void applyLaplacianOperator(Mesh *mesh, const Options* options)
 {
     // Apply the Laplacian filter
-    mesh->applyLaplacianSmooth(options->laplacianIterations, 0.2, 0.1);
+    mesh->applyLaplacianSmooth(options->laplacianIterations, 1.0, 0.0);
 
     // Export the mesh
     mesh->exportMesh(options->meshPrefix + LAPLACIAN_SUFFIX,
@@ -37,6 +146,10 @@ void applyLaplacianOperator(Mesh *mesh, const Options* options)
     // Print the mesh statistcs
     if (options->writeStatistics)
         mesh->printStats(LAPLACIAN_STRING, &options->statisticsPrefix);
+
+    // Print the mesh distributions
+    if (options->writeDistributions)
+        mesh->printStats(LAPLACIAN_STRING, &options->distributionsPrefix);
 }
 
 void createWatertightMesh(const Mesh* mesh, const Options* options)
@@ -88,7 +201,7 @@ void createWatertightMesh(const Mesh* mesh, const Options* options)
                                    options->exportOFF, options->exportSTL);
 }
 
-void optimizeMesh(Mesh *dmcMesh, const Options* options)
+void generateOptimizedMesh(Mesh *dmcMesh, const Options* options)
 {
     // Further adaptive optimization
     if (options->optimizeMeshAdaptively)

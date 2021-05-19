@@ -21,6 +21,7 @@
 
 #include <Ultraliser.h>
 #include <AppCommon.h>
+#include <AppArguments.h>
 
 namespace Ultraliser
 {
@@ -28,98 +29,29 @@ namespace Ultraliser
 Options* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
-    std::unique_ptr< Args > args = std::make_unique <Args>(argc, argv,
+    std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
               "This application splits an input mesh with multiple partitions into multiple "
               "meshes with single partitions.");
 
-    Ultraliser::Argument inputMesh(
-                "--mesh",
-                ARGUMENT_TYPE::STRING,
-                "The full path to the mesh.",
-                ARGUMENT_PRESENCE::MANDATORY);
-    args->addArgument(&inputMesh);
-
-    Ultraliser::Argument outputDirectory(
-                "--output-directory",
-                ARGUMENT_TYPE::STRING,
-                "Output directory where the volume will be generated.",
-                ARGUMENT_PRESENCE::MANDATORY);
-    args->addArgument(&outputDirectory);
-
-    Ultraliser::Argument prefix(
-                "--prefix",
-                ARGUMENT_TYPE::STRING,
-                "Just a prefix that will be used to label the output files. "
-                "If this is not given by the user, the name of the mesh file "
-                "will be used.");
-    args->addArgument(&prefix);
-
-    Ultraliser::Argument exportOBJ(
-                "--export-obj",
-                ARGUMENT_TYPE::BOOL,
-                "Export the output mesh to an .OBJ file.");
-    args->addArgument(&exportOBJ);
-
-    Ultraliser::Argument exportPLY(
-                "--export-ply",
-                ARGUMENT_TYPE::BOOL,
-                "Export the output mesh to an .PLY file.");
-    args->addArgument(&exportPLY);
-
-    Ultraliser::Argument exportOFF(
-                "--export-off",
-                ARGUMENT_TYPE::BOOL,
-                "Export the output mesh to an .OFF file.");
-    args->addArgument(&exportOFF);
-
-    Ultraliser::Argument exportSTL(
-                "--export-stl",
-                ARGUMENT_TYPE::BOOL,
-                "Export the output mesh to an .STL file.");
-    args->addArgument(&exportSTL);
-
-    Argument writeStatistics(
-                "--stats",
-                ARGUMENT_TYPE::BOOL,
-                "Write the statistics.");
-    args->addArgument(&writeStatistics);
-
-    Argument writeDistributions(
-                "--dists",
-                ARGUMENT_TYPE::BOOL,
-                "Write the distributions.");
-    args->addArgument(&writeDistributions);
-
-    // Parse the command line options
-    args->parse();
-
-    // Construct the options
-    Options* options = new Options();
+    args->addInputMeshArguments();
+    args->addOutputArguments();
+    args->addMeshExportArguments();
+    args->addDataArguments();
 
     // Get all the options
-    options->inputMesh = args->getStringValue(&inputMesh);
-    options->outputDirectory = args->getStringValue(&outputDirectory);
-    options->prefix = args->getStringValue(&prefix);
+    Options* options = args->getOptions();
 
-    // Mesh exports, file formats
-    options->exportOBJ = args->getBoolValue(&exportOBJ);
-    options->exportPLY = args->getBoolValue(&exportPLY);
-    options->exportOFF = args->getBoolValue(&exportOFF);
-    options->exportSTL = args->getBoolValue(&exportSTL);
-
-    // Statistics and distributions
-    options->writeStatistics = args->getBoolValue(&writeStatistics);
-    options->writeDistributions = args->getBoolValue(&writeDistributions);
+    LOG_TITLE("Creating Context");
 
     /// Validate the arguments
-    if (!Ultraliser::File::exists(options->inputMesh))
+    if (!File::exists(options->inputMesh))
     {
         LOG_ERROR("The file [ %s ] does NOT exist! ", options->inputMesh.c_str());
     }
 
     // Try to make the output directory
     mkdir(options->outputDirectory.c_str(), 0777);
-    if (!Ultraliser::Directory::exists(options->outputDirectory))
+    if (!Directory::exists(options->outputDirectory))
     {
         LOG_ERROR("The directory [ %s ] does NOT exist!", options->outputDirectory.c_str());
     }
@@ -134,29 +66,11 @@ Options* parseArguments(const int& argc , const char** argv)
     // If no prefix is given, use the directory name
     if (options->prefix == NO_DEFAULT_VALUE)
     {
-        options->prefix = Ultraliser::Directory::getName(options->inputMaskDirectory);
+        options->prefix = Directory::getName(options->inputMaskDirectory);
     }
 
-    // Construct the prefixes once and for all
-    options->outputPrefix =
-            options->outputDirectory + "/" + options->prefix;
-    options->meshPrefix =
-            options->outputDirectory + "/" + MESHES_DIRECTORY +  "/" + options->prefix;
-    options->volumePrefix =
-            options->outputDirectory + "/" + VOLUMES_DIRECTORY +  "/" + options->prefix;
-    options->projectionPrefix =
-            options->outputDirectory + "/" + PROJECTIONS_DIRECTORY +  "/" + options->prefix;
-    options->statisticsPrefix =
-            options->outputDirectory + "/" + STATISTICS_DIRECTORY +  "/" + options->prefix;
-    options->distributionsPrefix =
-            options->outputDirectory + "/" + DISTRIBUTIONS_DIRECTORY +  "/" + options->prefix;
-
-
-    // Create the respective directories
-    createRespectiveDirectories(options);
-
-    LOG_TITLE("Ultralizing");
-    LOG_SUCCESS("Output Directory [ %s ]", options->outputDirectory.c_str());
+    // Initialize context
+    initializeContext(options);
 
     // Return the executable options
     return options;

@@ -1708,7 +1708,7 @@ Volume* Volume::constructFromTiffMask(
     return maskVolume;
 }
 
-Volume::SOLID_VOXELIZATION_AXIS Volume::getSolidVoxelizationAxis(const std::string &argumentString)
+Volume::SOLID_VOXELIZATION_AXIS Volume::getSolidvoxelizationAxis(const std::string &argumentString)
 {
     if (argumentString == "x")
     {

@@ -39,6 +39,9 @@ ArgumentParser::ArgumentParser(const int argc, const char** argv,
         // Append a space for clarity
         _argvString += " ";
     }
+
+    // Parsing must be completed to be able to show the help
+    _showHelp = false;
 }
 
 ArgumentParser::~ArgumentParser()
@@ -117,6 +120,36 @@ void ArgumentParser::_validateArguments()
     }
 }
 
+void ArgumentParser::_validateCurrentArguments()
+{
+    // Validate the arguments for replication
+    for (auto argument: _arguments)
+    {
+        argument->validateCurrentOptionalArguments(_argvString);
+    }
+
+    // Split all the arguments into a list to make it easy to validate them
+    std::vector< std::string> argvStringList = String::split(_argvString, ' ');
+
+    // Validate the arguments for existence
+    for (auto argumentString : argvStringList)
+    {
+        // If the argument string starts with --, then this is a given argument
+        if (argumentString.find("--") == 0)
+        {
+            // Check if this given argument exists in the defined ones or not
+            bool exists = false;
+            for (auto argument: _arguments)
+            {
+                if (argumentString == argument->getName())
+                {
+                    exists = true;
+                }
+            }
+        }
+    }
+}
+
 void ArgumentParser::_evaluateArguments()
 {
     for (auto argument: _arguments)
@@ -136,8 +169,7 @@ void ArgumentParser::displayValues()
         argument->displayValue();
 }
 
-bool subStringFoundX(std::string& str,
-                     const std::string &subString)
+bool subStringFoundX(std::string& str, const std::string &subString)
 {
     size_t start_pos = str.find(subString);
     if (start_pos == std::string::npos)
@@ -147,9 +179,7 @@ bool subStringFoundX(std::string& str,
 
 void ArgumentParser::showHelpIfNeeded()
 {
-    if (_argc == 1                              ||
-        subStringFoundX(_argvString, "--help ") ||
-        subStringFoundX(_argvString, "-h "))
+    if (_showHelp)
     {
         // Show tha application help
         printf("\n\t* About %s \n\n %s \n\n",
@@ -162,8 +192,35 @@ void ArgumentParser::showHelpIfNeeded()
     }
 }
 
+void ArgumentParser::updateArguments()
+{
+    _cleanInputArguments();
+
+    if (_argc == 1                              ||
+        subStringFoundX(_argvString, "--help ") || subStringFoundX(_argvString, "-help ") ||
+        subStringFoundX(_argvString, "--h ")    || subStringFoundX(_argvString, "-h "))
+    {
+        // Please show the help
+        _showHelp = true;
+
+        // Remove the help from the string to avoid parsing errors
+        String::removeSubstring(_argvString, "--help ");
+        String::removeSubstring(_argvString, "-help ");
+        String::removeSubstring(_argvString, "--h ");
+        String::removeSubstring(_argvString, "-h ");
+    }
+
+    // Show the help
+    if (_argvString.size() == 0 || _argvString.size() == 1)
+        return;
+
+    _validateCurrentArguments();
+    _evaluateArguments();
+}
+
 std::string ArgumentParser::getStringValue(Argument* input)
 {
+    updateArguments();
     for (const auto& argument: _arguments)
     {
         bool valid;
@@ -176,6 +233,7 @@ std::string ArgumentParser::getStringValue(Argument* input)
 
 int32_t ArgumentParser::getIntegrValue(Argument* input)
 {
+    updateArguments();
     for (const auto& argument: _arguments)
     {
         bool valid;
@@ -188,6 +246,7 @@ int32_t ArgumentParser::getIntegrValue(Argument* input)
 
 uint32_t ArgumentParser::getUnsignedIntegrValue(Argument* input)
 {
+    updateArguments();
     for (const auto& argument: _arguments)
     {
         bool valid;
@@ -200,6 +259,7 @@ uint32_t ArgumentParser::getUnsignedIntegrValue(Argument* input)
 
 float ArgumentParser::getFloatValue(Argument* input)
 {
+    updateArguments();
     for (const auto& argument: _arguments)
     {
         bool valid;
@@ -212,6 +272,7 @@ float ArgumentParser::getFloatValue(Argument* input)
 
 bool ArgumentParser::getBoolValue(Argument* input)
 {
+    updateArguments();
     for (const auto& argument: _arguments)
     {
         bool valid;

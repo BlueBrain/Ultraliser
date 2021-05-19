@@ -691,11 +691,11 @@ private:
 public:
 
     /**
-     * @brief getSolidVoxelizationAxis
+     * @brief getSolidvoxelizationAxis
      * @param argumentString
      * @return
      */
-    static SOLID_VOXELIZATION_AXIS getSolidVoxelizationAxis(const std::string &argumentString);
+    static SOLID_VOXELIZATION_AXIS getSolidvoxelizationAxis(const std::string &argumentString);
 };
 
 }

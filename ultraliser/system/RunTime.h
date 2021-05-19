@@ -32,9 +32,17 @@ namespace Ultraliser
  * Create the directory tree where the artifacts will be genrated.
  *
  * @param options
- * Tool options
+ * Tool options.
  */
 void createRespectiveDirectories(const Options* options);
+
+/**
+ * @brief initializeContext
+ * Initialization of the Ultralisation context.
+ * @param options
+ * Tool options.
+ */
+void initializeContext(Options* options);
 
 }
 

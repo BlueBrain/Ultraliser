@@ -47,6 +47,11 @@ public:
     void parse();
 
     /**
+     * @brief updateArguments
+     */
+    void updateArguments();
+
+    /**
      * @brief displayValues
      */
     void displayValues();
@@ -63,7 +68,7 @@ public:
     void addArgument(Argument* argument);
 
     /**
-     * @brief showHelp
+     * @brief showHelpIfNeeded
      */
     void showHelpIfNeeded();
 
@@ -115,6 +120,11 @@ private:
     void _validateArguments();
 
     /**
+     * @brief _validateCurrentArguments
+     */
+    void _validateCurrentArguments();
+
+    /**
      * @brief _evaluateArguments
      */
     void _evaluateArguments();
@@ -145,6 +155,8 @@ private:
      * @brief _applicationHelp
      */
     std::string _applicationHelp;
+
+    bool _showHelp;
 };
 
 }

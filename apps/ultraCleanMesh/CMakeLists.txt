@@ -30,7 +30,7 @@ set(APP_NAME ultraCleanMesh)
 include_directories(${CMAKE_BINARY_DIR}/include)
 
 # Source files
-file(GLOB ${APP_NAME}_SOURCE_FILES "*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/../common/AppCommon.cpp")
+file(GLOB ${APP_NAME}_SOURCE_FILES "*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/../common/*.cpp")
 
 # Header files
 file(GLOB ${APP_NAME}_HEADER_FILES "*.h" "*.hh")

@@ -22,6 +22,7 @@
  **************************************************************************************************/
 
 #include <common/Common.h>
+#include <arguments/Argument.h>
 #include <data/volumes/Volumes.h>
 
 namespace Ultraliser
@@ -134,7 +135,7 @@ struct Options
      * @brief autoResolution
      * Sets the resolution of the volume based on mesh dimensions.
      */
-    bool autoResolution;
+    bool autoResolution = false;
 
     /**
      * @brief voxelsPerMicron
@@ -158,13 +159,13 @@ struct Options
      * @brief solid
      * Use solid voxelization to fill the volume.
      */
-    bool useSolidVoxelization;
+    bool useSolidVoxelization = false;
 
     /**
-     * @brief solid
-     * Fill the interior of the volume using solid voxelization.
+     * @brief voxelizationAxis
+     * The axis where the solid voxelization operation will be performed.
      */
-    Ultraliser::Volume::SOLID_VOXELIZATION_AXIS VoxelizationAxis;
+    Ultraliser::Volume::SOLID_VOXELIZATION_AXIS voxelizationAxis;
 
     /**
      * @brief volumeType
@@ -177,79 +178,79 @@ struct Options
      * If this flag is set, the XY projection of the volume will be saved to a PNG image.
      * This flag is set to validate the output volume.
      */
-    bool projectXY;
+    bool projectXY = false;
 
     /**
      * @brief projectXZ
      * If this flag is set, the XY projection of the volume will be saved to a PNG image.
      * This flag is set to validate the output volume.
      */
-    bool projectXZ;
+    bool projectXZ = false;
 
     /**
      * @brief projectZY
      * If this flag is set, the ZY projection of the volume will be saved to a PNG image.
      * This flag is set to validate the output volume.
      */
-    bool projectZY;
+    bool projectZY = false;
 
     /**
      * @brief projectColorCoded
      * If this flag is set, a series of color-coded projections with different color maps will
      * be generated.
      */
-    bool projectColorCoded;
+    bool projectColorCoded = false;
 
     /**
      * @brief stackXY
      * Create an image stack along the XY plane.
      */
-    bool stackXY;
+    bool stackXY = false;
 
     /**
      * @brief stackXZ
      * Create an image stack along the XZ plane.
      */
-    bool stackXZ;
+    bool stackXZ = false;
 
     /**
      * @brief stackZY
      * Create an image stack along the ZY plane.
      */
-    bool stackZY;
+    bool stackZY = false;
 
     /**
      * @brief createBinaryVolume
      * If this flag is set, a binary volume will be created. This volume has
      * 1 bit per voxel.
      */
-    bool writeBitVolume;
+    bool writeBitVolume = false;
 
     /**
      * @brief createByteVolume
      * If this flag is set, a default raw volume will be created. This volume
      * has 1 byte per voxel.
      */
-    bool writeByteVolume;
+    bool writeByteVolume = false;
 
     /**
      * @brief writeNRRDVolume
      * If this flag is set, the volume will be written to an NRRD file that is
      * compatible with VTK.
      */
-    bool writeNRRDVolume;
+    bool writeNRRDVolume = false;
 
     /**
      * @brief exportVolumeMesh
      * Export a mesh that represents the volume where each voxel will be represented by a cube.
      */
-    bool exportVolumeMesh;
+    bool exportVolumeMesh = false;
 
     /**
      * @brief useLaplacian
      * Use Laplacian smoothing to clear the grid artifacts.
      */
-    bool useLaplacian;
+    bool useLaplacian = false;
 
     /**
      * @brief laplacianIterations
@@ -264,16 +265,16 @@ struct Options
     bool optimizeMeshHomogenous;
 
     /**
-     * @brief voxelizeMesh
-     * If this flag is set in some application, the input mesh will be voxelized.
-     */
-    bool voxelizeMesh;
-
-    /**
      * @brief optimizeMeshAdaptively
      * Optimize the mesh using the adaptive optimization strategy.
      */
-    bool optimizeMeshAdaptively;
+    bool optimizeMeshAdaptively = false;
+
+    /**
+     * @brief voxelizeMesh
+     * If this flag is set in some application, the input mesh will be voxelized.
+     */
+    bool voxelizeMesh = false;
 
     /**
      * @brief optimizationIterations
@@ -301,8 +302,6 @@ struct Options
      */
     float smoothingFactor;
 
-
-
     /**
      * @brief denseFactor
      * A factor that is used for the coarseDense function.
@@ -314,25 +313,25 @@ struct Options
      * @brief exportOBJ
      * Export any reconstructed mesh to .OBJ file.
      */
-    bool exportOBJ;
+    bool exportOBJ = false;
 
     /**
      * @brief exportPLY
      * Export any reconstructed mesh to .PLY file.
      */
-    bool exportPLY;
+    bool exportPLY = false;
 
     /**
      * @brief exportOFF
      * Export any reconstructed mesh to .OFF file.
      */
-    bool exportOFF;
+    bool exportOFF = false;
 
     /**
      * @brief exportSTL
      * Export any reconstructed mesh to .STL file.
      */
-    bool exportSTL;
+    bool exportSTL = false;
 
     /**
      * @brief preservePartitions
@@ -351,19 +350,19 @@ struct Options
      * @brief writeStatictics
      * Write the statictics.
      */
-    bool writeStatistics;
+    bool writeStatistics = false;
 
     /**
      * @brief writeDistributions
      * Write distributions of morphologies and meshes.
      */
-    bool writeDistributions;
+    bool writeDistributions = false;
 
     /**
      * @brief writeHistogram
      * Write the histogram of the volume into a text file.
      */
-    bool writeHistogram;
+    bool writeHistogram = false;
 
     /**
      * @brief outputPrefix
@@ -378,19 +377,19 @@ struct Options
      * the ignoreSelfIntersection flag is set as well, there will no be
      * any exported mesh from this process.
      */
-    bool ignoreDMCMesh;
+    bool ignoreDMCMesh = false;
 
     /**
      * @brief ignoreSelfIntersections
      * Ignore if the mesh has self intersections, and do NOT repair them.
      */
-    bool ignoreSelfIntersections;
+    bool ignoreSelfIntersections = false;
 
     /**
      * @brief ignoreOptimizedNonWatertightMesh
      * Ignores writing the optimized mesh that is not watertight.
      */
-    bool ignoreOptimizedNonWatertightMesh;
+    bool ignoreOptimizedNonWatertightMesh = false;
 
     /**
      * @brief xScaleFactor
