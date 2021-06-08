@@ -44,31 +44,37 @@ public:
 
     /**
      * @brief x
+     * X-axis of the voxel.
      */
     int64_t x = -1;
 
     /**
      * @brief y
+     * Y-axis of the voxel.
      */
     int64_t y = -1;
 
     /**
      * @brief z
+     * Z-axis of the voxel.
      */
     int64_t z = -1;
 
     /**
      * @brief entering
+     * Are we entering the voxel?
      */
     bool entering = false;
 
     /**
      * @brief exiting
+     * Are we exiting the voxel?
      */
     bool exiting = false;
 
     /**
      * @brief side
+     * DMC edge side value
      */
     DMC_EDGE_SIDE side = DMC_EDGE_SIDE::UNKNOWN;
 };

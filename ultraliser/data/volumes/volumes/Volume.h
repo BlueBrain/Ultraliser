@@ -111,6 +111,9 @@ public:
      */
     uint8_t getValue(const uint64_t index) const;
 
+    uint8_t getConfirmedValue(const int64_t &x,
+                                      const int64_t &y,
+                                      const int64_t &z) const;
     /**
      * @brief getValue
      * @param x
@@ -195,12 +198,43 @@ public:
     /**
      * @brief exportToMesh
      * @param prefix
+     * @param formatOBJ
+     * @param formatPLY
+     * @param formatOFF
+     * @param formatSTL
      */
     void exportToMesh(const std::string &prefix,
                       const bool &formatOBJ = false,
                       const bool &formatPLY = false,
                       const bool &formatOFF = false,
                       const bool &formatSTL = false) const;
+
+    /**
+     * @brief exportVolumeGridMesh
+     * @param prefix
+     * @param formatOBJ
+     * @param formatPLY
+     * @param formatOFF
+     * @param formatSTL
+     */
+    void exportVolumeGridToMesh(const std::string &prefix,
+                                const bool &formatOBJ = false,
+                                const bool &formatPLY = false,
+                                const bool &formatOFF = false,
+                                const bool &formatSTL = false) const;
+    /**
+     * @brief exportBoundingBoxMesh
+     * @param prefix
+     * @param formatOBJ
+     * @param formatPLY
+     * @param formatOFF
+     * @param formatSTL
+     */
+    void exportBoundingBoxMesh(const std::string &prefix,
+                               const bool &formatOBJ = false,
+                               const bool &formatPLY = false,
+                               const bool &formatOFF = false,
+                               const bool &formatSTL = false) const;
 
     /**
      * @brief writeStackXY
@@ -350,7 +384,8 @@ public:
      */
     uint64_t mapToIndex(const int64_t &x,
                         const int64_t &y,
-                        const int64_t &z) const;
+                        const int64_t &z,
+                        bool &outlier) const;
 
     /**
      * @brief fill
@@ -665,13 +700,13 @@ private:
      * @brief _voxelSize
      * The size of the voxel.
      */
-    float _voxelSize;
+    double _voxelSize;
 
     /**
      * @brief _volumeOrigin
      * The origin of the mesh model.
      */
-    Vector3f _meshOrigin;
+    // Vector3f _meshOrigin;
 
     /**
      * @brief _surfaceVoxelizationTime

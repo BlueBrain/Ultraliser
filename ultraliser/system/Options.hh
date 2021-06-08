@@ -247,6 +247,18 @@ struct Options
     bool exportVolumeMesh = false;
 
     /**
+     * @brief exportVolumeBoundingBoxMesh
+     * Export a mesh that represents the bounding box of the volume.
+     */
+    bool exportVolumeBoundingBoxMesh = false;
+
+    /**
+     * @brief exportVolumeGridMesh
+     * Export a mesh that represents the volumetric grid used to voxelize the mesh.
+     */
+    bool exportVolumeGridMesh = false;
+
+    /**
      * @brief useLaplacian
      * Use Laplacian smoothing to clear the grid artifacts.
      */

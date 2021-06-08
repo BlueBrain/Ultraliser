@@ -305,6 +305,22 @@ void AppArguments::addVolumeExportArguments()
                 "Export a mesh that represents the volume where each voxel will be a cube.");
     _args->addArgument(&exportVolumeMesh);
     _options->exportVolumeMesh = _args->getBoolValue(&exportVolumeMesh);
+
+    Argument exportVolumeBoundingBoxMesh(
+                "--export-volume-bounding-box-mesh",
+                ARGUMENT_TYPE::BOOL,
+                "Export a mesh that represents the bounding box of the volume."
+                "This mesh is primarily used for debugging purposes.");
+    _args->addArgument(&exportVolumeBoundingBoxMesh);
+    _options->exportVolumeBoundingBoxMesh = _args->getBoolValue(&exportVolumeBoundingBoxMesh);
+
+    Argument exportVolumeGridMesh(
+                "--export-volume-grid-mesh",
+                ARGUMENT_TYPE::BOOL,
+                "Export a mesh that represents the volumetric grid used to voxelize the mesh."
+                "This mesh is primarily used for debugging purposes.");
+    _args->addArgument(&exportVolumeBoundingBoxMesh);
+    _options->exportVolumeGridMesh = _args->getBoolValue(&exportVolumeGridMesh);
 }
 
 void AppArguments::addStacksArguments()

@@ -287,6 +287,19 @@ void generateVolumeArtifacts(const Volume* volume, const Options* options)
                              options->exportOBJ, options->exportPLY,
                              options->exportOFF, options->exportSTL);
 
+    // Export volume bounding box mesh
+    if (options->exportVolumeBoundingBoxMesh)
+        volume->exportBoundingBoxMesh(options->meshPrefix,
+                                      options->exportOBJ, options->exportPLY,
+                                      options->exportOFF, options->exportSTL);
+
+    // Export volume grid mesh
+    if (options->exportVolumeGridMesh)
+        volume->exportVolumeGridToMesh(options->meshPrefix,
+                                       options->exportOBJ, options->exportPLY,
+                                       options->exportOFF, options->exportSTL);
+
+
     // Print the volume statistics
     if (options->writeStatistics)
         volume->printStats(options->prefix, &options->statisticsPrefix);

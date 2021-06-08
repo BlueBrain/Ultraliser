@@ -128,6 +128,27 @@ const Triangle* Mesh::getTriangles() const
     return _triangles;
 }
 
+void Mesh::getTriangleBoundingBox(const uint64_t& triangleIndex,
+                                  Vector3f& pMin, Vector3f& pMax) const
+{
+    pMin = Vector3f(std::numeric_limits<float>::max());
+    pMax = Vector3f(std::numeric_limits<float>::min());
+
+    Triangle triangle = getTriangles()[triangleIndex];
+    for (uint64_t vertexIndex = 0; vertexIndex < 3; ++vertexIndex)
+    {
+        Vector3f vertex = getVertices()[triangle[vertexIndex]];
+        for (int iDim = 0; iDim < DIMENSIONS; ++iDim)
+        {
+            if (vertex[iDim] < pMin[iDim])
+                pMin[iDim] = vertex[iDim];
+
+            if (vertex[iDim] > pMax[iDim])
+                pMax[iDim] = vertex[iDim];
+        }
+    }
+}
+
 void Mesh::computeBoundingBox(Vector3f& pMinIn, Vector3f& pMaxIn)
 {
     // Create new variables to avoid any mess if the inputs are already

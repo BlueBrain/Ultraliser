@@ -102,6 +102,13 @@ public:
     const Triangle* getTriangles() const;
 
     /**
+     * @brief getTriangleBoundingBox
+     * @param pMin
+     * @param pMax
+     */
+    void getTriangleBoundingBox(const uint64_t &triangleIndex, Vector3f& pMin, Vector3f& pMax) const;
+
+    /**
      * @brief translate
      * @param to
      */

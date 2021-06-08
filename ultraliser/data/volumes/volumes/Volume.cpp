@@ -131,59 +131,30 @@ void Volume::_allocateGrid()
 
 void Volume::_createGrid(void)
 {
-    // Compute the bounding box of the mesh
-    const Vector3f originalBoundingBox = _pMax - _pMin;
-
-    Vector3f delta = originalBoundingBox * 0.1;
-    Vector3f pMin = _pMin - delta;
-    Vector3f pMax = _pMax + delta;
-
-
-//    if (isZero(_voxelPadding))
-//    {
-//        // If the resolution is greater than 64, use 2.5% padding
-//        if (_baseResolution > 64)
-//            delta = bbox * 0.025f;
-
-//        // Otherwise, use 10%
-//        else
-//            delta = bbox * 0.25f;
-//    }
-
-//    // Use the specified voxel padding
-//    else
-//        delta = bbox * _voxelPadding;
-
-//    // Increment the bounding box
-//    _pMax += delta;
-//    _pMin -= delta;
-
     // Compute the bounding box size
-    Vector3f boundingBoxSize = (pMax - pMin);
+    Vector3f boundingBoxSize = (_pMax - _pMin);
 
-    // Find the largest dimension of the mesh model to be able to create a
-    // scaled grid.
+    // Find the largest dimension of the mesh model to be able to create a scaled grid.
     _largestDimensionIdx = getLargestDimension(boundingBoxSize);
 
     // Compute the voxel size
-    _voxelSize = (boundingBoxSize[_largestDimensionIdx]) / I2F(_baseResolution);
+    _voxelSize = std::round(boundingBoxSize[_largestDimensionIdx]) / I2D(_baseResolution);
 
-    int64_t width = D2I64(std::ceil(boundingBoxSize[0] / _voxelSize));
-    int64_t height = D2I64(std::ceil(boundingBoxSize[1] / _voxelSize));
-    int64_t depth = D2I64(std::ceil(boundingBoxSize[2] / _voxelSize));
+    double volumeWidth = boundingBoxSize[0] / _voxelSize;
+    double volumeHeight = boundingBoxSize[1] / _voxelSize;
+    double volumeDepth = boundingBoxSize[2] / _voxelSize;
 
-    // Compute the volume grid dimensions
-    const int64_t extraVoxels = 0;
-    _gridDimensions.v[0] = width + extraVoxels * _voxelSize;
-    _gridDimensions.v[1] = height + extraVoxels * _voxelSize;
-    _gridDimensions.v[2] = depth + extraVoxels * _voxelSize;
+    _gridDimensions.v[0] = std::round(volumeWidth);
+    _gridDimensions.v[1] = std::round(volumeHeight);
+    _gridDimensions.v[2] = std::round(volumeDepth);
 
     // Allocating the grid
     _allocateGrid();
 
-    // Compute the origin of the mesh.
-    // NOTE: This is not the center of the bounding box, it is just the point at the base of the bounding box
-    _meshOrigin = pMin; // - (0.5f * extraVoxels * Vector3f(_voxelSize));
+    // _pMin -= 0.5f * Vector3f(_voxelSize);
+
+    // Update the mesh origin to be the bounding box _pMin
+    // _meshOrigin = _pMin + 0.5f * Vector3f(_voxelSize);
 }
 
 void Volume::_loadHeaderData(const std::string &prefix)
@@ -234,12 +205,12 @@ void Volume::surfaceVoxelization(Mesh* mesh,
     // Start the timer
     TIMER_SET;
 
-    if (verbose) LOG_STATUS("Creating Volume Shell");
+    LOG_STATUS("Creating Volume Shell [%d x %d x %d]",
+               _gridDimensions[0], _gridDimensions[1], _gridDimensions[2]);
     if (parallel)
         _rasterizeParallel(mesh, _grid);
     else
         _rasterize(mesh , _grid, verbose);
-
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
 
     // Statistics
@@ -321,7 +292,8 @@ void Volume::surfaceVoxelization(const std::string &inputDirectory,
     LOG_TITLE("Surface Voxelization");
     TIMER_SET;
 
-    LOG_STATUS("Creating Volume Shell");
+    LOG_STATUS("Creating Volume Shell [%d x %d x %d]",
+               _gridDimensions[0], _gridDimensions[1], _gridDimensions[2]);
     uint64_t processedMeshCount = 0;
     LOOP_STARTS("Rasterization");
     #pragma omp parallel for schedule( dynamic, 1 )
@@ -358,30 +330,29 @@ void Volume::surfaceVoxelization(const std::string &inputDirectory,
     LOG_STATS(_surfaceVoxelizationTime);
     LOG_DETAIL("[%zu/%zu] Meshes were Voxelized with Surface Voxelization",
                processedMeshCount, meshFiles.size());
-
 }
 
 void Volume::_rasterize(Mesh* mesh, VolumeGrid* grid, const bool& verbose)
 {
     if (verbose) LOOP_STARTS("Rasterization");
     size_t progress = 0;
-    for (size_t tIdx = 0; tIdx < mesh->getNumberTriangles(); tIdx++)
+    for (size_t triangleIdx = 0; triangleIdx < mesh->getNumberTriangles(); ++triangleIdx)
     {
         ++progress;
         if (verbose) LOOP_PROGRESS(progress, mesh->getNumberTriangles());
 
         // Get the pMin and pMax of the triangle within the grid
         int64_t pMinTriangle[3], pMaxTriangle[3];
-        _getBoundingBox(mesh, tIdx, pMinTriangle, pMaxTriangle);
+        _getBoundingBox(mesh, triangleIdx, pMinTriangle, pMaxTriangle);
 
-        for (int64_t ix = pMinTriangle[0]; ix <= pMaxTriangle[0]; ix++)
+        for (int64_t ix = pMinTriangle[0]; ix <= pMaxTriangle[0]; ++ix)
         {
-            for (int64_t iy = pMinTriangle[1]; iy <= pMaxTriangle[1]; iy++)
+            for (int64_t iy = pMinTriangle[1]; iy <= pMaxTriangle[1]; ++iy)
             {
-                for (int64_t iz = pMinTriangle[2]; iz <= pMaxTriangle[2]; iz++)
+                for (int64_t iz = pMinTriangle[2]; iz <= pMaxTriangle[2]; ++iz)
                 {
                     GridIndex gi(I2I64(ix), I2I64(iy), I2I64(iz));
-                    if (_testTriangleCubeIntersection(mesh, tIdx, gi))
+                    if (_testTriangleCubeIntersection(mesh, triangleIdx, gi))
                         grid->fillVoxel(I2I64(ix), I2I64(iy), I2I64(iz));
                 }
             }
@@ -629,9 +600,9 @@ void Volume::_floodFillAlongXYZ(VolumeGrid *grid)
 int Volume::_triangleCubeSign(Mesh *mesh,
                               int tIdx, const GridIndex & gi)
 {
-    Vector3f boxcenter((0.5f + gi[0]) * _voxelSize + _meshOrigin[0],
-                       (0.5f + gi[1]) * _voxelSize + _meshOrigin[1],
-                       (0.5f + gi[2]) * _voxelSize + _meshOrigin[2]);
+    Vector3f boxcenter((0.5f + gi[0]) * _voxelSize + _pMin[0],
+                       (0.5f + gi[1]) * _voxelSize + _pMin[1],
+                       (0.5f + gi[2]) * _voxelSize + _pMin[2]);
 
     Vector3f tv[3];
     for (size_t ii = 0; ii < 3; ++ii)
@@ -674,17 +645,23 @@ int Volume::_triangleCubeSign(Mesh *mesh,
 
 bool Volume::_testTriangleCubeIntersection(Mesh* mesh, uint64_t triangleIdx, const GridIndex& voxel)
 {
-    // Voxel center
-    double voxelCenter[3];
-    voxelCenter[0] = F2D((0.5f + voxel[0]) * _voxelSize + _meshOrigin[0]);
-    voxelCenter[1] = F2D((0.5f + voxel[1]) * _voxelSize + _meshOrigin[1]);
-    voxelCenter[2] = F2D((0.5f + voxel[2]) * _voxelSize + _meshOrigin[2]);
+    // Get the origin of the voxel
+    double  voxelOrigin[3];
+    voxelOrigin[0] = _pMin[0] + (voxel[0] * _voxelSize);
+    voxelOrigin[1] = _pMin[1] + (voxel[1] * _voxelSize);
+    voxelOrigin[2] = _pMin[2] + (voxel[2] * _voxelSize);
 
     // Voxel half size
     double voxelHalfSize[3];
-    voxelHalfSize[0] = F2D(_voxelSize * 0.5f);
-    voxelHalfSize[1] = F2D(_voxelSize * 0.5f);
-    voxelHalfSize[2] = F2D(_voxelSize * 0.5f);
+    voxelHalfSize[0] = _voxelSize * 0.5;
+    voxelHalfSize[1] = _voxelSize * 0.5;
+    voxelHalfSize[2] = _voxelSize * 0.5;
+
+    // Voxel center
+    double voxelCenter[3];
+    voxelCenter[0] = voxelOrigin[0] + voxelHalfSize[0];
+    voxelCenter[1] = voxelOrigin[1] + voxelHalfSize[1];
+    voxelCenter[2] = voxelOrigin[2] + voxelHalfSize[2];
 
     // Triangle vertices
     double triangle[3][3];
@@ -696,8 +673,7 @@ bool Volume::_testTriangleCubeIntersection(Mesh* mesh, uint64_t triangleIdx, con
         for (size_t j = 0; j < 3; ++j)
         {
             // Load all the verticies of the selected triangle in _triangle_
-            triangle[i][j] =
-                    mesh->getVertices()[mesh->getTriangles()[triangleIdx][i]][j];
+            triangle[i][j] = mesh->getVertices()[mesh->getTriangles()[triangleIdx][i]][j];
         }
     }
 
@@ -708,17 +684,23 @@ bool Volume::_testTriangleCubeIntersection(Mesh* mesh, uint64_t triangleIdx, con
 bool Volume::_testTriangleGridIntersection(AdvancedTriangle triangle,
                                            const GridIndex& voxel)
 {
-    // Voxel center
-    double voxelCenter[3];
-    voxelCenter[0] = F2D((0.5f + voxel[0]) * _voxelSize + _meshOrigin[0]);
-    voxelCenter[1] = F2D((0.5f + voxel[1]) * _voxelSize + _meshOrigin[1]);
-    voxelCenter[2] = F2D((0.5f + voxel[2]) * _voxelSize + _meshOrigin[2]);
+    // Get the origin of the voxel
+    double  voxelOrigin[3];
+    voxelOrigin[0] = _pMin[0] + (voxel[0] * _voxelSize);
+    voxelOrigin[1] = _pMin[1] + (voxel[1] * _voxelSize);
+    voxelOrigin[2] = _pMin[2] + (voxel[2] * _voxelSize);
 
     // Voxel half size
     double voxelHalfSize[3];
-    voxelHalfSize[0] = F2D(_voxelSize * 0.5f);
-    voxelHalfSize[1] = F2D(_voxelSize * 0.5f);
-    voxelHalfSize[2] = F2D(_voxelSize * 0.5f);
+    voxelHalfSize[0] = _voxelSize * 0.5;
+    voxelHalfSize[1] = _voxelSize * 0.5;
+    voxelHalfSize[2] = _voxelSize * 0.5;
+
+    // Voxel center
+    double voxelCenter[3];
+    voxelCenter[0] = voxelOrigin[0] + voxelHalfSize[0];
+    voxelCenter[1] = voxelOrigin[1] + voxelHalfSize[1];
+    voxelCenter[2] = voxelOrigin[2] + voxelHalfSize[2];
 
     // Construct an array to represent the data
     double triangleArray[3][3];
@@ -735,8 +717,7 @@ bool Volume::_testTriangleGridIntersection(AdvancedTriangle triangle,
     triangleArray[2][2] = triangle.v3()->z;
 
     // Test if the triangle and the voxel are intersecting or not
-    return checkTriangleBoxIntersection(voxelCenter, voxelHalfSize,
-                                        triangleArray);
+    return checkTriangleBoxIntersection(voxelCenter, voxelHalfSize, triangleArray);
 }
 
 uint64_t Volume::_clampIndex(uint64_t idx, uint64_t dimension)
@@ -746,13 +727,11 @@ uint64_t Volume::_clampIndex(uint64_t idx, uint64_t dimension)
     return idx;
 }
 
-void Volume::_vec2grid(const Vector3f& v, GridIndex& grid)
+void Volume::_vec2grid(const Vector3f& point, GridIndex& gridIndex)
 {
-    for (int32_t i = 0; i < DIMENSIONS; ++i)
-    {
-        grid[I2UI64(i)] = F2I64((v[i] - _meshOrigin[i]) / _voxelSize);
-        grid[i] = _clampIndex(grid[i], i);
-    }
+    gridIndex[0] = F2I64((point[0] - _pMin[0]) / _voxelSize);
+    gridIndex[1] = F2I64((point[1] - _pMin[1]) / _voxelSize);
+    gridIndex[2] = F2I64((point[2] - _pMin[2]) / _voxelSize);
 }
 
 void Volume::_getTriangleBoundingBox(AdvancedTriangle triangle, int64_t *tMin, int64_t *tMax)
@@ -805,40 +784,26 @@ void Volume::_getTriangleBoundingBox(AdvancedTriangle triangle, int64_t *tMin, i
 
 void Volume::_getBoundingBox(Mesh* mesh, uint64_t i, int64_t *tMin, int64_t *tMax)
 {
-    // We need to get the bounding box of the voxels intersecting the given
-    // triangle, so we get the triangle at index i and then we get the first
-    // vertex of this triangle. Afterwards, we get the index of the voxel that
-    // intersects this vertex
-    GridIndex voxelIdx;
-    _vec2grid(mesh->getVertices()[I2UI64(mesh->getTriangles()[i][0])], voxelIdx);
+    // The bounding box of the triangle
+    Vector3f pMin, pMax;
+    mesh->getTriangleBoundingBox(i, pMin, pMax);
 
-    // After getting the voxel index, we need to compute VOXEL bounding box
-    // that surrounds the voxel (where the vertex is locted), simply
-    for (int64_t j = 0; j < DIMENSIONS; ++j)
-    {
-        tMin[j] = voxelIdx[I2UI64(j)] - 1;
-        tMax[j] = voxelIdx[I2UI64(j)];
-    }
+    // Get the indices of the grid that correspond to the bounding box
+    GridIndex vMin, vMax;
+    _vec2grid(pMin, vMin);
+    _vec2grid(pMax, vMax);
 
-    for (int64_t j = 1; j < DIMENSIONS; ++j)
-    {
-        _vec2grid(mesh->getVertices()[(mesh->getTriangles()[i][j])], voxelIdx);
+    tMin[0] = vMin[0]; tMin[1] = vMin[1]; tMin[2] = vMin[2];
+    tMax[0] = vMax[0]; tMax[1] = vMax[1]; tMax[2] = vMax[2];
 
-        for (uint64_t k = 0; k < DIMENSIONS; ++k)
-        {
-            if (voxelIdx[k] - 1 < tMin[k])
-                tMin[k] = voxelIdx[k] - 1;
+    tMin[0] = std::max(int64_t(0), tMin[0]);
+    tMax[0] = std::min(int64_t(_grid->getWidth() - 1) , tMax[0]);
 
-            if (voxelIdx[k] > tMax[k])
-                tMax[k] = voxelIdx[k];
-        }
-    }
+    tMin[1] = std::max(int64_t(0), tMin[1]);
+    tMax[1] = std::min(int64_t(_grid->getHeight() - 1) , tMax[1]);
 
-    for (int32_t ii = 0; ii < DIMENSIONS ; ++ii)
-    {
-        tMin[ii] = std::max(int64_t(0), tMin[ii] - 1);
-        tMax[ii] = std::min(int64_t(_grid->getDimension(ii) - 1) , tMax[ii]);
-    }
+    tMin[2] = std::max(int64_t(0), tMin[2]);
+    tMax[2] = std::min(int64_t(_grid->getDepth() - 1) , tMax[2]);
 }
 
 int64_t Volume::getWidth(void) const
@@ -876,25 +841,33 @@ double Volume::getAppendingVolumePassTime(void) const
     return _addingVolumePassTime;
 }
 
-bool  Volume::isFilled(const u_int64_t& index) const
+bool Volume::isFilled(const u_int64_t& index) const
 {
     return _grid->isFilled(index);
 }
 
-bool  Volume::isFilled(const int64_t &x, const int64_t &y, const int64_t &z) const
+bool Volume::isFilled(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
-    return isFilled(mapToIndex(x, y, z));
+    bool outlier;
+    uint64_t index = mapToIndex(x, y, z, outlier);
+    if (outlier)
+        return false;
+    else
+        return isFilled(index);
 }
 
-uint64_t Volume::mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z) const
+uint64_t Volume::mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z, bool& outlier) const
 {
-
     if(x >= getWidth()  || x < 0 || y >= getHeight() || y < 0 || z >= getDepth()  || z < 0)
     {
-        LOG_ERROR("Index out of bound [%d, %d, %d]", x, y, z);
+        outlier = true;
+        return 0;
     }
-
-    return I2UI64(x + (getWidth() * y) + (getWidth() * getHeight() * z));
+    else
+    {
+        outlier = false;
+        return I2UI64(x + (getWidth() * y) + (getWidth() * getHeight() * z));
+    }
 }
 
 void Volume::project(const std::string prefix,
@@ -976,10 +949,11 @@ void Volume::writeStackXY(const std::string &outputDirectory, const std::string 
         {
             for (int64_t j = 0; j < getHeight(); j++)
             {
+                bool outlier;
                 uint64_t index = mapToIndex(I2I64(i), I2I64(j),
-                                            I2I64(getDepth() - 1 - z));
+                                            I2I64(getDepth() - 1 - z), outlier);
 
-                if (_grid->isFilled(index))
+                if (_grid->isFilled(index) && !outlier)
                     slice->setPixelColor(i , j, WHITE);
                 else
                     slice->setPixelColor(i , j, BLACK);
@@ -1034,10 +1008,11 @@ void Volume::writeStackXZ(const std::string &outputDirectory,
         {
             for (int64_t k = 0; k < getDepth(); k++)
             {
+                bool outlier;
                 uint64_t index = mapToIndex(I2I64(i), I2I64(k),
-                                            I2I64(getHeight() - 1 - y));
+                                            I2I64(getHeight() - 1 - y), outlier);
 
-                if (_grid->isFilled(index))
+                if (_grid->isFilled(index) && !outlier)
                     slice->setPixelColor(i , k, WHITE);
                 else
                     slice->setPixelColor(i , k, BLACK);
@@ -1091,10 +1066,11 @@ void Volume::writeStackZY(const std::string &outputDirectory,
         {
             for (int64_t j = 0; j < getHeight(); j++)
             {
+                bool outlier;
                 uint64_t index = mapToIndex(I2I64(getWidth() - 1 - i),
-                                            I2I64(j), I2I64(z));
+                                            I2I64(j), I2I64(z), outlier);
 
-                if (_grid->isFilled(index))
+                if (_grid->isFilled(index) && !outlier)
                     slice->setPixelColor(z , getHeight() - j - 1, WHITE);
                 else
                     slice->setPixelColor(z , getHeight() - j - 1, BLACK);
@@ -1121,26 +1097,22 @@ void Volume::writeStacks(const std::string &outputDirectory,
     TIMER_SET;
 
     if (xy || xz || zy)
+    {
         LOG_TITLE("Writing Stacks");
 
-    if (xy)
-    {
-        writeStackXY(outputDirectory, prefix);
-    }
+        if (xy)
+            writeStackXY(outputDirectory, prefix);
 
-    if (xz)
-    {
-        writeStackXZ(outputDirectory, prefix);
-    }
+        if (xz)
+            writeStackXZ(outputDirectory, prefix);
 
-    if (zy)
-    {
-        writeStackZY(outputDirectory, prefix);
-    }
+        if (zy)
+            writeStackZY(outputDirectory, prefix);
 
-    // Statictics
-    LOG_STATUS_IMPORTANT("Writing Stacks Stats.");
-    LOG_STATS(GET_TIME_SECONDS);
+        // Statictics
+        LOG_STATUS_IMPORTANT("Writing Stacks Stats.");
+        LOG_STATS(GET_TIME_SECONDS);
+    }
 }
 
 void Volume::exportToMesh(const std::string &prefix,
@@ -1164,8 +1136,8 @@ void Volume::exportToMesh(const std::string &prefix,
     // Delta value
     const Vector3f delta(1, 1, 1);
 
-    LOOP_STARTS("Searching Filled Voxels")
-    for (int64_t i = 0; i <  _grid->getWidth(); ++i)
+    LOOP_STARTS("Searching Filled Voxelss")
+    for (int64_t i = 0; i < _grid->getWidth(); ++i)
     {
         LOOP_PROGRESS(i, _grid->getWidth());
 
@@ -1177,9 +1149,9 @@ void Volume::exportToMesh(const std::string &prefix,
                 if (_grid->isEmpty(i, j, k))
                     continue;
 
-                Vector3f coordinate(0.5f + i, 0.5f + j, 0.5f + k);
-                Vector3f pMin = _baseResolution * (coordinate - 0.5f * delta) + _meshOrigin;
-                Vector3f pMax = _baseResolution * (coordinate + 0.5f * delta) + _meshOrigin;
+                Vector3f coordinate(i, j, k);
+                Vector3f pMin = _pMin + (_voxelSize * coordinate);
+                Vector3f pMax = pMin + Vector3f(_voxelSize);
 
                 // A mesh representing the bounding box of the cube
                 VolumeMesh* voxelCube = VolumeMesh::constructVoxelCube(pMin, pMax);
@@ -1197,22 +1169,6 @@ void Volume::exportToMesh(const std::string &prefix,
 
     LOG_STATUS_IMPORTANT("Volume Mesh Construction Stats.");
     LOG_STATS(GET_TIME_SECONDS);
-
-    /// Adjust the dimensions of the resulting mesh
-    // Compute the dimensions of the resulting volume mesh
-    Vector3f inputMeshbounds = _pMax - _pMin;
-    Vector3f inputMeshCenter = _pMin + inputMeshbounds * 0.5;
-    Vector3f pMin, pMax, volumeMeshBounds;
-    volumeMesh->computeBoundingBox(pMin, pMax);
-    volumeMeshBounds = pMax - pMin;
-
-    // Compute the scale factor
-    Vector3f scaleFactor = inputMeshbounds / volumeMeshBounds;
-
-    // Transform the resulting volume mesh to align with the input mesh
-    volumeMesh->centerAtOrigin();
-    volumeMesh->scale(scaleFactor);
-    volumeMesh->translate(inputMeshCenter);
 
     LOG_TITLE("Exporting Volume Mesh");
     TIMER_RESET;
@@ -1249,6 +1205,192 @@ void Volume::exportToMesh(const std::string &prefix,
     LOG_STATS(GET_TIME_SECONDS);
 }
 
+void Volume::exportVolumeGridToMesh(const std::string &prefix,
+                                    const bool &formatOBJ, const bool &formatPLY,
+                                    const bool &formatOFF, const bool &formatSTL) const
+{
+    if (!(formatOBJ || formatPLY || formatOFF || formatSTL))
+    {
+        LOG_WARNING("Exporto mesh option must be enabled to export this mesh. "
+                    "User one of the following: "
+                    "[--export-obj, --export-ply, --export-off, --export-stl]");
+        return;
+    }
+
+    TIMER_SET;
+    LOG_TITLE("Constructing Volume Grid Mesh");
+
+    // The generated mesh from the volume
+    std::unique_ptr< VolumeMesh > volumeGridMesh = std::make_unique< VolumeMesh >();
+
+    // Delta value
+    const Vector3f delta(1, 1, 1);
+
+    LOOP_STARTS("Iterating over the grid")
+    for (int64_t i = 0; i <  _grid->getWidth(); ++i)
+    {
+        LOOP_PROGRESS(i, _grid->getWidth());
+
+        for (int64_t j = 0; j < _grid->getHeight(); ++j)
+        {
+            for (int64_t k = 0; k < _grid->getDepth(); ++k)
+            {
+                Vector3f coordinate(i, j, k);
+                Vector3f pMin = _baseResolution * (coordinate - 0.5f * delta) + _pMin;
+                Vector3f pMax = _baseResolution * (coordinate + 0.5f * delta) + _pMin;
+
+                // A mesh representing the bounding box of the cube
+                VolumeMesh* voxelCube = VolumeMesh::constructVoxelCube(pMin, pMax);
+
+                // Append it to the volume mesh
+                volumeGridMesh->append(voxelCube);
+
+                // Free the voxel cube
+                voxelCube->~VolumeMesh();
+            }
+        }
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    LOG_STATUS_IMPORTANT("Volume Grid Mesh Construction Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
+
+    /// Adjust the dimensions of the resulting mesh
+    // Compute the dimensions of the resulting volume mesh
+    Vector3f inputMeshbounds = _pMax - _pMin;
+    Vector3f inputMeshCenter = _pMin + inputMeshbounds * 0.5;
+    Vector3f pMin, pMax, volumeMeshBounds;
+    volumeGridMesh->computeBoundingBox(pMin, pMax);
+    volumeMeshBounds = pMax - pMin;
+
+    // Compute the scale factor
+    Vector3f scaleFactor = inputMeshbounds / volumeMeshBounds;
+
+    // Transform the resulting volume mesh to align with the input mesh
+    volumeGridMesh->centerAtOrigin();
+    volumeGridMesh->scale(scaleFactor);
+    volumeGridMesh->translate(inputMeshCenter);
+
+    LOG_TITLE("Exporting Volume Grid Mesh");
+    TIMER_RESET;
+    const std::string outputPrefix = prefix + VOLUME_GRID_MESH_SUFFIX;
+    if (formatOBJ)
+    {
+        exportOBJ(outputPrefix,
+                  volumeGridMesh->vertices.data(), volumeGridMesh->vertices.size(),
+                  volumeGridMesh->triangles.data(), volumeGridMesh->triangles.size());
+    }
+
+    if (formatPLY)
+    {
+        exportPLY(outputPrefix,
+                  volumeGridMesh->vertices.data(), volumeGridMesh->vertices.size(),
+                  volumeGridMesh->triangles.data(), volumeGridMesh->triangles.size());
+    }
+
+    if (formatSTL)
+    {
+        exportSTL(outputPrefix,
+                  volumeGridMesh->vertices.data(), volumeGridMesh->vertices.size(),
+                  volumeGridMesh->triangles.data(), volumeGridMesh->triangles.size());
+    }
+
+    if (formatOFF)
+    {
+        exportOFF(outputPrefix,
+                  volumeGridMesh->vertices.data(), volumeGridMesh->vertices.size(),
+                  volumeGridMesh->triangles.data(), volumeGridMesh->triangles.size());
+    }
+
+    LOG_STATUS_IMPORTANT("Exporting Volume Mesh Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
+void Volume::exportBoundingBoxMesh(const std::string &prefix,
+                                   const bool &formatOBJ, const bool &formatPLY,
+                                   const bool &formatOFF, const bool &formatSTL) const
+{
+    if (!(formatOBJ || formatPLY || formatOFF || formatSTL))
+    {
+        LOG_WARNING("Exporto mesh option must be enabled to export this mesh. "
+                    "User one of the following: "
+                    "[--export-obj, --export-ply, --export-off, --export-stl]");
+        return;
+    }
+
+    TIMER_SET;
+    LOG_TITLE("Constructing Volume Bounding Box Mesh");
+
+    // The generated mesh from the volume
+    std::unique_ptr< VolumeMesh > volumeMesh = std::make_unique< VolumeMesh >();
+
+    // Delta value
+    const Vector3f delta(1, 1, 1);
+
+    // A mesh representing the bounding box of the cube
+    VolumeMesh* voxelCube = VolumeMesh::constructVoxelCube(_pMin, _pMax);
+
+    // Append it to the volume mesh
+    volumeMesh->append(voxelCube);
+
+    // Free the voxel cube
+    delete voxelCube;
+
+    LOG_STATUS_IMPORTANT("Volume Mesh Construction Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
+
+    /// Adjust the dimensions of the resulting mesh
+    // Compute the dimensions of the resulting volume mesh
+    Vector3f inputMeshbounds = _pMax - _pMin;
+    Vector3f inputMeshCenter = _pMin + inputMeshbounds * 0.5;
+    Vector3f pMin, pMax, volumeMeshBounds;
+    volumeMesh->computeBoundingBox(pMin, pMax);
+    volumeMeshBounds = pMax - pMin;
+
+    // Compute the scale factor
+    Vector3f scaleFactor = inputMeshbounds / volumeMeshBounds;
+
+    // Transform the resulting volume mesh to align with the input mesh
+    volumeMesh->centerAtOrigin();
+    volumeMesh->scale(scaleFactor);
+    volumeMesh->translate(inputMeshCenter);
+
+    LOG_TITLE("Exporting Volume Bounding Box Mesh");
+    TIMER_RESET;
+    const std::string outputPrefix = prefix + VOLUME_BOUNDING_BOX_MESH_SUFFIX;
+    if (formatOBJ)
+    {
+        exportOBJ(outputPrefix,
+                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
+                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+    }
+
+    if (formatPLY)
+    {
+        exportPLY(outputPrefix,
+                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
+                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+    }
+
+    if (formatSTL)
+    {
+        exportSTL(outputPrefix,
+                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
+                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+    }
+
+    if (formatOFF)
+    {
+        exportOFF(outputPrefix,
+                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
+                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+    }
+
+    LOG_STATUS_IMPORTANT("Exporting Volume Bounding Box Mesh Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
 uint8_t Volume::getByte(const uint64_t index) const
 {
     return _grid->getByte(index);
@@ -1261,6 +1403,20 @@ uint8_t Volume::getValue(const uint64_t index) const
     else
         return 0;
 }
+
+uint8_t Volume::getConfirmedValue(const int64_t &x,
+                                  const int64_t &y,
+                                  const int64_t &z) const
+{
+    if(x > getWidth() - 1 || x < 0 || y > getHeight() - 1 || y < 0 || z > getDepth() -1  || z < 0)
+        return 0;
+
+    if (_grid->isFilled(x, y, z))
+        return 255;
+    else
+        return 0;
+}
+
 
 uint8_t Volume::getValue(const int64_t &x,
                          const int64_t &y,
@@ -1276,7 +1432,12 @@ uint8_t Volume::getByte(const int64_t &x,
                         const int64_t &y,
                         const int64_t &z) const
 {
-    return _grid->getByte(mapToIndex(x, y, z));
+    bool outlier;
+    uint64_t index = mapToIndex(x, y, z, outlier);
+    if (outlier)
+        return 0;
+    else
+        return _grid->getByte(index);
 }
 
 void Volume::fillVoxel(const int64_t &x,
@@ -1510,8 +1671,9 @@ uint64_t Volume::getNumberBytes(void) const
 
 int32_t Volume::getLargestDimension(const Vector3f& dimensions)
 {
-    float value = dimensions[0];
-    int index = 0;
+    uint32_t index = 0;
+    float value = dimensions[index];
+
 
     for (int32_t i = 1; i < DIMENSIONS; ++i)
     {

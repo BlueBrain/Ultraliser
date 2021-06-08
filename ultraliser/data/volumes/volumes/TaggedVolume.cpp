@@ -229,7 +229,10 @@ uint64_t TaggedVolume::mapToIndex(const uint64_t &x,
                                   const uint64_t &z) const
 {
     if (x >= _width  || y >= _height ||z >= _depth)
-        LOG_ERROR("Index out of bound [%d, %d, %d]", x, y, z);
+    {
+        return 0;
+        // LOG_ERROR("Index out of bound [%d, %d, %d]", x, y, z);
+    }
 
     return (x + (_width * y) + (_width * _height * z));
 }

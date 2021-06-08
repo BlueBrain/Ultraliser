@@ -120,8 +120,30 @@ void run(int argc , const char** argv)
     if (options->writeDistributions)
         inputMesh->writeDistributions(INPUT_STRING, &options->distributionsPrefix);
 
-    // Clean mesh and ensure watertightness before optimization to avoid failure
-    inputMesh->ensureWatertightness();
+    if (options->preservePartitions)
+    {
+        // Split the mesh into partitions
+        std::vector < Ultraliser::AdvancedMesh* > partitions = inputMesh->splitPartitions();
+
+        // Ensure watertightness for the rest of the partitions
+        for (auto mesh : partitions)
+            mesh->ensureWatertightness();
+
+        // Ensures that the mesh is truly two-manifold with no self intersections
+        inputMesh->ensureWatertightness();
+
+        // Merge back after checking the watertightness
+        inputMesh->appendMeshes(partitions);
+
+        // Free
+        for (auto mesh : partitions)
+            delete mesh;
+    }
+    else
+    {
+        // Ensures that the mesh is truly two-advanced with no self intersections
+        inputMesh->ensureWatertightness();
+    }
 
     // Voxelize the mesh
     if (options->voxelizeMesh)
@@ -199,8 +221,30 @@ void run(int argc , const char** argv)
         // Free the input mesh
         delete optimizationMesh;
 
-        // Ensures that the mesh is truly two-advanced with no self intersections
-        watertightMesh->ensureWatertightness();
+        if (options->preservePartitions)
+        {
+            // Split the mesh into partitions
+            std::vector < Ultraliser::AdvancedMesh* > partitions = watertightMesh->splitPartitions();
+
+            // Ensure watertightness for the rest of the partitions
+            for (auto mesh : partitions)
+                mesh->ensureWatertightness();
+
+            // Ensures that the mesh is truly two-manifold with no self intersections
+            watertightMesh->ensureWatertightness();
+
+            // Merge back after checking the watertightness
+            watertightMesh->appendMeshes(partitions);
+
+            // Free
+            for (auto mesh : partitions)
+                delete mesh;
+        }
+        else
+        {
+            // Ensures that the mesh is truly two-advanced with no self intersections
+            watertightMesh->ensureWatertightness();
+        }
 
         // Print the mesh statistcs
         if (options->writeStatistics)
@@ -211,12 +255,12 @@ void run(int argc , const char** argv)
             watertightMesh->writeDistributions(WATERTIGHT_STRING, &options->distributionsPrefix);
 
         // Export the repaired mesh
-        std::string filePrefix = options->outputPrefix + MANIFOLD_SUFFIX;
+        std::string filePrefix = options->meshPrefix + MANIFOLD_SUFFIX;
         watertightMesh->exportMesh(filePrefix,
-                                 options->exportOBJ,
-                                 options->exportPLY,
-                                 options->exportOFF,
-                                 options->exportSTL);
+                                   options->exportOBJ,
+                                   options->exportPLY,
+                                   options->exportOFF,
+                                   options->exportSTL);
     }
     else
     {

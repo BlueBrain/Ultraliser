@@ -167,7 +167,7 @@ public:
      * @param z
      * @return
      */
-    uint64_t mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z) const;
+    uint64_t mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z, bool &outlier) const;
 
     /**
      * @brief clear
@@ -262,7 +262,12 @@ public:
      */
     uint8_t getValue(const int64_t &x, const int64_t &y, const int64_t &z) const
     {
-        return getValue(mapToIndex(x, y, z));
+        bool outlier;
+        uint64_t index = mapToIndex(x, y, z, outlier);
+        if (outlier)
+            return 0;
+        else
+            return getValue(index);
     }
 
     /**
