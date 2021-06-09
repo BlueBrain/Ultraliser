@@ -68,7 +68,7 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
 #endif
 
                 // Load the mesh
-                Ultraliser::Mesh* mesh = new Ultraliser::Mesh (meshFile);
+                auto mesh = new Ultraliser::Mesh(meshFile, false);
 
                 // Compute its bounding box
                 Ultraliser::Vector3f pMinMesh, pMaxMesh;
@@ -131,7 +131,6 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
             LOG_ERROR("No Bounding Box File is Provided !");
     }
 }
-
 
 void applyLaplacianOperator(Mesh *mesh, const Options* options)
 {

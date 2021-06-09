@@ -81,7 +81,8 @@ float computeMeshSurfaceArea(const Vertex* vertices,
  * @param vertices
  * @param triangles
  */
-void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& triangles);
+void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& triangles,
+               const bool &verbose = true);
 
 /**
  * @brief importOBJ
@@ -89,7 +90,8 @@ void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& trian
  * @param vertices
  * @param triangles
  */
-void importPLY(const std::string &filePath, Vertices& vertices, Triangles& triangles);
+void importPLY(const std::string &filePath, Vertices& vertices, Triangles& triangles,
+               const bool &verbose = true);
 
 /**
  * @brief importSTL
@@ -98,7 +100,8 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
  * @param triangles
  * @param verbose
  */
-void importSTL(const std::string &filePath, Vertices& vertices, Triangles& triangles);
+void importSTL(const std::string &filePath, Vertices& vertices, Triangles& triangles,
+               const bool &verbose = true);
 
 /**
  * @brief importOFF
@@ -106,7 +109,8 @@ void importSTL(const std::string &filePath, Vertices& vertices, Triangles& trian
  * @param vertices
  * @param triangles
  */
-void importOFF(const std::string &filePath, Vertices& vertices, Triangles& triangles);
+void importOFF(const std::string &filePath, Vertices& vertices, Triangles& triangles,
+               const bool &verbose = true);
 
 /**
  * @brief exportToOBJ

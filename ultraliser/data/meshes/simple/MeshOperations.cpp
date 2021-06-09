@@ -169,15 +169,16 @@ float computeMeshSurfaceArea(const Vertex* vertices,
     return meshSurfaceArea;
 }
 
-void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& triangles)
+void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& triangles,
+               const bool &verbose)
 {
     // Start the timer
     TIMER_SET;
 
     // Get the number of files in the line
-    LOOP_STARTS("Handling File");
+    if (verbose) LOOP_STARTS("Handling File");
     auto numberLines = Ultraliser::File::getNumberLinesInFile(filePath);
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
     std::ifstream file;
     file.open(filePath.c_str());
@@ -190,11 +191,11 @@ void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& trian
 
     // Parse the file
     TIMER_RESET;
-    LOOP_STARTS("Loading Data")
+    if (verbose) LOOP_STARTS("Loading Data")
     uint64_t progress = 0;
     for (uint64_t lineNumber = 0; lineNumber < numberLines; ++lineNumber)
     {
-        LONG_LOOP_PROGRESS(progress, numberLines);
+        if (verbose) LONG_LOOP_PROGRESS(progress, numberLines);
 
         std::getline(file, line);
 
@@ -293,7 +294,7 @@ void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& trian
             // Otherwise, error
             else
             {
-                LOG_ERROR("The mesh has faces with N-gons!");
+                LOG_ERROR("The mesh [%s] has faces with N-gons!", filePath.c_str());
             }
         }
 
@@ -303,14 +304,15 @@ void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& trian
 
         ++progress;
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOOP_DONE;
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
     // Close the file
     file.close();
 }
 
-void importPLY(const std::string &filePath, Vertices& vertices, Triangles& triangles)
+void importPLY(const std::string &filePath, Vertices& vertices, Triangles& triangles,
+               const bool& verbose)
 {
     // Start the timer
     TIMER_SET;
@@ -373,10 +375,10 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
         textures.resize(numberVertices);
 
     // Reading the vertices
-    LOOP_STARTS("Loading Vertices");
+    if (verbose) LOOP_STARTS("Loading Vertices");
     for (uint64_t i = 0; i < numberVertices; ++i)
     {
-        LONG_LOOP_PROGRESS(i, numberVertices);
+        if (verbose) LONG_LOOP_PROGRESS(i, numberVertices);
 
         std::getline(file, line);
         vertices[i] = Parsers::parseVector3f(line);
@@ -390,25 +392,25 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
             textures[i][1] = 1 - textures[i][1];
         }
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOOP_DONE;
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
 
     // Read the triangles
-    LOOP_STARTS("Loading Triangles");
+    if (verbose) LOOP_STARTS("Loading Triangles");
     for (uint64_t i = 0; i < numberTriangles; ++i)
     {
-        LONG_LOOP_PROGRESS(i, numberTriangles);
+        if (verbose) LONG_LOOP_PROGRESS(i, numberTriangles);
 
         std::getline(file, line);
         Parsers::parseFaces(line, triangles);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOOP_DONE;
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
     // Statistics
-    LOG_STATUS_IMPORTANT("Importing Stats.");
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOG_STATUS_IMPORTANT("Importing Stats.");
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
 
     // Close the file
@@ -449,7 +451,8 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
  * @param filePath
  * @return
  */
-void importSTL(const std::string &filePath, Vertices& vertices, Triangles& triangles)
+void importSTL(const std::string &filePath, Vertices& vertices, Triangles& triangles,
+               const bool &verbose)
 {
     // Open the file
     FILE *filePointer;
@@ -615,7 +618,8 @@ void importSTL(const std::string &filePath, Vertices& vertices, Triangles& trian
     fclose(filePointer);
 }
 
-void importOFF(const std::string &filePath, Vertices& vertices, Triangles& triangles)
+void importOFF(const std::string &filePath, Vertices& vertices, Triangles& triangles,
+               const bool &verbose)
 {
     // Start the timer
     TIMER_SET;
@@ -669,7 +673,7 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
 
     // For all the vertices
     TIMER_RESET;
-    LOOP_STARTS("Loading Vertices");
+    if (verbose) LOOP_STARTS("Loading Vertices");
     for (uint64_t i = 0; i < numberVertices; ++i)
     {
         LOOP_PROGRESS(i, numberVertices);
@@ -685,15 +689,15 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
             LOG_ERROR("Could not read coordinates for vertex [ %" PRIu64 "]", i);
         }
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOOP_DONE;
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
     File::skipCommentAndBlankLines(filePointer);
 
     // Triangles data
     bool triangulate = false;
     TIMER_RESET;
-    LOOP_STARTS("Loading Triangles");
+    if (verbose) LOOP_STARTS("Loading Triangles");
     for (uint64_t i = 0; i < numberTriangles; ++i)
     {
          LOOP_PROGRESS(i, numberTriangles);
@@ -740,8 +744,8 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
             LOG_ERROR("Could not read indexes for face #[ %" PRIu64 "]", i);
         }
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOOP_DONE;
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 }
 
 void exportOBJ(const std::string &prefix,

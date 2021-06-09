@@ -107,10 +107,10 @@ Mesh::Mesh(Vertices vertices, Triangles triangles)
     _neighborList = nullptr;
 }
 
-Mesh::Mesh(const std::string &fileName)
+Mesh::Mesh(const std::string &fileName, const bool& verbose)
 {
     // Import the mesh from a given file
-    import(fileName);
+    import(fileName, verbose);
 
     _optimizationTime = 0.0;
 
@@ -265,7 +265,7 @@ void Mesh::scale(const float x, const float y, const float z)
     }
 }
 
-void Mesh::import(const std::string &fileName)
+void Mesh::import(const std::string &fileName, const bool &verbose)
 {
     // Start the timer
     TIMER_SET;
@@ -278,8 +278,7 @@ void Mesh::import(const std::string &fileName)
     }
     fileStream.close();
 
-    LOG_TITLE("Importing Mesh");
-
+    if (verbose) LOG_TITLE("Importing Mesh");
     Vertices loadedVertices;
     Triangles loadedTriangles;
 
@@ -289,25 +288,25 @@ void Mesh::import(const std::string &fileName)
     case 'y':
     case 'Y':
     {
-        importPLY(fileName, loadedVertices, loadedTriangles);
+        importPLY(fileName, loadedVertices, loadedTriangles, verbose);
         break;
     }
     case 'j':
     case 'J':
     {
-        importOBJ(fileName, loadedVertices, loadedTriangles);
+        importOBJ(fileName, loadedVertices, loadedTriangles, verbose);
         break;
     }
     case 'l':
     case 'L':
     {
-        importSTL(fileName, loadedVertices, loadedTriangles);
+        importSTL(fileName, loadedVertices, loadedTriangles, verbose);
         break;
     }   
     case 'f':
     case 'F':
     {
-        importOFF(fileName, loadedVertices, loadedTriangles);
+        importOFF(fileName, loadedVertices, loadedTriangles, verbose);
         break;
     }
     default:
@@ -330,8 +329,8 @@ void Mesh::import(const std::string &fileName)
         _triangles[i] = tempTriangles[i];
 
     // Statistics
-    LOG_STATUS_IMPORTANT("Importing Mesh Stats.");
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOG_STATUS_IMPORTANT("Importing Mesh Stats.");
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 }
 
 Mesh* Mesh::instanciate(const uint64_t &numVertices,

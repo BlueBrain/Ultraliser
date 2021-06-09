@@ -159,8 +159,8 @@ void run(int argc , const char** argv)
         resolution = options->volumeResolution;
     LOG_SUCCESS("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);
 
-    auto volume = new Ultraliser::Volume(
-                pMinInput, pMaxInput, resolution, 10,
+    auto volume = new Volume(
+                pMinInput, pMaxInput, resolution, options->edgeGap,
                 Ultraliser::VolumeGrid::getType(options->volumeType));
 
     // Surface voxelization for all the mesh files

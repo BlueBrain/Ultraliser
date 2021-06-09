@@ -63,7 +63,7 @@ public:
      * @brief OptimizationMesh
      * @param fileName
      */
-    Mesh(const std::string &fileName);
+    Mesh(const std::string &fileName, const bool &verbose = false);
 
     /**
      * @brief Mesh
@@ -76,7 +76,7 @@ public:
      * @param filename
      * @param verbose
      */
-    void import(const std::string &fileName);
+    void import(const std::string &fileName, const bool& verbose = true);
 
     /**
      * @brief instanciate

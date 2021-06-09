@@ -41,12 +41,12 @@ namespace Ultraliser
 Volume::Volume(const Vector3f& pMin,
                const Vector3f& pMax,
                const uint64_t &baseResolution,
-               const float &voxelPadding,
+               const float &expansionRatio,
                const VolumeGrid::TYPE& gridType)
     : _gridType(gridType)
     , _pMin(pMin)
     , _pMax(pMax)
-    , _voxelPadding(voxelPadding)
+    , _expansionRatio(expansionRatio)
     , _baseResolution(baseResolution)
 {
     // Create the grid
@@ -63,15 +63,16 @@ Volume::Volume(const int64_t width,
                const int64_t depth,
                const Vector3f pMin,
                const Vector3f pMax,
-               const VolumeGrid::TYPE& gridType)
+               const VolumeGrid::TYPE& gridType,
+               const float expansionRatio)
     : _gridType(gridType)
+    , _pMin(pMin)
+    , _pMax(pMax)
+    , _expansionRatio(expansionRatio)
 {
     _gridDimensions.v[0] = width;
     _gridDimensions.v[1] = height;
     _gridDimensions.v[2] = depth;
-
-    _pMin = pMin;
-    _pMax = pMax;
 
     // Since we don't have any geometric bounds, use 1.0 for the voxel resolution
     // TODO: The voxel resolution should be computed from the given bounds
@@ -86,7 +87,7 @@ Volume::Volume(const std::string &prefix,
     : _gridType(gridType)
 {
     // Zero zero-padding
-    _voxelPadding = 0;
+    _expansionRatio = 0;
 
     // Load the volume data
     switch (gridType)
@@ -134,6 +135,14 @@ void Volume::_createGrid(void)
     // Compute the bounding box size
     Vector3f boundingBoxSize = (_pMax - _pMin);
 
+    // Update the bounding box based on the volume expansion ratio
+    if (_expansionRatio > 0.f)
+    {
+        _pMin -= _expansionRatio * boundingBoxSize;
+        _pMax += _expansionRatio * boundingBoxSize;
+        boundingBoxSize = (_pMax - _pMin);
+    }
+
     // Find the largest dimension of the mesh model to be able to create a scaled grid.
     _largestDimensionIdx = getLargestDimension(boundingBoxSize);
 
@@ -150,11 +159,6 @@ void Volume::_createGrid(void)
 
     // Allocating the grid
     _allocateGrid();
-
-    // _pMin -= 0.5f * Vector3f(_voxelSize);
-
-    // Update the mesh origin to be the bounding box _pMin
-    // _meshOrigin = _pMin + 0.5f * Vector3f(_voxelSize);
 }
 
 void Volume::_loadHeaderData(const std::string &prefix)
@@ -205,8 +209,9 @@ void Volume::surfaceVoxelization(Mesh* mesh,
     // Start the timer
     TIMER_SET;
 
-    LOG_STATUS("Creating Volume Shell [%d x %d x %d]",
-               _gridDimensions[0], _gridDimensions[1], _gridDimensions[2]);
+    if (verbose)
+        LOG_STATUS("Creating Volume Shell [%d x %d x %d]",
+                   _gridDimensions[0], _gridDimensions[1], _gridDimensions[2]);
     if (parallel)
         _rasterizeParallel(mesh, _grid);
     else
@@ -296,7 +301,9 @@ void Volume::surfaceVoxelization(const std::string &inputDirectory,
                _gridDimensions[0], _gridDimensions[1], _gridDimensions[2]);
     uint64_t processedMeshCount = 0;
     LOOP_STARTS("Rasterization");
-    #pragma omp parallel for schedule( dynamic, 1 )
+#ifdef ULTRALISER_USE_OPENMP
+    #pragma omp parallel for
+#endif
     for( size_t iMesh = 0; iMesh < meshFiles.size(); iMesh++ )
     {
         // Create and load the mesh from the file
@@ -307,17 +314,24 @@ void Volume::surfaceVoxelization(const std::string &inputDirectory,
 
         if (File::exists(meshFile))
         {
-            #pragma omp atomic
-            processedMeshCount++;
+#ifdef ULTRALISER_USE_OPENMP
+        #pragma omp atomic
+#endif
+        processedMeshCount++;
 
-            LOOP_PROGRESS(processedMeshCount, meshFiles.size());
+#ifdef ULTRALISER_USE_OPENMP
+         if (omp_get_thread_num() == 0)
+#endif
+         {
+             LOOP_PROGRESS(processedMeshCount, meshFiles.size());
+         }
 
-            // Neuron mesh
-            Mesh* mesh = new Mesh(meshFile);
+            // Input mesh
+            auto mesh = new Mesh(meshFile, false);
 
             // Surface voxelization
             const bool verbose = false;
-            surfaceVoxelization(mesh, verbose);
+            surfaceVoxelization(mesh, false, false);
 
             // Free the mesh
             delete mesh;
@@ -1821,7 +1835,7 @@ Volume* Volume::constructFromTiffMask(
                 maskHeight + numZeroPaddingVoxels,
                 I2I64(maskFiles.size()) + numZeroPaddingVoxels,
                 Vector3f(),
-           		Vector3f(),
+                Vector3f(),
                 gridType);
     LOG_INFO("%d %d %d", maskVolume->getWidth(), maskVolume->getHeight(), maskVolume->getDepth());
 

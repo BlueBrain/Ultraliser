@@ -319,7 +319,7 @@ void AppArguments::addVolumeExportArguments()
                 ARGUMENT_TYPE::BOOL,
                 "Export a mesh that represents the volumetric grid used to voxelize the mesh."
                 "This mesh is primarily used for debugging purposes.");
-    _args->addArgument(&exportVolumeBoundingBoxMesh);
+    _args->addArgument(&exportVolumeGridMesh);
     _options->exportVolumeGridMesh = _args->getBoolValue(&exportVolumeGridMesh);
 }
 
@@ -395,16 +395,16 @@ void AppArguments::addMeshOptimizationArguments()
                 "Number of iterations to optimize the resulting mesh. Default value 1. "
                 "If this value is set to 0, the optimization process will be ignored.",
                 ARGUMENT_PRESENCE::OPTIONAL,
-                "1");
+                "5");
     _args->addArgument(&optimizationIterations);
     _options->optimizationIterations = _args->getUnsignedIntegrValue(&optimizationIterations);
 
     Argument smoothingIterations(
                 "--smooth-iterations",
                 ARGUMENT_TYPE::INTEGER,
-                "Number of iterations to smooth the reconstructed mesh, Default 1.",
+                "Number of iterations to smooth the reconstructed mesh, Default 5.",
                 ARGUMENT_PRESENCE::OPTIONAL,
-                "1");
+                "5");
     _args->addArgument(&smoothingIterations);
     _options->smoothingIterations = _args->getUnsignedIntegrValue(&smoothingIterations);
 
@@ -420,7 +420,7 @@ void AppArguments::addMeshOptimizationArguments()
     Argument denseFactor(
                 "--dense-factor",
                 ARGUMENT_TYPE::FLOAT,
-                "A factor that is used for the coarseDense function. Default 4.0.",
+                "A factor that is used for the coarseDense function. Default 5.0.",
                 ARGUMENT_PRESENCE::OPTIONAL,
                 "5.0");
     _args->addArgument(&denseFactor);
@@ -440,9 +440,9 @@ void AppArguments::addLaplacianOperatorArguments()
                 "--laplacian-iterations",
                 ARGUMENT_TYPE::INTEGER,
                 "Number of iterations to smooth the reconstructed mesh with Laplacian filter. "
-                "Default 3.",
+                "Default 5.",
                 ARGUMENT_PRESENCE::OPTIONAL,
-                "3");
+                "5");
     _args->addArgument(&laplacianIterations);
     _options->laplacianIterations = _args->getIntegrValue(&laplacianIterations);
 }

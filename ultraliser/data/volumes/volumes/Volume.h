@@ -70,7 +70,7 @@ public:
     Volume(const Vector3f& pMin,
            const Vector3f& pMax,
            const uint64_t &baseResolution = 512,
-           const float &voxelPadding = 0.0,
+           const float &expansionRatio = 0.0,
            const VolumeGrid::TYPE& gridType = VolumeGrid::TYPE::BIT);
 
     /**
@@ -85,7 +85,8 @@ public:
            const int64_t depth,
            const Vector3f pMin,
            const Vector3f pMax,
-           const VolumeGrid::TYPE& gridType = VolumeGrid::TYPE::BIT);
+           const VolumeGrid::TYPE& gridType = VolumeGrid::TYPE::BIT,
+           const float expansionRatio = 0.0);
 
     /**
      * @brief Volume
@@ -673,10 +674,10 @@ private:
     Vector3f _pMax;
 
     /**
-     * @brief voxelPadding
+     * @brief _expansionRatio
      * Additional layer of voxels around the bounding box of the object.
      */
-    float _voxelPadding;
+    float _expansionRatio;
 
     /**
      * @brief _gridDimensions

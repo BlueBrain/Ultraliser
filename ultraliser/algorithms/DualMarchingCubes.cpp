@@ -376,15 +376,16 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
 
     // To ensure that the algorithm covers all the possible cases and carefully polygonize the
     // edges of the volume, we will scane it from the range of [-2, MAX_DIM + 2]
-    const int64_t minVoxel = -2;
-    const int64_t maxX = I2I64(_volume->getWidth()) + 2;
-    const int64_t maxY = I2I64(_volume->getHeight()) + 2;
-    const int64_t maxZ = I2I64(_volume->getDepth()) + 2;
+    const uint64_t paddingVoxels = 5;
+    const int64_t minVoxel = -paddingVoxels;
+    const int64_t maxX = I2I64(_volume->getWidth()) + paddingVoxels;
+    const int64_t maxY = I2I64(_volume->getHeight()) + paddingVoxels;
+    const int64_t maxZ = I2I64(_volume->getDepth()) + paddingVoxels;
 
     // A list of lists of DMCVoxel's
     // This list will have reducedX entries to get filled in parallel
     DMCVoxelsList volumeDMCVoxels;
-    volumeDMCVoxels.resize(static_cast< uint64_t >(maxX + std::abs(minVoxel)));
+    volumeDMCVoxels.resize(static_cast< uint64_t >(maxX - minVoxel));
 
     // Shared quad points
     int64_t i0, i1, i2, i3;
@@ -401,7 +402,7 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
      for (int64_t x = minVoxel; x < maxX; ++x)
      {
          // Get a reference to the slice
-         DMCVoxels& sliceDMCVoxels = volumeDMCVoxels[static_cast< uint64_t >(x + std::abs(minVoxel))];
+         DMCVoxels& sliceDMCVoxels = volumeDMCVoxels[static_cast< uint64_t >(x + paddingVoxels)];
 
 #ifdef ULTRALISER_USE_OPENMP
          if (omp_get_thread_num() == 0)
