@@ -510,6 +510,41 @@ public:
      */
     static std::vector<uint64_t> createHistogram(const Volume* volume);
 
+    /**
+     * @brief getVoxelBoundingBox
+     * Gets the bounding box of a specific voxel.
+     * @param x
+     * X-index in the volume.
+     * @param y
+     * Y-index in the volume.
+     * @param z
+     * Z-index in the volume.
+     * @param pMin
+     * Returned pMin of the voxel.
+     * @param pMax
+     * Returned pMax of the voxel.
+     */
+    void getVoxelBoundingBox(const int64_t& x, const int64_t& y, const int64_t& z,
+                             Vector3f& pMin, Vector3f& pMax) const;
+
+    /**
+     * @brief getVolumeBoundingBox
+     * Gets the boundin box of the volume.
+     * @param pMin
+     * Returned pMin of the volume.
+     * @param pMax
+     * Returned pMax of the volume.
+     */
+    void getVolumeBoundingBox(Vector3f& pMin, Vector3f& pMax) const;
+
+    /**
+     * @brief getVoxelSize
+     * Gets the size of the voxel.
+     * @return
+     * Returns the size of the voxel.
+     */
+    float getVoxelSize() const { return _voxelSize; }
+
 private:
 
     /**
@@ -701,7 +736,7 @@ private:
      * @brief _voxelSize
      * The size of the voxel.
      */
-    double _voxelSize;
+    float _voxelSize;
 
     /**
      * @brief _volumeOrigin

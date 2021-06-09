@@ -22,10 +22,6 @@
 #ifndef ULTRALISER_COMMON_HEADERS_HH
 #define ULTRALISER_COMMON_HEADERS_HH
 
-#ifdef ULTRALISER_USE_OPENMP
-#include <omp.h>
-#endif
-
 #include <map>
 #include <set>
 #include <cmath>
@@ -72,5 +68,7 @@
 #include <ImfInputFile.h>
 #include <ImfChannelList.h>
 #endif
+
+#include <common/OpenMP.hh>
 
 #endif // ULTRALISER_COMMON_HEADERS_HH

@@ -153,7 +153,7 @@ void run(int argc , const char** argv)
 
     // Generate the mesh using the DMC algorithm and adjust its scale
     auto reconstructedMesh = DualMarchingCubes::generateMeshFromVolume(volume);
-    reconstructedMesh->scaleAndTranslate(inputCenter, inputBB);
+    // reconstructedMesh->scaleAndTranslate(inputCenter, inputBB);
 
     // Free the volume, it is not needed any further
     delete volume;

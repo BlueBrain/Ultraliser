@@ -19,30 +19,17 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_COMMON_COMMON_H
-#define ULTRALISER_COMMON_COMMON_H
+#ifndef ULTRALISER_COMMON_OPENMP_HH
+#define ULTRALISER_COMMON_OPENMP_HH
 
-#include <common/Headers.hh>
-#include <common/Defines.h>
-#include <common/Progress.h>
-#include <common/Logging.h>
-#include <common/Enums.h>
-#include <common/OpenMP.hh>
+#ifdef ULTRALISER_USE_OPENMP
+#include <omp.h>
+#endif
 
-static int64_t AXES[ AXES_COUNT ][ 3 ] =
-{
-    { -1,  0,  0 }, // -X
-    {  1,  0,  0 }, // +X
-    {  0, -1,  0 }, // -Y
-    {  0,  1,  0 }, // +Y
-    {  0,  0, -1 }, // -Z
-    {  0,  0,  1 }  // +Z
-};
+#ifdef ULTRALISER_USE_OPENMP
+#define OMP_PARALLEL_FOR _Pragma("omp parallel for")
+#else
+#define OMP_PARALLEL_FOR
+#endif
 
-inline void p_swap(void **a, void **b) {void *t = *a; *a = *b; *b = t;}
-
-typedef unsigned char	UBYTE;
-typedef   signed char	 BYTE;
-typedef unsigned short UINT16;
-typedef   signed short	INT16;
-#endif // ULTRALISER_COMMON_COMMON_H
+#endif // ULTRALISER_COMMON_OPENMP_HH

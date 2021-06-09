@@ -214,17 +214,19 @@ int DualMarchingCubes::_getDualPointCode(const int64_t x, const int64_t y, const
 
 void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, const int64_t &z,
                                             const int32_t& pointCode, Vector3f & v) const
-{
+{   
+    // Geth the voxel bounding box
+    Vector3f pMin, pMax;
+    _volume->getVoxelBoundingBox(x, y, z, pMin, pMax);
+
     // Initialize the point with lower voxel coordinates
-    v.x() = x;
-    v.y() = y;
-    v.z() = z;
+    v.x() = pMin.x() + _volume->getVoxelSize(); // x;
+    v.y() = pMin.y() + _volume->getVoxelSize(); // y;
+    v.z() = pMin.z() + _volume->getVoxelSize(); // z;
 
     // Compute the dual point as the mean of the face vertices belonging to the
     // original marching cubes face
-    Vertex p;
-    p.x() = 0; p.y() = 0; p.z() = 0;
-
+    Vertex p(0.f);
     int points = 0;
 
     // Sum edge intersection vertices using the point code
@@ -329,14 +331,18 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     p.x() *= invPoints; p.y() *= invPoints; p.z() *= invPoints;
 
     // Offset point by voxel coordinates
-    v.x() += p.x();
-    v.y() += p.y();
-    v.z() += p.z();
+    Vector3f pMinVolume, pMaxVolume;
+    _volume->getVolumeBoundingBox(pMin, pMax);
+    Vector3f volumeBoundingBox = pMaxVolume - pMinVolume;
+
+    v.x() += (p.x() * volumeBoundingBox.x());
+    v.y() += (p.y() * volumeBoundingBox.y());
+    v.z() += (p.z() * volumeBoundingBox.z());
 }
 
 int64_t DualMarchingCubes::_getSharedDualPointIndex(
         const int64_t &x, const int64_t &y, const int64_t &z,
-        const DMC_EDGE_CODE& edge, std::vector<Vector3f> & vertices)
+        const DMC_EDGE_CODE& edge, std::vector< Vector3f >& vertices)
 {
     // Create a key for the dual point from its linearized cell ID and
     // point code
@@ -344,7 +350,7 @@ int64_t DualMarchingCubes::_getSharedDualPointIndex(
     key.linearizedCellID = _index(x, y, z);
     key.pointCode = _getDualPointCode(x, y, z, edge);
 
-    // have we already computed the dual point?
+    // Have we already computed the dual point?
     auto iterator = pointToIndex.find(key);
     if (iterator != pointToIndex.end())
     {
@@ -375,7 +381,7 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
     TIMER_SET;
 
     // To ensure that the algorithm covers all the possible cases and carefully polygonize the
-    // edges of the volume, we will scane it from the range of [-2, MAX_DIM + 2]
+    // edges of the volume, we will scane it from the range of [-paddingVoxels, MAX_DIM + paddingVoxels]
     const uint64_t paddingVoxels = 5;
     const int64_t minVoxel = -paddingVoxels;
     const int64_t maxX = I2I64(_volume->getWidth()) + paddingVoxels;
@@ -396,12 +402,11 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
     // Searching for non-zero voxels in parallel
     LOOP_STARTS("Searching Filled Voxels");
     uint64_t progress = 0;
-#ifdef ULTRALISER_USE_OPENMP
-    #pragma omp parallel for
-#endif
-     for (int64_t x = minVoxel; x < maxX; ++x)
-     {
-         // Get a reference to the slice
+
+    OMP_PARALLEL_FOR
+    for (int64_t x = minVoxel; x < maxX; ++x)
+    {
+        // Get a reference to the slice
          DMCVoxels& sliceDMCVoxels = volumeDMCVoxels[static_cast< uint64_t >(x + paddingVoxels)];
 
 #ifdef ULTRALISER_USE_OPENMP
@@ -423,12 +428,11 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
                 // X-aligned edge
                 if (z > minVoxel && y > minVoxel)
                 {
-                    bool const entering =
-                            _volume->getValue(x, y, z) < _isoValue &&
-                            _volume->getValue(x + 1, y, z) >= _isoValue;
-                    bool const exiting  =
-                            _volume->getValue(x, y, z) >= _isoValue &&
-                            _volume->getValue(x + 1, y, z) < _isoValue;
+                    const uint64_t value0 = _volume->getValue(x, y, z);
+                    const uint64_t value1 = _volume->getValue(x + 1, y, z);
+
+                    bool const entering = (value0 < _isoValue) && (value1 >= _isoValue);
+                    bool const exiting  = (value0 >= _isoValue) && (value1 < _isoValue);
 
                     // Create a DMCVoxel if there is one
                     if (entering || exiting)

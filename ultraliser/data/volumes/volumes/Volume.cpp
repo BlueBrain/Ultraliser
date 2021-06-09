@@ -132,7 +132,9 @@ void Volume::_allocateGrid()
 
 void Volume::_createGrid(void)
 {
-    // Compute the bounding box size
+    LOG_TITLE("Creating Volume Grid");
+
+    // Compute the bounding box size of the given mesh
     Vector3f boundingBoxSize = (_pMax - _pMin);
 
     // Update the bounding box based on the volume expansion ratio
@@ -147,15 +149,15 @@ void Volume::_createGrid(void)
     _largestDimensionIdx = getLargestDimension(boundingBoxSize);
 
     // Compute the voxel size
-    _voxelSize = std::round(boundingBoxSize[_largestDimensionIdx]) / I2D(_baseResolution);
+    _voxelSize = boundingBoxSize[_largestDimensionIdx] / (1.f * _baseResolution);
 
-    double volumeWidth = boundingBoxSize[0] / _voxelSize;
-    double volumeHeight = boundingBoxSize[1] / _voxelSize;
-    double volumeDepth = boundingBoxSize[2] / _voxelSize;
+    // Compute the volume dimensions based on the current voxel size
+    _gridDimensions.v[0] = F2UI64(std::round(boundingBoxSize[0] / _voxelSize));
+    _gridDimensions.v[1] = F2UI64(std::round(boundingBoxSize[1] / _voxelSize));
+    _gridDimensions.v[2] = F2UI64(std::round(boundingBoxSize[2] / _voxelSize));
 
-    _gridDimensions.v[0] = std::round(volumeWidth);
-    _gridDimensions.v[1] = std::round(volumeHeight);
-    _gridDimensions.v[2] = std::round(volumeDepth);
+    LOG_SUCCESS("Volume Dimenions [ %d x %d x %d ]",
+                _gridDimensions.v[0] , _gridDimensions.v[1] , _gridDimensions.v[2]);
 
     // Allocating the grid
     _allocateGrid();
@@ -611,6 +613,28 @@ void Volume::_floodFillAlongXYZ(VolumeGrid *grid)
     delete zGrid;
 }
 
+void Volume::getVoxelBoundingBox(const int64_t& x, const int64_t& y, const int64_t& z,
+                                 Vector3f& pMin, Vector3f& pMax) const
+{
+    // pMin
+    pMin.x() = _pMin[0] + (x * _voxelSize);
+    pMin.y() = _pMin[1] + (y * _voxelSize);
+    pMin.z() = _pMin[2] + (z * _voxelSize);
+
+    // Just add the voxel size along the three-dimensions
+    pMax = pMin + Vector3f(_voxelSize);
+}
+
+void Volume::getVolumeBoundingBox(Vector3f& pMin, Vector3f& pMax) const
+{
+    pMin.x() = _pMin.x();
+    pMin.y() = _pMin.y();
+    pMin.z() = _pMin.z();
+
+    pMax.x() = _pMax.x();
+    pMax.y() = _pMax.y();
+    pMax.z() = _pMax.z();
+}
 int Volume::_triangleCubeSign(Mesh *mesh,
                               int tIdx, const GridIndex & gi)
 {
