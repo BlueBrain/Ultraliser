@@ -214,16 +214,15 @@ int DualMarchingCubes::_getDualPointCode(const int64_t x, const int64_t y, const
 
 void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, const int64_t &z,
                                             const int32_t& pointCode, Vector3f & v) const
-{   
+{
     // Geth the voxel bounding box
     Vector3f pMin, pMax;
     _volume->getVoxelBoundingBox(x, y, z, pMin, pMax);
 
-
-    // Initialize the point with lower voxel coordinates
-    v.x() = pMin.x() + _volume->getVoxelSize(); // x;
-    v.y() = pMin.y() + _volume->getVoxelSize(); // y;
-    v.z() = pMin.z() + _volume->getVoxelSize(); // z;
+    // Initialize the point with higher voxel coordinates
+    v.x() = pMax.x(); // x;
+    v.y() = pMax.y(); // y;
+    v.z() = pMax.z(); // z;
 
     // Compute the dual point as the mean of the face vertices belonging to the
     // original marching cubes face
@@ -330,15 +329,6 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     // Divide by number of accumulated points
     float invPoints = 1.0f / points;
     p.x() *= invPoints; p.y() *= invPoints; p.z() *= invPoints;
-
-    // Offset point by voxel coordinates
-    Vector3f pMinVolume, pMaxVolume;
-    _volume->getVolumeBoundingBox(pMin, pMax);
-    Vector3f volumeBoundingBox = pMaxVolume - pMinVolume;
-
-    v.x() += (p.x() * volumeBoundingBox.x());
-    v.y() += (p.y() * volumeBoundingBox.y());
-    v.z() += (p.z() * volumeBoundingBox.z());
 }
 
 int64_t DualMarchingCubes::_getSharedDualPointIndex(

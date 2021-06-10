@@ -178,9 +178,9 @@ void AppArguments::addVoxelizationArguments()
     Argument edgeGap(
                 "--edge-gap",
                 ARGUMENT_TYPE::FLOAT,
-                "Some little extra space to avoid edges intersection. Default 0.0.",
+                "Some little extra space to avoid edges intersection. Default 0.05.",
                 ARGUMENT_PRESENCE::OPTIONAL,
-                "0.0");
+                "0.05");
     _args->addArgument(&edgeGap);
     _options->edgeGap = _args->getFloatValue(&edgeGap);
 
@@ -229,7 +229,7 @@ void AppArguments::addVoxelizationArguments()
     _options->useSolidVoxelization = _args->getBoolValue(&useSolidVoxelization);
 
     Argument voxelizationAxis(
-                "--vozelization-axis",
+                "--voxelization-axis",
                 ARGUMENT_TYPE::STRING,
                 "The axis where the solid voxelization operation will be performed. "
                 "Use one of the following options [x, y, z, or xyz]. "
