@@ -65,21 +65,10 @@ public:
 
     /**
      * @brief generateMesh
+     * @param paralle
      * @return
      */
-    Mesh* generateMesh();
-
-    /**
-     * @brief generateMesh
-     * @return
-     */
-    std::unique_ptr< Mesh > generateMeshX();
-
-    /**
-     * @brief generateManifoldMesh
-     * @return
-     */
-    AdvancedMesh* generateManifoldMesh();
+    Mesh* generateMesh(const bool &paralle = true);
 
 public:
 
@@ -91,7 +80,7 @@ public:
      * @return
      * A pointer to the mesh.
      */
-    static Mesh* generateMeshFromVolume(Volume *volume);
+    static Mesh* generateMeshFromVolume(Volume *volume, const bool &serialExecution = false);
 
 private:
 
@@ -105,19 +94,19 @@ private:
     int64_t _index(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
     /**
-     * @brief _buildSharedVerticesQuads
+     * @brief _buildSharedVertices
      * Extract quad mesh with shared vertex indices.
      * @param mesh
      */
-    void _buildSharedVerticesQuads(Vertices& vertices, Triangles &triangles);
+    void _buildSharedVertices(Vertices& vertices, Triangles &triangles);
 
     /**
-     * @brief _buildSharedVerticesQuadsParallel
+     * @brief _buildSharedVerticesParallel
      * Extract quad mesh with shared vertex indices, but in parallel using all
      * the CPUs available.
      * @param mesh
      */
-    void _buildSharedVerticesQuadsParallel(Vertices& vertices, Triangles &triangles);
+    void _buildSharedVerticesParallel(Vertices& vertices, Triangles &triangles);
 
     /**
      * @brief _getCellCode
@@ -199,29 +188,9 @@ private:
     const bool _generateManifold;
 
     /**
-     * @brief _searchingZeroVoxelsTime
-     */
-    double _searchingZeroVoxelsTime;
-
-    /**
-     * @brief _buildiongSharedVerticesTime
-     */
-    double _buildingSharedVerticesTime;
-
-    /**
-     * @brief _buildSharedVerticesQuadsParallelTime
-     */
-    double _buildSharedVerticesQuadsParallelTime;
-
-    /**
-     * @brief _buildSharedVerticesQuadsSerialTime
-     */
-    double _buildSharedVerticesQuadsSerialTime;
-
-    /**
      * @brief _dmcGenerationTime
      */
-    double _dmcGenerationTime;
+    double _meshExtractionTime;
 };
 
 }

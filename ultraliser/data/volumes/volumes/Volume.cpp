@@ -240,25 +240,11 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
     Sections sections = vasculatureMorphology->getSections();
 
     LOG_STATUS("Creating Volume Shell from Sections");
-    uint64_t processedSections = 0;
     LOOP_STARTS("Rasterization");
-#ifdef ULTRALISER_USE_OPENMP
-    #pragma omp parallel for
-#endif
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for (uint64_t i = 0; i < sections.size(); i++)
     {
-#ifdef ULTRALISER_USE_OPENMP
-        #pragma omp atomic
-#endif
-        processedSections++;
-
-#ifdef ULTRALISER_USE_OPENMP
-         if (omp_get_thread_num() == 0)
-#endif
-         {
-             LOOP_PROGRESS(processedSections, sections.size());
-         }
-
         // Construct the paths
         Paths paths = vasculatureMorphology->getConnectedPathsFromParentsToChildren(sections[i]);
         for (uint64_t j = 0; j < paths.size(); ++j)
@@ -266,6 +252,11 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
             auto mesh = new Ultraliser::Mesh(paths[j]);
             _rasterize(mesh , _grid);
         }
+
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, sections.size());
+        PROGRESS_UPDATE;
     }
     LOOP_DONE;
 
@@ -303,9 +294,8 @@ void Volume::surfaceVoxelization(const std::string &inputDirectory,
                _gridDimensions[0], _gridDimensions[1], _gridDimensions[2]);
     uint64_t processedMeshCount = 0;
     LOOP_STARTS("Rasterization");
-#ifdef ULTRALISER_USE_OPENMP
-    #pragma omp parallel for
-#endif
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for( size_t iMesh = 0; iMesh < meshFiles.size(); iMesh++ )
     {
         // Create and load the mesh from the file
@@ -316,28 +306,19 @@ void Volume::surfaceVoxelization(const std::string &inputDirectory,
 
         if (File::exists(meshFile))
         {
-#ifdef ULTRALISER_USE_OPENMP
-        #pragma omp atomic
-#endif
-        processedMeshCount++;
-
-#ifdef ULTRALISER_USE_OPENMP
-         if (omp_get_thread_num() == 0)
-#endif
-         {
-             LOOP_PROGRESS(processedMeshCount, meshFiles.size());
-         }
-
             // Input mesh
             auto mesh = new Mesh(meshFile, false);
 
             // Surface voxelization
-            const bool verbose = false;
             surfaceVoxelization(mesh, false, false);
 
             // Free the mesh
             delete mesh;
         }
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, meshFiles.size());
+        PROGRESS_UPDATE;
     }
     LOOP_DONE;
 
@@ -383,23 +364,10 @@ void Volume::_rasterizeParallel(Mesh* mesh, VolumeGrid* grid)
     TIMER_SET;
 
     LOOP_STARTS("Parallel Rasterization");
-    int64_t progress = 0;
-#ifdef ULTRALISER_USE_OPENMP
-#pragma omp parallel for
-#endif
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for (size_t tIdx = 0; tIdx < mesh->getNumberTriangles(); tIdx++)
     {
-
-#ifdef ULTRALISER_USE_OPENMP
-        #pragma omp atomic
-#endif
-        ++progress;
-
-#ifdef ULTRALISER_USE_OPENMP
-        if (omp_get_thread_num() == 0)
-#endif
-            LOOP_PROGRESS(progress, mesh->getNumberTriangles());
-
         // Get the pMin and pMax of the triangle within the grid
         int64_t pMinTriangle[3], pMaxTriangle[3];
         _getBoundingBox(mesh, tIdx, pMinTriangle, pMaxTriangle);
@@ -416,6 +384,10 @@ void Volume::_rasterizeParallel(Mesh* mesh, VolumeGrid* grid)
                 }
             }
         }
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, mesh->getNumberTriangles());
+        PROGRESS_UPDATE;
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
@@ -540,23 +512,15 @@ void Volume::_floodFillAlongAxis(VolumeGrid* grid, const SOLID_VOXELIZATION_AXIS
     }
 
     LOOP_STARTS(floodFillingString.c_str());
-    size_t progress = 0;
-#ifdef ULTRALISER_USE_OPENMP
-    #pragma omp parallel for
-#endif
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for (int64_t i = 0 ; i < dimension; ++i)
     {
         grid->floodFillSliceAlongAxis(i, floodFillingAxis);
 
-#ifdef ULTRALISER_USE_OPENMP
-        #pragma omp atomic
-#endif
-        ++progress;
-
-#ifdef ULTRALISER_USE_OPENMP
-        if (omp_get_thread_num() == 0)
-#endif
-            LOOP_PROGRESS(progress, dimension);
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, dimension);
+        PROGRESS_UPDATE;
     }
     LOOP_DONE;
 
@@ -964,23 +928,10 @@ void Volume::writeStackXY(const std::string &outputDirectory, const std::string 
     LOG_STATUS("Exporting Image Stack [ %s ]", directoryName.c_str());
 
     LOOP_STARTS("Writing Stack: XY");
-    int64_t progress = 0;
-#ifdef ULTRALISER_USE_OPENMP
-#pragma omp parallel for
-#endif
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for (int64_t z = 0; z < getDepth(); ++z)
     {
-
-#ifdef ULTRALISER_USE_OPENMP
-        #pragma omp atomic
-#endif
-        ++progress;
-
-#ifdef ULTRALISER_USE_OPENMP
-        if (omp_get_thread_num() == 0)
-#endif
-            LOOP_PROGRESS(progress, getDepth());
-
         // Create a slice
         auto slice = std::make_unique<Image>(getWidth(), getHeight());
 
@@ -1002,6 +953,10 @@ void Volume::writeStackXY(const std::string &outputDirectory, const std::string 
         std::stringstream stream;
         stream << directoryName << "/" << z;
         slice->writePPM(stream.str());
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, getDepth());
+        PROGRESS_UPDATE;
     }
 
     LOOP_DONE;
@@ -1023,23 +978,10 @@ void Volume::writeStackXZ(const std::string &outputDirectory,
     LOG_STATUS("Exporting Image Stack [ %s ]", directoryName.c_str());
 
     LOOP_STARTS("Writing Stack: XZ");
-    int64_t progress = 0;
-#ifdef ULTRALISER_USE_OPENMP
-#pragma omp parallel for
-#endif
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for (int64_t y = 0; y < getHeight(); ++y)
     {
-
-#ifdef ULTRALISER_USE_OPENMP
-        #pragma omp atomic
-#endif
-        ++progress;
-
-#ifdef ULTRALISER_USE_OPENMP
-        if (omp_get_thread_num() == 0)
-#endif
-            LOOP_PROGRESS(progress, getDepth());
-
         // Create a slice
         auto slice = std::make_unique<Image>(getWidth(), getHeight());
 
@@ -1061,6 +1003,10 @@ void Volume::writeStackXZ(const std::string &outputDirectory,
         std::stringstream stream;
         stream << directoryName << "/" << y;
         slice->writePPM(stream.str());
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, getHeight());
+        PROGRESS_UPDATE;
     }
 
     LOOP_DONE;
@@ -1082,23 +1028,10 @@ void Volume::writeStackZY(const std::string &outputDirectory,
     LOG_STATUS("Exporting Image Stack [ %s ]", directoryName.c_str());
 
     LOOP_STARTS("Writing Stack: ZY");
-    int64_t progress = 0;
-#ifdef ULTRALISER_USE_OPENMP
-#pragma omp parallel for
-#endif
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for (int64_t i = 0; i < getWidth(); ++i)
     {
-
-#ifdef ULTRALISER_USE_OPENMP
-        #pragma omp atomic
-#endif
-        ++progress;
-
-#ifdef ULTRALISER_USE_OPENMP
-        if (omp_get_thread_num() == 0)
-#endif
-            LOOP_PROGRESS(progress, getWidth());
-
         auto slice = std::make_unique<Image>(getDepth(), getHeight());
 
         for (int64_t z = 0; z < getDepth(); z++)
@@ -1119,10 +1052,12 @@ void Volume::writeStackZY(const std::string &outputDirectory,
         std::stringstream stream;
         stream << directoryName << "/" << i;
         slice->writePPM(stream.str());
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, getWidth());
+        PROGRESS_UPDATE;
     }
     LOOP_DONE;
-
-    // Statistics
     LOG_STATS(GET_TIME_SECONDS);
 }
 
@@ -1864,22 +1799,10 @@ Volume* Volume::constructFromTiffMask(
                 gridType);
     LOG_INFO("%d %d %d", maskVolume->getWidth(), maskVolume->getHeight(), maskVolume->getDepth());
 
-    uint64_t progress = 0;
-#ifdef ULTRALISER_USE_OPENMP
-#pragma omp parallel for
-#endif
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for(int64_t i = 0; i < I2I64(maskFiles.size()); ++i)
     {
-#ifdef ULTRALISER_USE_OPENMP
-        if (omp_get_thread_num() == 0)
-#endif
-            LOOP_PROGRESS(progress, maskFiles.size());
-
-#ifdef ULTRALISER_USE_OPENMP
-        #pragma omp atomic
-#endif
-        ++progress;
-
         // Read the image
         std::string imagePath = maskDirectory + "/" + maskFiles[I2UI64(i)];
         std::unique_ptr< TiffImage > image(new TiffImage);
@@ -1899,6 +1822,10 @@ Volume* Volume::constructFromTiffMask(
                 }
             }
         }
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, maskFiles.size());
+        PROGRESS_UPDATE;
     }
     LOOP_DONE;
 

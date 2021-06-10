@@ -80,34 +80,26 @@ public:
 
     /**
      * @brief addOutputArguments
-     * Apps output arguments.
-     * @param args
-     * Arguments structure.
      */
     void addOutputArguments();
 
     /**
      * @brief addVoxelizationArguments
-     * @param args
      */
     void addVoxelizationArguments();
 
     /**
      * @brief addVolumeProjectionArguments
-     * @param args
      */
     void addVolumeProjectionArguments();
 
     /**
      * @brief addVolumeExportArguments
-     * @param args
      */
     void addVolumeExportArguments();
 
-
     /**
      * @brief addStacksArguments
-     * @param args
      */
     void addStacksArguments();
 
@@ -117,25 +109,26 @@ public:
     void addMeshVoxelizationArgument();
     /**
      * @brief addVolumeArguments
-     * @param args
      */
     void addVolumeArguments();
 
     /**
+     * @brief addMeshExtractionArguments
+     */
+    void addMeshExtractionArguments();
+
+    /**
      * @brief addMeshOptimizationArguments
-     * @param args
      */
     void addMeshOptimizationArguments();
 
     /**
      * @brief addMeshExportArguments
-     * @param args
      */
     void addMeshExportArguments();
 
     /**
      * @brief addLaplacianOperatorArguments
-     * @param args
      */
     void addLaplacianOperatorArguments();
 
@@ -146,25 +139,22 @@ public:
 
     /**
      * @brief addMeshArguments
-     * @param args
      */
     void addMeshArguments();
 
     /**
      * @brief addSuppressionArguments
-     * @param args
      */
     void addSuppressionArguments();
 
     /**
      * @brief addDataArguments
-     * @param args
      */
     void addDataArguments();
 
     /**
      * @brief getOptions
-     * @return
+     * @return System option
      */
     AppOptions* getOptions();
 

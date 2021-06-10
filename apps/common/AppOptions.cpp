@@ -128,6 +128,14 @@ void AppOptions::verifyMeshExportLogic()
 
 }
 
+void AppOptions::verifyIsoSurfaceExtractionArgument()
+{
+    if (!(isosurfaceTechnique == DMC_STRING || isosurfaceTechnique == MC_STRING))
+    {
+        LOG_ERROR("You must specify a correct isosurface extraction technique: [dmc or mc]");
+    }
+}
+
 void AppOptions::verifyMeshExportArguments()
 {
     // Exporting formats, at least one of them must be there

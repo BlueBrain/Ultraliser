@@ -65,7 +65,7 @@ public:
      * @return
      * A pointer to the mesh.
      */
-    static Mesh* generateMeshFromVolume(Volume *volume);
+    static Mesh* generateMeshFromVolume(Volume *volume, const bool &serialExecution = false);
 
 private:
 
@@ -104,9 +104,9 @@ private:
     const uint8_t _isoValue;
 
     /**
-     * @brief _mcGenerationTime
+     * @brief _meshExtractionTime
      */
-    double _mcGenerationTime;
+    double _meshExtractionTime;
 };
 
 }

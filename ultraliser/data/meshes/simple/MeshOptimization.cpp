@@ -98,7 +98,7 @@ void Mesh::createNeighbourList()
     LOOP_STARTS("Creating Neighbour List");
     for (uint64_t i = 0; i < _numberTriangles; ++i)
     {
-        LONG_LOOP_PROGRESS(1, _numberTriangles);
+        LOOP_PROGRESS_FRACTION(1, _numberTriangles);
 
         const int64_t a = _triangles[i][0];
         const int64_t b = _triangles[i][1];
@@ -135,7 +135,7 @@ void Mesh::createNeighbourList()
     LOOP_STARTS("Ordering Vertices");
     for (uint64_t i = 0; i < _numberVertices; ++i)
     {
-        LONG_LOOP_PROGRESS(1, _numberVertices);
+        LOOP_PROGRESS_FRACTION(1, _numberVertices);
 
         firstNGR = neighborList[i];
         const int64_t c = firstNGR->a;
@@ -1592,7 +1592,7 @@ void Mesh::smoothNormals()
     LOOP_STARTS("Smoothing Normals");
     for (uint64_t n = 0; n < _numberVertices; n++)
     {
-        LONG_LOOP_PROGRESS(n, _numberVertices);
+        LOOP_PROGRESS_FRACTION(n, _numberVertices);
 
         smoothNormal(n);
     }
@@ -1688,10 +1688,10 @@ bool Mesh::smooth(const int64_t &maxMinAngle, const int64_t &minMaxAngle,
         // Check if the mesh is smoothed or not
         smoothed = (minAngle > maxMinAngle) && (maxAngle < minMaxAngle);
     }
-    LOOP_DONE
+    LOOP_DONE;
 
     // Statistics
-    LOG_STATS(GET_TIME_SECONDS)
+    LOG_STATS(GET_TIME_SECONDS);
 
     return smoothed;
 }
@@ -1767,7 +1767,7 @@ void Mesh::refine()
     LOOP_STARTS("Splitting Edges");
     for (int64_t i = 0; i < UI2I64(_numberVertices); ++i)
     {
-        LONG_LOOP_PROGRESS(i, _numberVertices);
+        LOOP_PROGRESS_FRACTION(i, _numberVertices);
 
         // Get the coordinates of vertex i
         const float nx = refinedMesh->_vertices[i].x();
@@ -1921,7 +1921,7 @@ bool Mesh::coarse(const float& coarseRate,
         TIMER_RESET;
         for (uint64_t i = 0; i < _numberTriangles; ++i)
         {
-            LONG_LOOP_PROGRESS(i, _numberTriangles);
+            LOOP_PROGRESS_FRACTION(i, _numberTriangles);
 
             // Indices
             Triangle& t = _triangles[i];
@@ -1973,7 +1973,7 @@ bool Mesh::coarse(const float& coarseRate,
     uint64_t vertexNumber = _numberVertices;
     for (int64_t n = 0; n < UI2I64(_numberVertices); ++n)
     {
-        LONG_LOOP_PROGRESS(n, _numberVertices);
+        LOOP_PROGRESS_FRACTION(n, _numberVertices);
 
         // Check if the vertex has enough neigborgs to be deleted
         char deleteFlag = 1;

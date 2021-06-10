@@ -127,7 +127,7 @@ AdvancedMesh::AdvancedMesh(Vertices vertices, Triangles triangles)
     LOOP_STARTS("Creating Vertex List");
     FOR_EACH_VERTEX(vertex, node)
     {
-        LONG_LOOP_PROGRESS(COUNTER, numberVertices);
+        LOOP_PROGRESS_FRACTION(COUNTER, numberVertices);
 
         // Add the vertex to the vertex list
         vertexList[COUNTER++] = new ExtendedVertex(vertex);
@@ -140,7 +140,7 @@ AdvancedMesh::AdvancedMesh(Vertices vertices, Triangles triangles)
     LOOP_STARTS("Creating Face List");
     for(uint64_t i = 0; i < triangles.size(); ++i)
     {
-        LONG_LOOP_PROGRESS(i, triangles.size());
+        LOOP_PROGRESS_FRACTION(i, triangles.size());
 
         Ultraliser::Triangle triangle = triangles[i];
         if (createIndexedTriangle(vertexList, triangle[0], triangle[1], triangle[2])) { /* NOTHING */ }
@@ -195,7 +195,7 @@ AdvancedMesh::AdvancedMesh(const Vertex *vertices,
     LOOP_STARTS("Creating Vertex List");
     FOR_EACH_VERTEX(vertex, node)
     {
-        LONG_LOOP_PROGRESS(COUNTER, numberVertices);
+        LOOP_PROGRESS_FRACTION(COUNTER, numberVertices);
 
         // Add the vertex to the vertex list
         vertexList[COUNTER++] = new ExtendedVertex(vertex);
@@ -1286,7 +1286,7 @@ int AdvancedMesh::selectBoundaryTriangles()
     LOOP_STARTS("Selecting Boundary Edges");
     FOR_EACH_EDGE(edge, node)
     {
-        LONG_LOOP_PROGRESS(++counter, _edges.numberElements());
+        LOOP_PROGRESS_FRACTION(++counter, _edges.numberElements());
 
         if (edge->isOnBoundary())
         {
@@ -1302,7 +1302,7 @@ int AdvancedMesh::selectBoundaryTriangles()
     LOOP_STARTS("Selecting Boundary Triangles");
     FOR_EACH_TRIANGLE(triangle, node)
     {
-        LONG_LOOP_PROGRESS(++counter, _triangles.numberElements());
+        LOOP_PROGRESS_FRACTION(++counter, _triangles.numberElements());
 
         if (!IS_VISITED(triangle))
         {
@@ -1329,7 +1329,7 @@ int AdvancedMesh::selectBoundaryTriangles()
     LOOP_STARTS("Unmarking Vertices");
     FOR_EACH_VERTEX(vertex, node)
     {
-        LONG_LOOP_PROGRESS(++counter, _vertices.numberElements());
+        LOOP_PROGRESS_FRACTION(++counter, _vertices.numberElements());
         UNMARK_VISIT(vertex);
     }
     LOOP_DONE;
@@ -1355,7 +1355,7 @@ int AdvancedMesh::growSelection()
     LOOP_COUNTER_SET;
     FOR_EACH_TRIANGLE(triangle, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, _triangles.numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
 
         if (IS_VISITED(triangle))
         {
@@ -1376,7 +1376,7 @@ int AdvancedMesh::growSelection()
     LOOP_COUNTER_RESET;
     FOR_EACH_TRIANGLE(triangle, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, _triangles.numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
 
         if (!IS_VISITED(triangle))
         {
@@ -1399,7 +1399,7 @@ int AdvancedMesh::growSelection()
     LOOP_COUNTER_RESET;
     FOR_EACH_VERTEX(vertex, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, _vertices.numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, _vertices.numberElements());
 
         UNMARK_VISIT(vertex);
     }
@@ -1507,7 +1507,7 @@ void AdvancedMesh::invertSelection(AdvancedTriangle* inputTriangles)
         LOOP_STARTS("Inverting Selection");
         FOR_EACH_TRIANGLE(triangle, node)
         {
-            LONG_LOOP_PROGRESS(++counter, _triangles.numberElements());
+            LOOP_PROGRESS_FRACTION(++counter, _triangles.numberElements());
 
             if (IS_VISITED(triangle))
                 UNMARK_VISIT(triangle);
@@ -3192,7 +3192,7 @@ void AdvancedMesh::eulerUpdate()
     LOOP_COUNTER_SET;
     FOR_EACH_TRIANGLE(t1, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, _triangles.numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
 
         UNMARK_BIT(t1, 5);
     }
@@ -3205,7 +3205,7 @@ void AdvancedMesh::eulerUpdate()
     LOOP_COUNTER_RESET;
     FOR_EACH_VERTEX(v1, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, _vertices.numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, _vertices.numberElements());
 
         UNMARK_BIT(v1, 5);
     }
@@ -3217,7 +3217,7 @@ void AdvancedMesh::eulerUpdate()
     LOOP_COUNTER_RESET;
     FOR_EACH_TRIANGLE(t1, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, _triangles.numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
 
         if (!IS_BIT(t1, 5))
         {
@@ -3256,7 +3256,7 @@ void AdvancedMesh::eulerUpdate()
     LOOP_STARTS("Unmarking Triangles");
     FOR_EACH_TRIANGLE(t1, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, _triangles.numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
 
         UNMARK_BIT(t1, 5);
     }
@@ -3269,7 +3269,7 @@ void AdvancedMesh::eulerUpdate()
     LOOP_STARTS("Checking Boundary Edges");
     FOR_EACH_EDGE(edge, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, _edges.numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, _edges.numberElements());
         if (edge->isOnBoundary())
         {
             hasBoundary = true;
@@ -3289,7 +3289,7 @@ void AdvancedMesh::eulerUpdate()
         LOOP_STARTS("Checking Boundary Vertices");
         FOR_EACH_VERTEX(v1, node)
         {
-            LONG_LOOP_PROGRESS(++COUNTER, _vertices.numberElements());
+            LOOP_PROGRESS_FRACTION(++COUNTER, _vertices.numberElements());
 
             if (IS_BIT(v1, 5))
             {

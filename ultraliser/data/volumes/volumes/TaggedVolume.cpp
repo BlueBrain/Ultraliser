@@ -324,7 +324,7 @@ void TaggedVolume::writeRAW(const std::string &prefix) const
     LOOP_STARTS("Writing Voxels (1 Byte)");
     for (uint64_t voxel = 0; voxel < _numberVoxels; voxel++)
     {
-        LONG_LOOP_PROGRESS(voxel, _numberVoxels);
+        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
         image << _data[voxel];
     }
     LOOP_DONE;
@@ -421,7 +421,7 @@ void TaggedVolume::writeNRRD(const std::string &prefix) const
     LOOP_STARTS("Writing Voxels");
     for (int64_t voxel = 0; voxel < _numberVoxels; ++voxel)
     {
-        LONG_LOOP_PROGRESS(voxel, _numberVoxels);
+        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
 
         fputc(_data[voxel], fptr);
     }

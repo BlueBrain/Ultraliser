@@ -52,7 +52,7 @@ std::vector< float > MorphologyStatistics::computeSamplesRadiiDistribution() con
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, samples.size());
+        LOOP_PROGRESS_FRACTION(progress, samples.size());
         ++progress;
 #endif
 
@@ -85,7 +85,7 @@ std::vector< float > MorphologyStatistics::computeSectionAverageRadiiDistributio
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, sections.size());
+        LOOP_PROGRESS_FRACTION(progress, sections.size());
         ++progress;
 #endif
 
@@ -118,7 +118,7 @@ std::vector< float > MorphologyStatistics::computeNumberSamplesPerSectionDistrib
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, sections.size());
+        LOOP_PROGRESS_FRACTION(progress, sections.size());
         ++progress;
 #endif
 
@@ -172,7 +172,7 @@ std::vector< float > MorphologyStatistics::computeSectionsLengthDistribution() c
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, sections.size());
+        LOOP_PROGRESS_FRACTION(progress, sections.size());
         ++progress;
 #endif
 
@@ -226,7 +226,7 @@ std::vector< float > MorphologyStatistics::computeSectionsSurfaceAreaDistributio
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, sections.size());
+        LOOP_PROGRESS_FRACTION(progress, sections.size());
         ++progress;
 #endif
 
@@ -280,7 +280,7 @@ std::vector< float > MorphologyStatistics::computeSectionsVolumeDistribution() c
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, sections.size());
+        LOOP_PROGRESS_FRACTION(progress, sections.size());
         ++progress;
 #endif
 

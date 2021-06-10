@@ -51,7 +51,7 @@ void MeshStatistics::computeSurfaceAreaDistribution()
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, _numberTriangles);
+        LOOP_PROGRESS_FRACTION(progress, _numberTriangles);
         ++progress;
 #endif
         Triangle triangle = _triangles[i];
@@ -106,7 +106,7 @@ std::vector< float > MeshStatistics::computeTriangleAspectRatioDistribution() co
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, _numberTriangles);
+        LOOP_PROGRESS_FRACTION(progress, _numberTriangles);
         ++progress;
 #endif
         Triangle triangle = _triangles[i];
@@ -144,7 +144,7 @@ MeshStatistics::computeTriangleRadiusRatioDistribution() const
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, _numberTriangles);
+        LOOP_PROGRESS_FRACTION(progress, _numberTriangles);
         ++progress;
 #endif
 
@@ -182,7 +182,7 @@ std::vector< float > MeshStatistics::computeTriangleEdgeRatioDistribution() cons
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, _numberTriangles);
+        LOOP_PROGRESS_FRACTION(progress, _numberTriangles);
         ++progress;
 #endif
 
@@ -252,7 +252,7 @@ std::vector< float > MeshStatistics::computeTriangleMinAngleDistribution() const
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, _numberTriangles);
+        LOOP_PROGRESS_FRACTION(progress, _numberTriangles);
         ++progress;
 #endif
 
@@ -290,7 +290,7 @@ std::vector< float > MeshStatistics::computeTriangleMaxAngleDistribution() const
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, _numberTriangles);
+        LOOP_PROGRESS_FRACTION(progress, _numberTriangles);
         ++progress;
 #endif
 
@@ -328,7 +328,7 @@ std::vector< float > MeshStatistics::computeTriangleShapeDistribution() const
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, _numberTriangles);
+        LOOP_PROGRESS_FRACTION(progress, _numberTriangles);
         ++progress;
 #endif
         Triangle triangle = _triangles[i];
@@ -364,7 +364,7 @@ std::vector< float > MeshStatistics::computeTriangleShapeAndSizeDistribution() c
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, _numberTriangles);
+        LOOP_PROGRESS_FRACTION(progress, _numberTriangles);
         ++progress;
 #endif
         Triangle triangle = _triangles[i];
@@ -402,7 +402,7 @@ std::vector< float > MeshStatistics::computeTriangleScaledJacobianDistribution()
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, _numberTriangles);
+        LOOP_PROGRESS_FRACTION(progress, _numberTriangles);
         ++progress;
 #endif
         Triangle triangle = _triangles[i];
@@ -438,7 +438,7 @@ std::vector< float > MeshStatistics::computeTriangleConditionNumberDistribution(
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, _numberTriangles);
+        LOOP_PROGRESS_FRACTION(progress, _numberTriangles);
         ++progress;
 #endif
         Triangle triangle = _triangles[i];
@@ -474,7 +474,7 @@ std::vector< float > MeshStatistics::computeTriangleDistortionDistribution() con
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, _numberTriangles);
+        LOOP_PROGRESS_FRACTION(progress, _numberTriangles);
         ++progress;
 #endif
         Triangle triangle = _triangles[i];
@@ -510,7 +510,7 @@ std::vector< float > MeshStatistics::computeTriangleRelativeSizeSquaredDistribut
         #pragma omp atomic
         ++progress;
 #else
-        LONG_LOOP_PROGRESS(progress, _numberTriangles);
+        LOOP_PROGRESS_FRACTION(progress, _numberTriangles);
         ++progress;
 #endif
         Triangle triangle = _triangles[i];

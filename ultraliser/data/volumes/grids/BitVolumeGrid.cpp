@@ -195,7 +195,7 @@ void BitVolumeGrid::writeRAW(const std::string &prefix)
     LOOP_STARTS("Writing Voxels (1 Byte)");
     for (int64_t voxel = 0; voxel < _numberVoxels; voxel++)
     {
-        LONG_LOOP_PROGRESS(voxel, _numberVoxels);
+        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
 
         uint8_t value;
         if (_data->bit(I2UI64(voxel)))
@@ -236,7 +236,7 @@ void BitVolumeGrid::writeNRRD(const std::string &prefix)
     LOOP_STARTS("Writing Voxels");
     for (int64_t voxel = 0; voxel < _numberVoxels; ++voxel)
     {
-        LONG_LOOP_PROGRESS(voxel, _numberVoxels);
+        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
 
         uint8_t value;
         if (_data->bit(I2UI64(voxel)))
@@ -271,7 +271,7 @@ void BitVolumeGrid::writeBIN(const std::string &prefix)
     LOOP_STARTS("Writing Voxels (1 Bit)");
     for (int64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
     {
-        LONG_LOOP_PROGRESS(voxel, _numberVoxels);
+        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
 
         uint8_t value = 0;
         for (int64_t i = 0; i < 8; ++i)

@@ -409,9 +409,8 @@ void VolumeGrid::writeProjection(const std::string &prefix,
     std::vector< uint8_t > normalizedProjectionImage(projectionSize);
 
     // Initialize the projections to zero to avoid garbage
-#ifdef ULTRALISER_USE_OPENMP
-    #pragma omp parallel for schedule(dynamic, 1)
-#endif
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for (int64_t index = 0; index < projectionSize; ++index)
     {
         projectionImage[index] = 0.f;
@@ -419,23 +418,10 @@ void VolumeGrid::writeProjection(const std::string &prefix,
     }
 
     LOOP_STARTS(projectionString.c_str());
-#ifdef ULTRALISER_USE_OPENMP
-    uint64_t progress = 0;
-    #pragma omp parallel for
-#endif
+    PROGRESS_RESET;
+    OMP_PARALLEL_FOR
     for (int64_t i = 0; i < getWidth(); i++)
     {
-
-#ifdef ULTRALISER_USE_OPENMP
-        #pragma omp atomic
-        ++progress;
-
-        if (omp_get_thread_num() == 0)
-            LOOP_PROGRESS(progress, getWidth());
-#else
-        LOOP_PROGRESS(i, getWidth());
-#endif
-
         switch (projection)
         {
         case PROJECTION::XY_PROJECTION:
@@ -481,6 +467,10 @@ void VolumeGrid::writeProjection(const std::string &prefix,
         } break;
 
         }
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, getWidth());
+        PROGRESS_UPDATE;
     }
     LOOP_DONE;
 
@@ -493,9 +483,7 @@ void VolumeGrid::writeProjection(const std::string &prefix,
     }
 
     // Construct the normalized projection
-#ifdef ULTRALISER_USE_OPENMP
-    #pragma omp parallel for schedule(dynamic, 1)
-#endif
+    OMP_PARALLEL_FOR
     for (int64_t index = 0; index < projectionSize; ++index)
     {
         // Compute float pixel value
@@ -572,27 +560,18 @@ uint64_t VolumeGrid::computeNumberNonZeroVoxels() const
     auto numberNonZeroVoxelsPerSlice = std::make_unique< uint64_t []>(I2UI64(getDepth()));
 
     // Initialize the arrays to zero
-#ifdef ULTRALISER_USE_OPENMP
-    #pragma omp parallel for
-#endif
+    OMP_PARALLEL_FOR
     for (int64_t k = 0; k < getDepth(); k++)
         numberNonZeroVoxelsPerSlice[k] = 0;
 
     LOOP_STARTS("Computing Filled Voxels")
-    int64_t progress = 0;
-#ifdef ULTRALISER_USE_OPENMP
-    #pragma omp parallel for
-#endif
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for (int64_t i = 0; i < getDepth(); ++i)
     {
-#ifdef ULTRALISER_USE_OPENMP
-        #pragma omp atomic
-        ++progress;
-        if (omp_get_thread_num() == 0)
-#else
-        ++progress;
-#endif
-            LOOP_PROGRESS(progress, getDepth());
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, getDepth());
+        PROGRESS_UPDATE;
 
         numberNonZeroVoxelsPerSlice[i] = computeNumberNonZeroVoxelsPerSlice(i);
     }

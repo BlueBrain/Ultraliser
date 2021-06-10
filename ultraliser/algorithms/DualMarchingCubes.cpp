@@ -43,63 +43,31 @@ DualMarchingCubes::DualMarchingCubes(Volume *volume,
     /// EMPTY CONSTRUCTOR
 }
 
-Mesh* DualMarchingCubes::generateMesh()
+Mesh* DualMarchingCubes::generateMesh(const bool& paralle)
 {
     LOG_TITLE("Mesh Reconstruction with DMC");
-
-    // Start the timer
-    TIMER_SET;
-
-    LOG_STATUS("Building Mesh");
 
     // Build the mesh
     Vertices vertices;
     Triangles triangles;
-    _buildSharedVerticesQuadsParallel(vertices, triangles);
+
+    // Strat the timer
+    TIMER_SET;
+
+    LOG_STATUS("Building Mesh");
+    if (paralle)
+        _buildSharedVerticesParallel(vertices, triangles);
+    else
+        _buildSharedVertices(vertices, triangles);
 
     Mesh* mesh = new Mesh(vertices, triangles);
 
     // Statistics
-    _dmcGenerationTime = GET_TIME_SECONDS;
-    LOG_STATUS_IMPORTANT("Mesh Reconstruction with DMC Stats.");
-    LOG_STATS(_dmcGenerationTime);
+    _meshExtractionTime = GET_TIME_SECONDS;
+    LOG_STATUS_IMPORTANT("Mesh Reconstruction with Dual Marching Cubes Stats.");
+    LOG_STATS(_meshExtractionTime);
 
     return mesh;
-}
-
-std::unique_ptr< Mesh > DualMarchingCubes::generateMeshX()
-{
-    LOG_TITLE("Mesh Reconstruction with DMC");
-
-    // Start the timer
-    TIMER_SET;
-
-    LOG_STATUS("Building Mesh");
-
-    // Build the mesh
-    Vertices vertices;
-    Triangles triangles;
-    _buildSharedVerticesQuadsParallel(vertices, triangles);
-
-    std::unique_ptr< Mesh > mesh = std::make_unique< Mesh >(vertices, triangles);
-
-    // Statistics
-    _dmcGenerationTime = GET_TIME_SECONDS;
-    LOG_STATUS_IMPORTANT("Mesh Reconstruction with DMC Stats.");
-    LOG_STATS(_dmcGenerationTime);
-
-    return mesh;
-}
-
-AdvancedMesh* DualMarchingCubes::generateManifoldMesh()
-{
-    // Build the mesh
-    Vertices vertices;
-    Triangles triangles;
-    _buildSharedVerticesQuadsParallel(vertices, triangles);
-
-    // Return a new mesh
-    return new AdvancedMesh(vertices, triangles);
 }
 
 int DualMarchingCubes::_getCellCode(const int64_t &x, const int64_t &y, const int64_t &z) const
@@ -219,9 +187,7 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     _volume->getVoxelBoundingBox(x, y, z, pMin, pMax);
 
     // Initialize the point with higher voxel coordinates
-    v.x() = pMax.x(); // x;
-    v.y() = pMax.y(); // y;
-    v.z() = pMax.z(); // z;
+    v = pMax;
 
     // Compute the dual point as the mean of the face vertices belonging to the
     // original marching cubes face
@@ -365,23 +331,26 @@ bool DualPointKey::operator==(DualPointKey const & other) const
     return (linearizedCellID == other.linearizedCellID && pointCode == other.pointCode);
 }
 
-void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Triangles &triangles)
+void DualMarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &triangles)
 {
     // Start timer
     TIMER_SET;
 
-    // To ensure that the algorithm covers all the possible cases and carefully polygonize the
-    // edges of the volume, we will scane it from the range of [-paddingVoxels, MAX_DIM + paddingVoxels]
-    const uint64_t paddingVoxels = 5;
-    const int64_t minVoxel = -paddingVoxels;
-    const int64_t maxX = I2I64(_volume->getWidth()) + paddingVoxels;
-    const int64_t maxY = I2I64(_volume->getHeight()) + paddingVoxels;
-    const int64_t maxZ = I2I64(_volume->getDepth()) + paddingVoxels;
+    // Adding a little bit of extra voxels
+    const int64_t extraVoxels = 5;
+    const int64_t minValue = -1 * extraVoxels;
+    const int64_t maxValue = extraVoxels;
+
+    const int64_t maxX = _volume->getWidth() + maxValue;
+    const int64_t maxY = _volume->getHeight() + maxValue;
+    const int64_t maxZ = _volume->getDepth() + maxValue;
+
+    const uint64_t sizeX = maxX + extraVoxels;
 
     // A list of lists of DMCVoxel's
     // This list will have reducedX entries to get filled in parallel
     DMCVoxelsList volumeDMCVoxels;
-    volumeDMCVoxels.resize(static_cast< uint64_t >(maxX - minVoxel));
+    volumeDMCVoxels.resize(static_cast< uint64_t >(sizeX));
 
     // Shared quad points
     int64_t i0, i1, i2, i3;
@@ -391,25 +360,19 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
 
     // Searching for non-zero voxels in parallel
     LOOP_STARTS("Searching Filled Voxels");
+    PROGRESS_SET;
     OMP_PARALLEL_FOR
-    for (int64_t x = minVoxel; x < maxX; ++x)
+    for (int64_t x = minValue; x < maxX; ++x)
     {
         // Get a reference to the slice
-         DMCVoxels& sliceDMCVoxels = volumeDMCVoxels[static_cast< uint64_t >(x + paddingVoxels)];
+        DMCVoxels& sliceDMCVoxels = volumeDMCVoxels[static_cast< uint64_t >(x + extraVoxels)];
 
-#ifdef ULTRALISER_USE_OPENMP
-         if (omp_get_thread_num() == 0)
-             LOOP_PROGRESS(x, maxX - minVoxel);
-#else
-         LOOP_PROGRESS_SIMPLE(x, maxX - minVoxel);
-#endif
-
-         for (int64_t y = minVoxel; y < maxY; ++y)
-         {
-             for (int64_t z = minVoxel; z < maxZ; ++z)
-             {
+        for (int64_t y = minValue; y < maxY; ++y)
+        {
+            for (int64_t z = minValue; z < maxZ; ++z)
+            {
                 // X-aligned edge
-                if (z > minVoxel && y > minVoxel)
+                if (z > minValue && y > minValue)
                 {
                     const uint64_t value0 = _volume->getValue(x, y, z);
                     const uint64_t value1 = _volume->getValue(x + 1, y, z);
@@ -426,7 +389,7 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
                 }
 
                 // Y-aligned edge
-                if (z > minVoxel && x > minVoxel)
+                if (z > minValue && x > minValue)
                 {
                     const uint64_t value0 = _volume->getValue(x, y, z);
                     const uint64_t value1 = _volume->getValue(x, y + 1, z);
@@ -442,7 +405,7 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
                 }
 
                 // Z-aligned edge
-                if (x > minVoxel && y > minVoxel)
+                if (x > minValue && y > minValue)
                 {
                     const uint64_t value0 = _volume->getValue(x, y, z);
                     const uint64_t value1 = _volume->getValue(x, y, z + 1);
@@ -458,11 +421,12 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
                 }
             }
         }
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, sizeX);
+        PROGRESS_UPDATE;
     }
     LOOP_DONE;
-
-    // Statistics
-    _searchingZeroVoxelsTime = GET_TIME_SECONDS;
     LOG_STATS(GET_TIME_SECONDS);
 
     // Reset the time
@@ -493,7 +457,6 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
                 // Append this quad to the list based on the voxel
                 if (dmcVoxel->entering)
                 {
-                    // quads.push_back(Vec4i_64(i0, i1, i2, i3));
                     // Quad [i0, i1, i2, i3]
                     // Triangles [i0, i1, i2] [i2, i3, i0]
 
@@ -502,10 +465,8 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
                 }
                 else
                 {
-                    // quads.push_back(Vec4i_64(i0, i3, i2, i1));
                     // Quad [i0, i3, i2, i1]
                     // Triangles [i0, i3, i2] [i2, i1, i0]
-
                     triangles.push_back(Triangle(i0, i3, i2));
                     triangles.push_back(Triangle(i2, i1, i0));
                 }
@@ -527,19 +488,15 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
                 // Append this quad to the list based on the voxel
                 if (dmcVoxel->exiting)
                 {
-                    // quads.push_back(Vec4i_64(i0, i1, i2, i3));
                     // Quad [i0, i1, i2, i3]
                     // Triangles [i0, i1, i2] [i2, i3, i0]
-
                     triangles.push_back(Triangle(i0, i1, i2));
                     triangles.push_back(Triangle(i2, i3, i0));
                 }
                 else
                 {
-                    // quads.push_back(Vec4i_64(i0, i3, i2, i1));
                     // Quad [i0, i3, i2, i1]
                     // Triangles [i0, i3, i2] [i2, i1, i0]
-
                     triangles.push_back(Triangle(i0, i3, i2));
                     triangles.push_back(Triangle(i2, i1, i0));
                 }
@@ -561,19 +518,15 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
                 // Append this quad to the list based on the voxel
                 if (dmcVoxel->exiting)
                 {
-                    // quads.push_back(Vec4i_64(i0, i1, i2, i3));
                     // Quad [i0, i1, i2, i3]
                     // Triangles [i0, i1, i2] [i2, i3, i0]
-
                     triangles.push_back(Triangle(i0, i1, i2));
                     triangles.push_back(Triangle(i2, i3, i0));
                 }
                 else
                 {
-                    // quads.push_back(Vec4i_64(i0, i3, i2, i1));
                     // Quad [i0, i3, i2, i1]
                     // Triangles [i0, i3, i2] [i2, i1, i0]
-
                     triangles.push_back(Triangle(i0, i3, i2));
                     triangles.push_back(Triangle(i2, i1, i0));
                 }
@@ -591,31 +544,28 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
         volumeDMCVoxels[i].shrink_to_fit();
     }
     LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     // Clear the DMC voxel list
     volumeDMCVoxels.clear();
     volumeDMCVoxels.shrink_to_fit();
-
-    // Statistics
-    _buildingSharedVerticesTime = GET_TIME_SECONDS;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    _buildSharedVerticesQuadsParallelTime = _searchingZeroVoxelsTime + _buildingSharedVerticesTime;
 }
 
-void DualMarchingCubes::_buildSharedVerticesQuads(Vertices &vertices,
-                                                  Triangles &triangles)
+void DualMarchingCubes::_buildSharedVertices(Vertices &vertices, Triangles &triangles)
 {
     // Start timer
     TIMER_SET;
 
-    // To ensure that the algorithm covers all the possible cases and carefully polygonize the
-    // edges of the volume, we will scane it from the range of [-2, MAX_DIM + 2]
-    const int64_t minValue = -1;
-    const int64_t maxX = I2I64(_volume->getWidth()) + 2;
-    const int64_t maxY = I2I64(_volume->getHeight()) + 2;
-    const int64_t maxZ = I2I64(_volume->getDepth()) + 2;
-    const uint64_t totalSize = ((maxX - minValue) * (maxY - minValue) * (maxZ - minValue));
+    // Adding a little bit of extra voxels
+    const int64_t extraVoxels = 5;
+    const int64_t minValue = -1 * extraVoxels;
+    const int64_t maxValue = extraVoxels;
+
+    const int64_t maxX = _volume->getWidth() + maxValue;
+    const int64_t maxY = _volume->getHeight() + maxValue;
+    const int64_t maxZ = _volume->getDepth() + maxValue;
+
+    const uint64_t sizeX = maxX + extraVoxels;
 
     // Quad points
     int64_t i0, i1, i2, i3;
@@ -624,26 +574,21 @@ void DualMarchingCubes::_buildSharedVerticesQuads(Vertices &vertices,
 
     // Iterate voxels
     LOOP_STARTS("Building Shared Vertices");
-    uint64_t index = 0;
     for (int64_t x = minValue; x < maxX; ++x)
     {
         for (int64_t y = minValue; y < maxY; ++y)
         {
             for (int64_t z = minValue; z < maxZ; ++z)
             {
-                index++;
-
-                LOOP_PROGRESS_SIMPLE(index, totalSize);
 
                 // Construct quads for X edge
                 if (z > minValue && y > minValue)
                 {
-                    bool const entering =
-                            _volume->getValue(x, y, z) < _isoValue &&
-                            _volume->getValue(x + 1, y, z) >= _isoValue;
-                    bool const exiting  =
-                            _volume->getValue(x, y, z) >= _isoValue &&
-                            _volume->getValue(x + 1, y, z) < _isoValue;
+                    const uint64_t value0 = _volume->getValue(x, y, z);
+                    const uint64_t value1 = _volume->getValue(x + 1, y, z);
+
+                    bool const entering = (value0 < _isoValue) && (value1 >= _isoValue);
+                    bool const exiting = (value0 >= _isoValue) && (value1 < _isoValue);
 
                     if (entering || exiting)
                     {
@@ -669,12 +614,11 @@ void DualMarchingCubes::_buildSharedVerticesQuads(Vertices &vertices,
                 // Construct quads for y edge
                 if (z > minValue && x > minValue)
                 {
-                    bool const entering =
-                            _volume->getValue(x, y, z) < _isoValue &&
-                            _volume->getValue(x, y + 1, z) >= _isoValue;
-                    bool const exiting  =
-                            _volume->getValue(x, y, z) >= _isoValue &&
-                            _volume->getValue(x, y + 1, z) < _isoValue;
+                    const uint64_t value0 = _volume->getValue(x, y, z);
+                    const uint64_t value1 = _volume->getValue(x, y + 1, z);
+
+                    bool const entering = value0 < _isoValue && value1 >= _isoValue;
+                    bool const exiting = value0 >= _isoValue && value1 < _isoValue;
 
                     if (entering || exiting)
                     {
@@ -700,12 +644,12 @@ void DualMarchingCubes::_buildSharedVerticesQuads(Vertices &vertices,
                 // Construct quads for z edge
                 if (x > minValue && y > minValue)
                 {
-                    bool const entering =
-                            _volume->getValue(x, y, z) < _isoValue &&
-                            _volume->getValue(x, y, z + 1) >= _isoValue;
-                    bool const exiting  =
-                            _volume->getValue(x, y, z) >= _isoValue &&
-                            _volume->getValue(x, y, z + 1) < _isoValue;
+                    const uint64_t value0 = _volume->getValue(x, y, z);
+                    const uint64_t value1 = _volume->getValue(x, y, z + 1);
+
+                    bool const entering = value0 < _isoValue && value1 >= _isoValue;
+                    bool const exiting = value0 >= _isoValue && value1 < _isoValue;
+
                     if (entering || exiting)
                     {
                         // Generate quad
@@ -728,22 +672,21 @@ void DualMarchingCubes::_buildSharedVerticesQuads(Vertices &vertices,
                 }
             }
         }
+
+        LOOP_PROGRESS_FRACTION(x, sizeX);
     }
     LOOP_DONE;
-
-    // Statistics
-    _buildSharedVerticesQuadsSerialTime = GET_TIME_SECONDS;
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-Mesh* DualMarchingCubes::generateMeshFromVolume(Volume* volume)
+Mesh* DualMarchingCubes::generateMeshFromVolume(Volume* volume, const bool& serialExecution)
 {
     // Reconstruct a watertight mesh from the volume with DMC
     std::unique_ptr< DualMarchingCubes > workflowDMC =
             std::make_unique< DualMarchingCubes >(volume);
 
     // Generate the DMC mesh
-    return workflowDMC->generateMesh();
+    return workflowDMC->generateMesh(!serialExecution);
 }
 
 }

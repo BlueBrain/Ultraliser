@@ -118,4 +118,34 @@ void generateReconstructedMeshArtifacts(Mesh* mesh, const AppOptions* options);
  * @param options
  */
 void generateVolumeArtifacts(const Volume* volume, const AppOptions* options);
+
+/**
+ * @brief reconstructVolumeFromMesh
+ * Reconstruc a volume from a given mesh.
+ *
+ * @param inputMesh
+ * Given mesh
+ * @param options
+ * System options
+ * @param releaseInputMesh
+ * If this flag is set to true, the input mesh will be release in between to save memeory.
+ * @return
+ * A pointer to the reconstructed volume.
+ */
+Volume* reconstructVolumeFromMesh(Mesh* inputMesh, AppOptions* options,
+                                  const bool& releaseInputMesh = true);
+
+/**
+ * @brief reconstructMeshFromVolume
+ * Reconstruct a mesh from a given volume.
+ *
+ * @param volume
+ * Given volume
+ * @param options
+ * System options
+ * @return
+ * A pointer to the reconstructed mesh.
+ */
+Mesh* reconstructMeshFromVolume(Volume* volume, AppOptions* options);
+
 }

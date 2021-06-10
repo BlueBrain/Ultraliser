@@ -272,6 +272,34 @@ void generateOptimizedMesh(Mesh *dmcMesh, const AppOptions* options)
         createWatertightMesh(dmcMesh, options);
 }
 
+Volume* reconstructVolumeFromMesh(Mesh* inputMesh, AppOptions* options,
+                                  const bool& releaseInputMesh)
+{
+    auto volume = createVolumeGrid(inputMesh, options);
+
+    // Surface voxelization
+    volume->surfaceVoxelization(inputMesh, true, true);
+
+    // Free the input mesh, if asked for
+    if (releaseInputMesh)
+        delete inputMesh;
+
+    // Enable solid voxelization
+    if (options->useSolidVoxelization)
+        volume->solidVoxelization(options->voxelizationAxis);
+
+    return volume;
+}
+
+Mesh* reconstructMeshFromVolume(Volume* volume, AppOptions* options)
+{
+    // Generate the reconstructed mesh from any of the marching cubes algorithms
+    if (options->isosurfaceTechnique == DMC_STRING)
+        return DualMarchingCubes::generateMeshFromVolume(volume, options->serialExecution);
+    else
+        return MarchingCubes::generateMeshFromVolume(volume, options->serialExecution);
+}
+
 void generateMarchingCubesMeshArtifacts(const Mesh *mesh, const AppOptions* options)
 {   
     // Write the statistics of the reconstructed mesh from the marhcing cubes algorithm

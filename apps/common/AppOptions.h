@@ -117,6 +117,12 @@ public:
     void verifyMeshExportArguments();
 
     /**
+     * @brief verifyIsoSurfaceExtractionArgument
+     * Verifies the isosurface extraction technique.
+     */
+    void verifyIsoSurfaceExtractionArgument();
+
+    /**
      * @brief verifyVolumeExportArguments
      * Verifies the volume export options.
      */
@@ -141,6 +147,12 @@ public:
     void initializeContext();
 
 public:
+
+    /**
+     * @brief serialExecution
+     * Execute the workflows in a single thread for validation.
+     */
+    bool serialExecution = false;
 
     /**
      * @brief inputMeshPath
@@ -227,6 +239,13 @@ public:
      * The iso value where the volume will get segmented, default 127.
      */
     uint64_t isoValue;
+
+    /**
+     * @brief isosurfaceTechnique
+     * The technique that is used to extract the iso surface from the mesh.
+     * Either dmc (Dual Marching Cubes) or mc (Marching Cubes)
+     */
+    std::string isosurfaceTechnique;
 
     /**
      * @brief fullRangeIsoValue

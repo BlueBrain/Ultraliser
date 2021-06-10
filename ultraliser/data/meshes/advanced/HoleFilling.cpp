@@ -726,7 +726,7 @@ uint64_t AdvancedMesh::fillHoles(const uint64_t minNumberBoundaryEdges,
     LOOP_STARTS("Collecting Boundary Vertices");
     FOR_EACH_VERTEX(vertex, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, _vertices.numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, _vertices.numberElements());
 
         grd = 0;
 
@@ -772,7 +772,7 @@ uint64_t AdvancedMesh::fillHoles(const uint64_t minNumberBoundaryEdges,
             refineSelectedHolePatches(triangle);
         }
 
-        LOOP_PROGRESS(++COUNTER, boundaries.numberElements())
+        LOOP_PROGRESS(++COUNTER, boundaries.numberElements());
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);

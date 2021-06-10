@@ -54,6 +54,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyBoudsFileArgument();
     options->verifyMeshExportArguments();
     options->verifyMeshPrefixArgument();
+    options->verifyIsoSurfaceExtractionArgument();
 
     // Initialize context, once everything is in place and all the options are verified
     options->initializeContext();
@@ -79,23 +80,14 @@ void run(int argc , const char** argv)
         inputMesh->writeDistributions(INPUT_STRING, &options->statisticsPrefix);
 
     // Creates the volume grid to start processing the mesh
-    auto volume = createVolumeGrid(inputMesh, options);
-
-    // Surface voxelization
-    volume->surfaceVoxelization(inputMesh, true, true);
-
-    // Free the input mesh
-    delete inputMesh;
-
-    // Enable solid voxelization
-    if (options->useSolidVoxelization)
-        volume->solidVoxelization(options->voxelizationAxis);
+    /// NOTE: The input mesh is release within this operation
+    auto volume = reconstructVolumeFromMesh(inputMesh, options);
 
     // Generate the volume artifacts based on the given options
     generateVolumeArtifacts(volume, options);
 
-    // Generate the reconstructed mesh from the marching cubes algorithm
-    auto reconstructedMesh = MarchingCubes::generateMeshFromVolume(volume);
+    // Extract the mesh from the volume again
+    auto reconstructedMesh = reconstructMeshFromVolume(volume, options);
 
     // Free the volume, it is not needed any further
     delete volume;

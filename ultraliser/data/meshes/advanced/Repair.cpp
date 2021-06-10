@@ -1493,7 +1493,7 @@ bool AdvancedMesh::cleanMesh(uint64_t maxIterations, int innerLoops)
             LOOP_STARTS("Final Processing")
             FOR_EACH_TRIANGLE(triangle, node)
             {
-                LONG_LOOP_PROGRESS(++COUNTER, _triangles.numberElements());
+                LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
 
                 if (triangle->isExactlyDegenerate())
                 {

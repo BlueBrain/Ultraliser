@@ -71,7 +71,7 @@ void AdvancedMesh::importPLY(const std::string &fileName)
     LOOP_STARTS("Creating Vertex List");
     FOR_EACH_VERTEX(vertex, node)
     {
-        LONG_LOOP_PROGRESS(COUNTER, vertices.size());
+        LOOP_PROGRESS_FRACTION(COUNTER, vertices.size());
 
         // Add the vertex to the vertex list
         vertexList[COUNTER++] = new ExtendedVertex(vertex);
@@ -85,7 +85,7 @@ void AdvancedMesh::importPLY(const std::string &fileName)
     LOOP_STARTS("Creating Face List");
     for(uint64_t i = 0; i < triangles.size(); ++i)
     {
-        LONG_LOOP_PROGRESS(i, triangles.size());
+        LOOP_PROGRESS_FRACTION(i, triangles.size());
 
         Ultraliser::Triangle triangle = triangles[i];
         if (createIndexedTriangle(vertexList, triangle[0], triangle[1], triangle[2])) { }

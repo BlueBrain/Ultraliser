@@ -75,6 +75,7 @@
 // Artifacts strings
 #define INPUT_STRING                            STRING("input")
 #define MC_STRING                               STRING("mc")
+#define DMC_STRING                              STRING("dmc")
 #define LAPLACIAN_STRING                        STRING("laplacian")
 #define OPTIMIZED_STRING                        STRING("optimized")
 #define MANIFOLD_STRING                         STRING("advanced")
@@ -129,7 +130,6 @@
 #define SEGMENTS_VOLUME                         std::string("-segments-volume")
 #define SECTIONS_VOLUME                         std::string("-sections-volume")
 
-
 // OBJ flags
 #define OBJ_VERTEX_FLAG                         STRING("v")
 #define OBJ_VERTEX_NORMAL_FLAG                  STRING("vn")
@@ -157,7 +157,6 @@
 // OFF flags
 #define OFF_HEADER                              STRING("OFF")
 #define OFF_HSIZE                               3
-
 
 // String flags
 #define BACK_SLASH                              STRING("/")

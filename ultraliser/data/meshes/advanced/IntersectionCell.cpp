@@ -202,7 +202,7 @@ uint64_t AdvancedMesh::getNumberSelfIntersectingFaces()
     LOOP_STARTS("Selecting Intersecting Triangles");
     FOR_EACH_TRIANGLE(triangle, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, _triangles.numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
 
         if (IS_VISITED(triangle))
         {
@@ -270,7 +270,7 @@ uint64_t AdvancedMesh::getNumberSelfIntersectingFaces()
     LOOP_STARTS("Releasing Triangles");
     FOR_EACH_TRIANGLE(triangle, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, _triangles.numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
         triangle->info = nullptr;
     }
     LOOP_DONE;
@@ -281,7 +281,7 @@ uint64_t AdvancedMesh::getNumberSelfIntersectingFaces()
     LOOP_STARTS("Selecting Intersections");
     FOR_EACH_NODE(cells, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, cells.numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, cells.numberElements());
 
         (((IntersectionCell *) node->data)->selectIntersections(false));
     }
@@ -308,7 +308,7 @@ uint64_t AdvancedMesh::getNumberSelfIntersectingFaces()
     LOOP_STARTS("Counting Intersecting Triangles");
     FOR_EACH_VT_TRIANGLE(selectedTriangles, triangle, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, selectedTriangles->numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, selectedTriangles->numberElements());
 
         if (IS_VISITED(triangle))
             numberIntersectingTriangles++;
@@ -337,7 +337,7 @@ int AdvancedMesh::selectIntersectingTriangles(uint16_t trianglesPerCell,
     LOOP_STARTS("Selecting Intersecting Triangles");
     FOR_EACH_TRIANGLE(triangle, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, _triangles.numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
 
         if (IS_VISITED(triangle))
         {
@@ -405,7 +405,7 @@ int AdvancedMesh::selectIntersectingTriangles(uint16_t trianglesPerCell,
     LOOP_STARTS("Releasing Triangles");
     FOR_EACH_TRIANGLE(triangle, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, _triangles.numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
         triangle->info = nullptr;
     }
     LOOP_DONE;
@@ -416,7 +416,7 @@ int AdvancedMesh::selectIntersectingTriangles(uint16_t trianglesPerCell,
     LOOP_STARTS("Selecting Intersections");
     FOR_EACH_NODE(cells, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, cells.numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, cells.numberElements());
 
         (((IntersectionCell *) node->data)->selectIntersections(justProper));
     }
@@ -441,7 +441,7 @@ int AdvancedMesh::selectIntersectingTriangles(uint16_t trianglesPerCell,
     LOOP_STARTS("Counting Intersecting Triangles");
     FOR_EACH_VT_TRIANGLE(selectedTriangles, triangle, node)
     {
-        LONG_LOOP_PROGRESS(++COUNTER, selectedTriangles->numberElements());
+        LOOP_PROGRESS_FRACTION(++COUNTER, selectedTriangles->numberElements());
 
         if (IS_VISITED(triangle))
             numberIntersectingTriangles++;

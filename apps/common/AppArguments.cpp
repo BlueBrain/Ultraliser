@@ -368,6 +368,19 @@ void AppArguments::addVolumeArguments()
     addVolumeExportArguments();
 }
 
+void AppArguments::addMeshExtractionArguments()
+{
+    Argument isosurfaceTechnique(
+                "--isosurface-technique",
+                ARGUMENT_TYPE::STRING,
+                "Specify a technique to extract the isosurface from the volume: [mc, dmc]. "
+                "By default, it is dmc (Dual Marching Cubes)",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "dmc");
+    _args->addArgument(&isosurfaceTechnique);
+    _options->isosurfaceTechnique = _args->getStringValue(&isosurfaceTechnique);
+}
+
 void AppArguments::addMeshOptimizationArguments()
 {
     Argument preservePartitions(
@@ -512,6 +525,7 @@ void AppArguments::addMeshScaleArguments()
 
 void AppArguments::addMeshArguments()
 {
+    addMeshExtractionArguments();
     addMeshOptimizationArguments();
     addLaplacianOperatorArguments();
     addMeshScaleArguments();
@@ -533,6 +547,13 @@ void AppArguments::addDataArguments()
                 "Write the distributions of the resulting meshes/volumes/morphologies.");
     _args->addArgument(&writeDistributions);
     _options->writeDistributions = _args->getBoolValue(&writeDistributions);
+
+    Argument serialExecution(
+                "--serial",
+                ARGUMENT_TYPE::BOOL,
+                "Execute the pipeline in a single thread for validation.");
+    _args->addArgument(&serialExecution);
+    _options->serialExecution = _args->getBoolValue(&serialExecution);
 }
 
 void AppArguments::addSuppressionArguments()
@@ -546,7 +567,6 @@ void AppArguments::addSuppressionArguments()
                 "laplacian operation and optimization will NOT be exported, unless specified.");
     _args->addArgument(&watertight);
     _options->watertight = _args->getBoolValue(&watertight);
-
 
     Argument ignoreSelfIntersections(
                 "--ignore-self-intersections",

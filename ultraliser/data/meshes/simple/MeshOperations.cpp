@@ -50,7 +50,7 @@ void computeMeshBoundingBox(const Vertex* vertices,
     {
         Vertex v = vertices[i];
 
-        if (verbose) LONG_LOOP_PROGRESS(i, numberVertices);
+        if (verbose) LOOP_PROGRESS_FRACTION(i, numberVertices);
 
         if (v.x() > pMax.x()) pMax.x() = v.x();
         if (v.y() > pMax.y()) pMax.y() = v.y();
@@ -77,22 +77,14 @@ float computeMeshVolume(const Vertex *vertices,
     // Make an array to compute the area per triangle and then sum them up
     float* triangelsSignedVolumes = new float[I2UI64(numberTriangles)];
 
-    if (verbose)  LOOP_STARTS("Computing Mesh Volume");
-    int64_t progress = 0;
-#ifdef ULTRALISER_USE_OPENMP
-    #pragma omp parallel for
-#endif
+    if (verbose) LOOP_STARTS("Computing Mesh Volume");
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for (int64_t i = 0; i < numberTriangles; ++i)
     {
-#ifdef ULTRALISER_USE_OPENMP
-        #pragma omp atomic
-#endif
-        ++progress;
-
-#ifdef ULTRALISER_USE_OPENMP
-        if (omp_get_thread_num() == 0)
-#endif
-            if (verbose) LOOP_PROGRESS(progress, numberTriangles);
+        // Update the progress bar
+        if (verbose) LOOP_PROGRESS(PROGRESS, numberTriangles);
+        PROGRESS_UPDATE;
 
         Vertex p1 = vertices[triangles[i][0]];
         Vertex p2 = vertices[triangles[i][1]];
@@ -126,23 +118,15 @@ float computeMeshSurfaceArea(const Vertex* vertices,
     // Make an array to compute the area per triangle and then sum them up
     float* trianglesArea = new float[I2UI64(numberTriangles)];
 
-    if (verbose)  LOOP_STARTS("Computing Mesh Surface Area");
-    int64_t progress = 0;
-#ifdef ULTRALISER_USE_OPENMP
-    #pragma omp parallel for
-#endif
+    if (verbose) LOOP_STARTS("Computing Mesh Surface Area");
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for (int64_t i = 0; i < numberTriangles; ++i)
     {
 
-#ifdef ULTRALISER_USE_OPENMP
-        #pragma omp atomic
-#endif
-        ++progress;
-
-#ifdef ULTRALISER_USE_OPENMP
-        if (omp_get_thread_num() == 0)
-#endif
-            if (verbose) LOOP_PROGRESS(progress, numberTriangles);
+        // Update the progress bar
+        if (verbose) LOOP_PROGRESS(PROGRESS, numberTriangles);
+        PROGRESS_UPDATE;
 
         // Get the triangle
         Vec3i_64 triangleIndices = triangles[i];
@@ -195,7 +179,7 @@ void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& trian
     uint64_t progress = 0;
     for (uint64_t lineNumber = 0; lineNumber < numberLines; ++lineNumber)
     {
-        if (verbose) LONG_LOOP_PROGRESS(progress, numberLines);
+        if (verbose) LOOP_PROGRESS_FRACTION(progress, numberLines);
 
         std::getline(file, line);
 
@@ -378,7 +362,7 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
     if (verbose) LOOP_STARTS("Loading Vertices");
     for (uint64_t i = 0; i < numberVertices; ++i)
     {
-        if (verbose) LONG_LOOP_PROGRESS(i, numberVertices);
+        if (verbose) LOOP_PROGRESS_FRACTION(i, numberVertices);
 
         std::getline(file, line);
         vertices[i] = Parsers::parseVector3f(line);
@@ -400,7 +384,7 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
     if (verbose) LOOP_STARTS("Loading Triangles");
     for (uint64_t i = 0; i < numberTriangles; ++i)
     {
-        if (verbose) LONG_LOOP_PROGRESS(i, numberTriangles);
+        if (verbose) LOOP_PROGRESS_FRACTION(i, numberTriangles);
 
         std::getline(file, line);
         Parsers::parseFaces(line, triangles);
@@ -771,7 +755,7 @@ void exportOBJ(const std::string &prefix,
     LOOP_STARTS("Writing Vertices");
     for (uint64_t i = 0; i < numberVertices; ++i)
     {
-        LONG_LOOP_PROGRESS(i, numberVertices);
+        LOOP_PROGRESS_FRACTION(i, numberVertices);
 
         stream << OBJ_VERTEX_FLAG << SPACE
                << vertices[i][0] << SPACE
@@ -789,7 +773,7 @@ void exportOBJ(const std::string &prefix,
     LOOP_STARTS("Writing Triangles");
     for (uint64_t i = 0; i < numberTriangles; ++i)
     {
-        LONG_LOOP_PROGRESS(i, numberTriangles);
+        LOOP_PROGRESS_FRACTION(i, numberTriangles);
         stream << OBJ_FACE_FLAG << SPACE
                << triangles[i][0] + 1 << SPACE
                << triangles[i][1] + 1 << SPACE
@@ -839,7 +823,7 @@ void exportOFF(const std::string &prefix,
     TIMER_SET;
     for (uint64_t i = 0; i < numberVertices; i++)
     {
-        LONG_LOOP_PROGRESS(i, numberVertices);
+        LOOP_PROGRESS_FRACTION(i, numberVertices);
 
         outputStream << vertices[i].x() << SPACE
                      << vertices[i].y() << SPACE
@@ -1011,7 +995,7 @@ void exportPLY(const std::string &prefix,
         LOOP_STARTS("Writing Vertices");
         for (uint64_t i = 0; i < numberVertices; i++)
         {
-            LONG_LOOP_PROGRESS(i, numberVertices);
+            LOOP_PROGRESS_FRACTION(i, numberVertices);
             fprintf(filePointer, "%f %f %f", vertices[i].x(), vertices[i].y(), vertices[i].z());
             fprintf(filePointer, "\n");
         }
@@ -1023,7 +1007,7 @@ void exportPLY(const std::string &prefix,
         LOOP_STARTS("Writing Vertices");
         for (uint64_t i = 0; i < numberVertices; i++)
         {
-            LONG_LOOP_PROGRESS(i, numberVertices);
+            LOOP_PROGRESS_FRACTION(i, numberVertices);
 
             float floatCoordinates[3];
             floatCoordinates[0] = vertices[i].x();

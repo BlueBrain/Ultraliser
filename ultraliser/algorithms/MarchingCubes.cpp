@@ -80,14 +80,14 @@ Mesh* MarchingCubes::generateMesh(const bool &parallel)
 {
     LOG_TITLE("Mesh Reconstruction with Marching Cubes");
 
+    // Build the mesh
+    Vertices vertices;
+    Triangles triangles;
+
     // Start the timer
     TIMER_SET;
 
     LOG_STATUS("Building Mesh");
-
-    // Build the mesh
-    Vertices vertices;
-    Triangles triangles;
     if (parallel)
         _buildSharedVerticesParallel(vertices, triangles);
     else
@@ -97,9 +97,9 @@ Mesh* MarchingCubes::generateMesh(const bool &parallel)
     Mesh* mesh = new Mesh(vertices, triangles);
 
     // Statistics
-    _mcGenerationTime = GET_TIME_SECONDS;
+    _meshExtractionTime = GET_TIME_SECONDS;
     LOG_STATUS_IMPORTANT("Mesh Reconstruction with Marching Cubes Stats.");
-    LOG_STATS(_mcGenerationTime);
+    LOG_STATS(_meshExtractionTime);
 
     return mesh;
 }
@@ -126,7 +126,7 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
     const uint64_t sizeZ = maxZ + extraVoxels;
 
     // Total size
-    const uint64_t size = ((sizeX) * (sizeY) * (sizeZ) * 3);
+    const uint64_t size = (sizeX * sizeY * sizeZ * 3);
 
     // Mesh shared indices list
     uint64_t* sharedIndices = new size_t[size];
@@ -141,15 +141,12 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
     const uint64_t yz3 = sizeY * z3;
 
     LOOP_STARTS("Searching Filled Voxels");
-#ifdef ULTRALISER_USE_OPENMP
-#pragma omp parallel for
-#endif
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for (int64_t i = minValue; i < maxX; ++i)
     {
-        // LOOP_PROGRESS_SIMPLE(i, sizeX);
-
         // Get a reference to the slice
-         MCVoxels& sliceMCVoxels = volumeMCVoxels[static_cast< uint64_t >(i + extraVoxels)];
+        MCVoxels& sliceMCVoxels = volumeMCVoxels[static_cast< uint64_t >(i + extraVoxels)];
 
         for (int64_t j = minValue; j < maxY; ++j)
         {
@@ -177,6 +174,10 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
                 sliceMCVoxels.push_back(new MCVoxel(i, j, k, cubeIndex, v));
             }
         }
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, sizeX);
+        PROGRESS_UPDATE;
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
@@ -437,8 +438,6 @@ void MarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangle
     LOOP_STARTS("Building Shared Vertices");
     for (int64_t i = minValue; i < maxX; ++i)
     {
-        LOOP_PROGRESS_SIMPLE(i, sizeX);
-
         for (int64_t j = minValue; j < maxY; ++j)
         {
             for (int64_t k = minValue; k < maxZ; ++k)
@@ -484,30 +483,22 @@ void MarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangle
                 {
                     uniqueIndices[6] = vertices.size();
                     int64_t idx = i * yz3 + j * z3 + k * 3 + 0;
-
                     sharedIndices[idx] = uniqueIndices[6];
                     addSharedVertex(x_dx, y_dy, z_dz, x, 0, v[6], v[7], _isoValue, vertices);
                 }
 
                 if(edges & 0x020)
                 {
-
                     uniqueIndices[5] = vertices.size();
-
                     int64_t idx = i * yz3 + j * z3 + k * 3 + 1;
-
                     sharedIndices[idx] = uniqueIndices[5];
                     addSharedVertex(x_dx, y, z_dz, y_dy, 1, v[5], v[6], _isoValue, vertices);
                 }
 
                 if(edges & 0x400)
                 {
-
-
                     uniqueIndices[10] = vertices.size();
-
                     int64_t idx = i * yz3 + j * z3 + k * 3 + 2;
-
                     sharedIndices[idx] = uniqueIndices[10];
                     addSharedVertex(x_dx, y_dy, z, z_dz, 2, v[2], v[6], _isoValue, vertices);
                 }
@@ -516,7 +507,6 @@ void MarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangle
                 {
                     if(j == 0 || k == 0)
                     {
-
                         uniqueIndices[0] = vertices.size();
                         addSharedVertex(x, y, z, x_dx, 0, v[0], v[1], _isoValue, vertices);
                     }
@@ -648,6 +638,8 @@ void MarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangle
                 }
             }
         }
+
+        LOOP_PROGRESS_FRACTION(i, sizeX);
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
@@ -668,14 +660,14 @@ void MarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangle
     polygons.shrink_to_fit();
 }
 
-Mesh* MarchingCubes::generateMeshFromVolume(Volume* volume)
+Mesh* MarchingCubes::generateMeshFromVolume(Volume* volume, const bool &serialExecution)
 {
     // Reconstruct a watertight mesh from the volume with DMC
     std::unique_ptr< MarchingCubes > workflowMC =
             std::make_unique< MarchingCubes >(volume);
 
     // Generate the DMC mesh
-    return workflowMC->generateMesh();
+    return workflowMC->generateMesh(!serialExecution);
 }
 
 }
