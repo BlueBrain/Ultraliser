@@ -1,5 +1,3 @@
-#ifndef ULTRALISER_SYSTEM_OPTIONS_HH
-#define ULTRALISER_SYSTEM_OPTIONS_HH
 /***************************************************************************************************
  * Copyright (c) 2016 - 2021
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
@@ -21,6 +19,9 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
+#ifndef ULTRALISER_SYSTEM_OPTIONS_HH
+#define ULTRALISER_SYSTEM_OPTIONS_HH
+
 #include <common/Common.h>
 #include <arguments/Argument.h>
 #include <data/volumes/Volumes.h>
@@ -29,21 +30,129 @@ namespace Ultraliser
 {
 
 /**
- * @brief The Options struct
+ * @brief The Options class
  */
-struct Options
+class AppOptions
 {
-    /**
-     * @brief inputMesh
-     * An input mesh file.
-     */
-    std::string inputMesh;
+
+public:
 
     /**
-     * @brief inputVolume
-     * An input volume file.
+     * @brief AppOptions
      */
-    std::string inputVolume;
+    AppOptions() { /* EMPTY CONSTRUCTOR */};
+
+public:
+
+    /**
+     * @brief verifyInputMeshArgument
+     * Verifies the input mesh argument.
+     */
+    void verifyInputMeshArgument();
+
+    /**
+     * @brief verifyInputMeshesDirectoryArgument
+     * Verifies the directory that contains a list of meshes.
+     */
+    void verifyInputMeshesDirectoryArgument();
+
+    /**
+     * @brief verifyInputMorphologyArgument
+     * Verifies the input morphology argument.
+     */
+    void verifyInputMorphologyArgument();
+
+    /**
+     * @brief verifyInputMaskDirectoryArgument
+     * Verifies the presence of the directory that contains the mask.
+     */
+    void verifyInputMaskDirectoryArgument();
+
+    /**
+     * @brief verifyOutputDirectoryArgument
+     * Verifies the output arguments.
+     */
+    void verifyOutputDirectoryArgument();
+
+    /**
+     * @brief verifyBoudsFileArgument
+     * Verifies the bounds file.
+     */
+    void verifyBoudsFileArgument();
+
+    /**
+     * @brief verifyMeshPrefixArgument
+     * Verifies the prefix arguments for a given mesh.
+     */
+    void verifyMeshPrefixArgument();
+
+    /**
+     * @brief verifyMorphologyPrefixArgument
+     * Verifies the prefix arguments for a given morphology.
+     */
+    void verifyMorphologyPrefixArgument();
+
+    /**
+     * @brief verifyMeshesPrefixArgument
+     * Verifies the prefix arguments for a given directory with meshes.
+     */
+    void verifyMeshesPrefixArgument();
+
+    /**
+     * @brief verifyMaskPrefixArgument
+     * Verifies the prefix arguments for a given mask.
+     */
+    void verifyMaskPrefixArgument();
+
+    /**
+     * @brief verifyMaskDimensionsArguments
+     * Verifies the dimensions of the given mask NOT to be zero.
+     */
+    void verifyMaskDimensionsArguments();
+
+    /**
+     * @brief verifyMeshExportArguments
+     * Verifies the mesh export options.
+     */
+    void verifyMeshExportArguments();
+
+    /**
+     * @brief verifyVolumeExportArguments
+     * Verifies the volume export options.
+     */
+    void verifyVolumeExportArguments();
+
+    /**
+     * @brief verifyMeshExportLogic
+     * Runs a simple logic to ensure that there is at least ONE output mesh will be exported.
+     */
+    void verifyMeshExportLogic();
+
+    /**
+     * @brief createRespectiveDirectories
+     * Create the directory tree where the artifacts will be genrated.
+     */
+    void createRespectiveDirectories();
+
+    /**
+     * @brief initializeContext
+     * Initialization of the Ultralisation context.
+     */
+    void initializeContext();
+
+public:
+
+    /**
+     * @brief inputMeshPath
+     * An input mesh file path.
+     */
+    std::string inputMeshPath;
+
+    /**
+     * @brief inputVolumePath
+     * An input volume file path.
+     */
+    std::string inputVolumePath;
 
     /**
      * @brief inputMeshesDirectory
@@ -58,10 +167,10 @@ struct Options
     std::string inputMaskDirectory;
 
     /**
-     * @brief inputMorphology
+     * @brief inputMorphologyPath
      * An input morphology file, whether for neurons, astrocytes or vasculature.
      */
-    std::string inputMorphology;
+    std::string inputMorphologyPath;
 
     /**
      * @brief outputDirectory
@@ -202,43 +311,43 @@ struct Options
     bool projectColorCoded = false;
 
     /**
-     * @brief stackXY
-     * Create an image stack along the XY plane.
+     * @brief exportStackXY
+     * Create an image stack along the XY plane and export it.
      */
-    bool stackXY = false;
+    bool exportStackXY = false;
 
     /**
-     * @brief stackXZ
-     * Create an image stack along the XZ plane.
+     * @brief exportStackXZ
+     * Create an image stack along the XZ plane and export it.
      */
-    bool stackXZ = false;
+    bool exportStackXZ = false;
 
     /**
-     * @brief stackZY
-     * Create an image stack along the ZY plane.
+     * @brief exportStackZY
+     * Create an image stack along the ZY plane and export it.
      */
-    bool stackZY = false;
+    bool exportStackZY = false;
 
     /**
      * @brief createBinaryVolume
      * If this flag is set, a binary volume will be created. This volume has
      * 1 bit per voxel.
      */
-    bool writeBitVolume = false;
+    bool exportBitVolume = false;
 
     /**
      * @brief createByteVolume
      * If this flag is set, a default raw volume will be created. This volume
      * has 1 byte per voxel.
      */
-    bool writeByteVolume = false;
+    bool exportByteVolume = false;
 
     /**
-     * @brief writeNRRDVolume
+     * @brief exportNRRDVolume
      * If this flag is set, the volume will be written to an NRRD file that is
      * compatible with VTK.
      */
-    bool writeNRRDVolume = false;
+    bool exportNRRDVolume = false;
 
     /**
      * @brief exportVolumeMesh
@@ -394,6 +503,11 @@ struct Options
      * Ignore if the mesh has self intersections, and do NOT repair them.
      */
     bool ignoreSelfIntersections = false;
+
+    /**
+     * @brief ensureWatertight
+     */
+    bool watertight = false;
 
     /**
      * @brief ignoreOptimizedNonWatertightMesh

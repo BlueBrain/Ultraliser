@@ -23,6 +23,7 @@
 #define APPARGUMENTS_H
 
 #include <Ultraliser.h>
+#include <AppOptions.h>
 
 namespace Ultraliser
 {
@@ -165,7 +166,7 @@ public:
      * @brief getOptions
      * @return
      */
-    Options* getOptions();
+    AppOptions* getOptions();
 
 private:
 
@@ -179,7 +180,7 @@ private:
      * @brief _options
      * Systems options.
      */
-    Options* _options;
+    AppOptions* _options;
 };
 
 }

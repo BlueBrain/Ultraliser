@@ -26,7 +26,7 @@
 namespace Ultraliser
 {
 
-Options* parseArguments(const int& argc , const char** argv)
+AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
     std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
@@ -46,49 +46,19 @@ Options* parseArguments(const int& argc , const char** argv)
     args->addDataArguments();
 
     // Get all the options
-    Options* options = args->getOptions();
+    AppOptions* options = args->getOptions();
 
     LOG_TITLE("Creating Context");
 
-    /// Validate the arguments
-    if (!File::exists(options->inputMesh))
-    {
-        LOG_ERROR("The file [ %s ] does NOT exist! ", options->inputMesh.c_str());
-    }
-
-    // Try to make the output directory
-    mkdir(options->outputDirectory.c_str(), 0777);
-    if (!Directory::exists(options->outputDirectory))
-    {
-        LOG_ERROR("The directory [ %s ] does NOT exist!", options->outputDirectory.c_str());
-    }
-
-    // Exporting formats, at least one of them must be there
-    if (!(options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL))
-    {
-        LOG_ERROR("The user must specify at least one output format of the "
-                  "mesh to export: [--export-obj, --export-ply, --export-off, --export-stl]");
-    }
-
-    if (options->boundsFile == NO_DEFAULT_VALUE)
-    {
-        LOG_WARNING("The bounding box of the volume will be computed on the fly");
-        options->boundsFile = EMPTY;
-    }
-    else
-    {
-        LOG_WARNING("The bounding box of the volume will be loaded from [ %s ]",
-                    options->boundsFile.c_str());
-    }
-
-    // If no prefix is given, use the file name
-    if (options->prefix == NO_DEFAULT_VALUE)
-    {
-        options->prefix = Ultraliser::File::getName(options->inputMesh);
-    }
+    // Verify the arguments after parsing them and extracting the application options.
+    options->verifyInputMeshArgument();
+    options->verifyOutputDirectoryArgument();
+    options->verifyMeshExportArguments();
+    options->verifyBoudsFileArgument();
+    options->verifyMeshPrefixArgument();
 
     // Initialize context
-    initializeContext(options);
+    options->initializeContext();
 
     // Return the executable options
     return options;
@@ -101,7 +71,7 @@ void run(int argc , const char** argv)
 
     // Load the mesh
     std::unique_ptr<Ultraliser::AdvancedMesh> inputMesh =
-            std::make_unique<Ultraliser::AdvancedMesh>(options->inputMesh);
+            std::make_unique<Ultraliser::AdvancedMesh>(options->inputMeshPath);
 
     // Write the statistics of the original mesh
     if (options->writeStatistics)

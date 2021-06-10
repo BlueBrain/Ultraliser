@@ -635,6 +635,7 @@ void Volume::getVolumeBoundingBox(Vector3f& pMin, Vector3f& pMax) const
     pMax.y() = _pMax.y();
     pMax.z() = _pMax.z();
 }
+
 int Volume::_triangleCubeSign(Mesh *mesh,
                               int tIdx, const GridIndex & gi)
 {

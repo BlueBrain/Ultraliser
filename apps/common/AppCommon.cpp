@@ -20,9 +20,32 @@
  **************************************************************************************************/
 
 #include <Ultraliser.h>
+#include <AppOptions.h>
 
 namespace Ultraliser
 {
+
+Volume* createVolumeGrid(Mesh *mesh, const AppOptions* options)
+{
+    // Get relaxed bounding box to build the volume
+    Ultraliser::Vector3f pMinInput, pMaxInput;
+    mesh->computeBoundingBox(pMinInput, pMaxInput);
+    Vector3f meshBoundingBox = pMaxInput - pMinInput;
+
+    // Get the largest dimension
+    const float largestDimension = meshBoundingBox.getLargestDimension();
+
+    uint64_t resolution;
+    if (options->autoResolution)
+        resolution = uint64_t(options->voxelsPerMicron * largestDimension);
+    else
+        resolution = options->volumeResolution;
+    LOG_SUCCESS("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);
+
+    // Construct the volume
+    return new Volume(pMinInput, pMaxInput, resolution, options->edgeGap,
+                      Ultraliser::VolumeGrid::getType(options->volumeType));
+}
 
 void computeBoundingBoxForMeshes(const std::string& boundsFile,
                                  const std::string& inputMeshesDirectory,
@@ -132,7 +155,7 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
     }
 }
 
-void applyLaplacianOperator(Mesh *mesh, const Options* options)
+void applyLaplacianOperator(Mesh *mesh, const AppOptions* options)
 {
     // Apply the Laplacian filter
     mesh->smoothLaplacian(options->laplacianIterations);
@@ -151,7 +174,7 @@ void applyLaplacianOperator(Mesh *mesh, const Options* options)
         mesh->printStats(LAPLACIAN_STRING, &options->distributionsPrefix);
 }
 
-void createWatertightMesh(const Mesh* mesh, const Options* options)
+void createWatertightMesh(const Mesh* mesh, const AppOptions* options)
 {
     // Create an advanced mesh to process the manifold mesh and make it watertight if it has any
     // self intersections
@@ -207,7 +230,7 @@ void createWatertightMesh(const Mesh* mesh, const Options* options)
                                    options->exportOFF, options->exportSTL);
 }
 
-void generateOptimizedMesh(Mesh *dmcMesh, const Options* options)
+void generateOptimizedMesh(Mesh *dmcMesh, const AppOptions* options)
 {
     // Further adaptive optimization
     if (options->optimizeMeshAdaptively)
@@ -242,7 +265,6 @@ void generateOptimizedMesh(Mesh *dmcMesh, const Options* options)
             dmcMesh->exportMesh(options->meshPrefix + OPTIMIZED_SUFFIX,
                                 options->exportOBJ, options->exportPLY,
                                 options->exportOFF, options->exportSTL);
-
     }
 
     // Fix self-intersections if any to create the watertight mesh
@@ -250,7 +272,7 @@ void generateOptimizedMesh(Mesh *dmcMesh, const Options* options)
         createWatertightMesh(dmcMesh, options);
 }
 
-void generateReconstructedMeshArtifacts(const Mesh *mesh, const Options* options)
+void generateMarchingCubesMeshArtifacts(const Mesh *mesh, const AppOptions* options)
 {   
     // Write the statistics of the reconstructed mesh from the marhcing cubes algorithm
     if (options->writeStatistics)
@@ -267,14 +289,14 @@ void generateReconstructedMeshArtifacts(const Mesh *mesh, const Options* options
                          options->exportOFF, options->exportSTL);
 }
 
-void generateMeshArtifacts(Mesh* mesh, const Options* options)
+void generateReconstructedMeshArtifacts(Mesh* mesh, const AppOptions* options)
 {
     // MC mesh output
     if (options->writeMarchingCubeMesh)
-        generateReconstructedMeshArtifacts(mesh, options);
+        generateMarchingCubesMeshArtifacts(mesh, options);
 
     // Laplacian smoorhing
-    if (!options->ignoreLaplacianSmoothing)
+    if (!options->ignoreLaplacianSmoothing || options->laplacianIterations > 0)
         applyLaplacianOperator(mesh, options);
 
     // Optimize the mesh and create a watertight mesh
@@ -282,7 +304,7 @@ void generateMeshArtifacts(Mesh* mesh, const Options* options)
         generateOptimizedMesh(mesh, options);
 }
 
-void generateVolumeArtifacts(const Volume* volume, const Options* options)
+void generateVolumeArtifacts(const Volume* volume, const AppOptions* options)
 {
     // Projecting the volume to validate its content
     if (options->projectXY || options->projectXZ || options->projectZY)
@@ -291,16 +313,16 @@ void generateVolumeArtifacts(const Volume* volume, const Options* options)
                         options->projectColorCoded);
 
     // Write the volume
-    if (options->writeBitVolume || options->writeByteVolume || options->writeNRRDVolume)
+    if (options->exportBitVolume || options->exportByteVolume || options->exportNRRDVolume)
         volume->writeVolumes(options->volumePrefix,
-                             options->writeBitVolume,
-                             options->writeByteVolume,
-                             options->writeNRRDVolume);
+                             options->exportBitVolume,
+                             options->exportByteVolume,
+                             options->exportNRRDVolume);
 
     // Write the stacks
-    if (options->stackXY || options->stackXZ || options->stackZY)
+    if (options->exportStackXY || options->exportStackXZ || options->exportStackZY)
         volume->writeStacks(options->outputDirectory + "/" + STACKS_SIRECTORY, options->prefix,
-                            options->stackXY, options->stackXZ, options->stackZY);
+                            options->exportStackXY, options->exportStackXZ, options->exportStackZY);
 
     // Export volume mesh
     if (options->exportVolumeMesh)

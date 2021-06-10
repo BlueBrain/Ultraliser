@@ -26,7 +26,7 @@
 namespace Ultraliser
 {
 
-Options* parseArguments(const int& argc , const char** argv)
+AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
     std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
@@ -39,38 +39,18 @@ Options* parseArguments(const int& argc , const char** argv)
     args->addDataArguments();
 
     // Get all the options
-    Options* options = args->getOptions();
+    AppOptions* options = args->getOptions();
 
     LOG_TITLE("Creating Context");
 
-    /// Validate the arguments
-    if (!File::exists(options->inputMesh))
-    {
-        LOG_ERROR("The file [ %s ] does NOT exist! ", options->inputMesh.c_str());
-    }
-
-    // Try to make the output directory
-    mkdir(options->outputDirectory.c_str(), 0777);
-    if (!Directory::exists(options->outputDirectory))
-    {
-        LOG_ERROR("The directory [ %s ] does NOT exist!", options->outputDirectory.c_str());
-    }
-
-    // Exporting formats, at least one of them must be there
-    if (!(options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL))
-    {
-        LOG_ERROR("The user must specify at least one output format of the "
-                  "mesh to export: [--export-obj, --export-ply, --export-off, --export-stl]");
-    }
-
-    // If no prefix is given, use the directory name
-    if (options->prefix == NO_DEFAULT_VALUE)
-    {
-        options->prefix = Directory::getName(options->inputMaskDirectory);
-    }
+    // Verify the arguments after parsing them and extracting the application options.
+    options->verifyInputMeshArgument();
+    options->verifyOutputDirectoryArgument();
+    options->verifyMeshExportArguments();
+    options->verifyMeshPrefixArgument();
 
     // Initialize context
-    initializeContext(options);
+    options->initializeContext();
 
     // Return the executable options
     return options;
@@ -83,7 +63,7 @@ void run(int argc , const char** argv)
 
     // Load the mesh
     std::unique_ptr<Ultraliser::AdvancedMesh> inputMesh =
-            std::make_unique<Ultraliser::AdvancedMesh>(options->inputMesh);
+            std::make_unique<Ultraliser::AdvancedMesh>(options->inputMeshPath);
 
     // Split the partitions
     std::vector < Ultraliser::AdvancedMesh* > partitions = inputMesh->splitPartitions();

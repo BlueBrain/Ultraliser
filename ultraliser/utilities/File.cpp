@@ -338,22 +338,22 @@ std::string getName(std::string& filePath, bool withExtension)
     std::istream_iterator<std::string> begin(streamBS);
     std::istream_iterator<std::string> end;
     std::vector<std::string> stringsVectorBS(begin, end);
-    std::copy(stringsVectorBS.begin(), stringsVectorBS.end(),
-              std::ostream_iterator<std::string>(std::cout, "\n"));
 
     // Now, we have the file name with the extension
     std::string fileNameWithExtension = stringsVectorBS.at(stringsVectorBS.size() - 1);
+
+    // With extension
     if (withExtension)
-        return  fileNameWithExtension;
+        return fileNameWithExtension;
 
     // Split the file name to a std::vector with the . separator
-    std::stringstream streamDot(filePath);
+    std::stringstream streamDot(fileNameWithExtension);
     streamDot.imbue(std::locale(std::locale(), new tokensDot()));
     std::istream_iterator<std::string> beginDot(streamDot);
     std::istream_iterator<std::string> endDot;
     std::vector<std::string> stringsVectorDot(beginDot, endDot);
-    std::copy(stringsVectorDot.begin(), stringsVectorDot.end(),
-              std::ostream_iterator<std::string>(std::cout, "\n"));
+
+    // Withour extension
     return stringsVectorDot.at(0);
 }
 

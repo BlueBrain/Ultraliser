@@ -26,7 +26,7 @@
 namespace Ultraliser
 {
 
-Options* parseArguments(const int& argc , const char** argv)
+AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
     std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
@@ -44,49 +44,19 @@ Options* parseArguments(const int& argc , const char** argv)
     args->addDataArguments();
 
     // Get all the options
-    Options* options = args->getOptions();
+    AppOptions* options = args->getOptions();
 
     LOG_TITLE("Creating Context");
 
-    /// Validate the arguments
-    if (!File::exists(options->inputMorphology))
-    {
-        LOG_ERROR("The file [ %s ] does NOT exist! ", options->inputMorphology.c_str());
-    }
-
-    // Try to make the output directory
-    mkdir(options->outputDirectory.c_str(), 0777);
-    if (!Directory::exists(options->outputDirectory))
-    {
-        LOG_ERROR("The directory [ %s ] does NOT exist!", options->outputDirectory.c_str());
-    }
-
-    if (options->boundsFile == NO_DEFAULT_VALUE)
-    {
-        LOG_WARNING("The bounding box of the input will be computed on the fly");
-        options->boundsFile = EMPTY;
-    }
-    else
-    {
-        LOG_WARNING("The bounding box of the volume will be loaded from [ %s ]",
-                    options->boundsFile.c_str());
-    }
-
-    // Exporting formats, at least one of them must be there
-    if (!(options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL))
-    {
-        LOG_ERROR("The user must specify at least one output format of the "
-                  "mesh to export: [--export-obj, --export-ply, --export-off, --export-stl]");
-    }
-
-    // If no prefix is given, use the file name
-    if (options->prefix == NO_DEFAULT_VALUE)
-    {
-        options->prefix = File::getName(options->inputMorphology);
-    }
+    // Verify the arguments after parsing them and extracting the application options.
+    options->verifyInputMorphologyArgument();
+    options->verifyOutputDirectoryArgument();
+    options->verifyBoudsFileArgument();
+    options->verifyMeshesPrefixArgument();
+    options->verifyMorphologyPrefixArgument();
 
     // Initialize context
-    initializeContext(options);
+    options->initializeContext();
 
     // Return the executable options
     return options;
@@ -98,7 +68,7 @@ void run(int argc , const char** argv)
     auto options = parseArguments(argc, argv);
 
     // Read the file into a morphology structure
-    auto vasculatureMorphology = readVascularMorphology(options->inputMorphology);
+    auto vasculatureMorphology = readVascularMorphology(options->inputMorphologyPath);
 
     if (options->writeStatistics)
         vasculatureMorphology->printStats(options->prefix, &options->statisticsPrefix);
@@ -142,7 +112,7 @@ void run(int argc , const char** argv)
     delete volume;
 
     // Generate the mesh artifacts
-    generateMeshArtifacts(mesh, options);
+    generateMarchingCubesMeshArtifacts(mesh, options);
 
     // Free
     delete mesh;

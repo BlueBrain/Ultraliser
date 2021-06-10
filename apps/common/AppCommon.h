@@ -20,10 +20,23 @@
  **************************************************************************************************/
 
 #include <Ultraliser.h>
+#include <AppOptions.h>
 
 namespace Ultraliser
 {
 
+/**
+ * @brief createVolumeGrid
+ * Creates a volume grid compatiable with the input mesh.
+ *
+ * @param mesh
+ * Input mesh.
+ * @param options
+ * System options.
+ * @return
+ * Volume base resolution (along the largest dimension).
+ */
+Volume* createVolumeGrid(Mesh *mesh, const AppOptions* options);
 
 /**
  * @brief computeBoundingBoxForMeshes
@@ -53,7 +66,7 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
  * @param options
  * User-defined options given to the executable.
  */
-void applyLaplacianOperator(Mesh *mesh, const Options* options);
+void applyLaplacianOperator(Mesh *mesh, const AppOptions* options);
 
 /**
  * @brief createMeshWithNoSelfIntersections
@@ -64,7 +77,7 @@ void applyLaplacianOperator(Mesh *mesh, const Options* options);
  * @param options
  * User-defined options given to the executable.
  */
-void createWatertightMesh(const Mesh* manifoldMesh, const Options* options);
+void createWatertightMesh(const Mesh* manifoldMesh, const AppOptions* options);
 
 /**
  * @brief optimizeMesh
@@ -75,10 +88,10 @@ void createWatertightMesh(const Mesh* manifoldMesh, const Options* options);
  * @param options
  * User-defined options given to the executable.
  */
-void generateOptimizedMesh(Mesh *dmcMesh, const Options* options);
+void generateOptimizedMesh(Mesh *dmcMesh, const AppOptions* options);
 
 /**
- * @brief generateReconstructedMeshArtifacts
+ * @brief generateMarchingCubesMeshArtifacts
  * Writes the resulting mesh from the marching cubes algorithm.
  *
  * @param mesh
@@ -86,7 +99,7 @@ void generateOptimizedMesh(Mesh *dmcMesh, const Options* options);
  * @param options
  * User-defined options given to the executable.
  */
-void generateReconstructedMeshArtifacts(const Mesh *mesh, const Options* options);
+void generateMarchingCubesMeshArtifacts(const Mesh *mesh, const AppOptions* options);
 
 /**
  * @brief generateMeshArtifacts
@@ -97,12 +110,12 @@ void generateReconstructedMeshArtifacts(const Mesh *mesh, const Options* options
  * @param options
  * User-defined options given to the executable.
  */
-void generateMeshArtifacts(Mesh* mesh, const Options* options);
+void generateReconstructedMeshArtifacts(Mesh* mesh, const AppOptions* options);
 
 /**
  * @brief generateVolumeArtifacts
  * @param volume
  * @param options
  */
-void generateVolumeArtifacts(const Volume* volume, const Options* options);
+void generateVolumeArtifacts(const Volume* volume, const AppOptions* options);
 }

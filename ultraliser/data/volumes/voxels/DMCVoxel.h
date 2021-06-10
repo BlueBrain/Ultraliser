@@ -43,6 +43,31 @@ struct DMCVoxel
 public:
 
     /**
+     * @brief DMCVoxel
+     * Constructor
+     * @param i
+     * X-coordinates
+     * @param j
+     * Y-coordinates
+     * @param k
+     * Z-coordinates
+     * @param enter
+     * Entering the voxel
+     * @param exit
+     * Exiting the voxel
+     * @param edgeSide
+     * Side axis
+     */
+    DMCVoxel(const int64_t& i, const int64_t& j, const int64_t& k,
+             const bool& enter, const bool& exit, const DMC_EDGE_SIDE& edgeSide)
+    {
+        // Corrdinates
+        x = i; y = j;  z = k;
+        entering = enter; exiting = exit;
+        side = edgeSide;
+    }
+
+    /**
      * @brief x
      * X-axis of the voxel.
      */
@@ -83,7 +108,7 @@ public:
  * @brief DMCVoxels
  * A list (std::vector) of DMCVoxel's.
  */
-typedef std::vector< DMCVoxel > DMCVoxels;
+typedef std::vector< DMCVoxel* > DMCVoxels;
 
 /**
  * @brief DMCVoxelsList

@@ -30,7 +30,7 @@ AppArguments::AppArguments(const int& argc , const char** argv, const std::strin
     _args = new Args(argc, argv, help);
 
     // Please fill the _options in the corresponding directories
-    _options = new Options();
+    _options = new AppOptions();
 }
 
 void AppArguments::addInputMeshArguments()
@@ -41,7 +41,7 @@ void AppArguments::addInputMeshArguments()
                 "The absolute path to the input mesh.",
                 ARGUMENT_PRESENCE::MANDATORY);
     _args->addArgument(&inputMesh);
-    _options->inputMesh = _args->getStringValue(&inputMesh);
+    _options->inputMeshPath = _args->getStringValue(&inputMesh);
 }
 
 void AppArguments::addInputMeshesDirectoryArguments()
@@ -63,7 +63,7 @@ void AppArguments::addInputMorphologyArguments()
                 "The absolute path to the input morphology.",
                 ARGUMENT_PRESENCE::MANDATORY);
     _args->addArgument(&inputMorphology);
-    _options->inputMorphology = _args->getStringValue(&inputMorphology);
+    _options->inputMorphologyPath = _args->getStringValue(&inputMorphology);
 }
 
 void AppArguments::addInputMaskDirectoryArguments()
@@ -106,7 +106,7 @@ void AppArguments::addInputVolumeArguments()
                 "The absolute path to the volume.",
                 ARGUMENT_PRESENCE::MANDATORY);
     _args->addArgument(&inputVolume);
-    _options->inputVolume = _args->getStringValue(&inputVolume);
+    _options->inputVolumePath = _args->getStringValue(&inputVolume);
 }
 
 void AppArguments::addInputVolumeParametersArguments()
@@ -278,26 +278,28 @@ void AppArguments::addVolumeProjectionArguments()
 
 void AppArguments::addVolumeExportArguments()
 {
-    Argument writeBitVolume(
-                "--write-bit-volume",
+    Argument exportBitVolume(
+                "--export-bit-volume",
                 ARGUMENT_TYPE::BOOL,
-                "Generate a bit volume, where each voxel is stored in a single bit.");
-    _args->addArgument(&writeBitVolume);
-    _options->writeBitVolume = _args->getBoolValue(&writeBitVolume);
+                "Export a bit volume, where each voxel is stored in a single bit."
+                "The resulting volume files are: .img file (data) and .hdr file (meta-data)");
+    _args->addArgument(&exportBitVolume);
+    _options->exportBitVolume = _args->getBoolValue(&exportBitVolume);
 
-    Argument writeByteVolume(
-                "--write-byte-volume",
+    Argument exportByteVolume(
+                "--export-raw-volume",
                 ARGUMENT_TYPE::BOOL,
-                "Generate a byte volume, where each voxel is stored in a single byte.");
-    _args->addArgument(&writeByteVolume);
-    _options->writeByteVolume = _args->getBoolValue(&writeByteVolume);
+                "Export a raw volume, where each voxel is stored in a single byte."
+                "The resulting volume files are: .img file (data) and .hdr file (meta-data)");
+    _args->addArgument(&exportByteVolume);
+    _options->exportByteVolume = _args->getBoolValue(&exportByteVolume);
 
-    Argument writeNRRDVolume(
-                "--write-nrrd-volume",
+    Argument exportNRRDVolume(
+                "--export-nrrd-volume",
                 ARGUMENT_TYPE::BOOL,
-                "Generate an NRRD volume that is compatible with VTK.");
-    _args->addArgument(&writeNRRDVolume);
-    _options->writeNRRDVolume = _args->getBoolValue(&writeNRRDVolume);
+                "Export an NRRD volume that is compatible with VTK.");
+    _args->addArgument(&exportNRRDVolume);
+    _options->exportNRRDVolume = _args->getBoolValue(&exportNRRDVolume);
 
     Argument exportVolumeMesh(
                 "--export-volume-mesh",
@@ -325,27 +327,27 @@ void AppArguments::addVolumeExportArguments()
 
 void AppArguments::addStacksArguments()
 {
-    Argument stackXY(
-                "--stack-xy",
+    Argument exportStackXY(
+                "--export-stack-xy",
                 ARGUMENT_TYPE::BOOL,
                 "Generate an image stack along the Z-axis of the volume.");
-    _args->addArgument(&stackXY);
-    _options->stackXY = _args->getBoolValue(&stackXY);
+    _args->addArgument(&exportStackXY);
+    _options->exportStackXY = _args->getBoolValue(&exportStackXY);
 
 
-    Argument stackXZ(
-                "--stack-xz",
+    Argument exportStackXZ(
+                "--export-stack-xz",
                 ARGUMENT_TYPE::BOOL,
                 "Generate an image stack along the Y-axis of the volume.");
-    _args->addArgument(&stackXZ);
-    _options->stackXZ = _args->getBoolValue(&stackXZ);
+    _args->addArgument(&exportStackXZ);
+    _options->exportStackXZ = _args->getBoolValue(&exportStackXZ);
 
-    Argument stackZY(
-                "--stack-zy",
+    Argument exportStackZY(
+                "--export-stack-zy",
                 ARGUMENT_TYPE::BOOL,
                 "Generate an image stack along the X-axis of the volume.");
-    _args->addArgument(&stackZY);
-    _options->stackZY = _args->getBoolValue(&stackZY);
+    _args->addArgument(&exportStackZY);
+    _options->exportStackZY = _args->getBoolValue(&exportStackZY);
 }
 
 void AppArguments::addMeshVoxelizationArgument()
@@ -450,31 +452,30 @@ void AppArguments::addLaplacianOperatorArguments()
 void AppArguments::addMeshExportArguments()
 {
     Argument exportOBJ(
-                "--export-obj",
+                "--export-obj-mesh",
                 ARGUMENT_TYPE::BOOL,
-                "Export the reconstructed mesh to an .OBJ file.");
+                "Export the resulting mesh(es) to Wavefront format (.obj).");
     _args->addArgument(&exportOBJ);
     _options->exportOBJ = _args->getBoolValue(&exportOBJ);
 
     Argument exportPLY(
-                "--export-ply",
+                "--export-ply-mesh",
                 ARGUMENT_TYPE::BOOL,
-                "Export the reconstructed mesh to an .PLY file.");
+                "Export the resulting mesh(es) to the Stanford triangle format (.ply).");
     _args->addArgument(&exportPLY);
     _options->exportPLY = _args->getBoolValue(&exportPLY);
 
-
     Argument exportOFF(
-                "--export-off",
+                "--export-off-mesh",
                 ARGUMENT_TYPE::BOOL,
-                "Export the reconstructed mesh to an .OFF file.");
+                "Export the resulting mesh(es) to the object file format (.off).");
     _args->addArgument(&exportOFF);
     _options->exportOFF = _args->getBoolValue(&exportOFF);
 
     Argument exportSTL(
-                "--export-stl",
+                "--export-stl-mesh",
                 ARGUMENT_TYPE::BOOL,
-                "Export the reconstructed mesh to an .STL file.");
+                "Export the resulting mesh(es) to the  stereolithography CAD format (.stl).");
     _args->addArgument(&exportSTL);
     _options->exportSTL = _args->getBoolValue(&exportSTL);
 }
@@ -536,6 +537,17 @@ void AppArguments::addDataArguments()
 
 void AppArguments::addSuppressionArguments()
 {
+    Argument watertight(
+                "--watertight",
+                ARGUMENT_TYPE::BOOL,
+                "Guarantee that the resulting mesh is watertight. "
+                "If this flag is set, and by default, the exported mesh will be ONLY the "
+                "watertight one, and those created from the marching cubes algorithm, or the "
+                "laplacian operation and optimization will NOT be exported, unless specified.");
+    _args->addArgument(&watertight);
+    _options->watertight = _args->getBoolValue(&watertight);
+
+
     Argument ignoreSelfIntersections(
                 "--ignore-self-intersections",
                 ARGUMENT_TYPE::BOOL,
@@ -563,7 +575,7 @@ void AppArguments::addSuppressionArguments()
             _args->getBoolValue(&ignoreOptimizedNonWatertightMesh);
 }
 
-Options* AppArguments::getOptions()
+AppOptions* AppArguments::getOptions()
 {
     // Parse the arguments
     _args->parse();

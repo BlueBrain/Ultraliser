@@ -91,7 +91,6 @@ std::unique_ptr< Mesh > DualMarchingCubes::generateMeshX()
     return mesh;
 }
 
-
 AdvancedMesh* DualMarchingCubes::generateManifoldMesh()
 {
     // Build the mesh
@@ -392,8 +391,6 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
 
     // Searching for non-zero voxels in parallel
     LOOP_STARTS("Searching Filled Voxels");
-    uint64_t progress = 0;
-
     OMP_PARALLEL_FOR
     for (int64_t x = minVoxel; x < maxX; ++x)
     {
@@ -402,20 +399,15 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
 
 #ifdef ULTRALISER_USE_OPENMP
          if (omp_get_thread_num() == 0)
+             LOOP_PROGRESS(x, maxX - minVoxel);
+#else
+         LOOP_PROGRESS_SIMPLE(x, maxX - minVoxel);
 #endif
-         {
-             LOOP_PROGRESS(progress, (maxX - minVoxel) * (maxY - minVoxel) * (maxZ - minVoxel));
-         }
 
          for (int64_t y = minVoxel; y < maxY; ++y)
          {
              for (int64_t z = minVoxel; z < maxZ; ++z)
              {
-#ifdef ULTRALISER_USE_OPENMP
-                #pragma omp atomic
-#endif
-                ++progress;
-
                 // X-aligned edge
                 if (z > minVoxel && y > minVoxel)
                 {
@@ -423,70 +415,45 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
                     const uint64_t value1 = _volume->getValue(x + 1, y, z);
 
                     bool const entering = (value0 < _isoValue) && (value1 >= _isoValue);
-                    bool const exiting  = (value0 >= _isoValue) && (value1 < _isoValue);
+                    bool const exiting = (value0 >= _isoValue) && (value1 < _isoValue);
 
                     // Create a DMCVoxel if there is one
                     if (entering || exiting)
                     {
-                        DMCVoxel dmcVoxel;
-                        dmcVoxel.x = x;
-                        dmcVoxel.y = y;
-                        dmcVoxel.z = z;
-                        dmcVoxel.entering = entering;
-                        dmcVoxel.exiting = exiting;
-                        dmcVoxel.side = DMC_EDGE_SIDE::X;
-
-                        sliceDMCVoxels.push_back(dmcVoxel);
+                        sliceDMCVoxels.push_back(
+                                    new DMCVoxel(x, y, z, entering, exiting, DMC_EDGE_SIDE::X));
                     }
                 }
 
                 // Y-aligned edge
                 if (z > minVoxel && x > minVoxel)
                 {
-                    bool const entering =
-                            _volume->getValue(x, y, z) < _isoValue &&
-                            _volume->getValue(x, y + 1, z) >= _isoValue;
-                    bool const exiting  =
-                            _volume->getValue(x, y, z) >= _isoValue &&
-                            _volume->getValue(x, y + 1, z) < _isoValue;
+                    const uint64_t value0 = _volume->getValue(x, y, z);
+                    const uint64_t value1 = _volume->getValue(x, y + 1, z);
+
+                    bool const entering = value0 < _isoValue && value1 >= _isoValue;
+                    bool const exiting = value0 >= _isoValue && value1 < _isoValue;
 
                     if (entering || exiting)
                     {
-                        // That's a valid voxel
-                        DMCVoxel dmcVoxel;
-                        dmcVoxel.x = x;
-                        dmcVoxel.y = y;
-                        dmcVoxel.z = z;
-                        dmcVoxel.entering = entering;
-                        dmcVoxel.exiting = exiting;
-                        dmcVoxel.side = DMC_EDGE_SIDE::Y;
-
-                        sliceDMCVoxels.push_back(dmcVoxel);
+                        sliceDMCVoxels.push_back(
+                                    new DMCVoxel(x, y, z, entering, exiting, DMC_EDGE_SIDE::Y));
                     }
                 }
 
                 // Z-aligned edge
                 if (x > minVoxel && y > minVoxel)
                 {
-                    bool const entering =
-                            _volume->getValue(x, y, z) < _isoValue &&
-                            _volume->getValue(x, y, z + 1) >= _isoValue;
-                    bool const exiting  =
-                            _volume->getValue(x, y, z) >= _isoValue &&
-                            _volume->getValue(x, y, z + 1) < _isoValue;
+                    const uint64_t value0 = _volume->getValue(x, y, z);
+                    const uint64_t value1 = _volume->getValue(x, y, z + 1);
+
+                    bool const entering = value0 < _isoValue && value1 >= _isoValue;
+                    bool const exiting = value0 >= _isoValue && value1 < _isoValue;
 
                     if (entering || exiting)
                     {
-                        // That's a valid voxel
-                        DMCVoxel dmcVoxel;
-                        dmcVoxel.x = x;
-                        dmcVoxel.y = y;
-                        dmcVoxel.z = z;
-                        dmcVoxel.entering = entering;
-                        dmcVoxel.exiting = exiting;
-                        dmcVoxel.side = DMC_EDGE_SIDE::Z;
-
-                        sliceDMCVoxels.push_back(dmcVoxel);
+                        sliceDMCVoxels.push_back(
+                                    new DMCVoxel(x, y, z, entering, exiting, DMC_EDGE_SIDE::Z));
                     }
                 }
             }
@@ -508,23 +475,23 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
         LOOP_PROGRESS(i, volumeDMCVoxels.size());
         for (uint64_t j = 0; j < volumeDMCVoxels[i].size(); j++)
         {
-            DMCVoxel& dmcVoxel = volumeDMCVoxels[i][j];
+            DMCVoxel* dmcVoxel = volumeDMCVoxels[i][j];
 
             // X-aligned edge
-            if (dmcVoxel.side == DMC_EDGE_SIDE::X)
+            if (dmcVoxel->side == DMC_EDGE_SIDE::X)
             {
                 // Generate quad
-                i0 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y, dmcVoxel.z,
+                i0 = _getSharedDualPointIndex(dmcVoxel->x, dmcVoxel->y, dmcVoxel->z,
                                               EDGE0, vertices);
-                i1 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y, dmcVoxel.z - 1,
+                i1 = _getSharedDualPointIndex(dmcVoxel->x, dmcVoxel->y, dmcVoxel->z - 1,
                                               EDGE2, vertices);
-                i2 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y - 1, dmcVoxel.z - 1,
+                i2 = _getSharedDualPointIndex(dmcVoxel->x, dmcVoxel->y - 1, dmcVoxel->z - 1,
                                               EDGE6, vertices);
-                i3 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y - 1, dmcVoxel.z,
+                i3 = _getSharedDualPointIndex(dmcVoxel->x, dmcVoxel->y - 1, dmcVoxel->z,
                                               EDGE4, vertices);
 
                 // Append this quad to the list based on the voxel
-                if (dmcVoxel.entering)
+                if (dmcVoxel->entering)
                 {
                     // quads.push_back(Vec4i_64(i0, i1, i2, i3));
                     // Quad [i0, i1, i2, i3]
@@ -545,20 +512,20 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
             }
 
             // Y-aligned edge
-            else if (dmcVoxel.side == DMC_EDGE_SIDE::Y)
+            else if (dmcVoxel->side == DMC_EDGE_SIDE::Y)
             {
                 // Generate quad
-                i0 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y, dmcVoxel.z,
+                i0 = _getSharedDualPointIndex(dmcVoxel->x, dmcVoxel->y, dmcVoxel->z,
                                               EDGE8, vertices);
-                i1 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y, dmcVoxel.z - 1,
+                i1 = _getSharedDualPointIndex(dmcVoxel->x, dmcVoxel->y, dmcVoxel->z - 1,
                                               EDGE11, vertices);
-                i2 = _getSharedDualPointIndex(dmcVoxel.x - 1, dmcVoxel.y, dmcVoxel.z - 1,
+                i2 = _getSharedDualPointIndex(dmcVoxel->x - 1, dmcVoxel->y, dmcVoxel->z - 1,
                                               EDGE10, vertices);
-                i3 = _getSharedDualPointIndex(dmcVoxel.x - 1, dmcVoxel.y, dmcVoxel.z,
+                i3 = _getSharedDualPointIndex(dmcVoxel->x - 1, dmcVoxel->y, dmcVoxel->z,
                                               EDGE9, vertices);
 
                 // Append this quad to the list based on the voxel
-                if (dmcVoxel.exiting)
+                if (dmcVoxel->exiting)
                 {
                     // quads.push_back(Vec4i_64(i0, i1, i2, i3));
                     // Quad [i0, i1, i2, i3]
@@ -579,20 +546,20 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
             }
 
             // Z-aligned edge
-            else if (dmcVoxel.side == DMC_EDGE_SIDE::Z)
+            else if (dmcVoxel->side == DMC_EDGE_SIDE::Z)
             {
                 // Generate quad
-                i0 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y, dmcVoxel.z,
+                i0 = _getSharedDualPointIndex(dmcVoxel->x, dmcVoxel->y, dmcVoxel->z,
                                               EDGE3, vertices);
-                i1 = _getSharedDualPointIndex(dmcVoxel.x - 1, dmcVoxel.y, dmcVoxel.z,
+                i1 = _getSharedDualPointIndex(dmcVoxel->x - 1, dmcVoxel->y, dmcVoxel->z,
                                               EDGE1, vertices);
-                i2 = _getSharedDualPointIndex(dmcVoxel.x - 1, dmcVoxel.y - 1, dmcVoxel.z,
+                i2 = _getSharedDualPointIndex(dmcVoxel->x - 1, dmcVoxel->y - 1, dmcVoxel->z,
                                               EDGE5, vertices);
-                i3 = _getSharedDualPointIndex(dmcVoxel.x, dmcVoxel.y - 1, dmcVoxel.z,
+                i3 = _getSharedDualPointIndex(dmcVoxel->x, dmcVoxel->y - 1, dmcVoxel->z,
                                               EDGE7, vertices);
 
                 // Append this quad to the list based on the voxel
-                if (dmcVoxel.exiting)
+                if (dmcVoxel->exiting)
                 {
                     // quads.push_back(Vec4i_64(i0, i1, i2, i3));
                     // Quad [i0, i1, i2, i3]
@@ -615,17 +582,25 @@ void DualMarchingCubes::_buildSharedVerticesQuadsParallel(Vertices& vertices, Tr
             {
                 LOG_ERROR("UNKNOWN DMC EDGE!");
             }
+
+            // Delete the DMC voxel
+            delete dmcVoxel;
         }
+
+        volumeDMCVoxels[i].clear();
+        volumeDMCVoxels[i].shrink_to_fit();
     }
     LOOP_DONE;
 
+    // Clear the DMC voxel list
+    volumeDMCVoxels.clear();
+    volumeDMCVoxels.shrink_to_fit();
 
     // Statistics
     _buildingSharedVerticesTime = GET_TIME_SECONDS;
     LOG_STATS(GET_TIME_SECONDS);
 
-    _buildSharedVerticesQuadsParallelTime =
-            _searchingZeroVoxelsTime + _buildingSharedVerticesTime;
+    _buildSharedVerticesQuadsParallelTime = _searchingZeroVoxelsTime + _buildingSharedVerticesTime;
 }
 
 void DualMarchingCubes::_buildSharedVerticesQuads(Vertices &vertices,
@@ -640,6 +615,7 @@ void DualMarchingCubes::_buildSharedVerticesQuads(Vertices &vertices,
     const int64_t maxX = I2I64(_volume->getWidth()) + 2;
     const int64_t maxY = I2I64(_volume->getHeight()) + 2;
     const int64_t maxZ = I2I64(_volume->getDepth()) + 2;
+    const uint64_t totalSize = ((maxX - minValue) * (maxY - minValue) * (maxZ - minValue));
 
     // Quad points
     int64_t i0, i1, i2, i3;
@@ -657,7 +633,7 @@ void DualMarchingCubes::_buildSharedVerticesQuads(Vertices &vertices,
             {
                 index++;
 
-                LOOP_PROGRESS(index, (maxX - minValue) * (maxY - minValue) * (maxZ - minValue));
+                LOOP_PROGRESS_SIMPLE(index, totalSize);
 
                 // Construct quads for X edge
                 if (z > minValue && y > minValue)

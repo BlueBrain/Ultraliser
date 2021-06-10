@@ -54,6 +54,29 @@
 #define LOOP_PROGRESS(PROGRESS, TOTAL) { }
 #endif
 
+// Print the progress in a loop
+#ifdef ENABLE_PROGRESS_BAR
+#define LOOP_PROGRESS_SIMPLE(PROGRESS, TOTAL)                                                       \
+{                                                                                                   \
+    {                                                                                               \
+        if (uint(std::floor((PROGRESS * 100.0f) / TOTAL )) % 10 == 0)                               \
+        {                                                                                           \
+            double PERCENTAGE = static_cast< double >                                               \
+            (100.0 * PROGRESS / static_cast< double >(TOTAL));                                      \
+            double STARS = std::floor((PERCENTAGE * PROGRESS_BAR_LENGTH) / 100.0);                  \
+            double SPACES = std::floor(PROGRESS_BAR_LENGTH - STARS);                                \
+            std::string BAR = "* Progress │";                                                       \
+            for(int i = 0; i < int(STARS); i++) BAR += "▒";                                         \
+            for(int i = 0; i < int(SPACES); i++) BAR += " "; BAR+= "│";                             \
+            printf("\r\t%s (%2.2f %%)", BAR.c_str(), PERCENTAGE);                                   \
+            fflush(stdout);                                                                         \
+        }                                                                                           \
+    }                                                                                               \
+}
+#else
+#define LOOP_PROGRESS_SIMPLE(PROGRESS, TOTAL) { }
+#endif
+
 // Print the progress in a very long loop
 #define LONG_LOOP_PROGRESS(PROGRESS, TOTAL)                                                         \
 {                                                                                                   \

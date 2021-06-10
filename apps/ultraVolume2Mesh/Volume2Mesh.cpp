@@ -26,7 +26,7 @@
 namespace Ultraliser
 {
 
-Options* parseArguments(const int& argc , const char** argv)
+AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
     std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
@@ -44,14 +44,14 @@ Options* parseArguments(const int& argc , const char** argv)
     args->addDataArguments();
 
     // Get all the options
-    Options* options = args->getOptions();
+    AppOptions* options = args->getOptions();
 
     LOG_TITLE("Creating Context");
 
     /// Validate the arguments
-    if (!Ultraliser::File::exists(options->inputMesh))
+    if (!Ultraliser::File::exists(options->inputMeshPath))
     {
-        LOG_ERROR("The file [ %s ] does NOT exist! ", options->inputMesh.c_str());
+        LOG_ERROR("The file [ %s ] does NOT exist! ", options->inputMeshPath.c_str());
     }
 
     // Try to make the output directory
@@ -82,11 +82,11 @@ Options* parseArguments(const int& argc , const char** argv)
     // If no prefix is given, use the file name
     if (options->prefix == NO_DEFAULT_VALUE)
     {
-        options->prefix = Ultraliser::File::getName(options->inputVolume);
+        options->prefix = Ultraliser::File::getName(options->inputVolumePath);
     }
 
     // Initialize context
-    initializeContext(options);
+    options->initializeContext();
 
     // Return the executable options
     return options;
@@ -99,7 +99,7 @@ void run(int argc , const char** argv)
 
     // Construct a volume from the file
     Ultraliser::Volume* loadedVolume = new Ultraliser::Volume(
-                options->inputVolume, Ultraliser::VolumeGrid::TYPE::BYTE);
+                options->inputVolumePath, Ultraliser::VolumeGrid::TYPE::BYTE);
 
     std::stringstream prefix;
     if (options->fullRangeIsoValue)
@@ -160,7 +160,7 @@ void run(int argc , const char** argv)
     }
 
     // Generate the mesh artifacts
-    generateMeshArtifacts(mesh, options);
+    generateMarchingCubesMeshArtifacts(mesh, options);
 
     // Free
     delete mesh;

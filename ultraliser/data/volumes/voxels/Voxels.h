@@ -24,5 +24,6 @@
 
 #include <data/volumes/voxels/Voxel.h>
 #include <data/volumes/voxels/DMCVoxel.h>
+#include <data/volumes/voxels/MCVoxel.h>
 
 #endif // ULTRALISER_DATA_VOLUME_VOXELS_VOXELS_H

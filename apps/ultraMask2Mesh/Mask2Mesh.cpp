@@ -26,7 +26,7 @@
 namespace Ultraliser
 {
 
-Options* parseArguments(const int& argc , const char** argv)
+AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
     std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
@@ -45,54 +45,19 @@ Options* parseArguments(const int& argc , const char** argv)
     args->addDataArguments();
 
     // Get all the options
-    Options* options = args->getOptions();
+    AppOptions* options = args->getOptions();
 
     LOG_TITLE("Creating Context");
 
-    /// Validate the arguments
-    if (!Ultraliser::Directory::exists(options->inputMaskDirectory))
-    {
-        LOG_ERROR("The directory [ %s ] does NOT exist! ", options->inputMaskDirectory.c_str());
-    }
-
-    // Try to make the output directory
-    mkdir(options->outputDirectory.c_str(), 0777);
-    if (!Ultraliser::Directory::exists(options->outputDirectory))
-    {
-        LOG_ERROR("The directory [ %s ] does NOT exist!", options->outputDirectory.c_str());
-    }
-
-    if (options->maskWidth == 0 || options->maskHeight == 0)
-    {
-        LOG_ERROR("Mask dimensions cannot be zero: [%d x %d]",
-                  options->maskWidth, options->maskHeight);
-    }
-
-    // Exporting formats, at least one of them must be there
-    if (!(options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL))
-    {
-        LOG_ERROR("The user must specify at least one output format of the "
-                  "mesh to export: [--export-obj, --export-ply, --export-off, --export-stl]");
-    }
-
-    if (!options->writeMarchingCubeMesh && options->ignoreLaplacianSmoothing
-            && options->ignoreSelfIntersections)
-    {
-        LOG_ERROR("No meshes will be created since you ignored the meshes "
-                  "resulting from the marching cubes stage and also did not use the "
-                  "optimization flag to produce an optimized mesh. Enable the "
-                  "optimization flag --optimize-mesh to create an optimized "
-                  "mesh or remove the --ignore-self-intersections flag.");
-    }
-
-    // If no prefix is given, use the directory name
-    if (options->prefix == NO_DEFAULT_VALUE)
-    {
-        options->prefix = Ultraliser::Directory::getName(options->inputMaskDirectory);
-    }
+    // Verify the arguments after parsing them and extracting the application options.
+    options->verifyInputMaskDirectoryArgument();
+    options->verifyOutputDirectoryArgument();
+    options->verifyMeshExportArguments();
+    options->verifyMaskDimensionsArguments();
+    options->verifyMaskPrefixArgument();
 
     // Initialize context
-    initializeContext(options);
+    options->initializeContext();
 
     // Return the executable options
     return options;
@@ -129,7 +94,7 @@ void run(int argc , const char** argv)
     }
 
     // Generate the mesh artifacts
-    generateMeshArtifacts(mesh, options);
+    generateMarchingCubesMeshArtifacts(mesh, options);
 
     // Free
     delete mesh;
