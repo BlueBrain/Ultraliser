@@ -429,20 +429,20 @@ void AppArguments::addMeshOptimizationArguments()
 
 void AppArguments::addLaplacianOperatorArguments()
 {
-    Argument laplacianFilter(
-                "--laplacian-filter",
+    Argument ignoreLaplacianSmoothing(
+                "--ignore-laplacian-filter",
                 ARGUMENT_TYPE::BOOL,
-                "Use Laplacian filteration to remove the gird artifacts.");
-    _args->addArgument(&laplacianFilter);
-    _options->useLaplacian = _args->getBoolValue(&laplacianFilter);
+                "Ignore Laplacian smoothing.");
+    _args->addArgument(&ignoreLaplacianSmoothing);
+    _options->ignoreLaplacianSmoothing = _args->getBoolValue(&ignoreLaplacianSmoothing);
 
     Argument laplacianIterations(
                 "--laplacian-iterations",
                 ARGUMENT_TYPE::INTEGER,
                 "Number of iterations to smooth the reconstructed mesh with Laplacian filter. "
-                "Default 5.",
+                "Default 3.",
                 ARGUMENT_PRESENCE::OPTIONAL,
-                "5");
+                "3");
     _args->addArgument(&laplacianIterations);
     _options->laplacianIterations = _args->getIntegrValue(&laplacianIterations);
 }
@@ -545,12 +545,13 @@ void AppArguments::addSuppressionArguments()
     _args->addArgument(&ignoreSelfIntersections);
     _options->ignoreSelfIntersections = _args->getBoolValue(&ignoreSelfIntersections);
 
-    Argument ignoreDMCMesh(
-                "--ignore-dmc-mesh",
+    Argument writeMarchingCubeMesh(
+                "--write-marching-cubes-mesh",
                 ARGUMENT_TYPE::BOOL,
-                "Ignore the resulting mesh from the marching cubes operation to save space.");
-    _args->addArgument(&ignoreDMCMesh);
-    _options->ignoreDMCMesh = _args->getBoolValue(&ignoreDMCMesh);
+                "Write the resulting mesh (and its artifacts) from the marching cubes operation to "
+                "debug it.");
+    _args->addArgument(&writeMarchingCubeMesh);
+    _options->writeMarchingCubeMesh = _args->getBoolValue(&writeMarchingCubeMesh);
 
     Argument ignoreOptimizedNonWatertightMesh(
                 "--ignore-optimized-non-watertight-mesh",

@@ -78,15 +78,26 @@ void createWatertightMesh(const Mesh* manifoldMesh, const Options* options);
 void generateOptimizedMesh(Mesh *dmcMesh, const Options* options);
 
 /**
- * @brief writeDMCMesh
- * Writes the resulting mesh from the DMC algorithm.
+ * @brief generateReconstructedMeshArtifacts
+ * Writes the resulting mesh from the marching cubes algorithm.
  *
- * @param dmcMesh
- * THe generetd mesh from the DMC algorithm.
+ * @param mesh
+ * THe generetd mesh from the marching cubes algorithm.
  * @param options
  * User-defined options given to the executable.
  */
-void generateDMCMeshArtifacts(const Mesh *dmcMesh, const Options* options);
+void generateReconstructedMeshArtifacts(const Mesh *mesh, const Options* options);
+
+/**
+ * @brief generateMeshArtifacts
+ * Writes the resulting mesh artifacts.
+ *
+ * @param mesh
+ * Reconstructed mesh from the marching cubes alghorithm.
+ * @param options
+ * User-defined options given to the executable.
+ */
+void generateMeshArtifacts(Mesh* mesh, const Options* options);
 
 /**
  * @brief generateVolumeArtifacts

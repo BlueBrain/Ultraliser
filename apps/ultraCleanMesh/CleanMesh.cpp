@@ -70,15 +70,6 @@ Options* parseArguments(const int& argc , const char** argv)
                   "mesh to export: [--export-obj, --export-ply, --export-off, --export-stl]");
     }
 
-    if (options->ignoreDMCMesh && options->ignoreSelfIntersections)
-    {
-        LOG_ERROR("No meshes will be created since you ignored the meshes "
-                  "resulting from the DMC stage and also did not use the "
-                  "optimization flag to produce an optimized mesh. Enable the "
-                  "optimization flag --optimize-mesh to create an optimized "
-                  "mesh or remove the --ignore-self-intersections flag.");
-    }
-
     if (options->boundsFile == NO_DEFAULT_VALUE)
     {
         LOG_WARNING("The bounding box of the volume will be computed on the fly");

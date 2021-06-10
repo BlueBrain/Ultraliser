@@ -135,27 +135,17 @@ void run(int argc , const char** argv)
     // Generate the volume artifacts based on the given options
     generateVolumeArtifacts(volume, options);
 
-    // Generate the DMC mesh, scaled and translated to the original location
-    auto reconstructedMesh = DualMarchingCubes::generateMeshFromVolume(volume);
-    reconstructedMesh->scaleAndTranslate(inputCenter, inputBB);
+    // Generate the reconstructde mesh, scaled and translated to the original location
+    auto mesh = DualMarchingCubes::generateMeshFromVolume(volume);
 
     // Free the volume, we do not need it anymore
     delete volume;
 
-    // Generate the artifacts of the optimized mesh
-    if (!options->ignoreDMCMesh)
-        generateDMCMeshArtifacts(reconstructedMesh, options);
-
-    // Laplacian smoorhing
-    if (options->useLaplacian)
-        applyLaplacianOperator(reconstructedMesh, options);
-
-    // Optimize the mesh
-    if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)
-        generateOptimizedMesh(reconstructedMesh, options);
+    // Generate the mesh artifacts
+    generateMeshArtifacts(mesh, options);
 
     // Free
-    delete reconstructedMesh;
+    delete mesh;
     delete options;
 }
 

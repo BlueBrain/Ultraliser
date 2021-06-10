@@ -259,10 +259,10 @@ struct Options
     bool exportVolumeGridMesh = false;
 
     /**
-     * @brief useLaplacian
-     * Use Laplacian smoothing to clear the grid artifacts.
+     * @brief ignoreLaplacianSmoothing
+     * Ignore Laplacian smoothing to smooth the reconstructed mesh.
      */
-    bool useLaplacian = false;
+    bool ignoreLaplacianSmoothing = false;
 
     /**
      * @brief laplacianIterations
@@ -383,13 +383,11 @@ struct Options
     std::string outputPrefix;
 
     /**
-     * @brief ignoreDMCMesh
-     * If this flag is set, the resulting mesh from the DMC stage will be
-     * ignored and not exported to disk. Note that if this flag is set and
-     * the ignoreSelfIntersection flag is set as well, there will no be
-     * any exported mesh from this process.
+     * @brief writeMarchingCubeMesh
+     * By default the reconstructed mesh with the marching cubes algorithm is not written. But for
+     * debugging purposes, we might need to write it.
      */
-    bool ignoreDMCMesh = false;
+    bool writeMarchingCubeMesh = false;
 
     /**
      * @brief ignoreSelfIntersections

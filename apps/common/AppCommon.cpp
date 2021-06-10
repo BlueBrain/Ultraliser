@@ -135,7 +135,7 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
 void applyLaplacianOperator(Mesh *mesh, const Options* options)
 {
     // Apply the Laplacian filter
-    mesh->applyLaplacianSmooth(options->laplacianIterations, 1.0, 0.0);
+    mesh->smoothLaplacian(options->laplacianIterations);
 
     // Export the mesh
     mesh->exportMesh(options->meshPrefix + LAPLACIAN_SUFFIX,
@@ -167,7 +167,14 @@ void createWatertightMesh(const Mesh* mesh, const Options* options)
 
         // Ensure watertightness for the rest of the partitions
         for (auto mesh : partitions)
-            mesh->ensureWatertightness();
+        {
+            try {
+                mesh->ensureWatertightness();
+            }  catch (...) {
+                LOG_WARNING("Soma partition is invalid");
+            }
+        }
+
 
         // Ensures that the mesh is truly two-manifold with no self intersections
         watertightMesh->ensureWatertightness();
@@ -243,21 +250,36 @@ void generateOptimizedMesh(Mesh *dmcMesh, const Options* options)
         createWatertightMesh(dmcMesh, options);
 }
 
-void generateDMCMeshArtifacts(const Mesh *mesh, const Options* options)
+void generateReconstructedMeshArtifacts(const Mesh *mesh, const Options* options)
 {   
-    // Write the statistics of the DMC mesh
+    // Write the statistics of the reconstructed mesh from the marhcing cubes algorithm
     if (options->writeStatistics)
-        mesh->printStats(DMC_STRING, &options->statisticsPrefix);
+        mesh->printStats(MC_STRING, &options->statisticsPrefix);
 
     // Distributions
     if (options->writeDistributions)
-        mesh->writeDistributions(DMC_STRING, &options->distributionsPrefix);
+        mesh->writeDistributions(MC_STRING, &options->distributionsPrefix);
 
-    // Export the DMC mesh
+    // Export the MC mesh
     if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
-        mesh->exportMesh(options->meshPrefix + DMC_SUFFIX,
+        mesh->exportMesh(options->meshPrefix + MC_SUFFIX,
                          options->exportOBJ, options->exportPLY,
                          options->exportOFF, options->exportSTL);
+}
+
+void generateMeshArtifacts(Mesh* mesh, const Options* options)
+{
+    // MC mesh output
+    if (options->writeMarchingCubeMesh)
+        generateReconstructedMeshArtifacts(mesh, options);
+
+    // Laplacian smoorhing
+    if (!options->ignoreLaplacianSmoothing)
+        applyLaplacianOperator(mesh, options);
+
+    // Optimize the mesh and create a watertight mesh
+    if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)
+        generateOptimizedMesh(mesh, options);
 }
 
 void generateVolumeArtifacts(const Volume* volume, const Options* options)

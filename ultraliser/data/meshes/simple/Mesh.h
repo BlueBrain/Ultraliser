@@ -473,6 +473,14 @@ public:
                               const float& inflateMu = 0.1);
 
     /**
+     * @brief smoothLaplacian
+     * Another simple implementation to the Laplacian filter.
+     * @param numIterations
+     * Number of iterations.
+     */
+    void smoothLaplacian(uint64_t numIterations);
+
+    /**
      * @brief scaleAndTranslateGeneratedMesh
      * Scale the translate the generated mesh to fit the dimensions of the input mesh.
      * @param center
@@ -526,6 +534,7 @@ private:
                 I2UI64(t.y()) == vIndex ||
                 I2UI64(t.z()) == vIndex);
     }
+
 
 public:
 

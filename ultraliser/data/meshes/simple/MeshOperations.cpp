@@ -877,64 +877,75 @@ void exportSTL(const std::string &prefix,
     // Open a stream to write the data
     std::string fileName = prefix + STL_EXTENSION;
 
-    std::fstream outputStream(fileName.c_str(), std::ios::out | std::ios::binary);
-    if (!outputStream.good())
-    {
-        LOG_ERROR("Cannot write mesh file [ %s ]", fileName.c_str());
-    }
-
     LOG_STATUS("Exporting STL Mesh : [ %s ]", fileName.c_str());
 
-    char headerInfo[80];
-    std::strncpy(headerInfo, fileName.c_str(), sizeof(headerInfo) - 1);
-    outputStream.write(headerInfo, sizeof(headerInfo));
-    outputStream.write((char*)& numberTriangles, 4);
+    // If the path does not exist, just set a warning and return
+    FILE *filePointer;
+    if ((filePointer = fopen(fileName.c_str(), "w")) == nullptr)
+    {
+        LOG_WARNING("Can NOT write the mesh to the following file [ %s ]!", fileName.c_str());
+        return;
+    }
+
+    // Header
+    fprintf(filePointer, "solid Ultraliser");
+    fprintf(filePointer, "\n");
 
     // Write the indices
     LOOP_STARTS("Writing Vertices and Triangles");
     TIMER_SET;
     for (uint64_t i = 0; i < numberTriangles; ++i)
     {
+        LOOP_PROGRESS(i, numberTriangles);
+
         // Get the triangle
         Triangle triangle = triangles[i];
 
         // Get the vertices
         Vertex v0 = vertices[triangle[0]];
-        Vertex v1 = vertices[triangle[0]];
-        Vertex v2 = vertices[triangle[0]];
+        Vertex v1 = vertices[triangle[1]];
+        Vertex v2 = vertices[triangle[2]];
 
         // Compute the normal
-        Vector3f n = computeNormal(v0, v1, v2);
+        Vector3f normal = computeNormal(v0, v1, v2);
 
-        // Normal
-        outputStream.write((char*)& n.x(), 4);
-        outputStream.write((char*)& n.y(), 4);
-        outputStream.write((char*)& n.z(), 4);
+        // Face normal
+        fprintf(filePointer, " facet normal %f %f %f", normal.x(), normal.y(), normal.z());
+        fprintf(filePointer, "\n");
+
+        // Outer loop
+        fprintf(filePointer, "  outer loop");
+        fprintf(filePointer, "\n");
 
         // V0
-        outputStream.write((char*)& v0.x(), 4);
-        outputStream.write((char*)& v0.y(), 4);
-        outputStream.write((char*)& v0.z(), 4);
+        fprintf(filePointer, "   vertex %f %f %f", v0.x(), v0.y(), v0.z());
+        fprintf(filePointer, "\n");
 
         // V1
-        outputStream.write((char*)& v1.x(), 4);
-        outputStream.write((char*)& v1.y(), 4);
-        outputStream.write((char*)& v1.z(), 4);
+        fprintf(filePointer, "   vertex %f %f %f", v1.x(), v1.y(), v1.z());
+        fprintf(filePointer, "\n");
 
         // V2
-        outputStream.write((char*)& v2.x(), 4);
-        outputStream.write((char*)& v2.y(), 4);
-        outputStream.write((char*)& v2.z(), 4);
+        fprintf(filePointer, "   vertex %f %f %f", v2.x(), v2.y(), v2.z());
+        fprintf(filePointer, "\n");
 
-        // Dummy
-        char attribute[2] = " ";
-        outputStream.write(attribute, 2);
+        // End loop
+        fprintf(filePointer, "  endloop");
+        fprintf(filePointer, "\n");
+
+        // End face clause
+        fprintf(filePointer, " endfacet");
+        fprintf(filePointer, "\n");
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
 
-    // Close the stream
-    outputStream.close();
+    // Just a terminator
+    fprintf(filePointer, "endsolid Ultraliser");
+    fprintf(filePointer, "\n");
+
+    // Close the file
+    fclose(filePointer);
 }
 
 void exportPLY(const std::string &prefix,

@@ -568,6 +568,72 @@ void Mesh::applyLaplacianSmooth(const uint32_t& numIterations,
     LOG_STATS(GET_TIME_SECONDS);
 }
 
+void Mesh::smoothLaplacian(uint64_t numIterations)
+{
+    // If no iterations, return
+    if (numIterations < 1)
+        return;
+
+    LOG_TITLE("Laplacian Smoothing");
+    TIMER_SET;
+
+    Neighborhood vertexN, faceN;
+    _computeNeighborhoods(*this, vertexN, faceN);
+
+    // A new list of vertices
+    auto newVertices = std::make_unique< Vertex[] >(_numberVertices);
+
+    LOOP_STARTS("Smoothing")
+    for (uint64_t i = 0; i < numIterations; ++i)
+    {
+        #pragma omp parallel for
+        for (uint64_t iVertex = 0; iVertex < _numberVertices; ++iVertex)
+        {
+            // New vertex
+            Vector3f newVertex = _vertices[iVertex];
+
+            // Neighbours weights
+            auto neighbours = vertexN[iVertex];
+            for (auto neighbour : neighbours)
+            {
+                newVertex += _vertices[neighbour];
+            }
+
+            // Update the new vertex
+            newVertices[iVertex] = newVertex / (neighbours.size() + 1);
+        }
+
+        for (size_t iVertex = 0; iVertex < _numberVertices; ++iVertex)
+        {
+            Vertex tmpVertex;
+            tmpVertex = newVertices[iVertex];
+
+            newVertices[iVertex] = _vertices[iVertex];
+            _vertices[iVertex] = tmpVertex;
+        }
+
+        LOOP_PROGRESS(i, numIterations);
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Update vertices
+    #pragma omp parallel for
+    for (size_t iVertex = 0; iVertex < _numberVertices; ++iVertex)
+    {
+        _vertices[iVertex] = newVertices[iVertex];
+    }
+
+    // Clean
+    vertexN.clear();
+    vertexN.shrink_to_fit();
+    faceN.clear();
+    faceN.shrink_to_fit();
+
+    LOG_STATUS_IMPORTANT("Laplacian Operator Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
 void Mesh::exportMesh(const std::string &prefix,
                       const bool &formatOBJ,
                       const bool &formatPLY,

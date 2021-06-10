@@ -219,6 +219,7 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     Vector3f pMin, pMax;
     _volume->getVoxelBoundingBox(x, y, z, pMin, pMax);
 
+
     // Initialize the point with lower voxel coordinates
     v.x() = pMin.x() + _volume->getVoxelSize(); // x;
     v.y() = pMin.y() + _volume->getVoxelSize(); // y;

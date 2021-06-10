@@ -2425,7 +2425,7 @@ void Mesh::optimizeAdaptively(const uint64_t &optimizationIterations,
                               const float &flatFactor,
                               const float &denseFactor)
 {
-    LOG_TITLE("Mesh Optimization");
+    LOG_TITLE("Adaptive Mesh Optimization");
 
     // Starting the timer
     TIMER_SET;

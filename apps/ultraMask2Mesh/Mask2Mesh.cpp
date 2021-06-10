@@ -75,10 +75,11 @@ Options* parseArguments(const int& argc , const char** argv)
                   "mesh to export: [--export-obj, --export-ply, --export-off, --export-stl]");
     }
 
-    if (options->ignoreDMCMesh && options->ignoreSelfIntersections)
+    if (!options->writeMarchingCubeMesh && options->ignoreLaplacianSmoothing
+            && options->ignoreSelfIntersections)
     {
         LOG_ERROR("No meshes will be created since you ignored the meshes "
-                  "resulting from the DMC stage and also did not use the "
+                  "resulting from the marching cubes stage and also did not use the "
                   "optimization flag to produce an optimized mesh. Enable the "
                   "optimization flag --optimize-mesh to create an optimized "
                   "mesh or remove the --ignore-self-intersections flag.");
@@ -127,17 +128,8 @@ void run(int argc , const char** argv)
         mesh->scale(options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
     }
 
-    // DMC mesh output
-    if (!options->ignoreDMCMesh)
-        generateDMCMeshArtifacts(mesh, options);
-
-    // Laplacian smoorhing
-    if (options->useLaplacian)
-        applyLaplacianOperator(mesh, options);
-
-    // Optimize the mesh and create a watertight mesh
-    if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)
-        generateOptimizedMesh(mesh, options);
+    // Generate the mesh artifacts
+    generateMeshArtifacts(mesh, options);
 
     // Free
     delete mesh;

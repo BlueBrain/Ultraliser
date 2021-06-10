@@ -76,15 +76,6 @@ Options* parseArguments(const int& argc , const char** argv)
                   "mesh to export: [--export-obj, --export-ply, --export-off, --export-stl]");
     }
 
-    if (options->ignoreDMCMesh && options->ignoreSelfIntersections)
-    {
-        LOG_ERROR("No meshes will be created since you ignored the meshes "
-                  "resulting from the DMC stage and also did not use the "
-                  "optimization flag to produce an optimized mesh. Enable the "
-                  "optimization flag --optimize-mesh to create an optimized "
-                  "mesh or remove the --ignore-self-intersections flag.");
-    }
-
     if (options->boundsFile == NO_DEFAULT_VALUE)
     {
         LOG_WARNING("The bounding box of the volume will be computed on the fly");
@@ -173,27 +164,17 @@ void run(int argc , const char** argv)
     // Generate the volume artifacts based on the given options
     generateVolumeArtifacts(volume, options);
 
-    // Generate the mesh using the DMC algorithm and adjust its scale
-    auto reconstructedMesh = DualMarchingCubes::generateMeshFromVolume(volume);
-    reconstructedMesh->scaleAndTranslate(inputCenter, inputBB);
+    // Generate the reconstructed mesh from the marching cubes algorithm
+    auto mesh = DualMarchingCubes::generateMeshFromVolume(volume);
 
     // Free the volume, it is not needed any further
     delete volume;
 
-    // DMC mesh output
-    if (!options->ignoreDMCMesh)
-        generateDMCMeshArtifacts(reconstructedMesh, options);
-
-    // Laplacian smoorhing
-    if (options->useLaplacian)
-        applyLaplacianOperator(reconstructedMesh, options);
-
-    // Optimize the mesh and create a watertight mesh
-    if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)
-        generateOptimizedMesh(reconstructedMesh, options);
+    // Generate the mesh artifacts
+    generateMeshArtifacts(mesh, options);
 
     // Free
-    delete reconstructedMesh;
+    delete mesh;
     delete options;
 }
 

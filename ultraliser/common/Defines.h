@@ -74,7 +74,7 @@
 
 // Artifacts strings
 #define INPUT_STRING                            STRING("input")
-#define DMC_STRING                              STRING("dmc")
+#define MC_STRING                               STRING("mc")
 #define LAPLACIAN_STRING                        STRING("laplacian")
 #define OPTIMIZED_STRING                        STRING("optimized")
 #define MANIFOLD_STRING                         STRING("advanced")
@@ -83,7 +83,7 @@
 #define VOLUME_STRING                           STRING("volume")
 
 // Artifacts Suffixes
-#define DMC_SUFFIX                              STRING("-dmc")
+#define MC_SUFFIX                               STRING("-mc")
 #define LAPLACIAN_SUFFIX                        STRING("-laplacian")
 #define OPTIMIZED_SUFFIX                        STRING("-optimized")
 #define MANIFOLD_SUFFIX                         STRING("-advanced")
