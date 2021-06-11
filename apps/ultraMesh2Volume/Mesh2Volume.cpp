@@ -60,47 +60,12 @@ void run(int argc , const char** argv)
     // Parse the arguments and get the tool options
     auto options = parseArguments(argc, argv);
 
-    // Load the mesh
-    Mesh* inputMesh = new Mesh(options->inputMeshPath);
+    // Load the input mesh
+    auto inputMesh = loadInputMesh(options);
 
-    // Write the statistics of the original mesh
-    if (options->writeStatistics)
-        inputMesh->printStats(INPUT_STRING, &options->statisticsPrefix);
-
-    // Write the statistics of the original mesh
-    if (options->writeDistributions)
-        inputMesh->writeDistributions(INPUT_STRING, &options->statisticsPrefix);
-
-    // Get relaxed bounding box to build the volume
-    Ultraliser::Vector3f pMinInput, pMaxInput;
-    inputMesh->computeBoundingBox(pMinInput, pMaxInput);
-
-    // Extend the bounding box a little bit to avoid edge issues
-    Ultraliser::Vector3f inputBB = pMaxInput - pMinInput;
-
-    // Get the largest dimension
-    const float largestDimension = inputBB.getLargestDimension();
-
-    uint64_t resolution;
-    if (options->autoResolution)
-        resolution = uint64_t(options->voxelsPerMicron * largestDimension);
-    else
-        resolution = options->volumeResolution;
-    LOG_SUCCESS("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);
-
-    // Construct the volume
-    Volume *volume = new Volume(pMinInput, pMaxInput, resolution, options->edgeGap,
-                                Ultraliser::VolumeGrid::getType(options->volumeType));
-
-    // Surface voxelization
-    volume->surfaceVoxelization(inputMesh, true, true);
-
-    // Free the input mesh
-    delete inputMesh;
-
-    // Enable solid voxelization
-    if (options->useSolidVoxelization)
-        volume->solidVoxelization(options->voxelizationAxis);
+    // Creates the volume grid to start processing the mesh
+    /// NOTE: The input mesh is release within this operation
+    auto volume = reconstructVolumeFromMesh(inputMesh, options);
 
     // Generate the volume artifacts based on the given options
     generateVolumeArtifacts(volume, options);

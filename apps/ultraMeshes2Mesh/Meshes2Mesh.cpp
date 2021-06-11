@@ -30,18 +30,12 @@ AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
     std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This tool reconstructs a watertight polygonal mesh from an set of "
-              "input non-watertight meshes. The generated mesh can be also "
-              "optimized to reduce the number of triangles while preserving "
-              "the volume. "
-              "The output mesh is guaranteed in all cases to be two-advanced "
-              "with no self-intersecting faces unless the "
-              "--ignore-self-intersections flag is enabled."
-              "The input meshes could only be of .obj or .ply extensions, "
-              "otherwise, will be ignored during the loading."
-              "If the extent bounding box is not given via --bounds-file, the "
-              "aggregate bounding box of all the loaded meshes will be computed "
-              "on the fly and used AS IS." );
+              "This tool generates an output mesh from a group of different input meshes."
+              "The tool can naively append a group of meshes together into a single mesh object "
+              "with multuple partitions if you enable the flag [--use-simple-mesh-join], or use "
+              "volume reconstruction to reconstruct a mesh via volume reconstruction. The latter "
+              "approach creates a high quality mesh that is guaranteed to be watertight even if all "
+              "the input meshes are NOT watertights." );
 
     args->addInputMeshesDirectoryArguments();
     args->addOutputArguments();
@@ -159,15 +153,6 @@ void reconstructMeshWithVolumeReconstruction(const std::vector< std::string >& m
 
 void run(int argc , const char** argv)
 {
-    // Arguments
-    Args args(argc, argv,
-              "This tool generates an output mesh from a group of different input meshes."
-              "The tool can naively append a group of meshes together into a single mesh object "
-              "with multuple partitions if you enable the flag [--use-simple-mesh-join], or use "
-              "volume reconstruction to reconstruct a mesh via volume reconstruction. The latter "
-              "approach creates a high quality mesh that is guaranteed to be watertight even if all "
-              "the input meshes are NOT watertights." );
-
     // Parse the arguments and get the values
     auto options = parseArguments(argc, argv);
 

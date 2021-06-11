@@ -57,6 +57,17 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
                                  const std::string& inputMeshesDirectory,
                                  std::vector< std::string > meshFiles,
                                  Vector3f& pMax, Vector3f& pMin);
+
+/**
+ * @brief loadInputMesh
+ * Loads an input mesh.
+ * @param options
+ * System options.
+ * @return
+ * Pointer to the loaded input mesh.
+ */
+Mesh* loadInputMesh(const AppOptions* options);
+
 /**
  * @brief applyLaplacianOperator
  * Apply the laplacian operator on the mesh.

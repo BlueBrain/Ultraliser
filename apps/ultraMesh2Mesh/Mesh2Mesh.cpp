@@ -68,16 +68,8 @@ void run(int argc , const char** argv)
     // Parse the arguments and get the tool options
     auto options = parseArguments(argc, argv);
 
-    // Load the mesh and construct the mesh object, and generate its artifacts if needed
-    auto inputMesh = new Mesh(options->inputMeshPath);
-
-    // Write the statistics of the input mesh
-    if (options->writeStatistics)
-        inputMesh->printStats(INPUT_STRING, &options->statisticsPrefix);
-
-    // Write the statistics of the input mesh
-    if (options->writeDistributions)
-        inputMesh->writeDistributions(INPUT_STRING, &options->statisticsPrefix);
+    // Load the input mesh
+    auto inputMesh = loadInputMesh(options);
 
     // Creates the volume grid to start processing the mesh
     /// NOTE: The input mesh is release within this operation

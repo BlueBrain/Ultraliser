@@ -100,10 +100,10 @@ static void inline progressUpdate(uint64_t& progressValue)
 #define LOOP_STARTS(MESSAGE) printf("\t%s \n", MESSAGE);
 
 // Print the progress in a loop
-#define LOOP_PROGRESS(PROGRESS, TOTAL) printFractionProgressBar(PROGRESS, TOTAL)
+#define LOOP_PROGRESS(PROGRESS, TOTAL) printProgressBar(PROGRESS, TOTAL)
 
 // Print the progress in a loop only in fractions
-#define LOOP_PROGRESS_FRACTION(PROGRESS, TOTAL) printProgressBar(PROGRESS, TOTAL)
+#define LOOP_PROGRESS_FRACTION(PROGRESS, TOTAL) printFractionProgressBar(PROGRESS, TOTAL)
 
 // Print the status after the loop is done
 #define LOOP_DONE { LOOP_PROGRESS(100, 100); printf(" \n"); }

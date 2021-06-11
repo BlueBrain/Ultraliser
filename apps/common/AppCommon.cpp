@@ -317,6 +317,23 @@ void generateMarchingCubesMeshArtifacts(const Mesh *mesh, const AppOptions* opti
                          options->exportOFF, options->exportSTL);
 }
 
+
+Mesh* loadInputMesh(const AppOptions* options)
+{
+    // Load the mesh and construct the mesh object, and generate its artifacts if needed
+    auto mesh = new Mesh(options->inputMeshPath);
+
+    // Write the statistics of the input mesh
+    if (options->writeStatistics)
+        mesh->printStats(INPUT_STRING, &options->statisticsPrefix);
+
+    // Write the statistics of the input mesh
+    if (options->writeDistributions)
+        mesh->writeDistributions(INPUT_STRING, &options->statisticsPrefix);
+
+    return mesh;
+}
+
 void generateReconstructedMeshArtifacts(Mesh* mesh, const AppOptions* options)
 {
     // MC mesh output

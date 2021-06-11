@@ -52,7 +52,6 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyInputMorphologyArgument();
     options->verifyOutputDirectoryArgument();
     options->verifyBoudsFileArgument();
-    options->verifyMeshesPrefixArgument();
     options->verifyMorphologyPrefixArgument();
 
     // Initialize context
@@ -112,7 +111,7 @@ void run(int argc , const char** argv)
     delete volume;
 
     // Generate the mesh artifacts
-    generateMarchingCubesMeshArtifacts(mesh, options);
+    generateReconstructedMeshArtifacts(mesh, options);
 
     // Free
     delete mesh;

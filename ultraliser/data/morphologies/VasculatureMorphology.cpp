@@ -137,7 +137,6 @@ VasculatureMorphology::VasculatureMorphology(Samples samples, Sections sections)
 
 VasculatureMorphology* readVascularMorphology(std::string& morphologyPath)
 {
-
     if (String::subStringFound(morphologyPath, std::string(".h5")) ||
             String::subStringFound(morphologyPath, std::string(".H5")))
     {
