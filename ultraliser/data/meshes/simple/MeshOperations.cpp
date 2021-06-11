@@ -161,7 +161,7 @@ void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& trian
 
     // Get the number of files in the line
     if (verbose) LOOP_STARTS("Handling File");
-    auto numberLines = Ultraliser::File::getNumberLinesInFile(filePath);
+    auto numberLines = File::getNumberLinesInFile(filePath);
     if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
     std::ifstream file;
@@ -291,7 +291,6 @@ void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& trian
     if (verbose) LOOP_DONE;
     if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
-    // Close the file
     file.close();
 }
 

@@ -368,6 +368,19 @@ void AppArguments::addVolumeArguments()
     addVolumeExportArguments();
 }
 
+void AppArguments::addMeshJoiningArguments()
+{
+    Argument simpleMeshJoin(
+                "--use-simple-mesh-join",
+                ARGUMENT_TYPE::BOOL,
+                "If this flag is set, the resulting mesh will be based on a mesh joint operation "
+                "that simply merges all the given meshes into a single mesh object with multiple "
+                "partition. "
+                "Note that is this flag is set, all the mesh reconstruction parameters are ignored.");
+    _args->addArgument(&simpleMeshJoin);
+    _options->simpleMeshJoin = _args->getBoolValue(&simpleMeshJoin);
+}
+
 void AppArguments::addMeshExtractionArguments()
 {
     Argument isosurfaceTechnique(

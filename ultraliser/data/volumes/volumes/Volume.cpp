@@ -249,10 +249,9 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
         Paths paths = vasculatureMorphology->getConnectedPathsFromParentsToChildren(sections[i]);
         for (uint64_t j = 0; j < paths.size(); ++j)
         {
-            auto mesh = new Ultraliser::Mesh(paths[j]);
+            auto mesh = new Mesh(paths[j]);
             _rasterize(mesh , _grid);
         }
-
 
         // Update the progress bar
         LOOP_PROGRESS(PROGRESS, sections.size());
@@ -295,7 +294,6 @@ void Volume::surfaceVoxelization(const std::string &inputDirectory,
     uint64_t processedMeshCount = 0;
     LOOP_STARTS("Rasterization");
     PROGRESS_SET;
-    OMP_PARALLEL_FOR
     for( size_t iMesh = 0; iMesh < meshFiles.size(); iMesh++ )
     {
         // Create and load the mesh from the file
@@ -305,19 +303,20 @@ void Volume::surfaceVoxelization(const std::string &inputDirectory,
             meshFile = inputDirectory + "/" + meshFile;
 
         if (File::exists(meshFile))
-        {
+        {   
             // Input mesh
             auto mesh = new Mesh(meshFile, false);
 
             // Surface voxelization
-            surfaceVoxelization(mesh, false, false);
+            surfaceVoxelization(mesh, false, true);
+            processedMeshCount++;
 
             // Free the mesh
             delete mesh;
         }
 
         // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, meshFiles.size());
+        // LOOP_PROGRESS(PROGRESS, meshFiles.size());
         PROGRESS_UPDATE;
     }
     LOOP_DONE;

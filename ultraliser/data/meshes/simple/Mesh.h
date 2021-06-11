@@ -72,6 +72,14 @@ public:
     Mesh(const Samples& samples);
 
     /**
+     * @brief append
+     * Appends a new mesh to this mesh (or joint them)
+     * @param inputMesh
+     * The input mesh to be added to this mesh.
+     */
+    void append(const Mesh* inputMesh);
+
+    /**
      * @brief import
      * @param filename
      * @param verbose

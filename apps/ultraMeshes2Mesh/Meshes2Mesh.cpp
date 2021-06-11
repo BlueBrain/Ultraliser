@@ -48,7 +48,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     args->addVolumeArguments();
     args->addMeshArguments();
     args->addSuppressionArguments();
-    args->addDataArguments();
+    args->addMeshJoiningArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -61,6 +61,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyMeshExportArguments();
     options->verifyBoudsFileArgument();
     options->verifyMeshesPrefixArgument();
+    options->verifyIsoSurfaceExtractionArgument();
 
     // Initialize context
     options->initializeContext();
@@ -69,37 +70,47 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     return options;
 }
 
-void run(int argc , const char** argv)
+void reconstructMeshWithJointOperation(const std::vector< std::string >& meshFiles,
+                                       const AppOptions* options)
 {
-    // Arguments
-    Args args(argc, argv,
-              "This tool reconstructs a watertight polygonal mesh from an set of "
-              "input non-watertight meshes. The generated mesh can be also "
-              "optimized to reduce the number of triangles while preserving "
-              "the volume. "
-              "The output mesh is guaranteed in all cases to be two-advanced "
-              "with no self-intersecting faces unless the "
-              "--ignore-self-intersections flag is enabled."
-              "The input meshes could only be of .obj or .ply extensions, "
-              "otherwise, will be ignored during the loading."
-              "If the extent bounding box is not given via --bounds-file, the "
-              "aggregate bounding box of all the loaded meshes will be computed "
-              "on the fly and used AS IS." );
+    TIMER_SET;
 
-    // Parse the arguments and get the values
-    auto options = parseArguments(argc, argv);
+    // A new joint mesh that will be used to append all the meshes into a single mesh.
+    Mesh* jointMesh = new Mesh();
 
-    // A list of all the mesh files in the directory
-    std::vector< std::string > meshFiles;
+    LOOP_STARTS("Merging Meshes")
+    for (uint64_t i = 0; i < meshFiles.size(); ++i)
+    {
+        // Load the mesh
+        std::string meshPath = options->inputMeshesDirectory + "/" + meshFiles[i];
+        auto mesh = new Mesh(meshPath, false);
 
-    // Query the input directory to see how many input meshes are there
-    Ultraliser::Directory::locateMeshFiles(options->inputMeshesDirectory, meshFiles);
+        // Joint
+        jointMesh->append(mesh);
 
-    // If the size of the list is zero, exit
-    if(meshFiles.size() == 0)
-        LOG_ERROR("No meshes were found in the input directory [ %s ]",
-                  options->inputMeshesDirectory.c_str());
+        // Release
+        delete mesh;
 
+        LOOP_PROGRESS(i, meshFiles.size());
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    LOG_STATUS_IMPORTANT("Joining Mesh Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Export the mesh
+    jointMesh->exportMesh(options->meshPrefix + JOINT_SUFFIX,
+                          options->exportOBJ, options->exportPLY,
+                          options->exportOFF, options->exportSTL);
+
+    // Free the mesh
+    delete jointMesh;
+}
+
+void reconstructMeshWithVolumeReconstruction(const std::vector< std::string >& meshFiles,
+                                             const AppOptions* options)
+{
     // Compute the bounding box
     Vector3f pMaxInput, pMinInput;
     computeBoundingBoxForMeshes(options->boundsFile, options->inputMeshesDirectory,
@@ -107,7 +118,6 @@ void run(int argc , const char** argv)
 
     // Keep thr original values of the bounding box
     Vector3f inputBB = pMaxInput - pMinInput;
-    Vector3f inputCenter = pMinInput + 0.5 * ( pMaxInput - pMinInput);
 
     // Get the largest dimension
     float largestDimension = inputBB.getLargestDimension();
@@ -121,7 +131,7 @@ void run(int argc , const char** argv)
 
     auto volume = new Volume(
                 pMinInput, pMaxInput, resolution, options->edgeGap,
-                Ultraliser::VolumeGrid::getType(options->volumeType));
+                VolumeGrid::getType(options->volumeType));
 
     // Surface voxelization for all the mesh files
     volume->surfaceVoxelization(options->inputMeshesDirectory, meshFiles);
@@ -133,18 +143,51 @@ void run(int argc , const char** argv)
     // Generate the volume artifacts based on the given options
     generateVolumeArtifacts(volume, options);
 
-    // Generate the reconstructed mesh from the marching cubes algorithm
-    auto mesh = DualMarchingCubes::generateMeshFromVolume(volume);
+    // Extract the mesh from the volume again
+    auto mesh = reconstructMeshFromVolume(volume, options);
 
     // Free the volume, it is not needed any further
     delete volume;
 
     // Generate the mesh artifacts
-    generateMarchingCubesMeshArtifacts(mesh, options);
+    generateReconstructedMeshArtifacts(mesh, options);
 
     // Free
     delete mesh;
     delete options;
+}
+
+void run(int argc , const char** argv)
+{
+    // Arguments
+    Args args(argc, argv,
+              "This tool generates an output mesh from a group of different input meshes."
+              "The tool can naively append a group of meshes together into a single mesh object "
+              "with multuple partitions if you enable the flag [--use-simple-mesh-join], or use "
+              "volume reconstruction to reconstruct a mesh via volume reconstruction. The latter "
+              "approach creates a high quality mesh that is guaranteed to be watertight even if all "
+              "the input meshes are NOT watertights." );
+
+    // Parse the arguments and get the values
+    auto options = parseArguments(argc, argv);
+
+    // A list of all the mesh files in the directory
+    std::vector< std::string > meshFiles;
+
+    // Query the input directory to see how many input meshes are there
+    Directory::locateMeshFiles(options->inputMeshesDirectory, meshFiles);
+
+    // If the size of the list is zero, exit
+    if(meshFiles.size() == 0)
+    {
+        LOG_ERROR("No meshes were found in the input directory [ %s ]",
+                  options->inputMeshesDirectory.c_str());
+    }
+
+    if (options->simpleMeshJoin)
+        reconstructMeshWithJointOperation(meshFiles, options);
+    else
+        reconstructMeshWithVolumeReconstruction(meshFiles, options);
 }
 
 }

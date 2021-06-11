@@ -272,7 +272,7 @@ void generateOptimizedMesh(Mesh *dmcMesh, const AppOptions* options)
         createWatertightMesh(dmcMesh, options);
 }
 
-Volume* reconstructVolumeFromMesh(Mesh* inputMesh, AppOptions* options,
+Volume* reconstructVolumeFromMesh(Mesh* inputMesh, const AppOptions* options,
                                   const bool& releaseInputMesh)
 {
     auto volume = createVolumeGrid(inputMesh, options);
@@ -291,7 +291,7 @@ Volume* reconstructVolumeFromMesh(Mesh* inputMesh, AppOptions* options,
     return volume;
 }
 
-Mesh* reconstructMeshFromVolume(Volume* volume, AppOptions* options)
+Mesh* reconstructMeshFromVolume(Volume* volume, const AppOptions* options)
 {
     // Generate the reconstructed mesh from any of the marching cubes algorithms
     if (options->isosurfaceTechnique == DMC_STRING)

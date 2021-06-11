@@ -106,7 +106,7 @@ static void inline progressUpdate(uint64_t& progressValue)
 #define LOOP_PROGRESS_FRACTION(PROGRESS, TOTAL) printProgressBar(PROGRESS, TOTAL)
 
 // Print the status after the loop is done
-#define LOOP_DONE LOOP_PROGRESS(100, 100); printf(" \n")
+#define LOOP_DONE { LOOP_PROGRESS(100, 100); printf(" \n"); }
 
 // The progress variable itself
 #define PROGRESS ULTRALISER_PROGRESS

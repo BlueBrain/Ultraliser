@@ -265,6 +265,75 @@ void Mesh::scale(const float x, const float y, const float z)
     }
 }
 
+void Mesh::append(const Mesh* inputMesh)
+{
+    // Vertex offset is the number of vertices in the current mesh
+    uint64_t vertexCountOffset = _numberVertices;
+
+    // Number of triangles in the current mesh
+    uint64_t triangleCountOffset = _numberTriangles;
+
+    // New number of vertices
+    uint64_t newNumberVertices = vertexCountOffset + inputMesh->getNumberVertices();
+
+    // New number of triangles
+    uint64_t newNumberTriangles = triangleCountOffset + inputMesh->getNumberTriangles();
+
+    Vector3f* newVertices = new Vector3f[newNumberVertices];
+    Triangle* newTriangles = new Triangle[newNumberTriangles];
+
+    // Current mesh vertices
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < _numberVertices; ++i)
+    {
+        newVertices[i] = _vertices[i];
+    }
+
+    // Input mesh vertices
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < inputMesh->getNumberVertices(); ++i)
+    {
+        newVertices[_numberVertices + i] = inputMesh->getVertices()[i];
+    }
+
+    // Current mesh triangles
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    {
+        newTriangles[i] = _triangles[i];
+    }
+
+    // Input mesh triangles
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < inputMesh->getNumberTriangles(); ++i)
+    {
+        newTriangles[_numberTriangles + i] = inputMesh->getTriangles()[i];
+    }
+
+    // Offset the new vertices to account for the addivity
+    OMP_PARALLEL_FOR
+    for (uint64_t i = triangleCountOffset; i < newNumberTriangles; ++i)
+    {
+        newTriangles[i][0] += vertexCountOffset;
+        newTriangles[i][1] += vertexCountOffset;
+        newTriangles[i][2] += vertexCountOffset;
+    }
+
+    // Update the mesh data
+    _numberVertices = newNumberVertices;
+    _numberTriangles = newNumberTriangles;
+
+    // Update the arrays
+    Vertex* tmpVertices = _vertices;
+    Triangle* tmpTriangle = _triangles;
+
+    _vertices = newVertices;
+    _triangles = newTriangles;
+
+    delete tmpVertices;
+    delete tmpTriangle;
+}
+
 void Mesh::import(const std::string &fileName, const bool &verbose)
 {
     // Start the timer

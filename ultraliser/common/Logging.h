@@ -149,30 +149,33 @@ void log(const LOG_LEVEL& logLevel,
     log(LOG_LEVEL::EXIT, __FILE__, __LINE__, __FUNCTION__, ARG)
 
 // Print the statistics
-#define LOG_STATS(TIME)                                                                             \
-{                                                                                                   \
-    {                                                                                               \
-        std::cout << "\t* Time     | " << TIME << " Seconds \n" << std::endl;                       \
-    }                                                                                               \
+#define LOG_STATS(TIME) std::cout << "\t* Time     | " << TIME << " Seconds \n" << std::endl
+
+/**
+ * @brief logTitle
+ * Logs the title of a specific section.
+ * @param title
+ * Section title.
+ * @param titleLength
+ * Title length normally, 80 chars.
+ */
+static inline void logTitle(std::string title, const uint64_t& titleLength = 80)
+{
+    int size = I2I32(std::string(title).size());
+    int spaces = titleLength - size;
+    std::string bar = "";
+    for(uint64_t i = 0; i < titleLength + 2; i++) bar += "-";
+    printf("\n%s\n", bar.c_str()); bar = " ";
+    for(uint64_t i = 0; i < uint64_t(0.5 * spaces) - 2; i++) bar += "-";
+    bar += "| " + std::string(title) + " |";
+    for(uint64_t i = 0; i < uint64_t(0.5 * spaces) - 2; i++) bar += "-";
+    printf("%s\n", bar.c_str());
+    bar = "" ; for(uint64_t i = 0; i < titleLength + 2; i++) bar += "-";
+    printf("%s\n\n", bar.c_str()); bar = "";
+    fflush(stdout);
 }
 
 // Print the title
-#define LOG_TITLE(STRING)                                                                           \
-{                                                                                                   \
-    {                                                                                               \
-        int size = I2I32(std::string(STRING).size());                                               \
-        int SPACES = TITLE_LENGTH - size;                                                           \
-        std::string BAR = "";                                                                       \
-        for(int i = 0; i < TITLE_LENGTH + 2; i++) BAR += "-";                                       \
-        printf("\n%s\n", BAR.c_str()); BAR = " ";                                                   \
-        for(int i = 0; i < int(0.5 * SPACES) - 2; i++) BAR += "-";                                  \
-        BAR += "| " + std::string(STRING) + " |";                                                   \
-        for(int i = 0; i < int(0.5 * SPACES) - 2; i++) BAR += "-";                                  \
-        printf("%s\n", BAR.c_str());                                                                \
-        BAR = "" ; for(int i = 0; i < TITLE_LENGTH + 2; i++) BAR += "-";                            \
-        printf("%s\n\n", BAR.c_str()); BAR = "";                                                    \
-        fflush(stdout);                                                                             \
-    }                                                                                               \
-}
+#define LOG_TITLE(STRING) logTitle(STRING)
 
 #endif // ULTRALISER_COMMON_LOGGING_H

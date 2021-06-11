@@ -84,6 +84,7 @@
 #define VOLUME_STRING                           STRING("volume")
 
 // Artifacts Suffixes
+#define JOINT_SUFFIX                            STRING("-joint")
 #define MC_SUFFIX                               STRING("-mc")
 #define LAPLACIAN_SUFFIX                        STRING("-laplacian")
 #define OPTIMIZED_SUFFIX                        STRING("-optimized")

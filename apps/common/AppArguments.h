@@ -113,6 +113,11 @@ public:
     void addVolumeArguments();
 
     /**
+     * @brief addMeshJoiningArguments
+     */
+    void addMeshJoiningArguments();
+
+    /**
      * @brief addMeshExtractionArguments
      */
     void addMeshExtractionArguments();

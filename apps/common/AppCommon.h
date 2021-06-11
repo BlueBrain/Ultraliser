@@ -132,7 +132,7 @@ void generateVolumeArtifacts(const Volume* volume, const AppOptions* options);
  * @return
  * A pointer to the reconstructed volume.
  */
-Volume* reconstructVolumeFromMesh(Mesh* inputMesh, AppOptions* options,
+Volume* reconstructVolumeFromMesh(Mesh* inputMesh, const AppOptions* options,
                                   const bool& releaseInputMesh = true);
 
 /**
@@ -146,6 +146,6 @@ Volume* reconstructVolumeFromMesh(Mesh* inputMesh, AppOptions* options,
  * @return
  * A pointer to the reconstructed mesh.
  */
-Mesh* reconstructMeshFromVolume(Volume* volume, AppOptions* options);
+Mesh* reconstructMeshFromVolume(Volume* volume, const AppOptions* options);
 
 }

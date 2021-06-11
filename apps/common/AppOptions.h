@@ -417,6 +417,14 @@ public:
     bool voxelizeMesh = false;
 
     /**
+     * @brief simpleMeshJoin
+     * When merging a group of meshes together, if this flag is set, the meshes will be just
+     * appended together without any volume reconstruction operation and therefore they will
+     * not be optimized.
+     */
+    bool simpleMeshJoin = false;
+
+    /**
      * @brief optimizationIterations
      * Number of iterations of optimizing the mesh surface.
      * By default it is set to 1, but more accurate numbers depend on the
