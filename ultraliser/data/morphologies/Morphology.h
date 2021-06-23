@@ -25,6 +25,7 @@
 
 #include <data/morphologies/Sample.h>
 #include <data/morphologies/Section.h>
+#include <data/common/ROI.h>
 
 namespace Ultraliser
 {
@@ -112,6 +113,13 @@ public:
      * The number of segments in the morphology.
      */
     uint64_t computeNumberSegments() const;
+
+    /**
+     * @brief collectRegionsWithThinStructures
+     * Compiles a list of small structures in the morphology for the meshing.
+     * @return
+     */
+    ROIs collectRegionsWithThinStructures() const;
 
     /**
      * @brief computeMinMaxAvgSampleRadius
@@ -214,6 +222,23 @@ public:
                                        float& maxSectionVolume,
                                        float& avgSectionVolume) const;
 
+    /**
+     * @brief resampleSectionsUniformly
+     * Resample each sections in the morphology uniformly with a fixed step.
+     * @param step
+     * A given step that will be used to sample the sections in the morphology.
+     */
+    void resampleSectionsUniformly(const float step);
+
+    /**
+     * @brief resampleSectionsAdaptively
+     * Resample each section in the morphology adaptively, i.e. with respect to the radii of the
+     * samples along the morphology.
+     * @param relaxed
+     * Relaxed resampling, if this flag is set to true, the resampling will be use the diameters
+     * of the samples instead of their radii.
+     */
+    void resampleSectionsAdaptively(const bool& relaxed);
 
     /**
      * @brief printStats

@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 202
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -19,13 +19,56 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_COMMON_COMMON_DATA_H
-#define ULTRALISER_DATA_COMMON_COMMON_DATA_H
+#ifndef ULTRALISER_DATA_COMMON_ROI_H
+#define ULTRALISER_DATA_COMMON_ROI_H
 
-#include <data/common/BitArray.h>
-#include <data/common/GridIndex.h>
-#include <data/common/ColorMap.h>
-#include <data/common/RGBColor.hh>
-#include <data/common/ROI.h>
+#include <geometry/Geometry.h>
 
-#endif // ULTRALISER_DATA_COMMON_COMMON_DATA_H
+namespace Ultraliser
+{
+
+/**
+ * @brief The ROI struct
+ * A region of interest defines a sphere where we need to perform local operations.
+ */
+struct ROI
+{
+    /**
+     * @brief ROI
+     * Constructor.
+     *
+     * @param center
+     * The center of the ROI.
+     * @param radius
+     * The radius of the ROI.
+     */
+    ROI(const Vector3f& center, const float radius)
+    {
+        this->center = center;
+        this->radius = radius;
+    }
+
+public:
+
+    /**
+     * @brief center
+     * The center of the ROI.
+     */
+    Vector3f center;
+
+    /**
+     * @brief radius
+     * The radius of the ROI.
+     */
+    float radius;
+};
+
+/**
+ * @brief ROIs
+ * A vector of multiple region of interests.
+ */
+typedef std::vector< ROI* > ROIs;
+
+}
+
+#endif // ULTRALISER_DATA_COMMON_ROI_H

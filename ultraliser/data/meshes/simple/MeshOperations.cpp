@@ -123,7 +123,6 @@ float computeMeshSurfaceArea(const Vertex* vertices,
     OMP_PARALLEL_FOR
     for (int64_t i = 0; i < numberTriangles; ++i)
     {
-
         // Update the progress bar
         if (verbose) LOOP_PROGRESS(PROGRESS, numberTriangles);
         PROGRESS_UPDATE;

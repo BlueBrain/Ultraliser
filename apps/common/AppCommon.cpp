@@ -66,9 +66,8 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
 
         LOOP_STARTS("Loading Meshes");
         size_t loadedMeshCount = 0;
-#ifdef ULTRALISER_USE_OPENMP
-        #pragma omp parallel for
-#endif
+        PROGRESS_SET;
+        OMP_PARALLEL_FOR
         for (uint64_t iMesh = 0; iMesh < meshFiles.size(); ++iMesh)
         {
             // Create and load the mesh from the file
@@ -79,17 +78,6 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
 
             if (Ultraliser::File::exists(meshFile))
             {
-
-#ifdef ULTRALISER_USE_OPENMP
-                #pragma omp atomic
-                ++loadedMeshCount;
-                if (omp_get_thread_num() == 0)
-                    LOOP_PROGRESS(loadedMeshCount,  meshFiles.size());
-#else
-                ++loadedMeshCount;
-                LOOP_PROGRESS(loadedMeshCount,  meshFiles.size());
-#endif
-
                 // Load the mesh
                 auto mesh = new Ultraliser::Mesh(meshFile, false);
 
@@ -104,6 +92,9 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
             {
                 LOG_WARNING("Ignoring Mesh: [ %s ]", meshFile.c_str());
             }
+
+            PROGRESS_UPDATE;
+            LOOP_PROGRESS(PROGRESS,  meshFiles.size());
         }
         LOOP_DONE;
         LOG_STATS(GET_TIME_SECONDS);
@@ -178,15 +169,14 @@ void createWatertightMesh(const Mesh* mesh, const AppOptions* options)
 {
     // Create an advanced mesh to process the manifold mesh and make it watertight if it has any
     // self intersections
-    std::unique_ptr< Ultraliser::AdvancedMesh> watertightMesh =
-        std::make_unique< Ultraliser::AdvancedMesh >(
+    std::unique_ptr< AdvancedMesh> watertightMesh = std::make_unique< AdvancedMesh >(
                 mesh->getVertices(), mesh->getNumberVertices(),
                 mesh->getTriangles(), mesh->getNumberTriangles());
 
     if (options->preservePartitions)
     {
         // Split the mesh into partitions
-        std::vector < Ultraliser::AdvancedMesh* > partitions = watertightMesh->splitPartitions();
+        std::vector < AdvancedMesh* > partitions = watertightMesh->splitPartitions();
 
         // Ensure watertightness for the rest of the partitions
         for (auto mesh : partitions)
@@ -197,7 +187,6 @@ void createWatertightMesh(const Mesh* mesh, const AppOptions* options)
                 LOG_WARNING("Soma partition is invalid");
             }
         }
-
 
         // Ensures that the mesh is truly two-manifold with no self intersections
         watertightMesh->ensureWatertightness();
@@ -230,22 +219,22 @@ void createWatertightMesh(const Mesh* mesh, const AppOptions* options)
                                    options->exportOFF, options->exportSTL);
 }
 
-void generateOptimizedMesh(Mesh *dmcMesh, const AppOptions* options)
+void generateOptimizedMesh(Mesh *mesh, const AppOptions* options)
 {
     // Further adaptive optimization
     if (options->optimizeMeshAdaptively)
     {
-        dmcMesh->optimizeAdaptively(options->optimizationIterations, options->smoothingIterations,
+        mesh->optimizeAdaptively(options->optimizationIterations, options->smoothingIterations,
                                     options->flatFactor, options->denseFactor);
 
-        dmcMesh->smooth();
-        dmcMesh->smoothNormals();
+        mesh->smooth();
+        mesh->smoothNormals();
     }
     else
     {
         // Default optimization
         if (options->optimizeMeshHomogenous)
-            dmcMesh->optimize(options->optimizationIterations,
+            mesh->optimize(options->optimizationIterations,
                               options->smoothingIterations,
                               options->denseFactor);
     }
@@ -254,22 +243,22 @@ void generateOptimizedMesh(Mesh *dmcMesh, const AppOptions* options)
     {
         // Print the mesh statistcs
         if (options->writeStatistics)
-            dmcMesh->printStats(OPTIMIZED_STRING, &options->statisticsPrefix);
+            mesh->printStats(OPTIMIZED_STRING, &options->statisticsPrefix);
 
         // Print the mesh statistcs
         if (options->writeDistributions)
-            dmcMesh->writeDistributions(OPTIMIZED_STRING, &options->distributionsPrefix);
+            mesh->writeDistributions(OPTIMIZED_STRING, &options->distributionsPrefix);
 
         // Export the mesh
         if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
-            dmcMesh->exportMesh(options->meshPrefix + OPTIMIZED_SUFFIX,
+            mesh->exportMesh(options->meshPrefix + OPTIMIZED_SUFFIX,
                                 options->exportOBJ, options->exportPLY,
                                 options->exportOFF, options->exportSTL);
     }
 
     // Fix self-intersections if any to create the watertight mesh
     if (!options->ignoreSelfIntersections)
-        createWatertightMesh(dmcMesh, options);
+        createWatertightMesh(mesh, options);
 }
 
 Volume* reconstructVolumeFromMesh(Mesh* inputMesh, const AppOptions* options,

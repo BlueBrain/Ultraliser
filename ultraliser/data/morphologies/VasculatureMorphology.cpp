@@ -42,6 +42,9 @@ VasculatureMorphology::VasculatureMorphology
 
     // Connect the sections
     _connectSections();
+
+    // Resamplg the sections, relaxed
+    resampleSectionsUniformly(0.1);
 }
 
 void VasculatureMorphology::_constructSections()
@@ -137,6 +140,8 @@ VasculatureMorphology::VasculatureMorphology(Samples samples, Sections sections)
 
 VasculatureMorphology* readVascularMorphology(std::string& morphologyPath)
 {
+    LOG_TITLE("Loading Morphology");
+
     if (String::subStringFound(morphologyPath, std::string(".h5")) ||
             String::subStringFound(morphologyPath, std::string(".H5")))
     {

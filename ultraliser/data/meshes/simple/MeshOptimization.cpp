@@ -79,8 +79,7 @@ void Mesh::createNeighbourList()
     destroyNeighborlist();
 
     // Create an array of NeighborTriangle, used to store
-    NeighborTriangle **neighborList =
-            new NeighborTriangle*[_numberVertices];
+    NeighborTriangle **neighborList = new NeighborTriangle*[_numberVertices];
 
     // Initialize the neighbor list
     for (uint64_t i = 0; i < _numberVertices; ++i)
@@ -98,7 +97,7 @@ void Mesh::createNeighbourList()
     LOOP_STARTS("Creating Neighbour List");
     for (uint64_t i = 0; i < _numberTriangles; ++i)
     {
-        LOOP_PROGRESS_FRACTION(1, _numberTriangles);
+        LOOP_PROGRESS(i, _numberTriangles);
 
         const int64_t a = _triangles[i][0];
         const int64_t b = _triangles[i][1];
@@ -135,7 +134,7 @@ void Mesh::createNeighbourList()
     LOOP_STARTS("Ordering Vertices");
     for (uint64_t i = 0; i < _numberVertices; ++i)
     {
-        LOOP_PROGRESS_FRACTION(1, _numberVertices);
+        LOOP_PROGRESS(i, _numberVertices);
 
         firstNGR = neighborList[i];
         const int64_t c = firstNGR->a;
@@ -1592,7 +1591,7 @@ void Mesh::smoothNormals()
     LOOP_STARTS("Smoothing Normals");
     for (uint64_t n = 0; n < _numberVertices; n++)
     {
-        LOOP_PROGRESS_FRACTION(n, _numberVertices);
+        LOOP_PROGRESS(n, _numberVertices);
 
         smoothNormal(n);
     }
@@ -1696,6 +1695,251 @@ bool Mesh::smooth(const int64_t &maxMinAngle, const int64_t &minMaxAngle,
     return smoothed;
 }
 
+void Mesh::subdivideTriangleAtCentroid(const uint64_t& triangleIndex,
+                                       std::vector< Vector3f >& vertexList,
+                                       std::vector< Triangle >& triangleList)
+{
+    // Get the triangle
+    Triangle t = _triangles[triangleIndex];
+
+    // Geth the vertices of the triangles
+    const Vector3f& v0 = _vertices[t[0]];
+    const Vector3f& v1 = _vertices[t[1]];
+    const Vector3f& v2 = _vertices[t[2]];
+
+    // Compute the centroid
+    const Vector3f centroid = (v0 + v1 + v2) / 3.f;
+
+    // Add the centroid to the vertex list
+    vertexList.push_back(centroid);
+
+    // Get the new vertex index
+    const uint64_t vertexIndex = _numberVertices + vertexList.size() - 1;
+
+    // Create three new triangles
+    Triangle t0, t1, t2;
+    t0[0] = t[0]; t0[1] = t[1]; t0[2] = vertexIndex;
+    t1[0] = t[1]; t1[1] = t[2]; t1[2] = vertexIndex;
+    t2[0] = t[2]; t2[1] = t[0]; t2[2] = vertexIndex;
+
+    // Add the triangles to the list
+    triangleList.push_back(t0);
+    triangleList.push_back(t1);
+    triangleList.push_back(t2);
+}
+
+void Mesh::subdivideTriangleAtEdges(const uint64_t& triangleIndex,
+                                    std::vector< Vector3f >& vertexList,
+                                    std::vector< Triangle >& triangleList)
+{
+    // Get the triangle
+    const Triangle& t = _triangles[triangleIndex];
+
+    const uint64_t& v0Index = t[0];
+    const uint64_t& v1Index = t[1];
+    const uint64_t& v2Index = t[2];
+
+    // Geth the vertices of the triangles
+    const Vector3f& v0 = _vertices[v0Index];
+    const Vector3f& v1 = _vertices[v1Index];
+    const Vector3f& v2 = _vertices[v2Index];
+
+    // Compute the midpoints along each edge
+    const Vector3f v3 = 0.5f * (v0 + v1); // v01
+    const Vector3f v4 = 0.5f * (v1 + v2); // v12
+    const Vector3f v5 = 0.5f * (v2 + v0); // v20
+
+    // Add the midpoint vertices the vertex list
+    vertexList.push_back(v3);
+    vertexList.push_back(v4);
+    vertexList.push_back(v5);
+
+    // Get the new vertex index
+    const uint64_t v3Index = _numberVertices + vertexList.size() - 3;
+    const uint64_t v4Index = _numberVertices + vertexList.size() - 2;
+    const uint64_t v5Index = _numberVertices + vertexList.size() - 1;
+
+    // Create three new triangles
+    Triangle t0, t1, t2, t3;
+
+    // v0 v3 v5
+    t0[0] = v0Index;
+    t0[1] = v3Index;
+    t0[2] = v5Index;
+
+    // v3 v1 v4
+    t1[0] = v3Index;
+    t1[1] = v1Index;
+    t1[2] = v4Index;
+
+    // v3 v4 v5
+    t2[0] = v3Index;
+    t2[1] = v4Index;
+    t2[2] = v5Index;
+
+    // v4 v2 v5
+    t3[0] = v4Index;
+    t3[1] = v2Index;
+    t3[2] = v5Index ;
+
+    // Add the triangles to the list
+    triangleList.push_back(t0);
+    triangleList.push_back(t1);
+    triangleList.push_back(t2);
+    triangleList.push_back(t3);
+}
+
+void Mesh::refineSelectedTriangles(const std::vector< uint64_t >& trianglesIndices)
+{
+    // Starting the timer
+    TIMER_SET;
+
+    LOG_STATUS("Refining Triangles");
+
+    // Destroy the neighbouring list becuase the number of vertices is going to change later
+    destroyNeighborlist();
+
+    // Create the triangle markers
+    std::vector< bool > triangleMarkers;
+    triangleMarkers.resize(_numberTriangles);
+
+    // Initialize them to false
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < triangleMarkers.size(); ++i)
+        triangleMarkers[i] = false;
+
+    // Create the vectors
+    std::vector< Vector3f > vertices;
+    std::vector< Triangle > triangles;
+
+    // Keeps track on the number of divided triangles
+    uint64_t numberDividedTriangles = 0;
+
+    // For the moment, it refines all the triangles, but we will use it to only refine the
+    // selected triangles.
+    LOOP_STARTS("Refine Selected Triangles")
+    LOOP_PROGRESS(0, 5);
+    for (uint64_t i = 0; i < trianglesIndices.size(); ++i)
+    {
+        // If the triangle has been visited before, then skip it
+        if (triangleMarkers[trianglesIndices[i]])
+            continue;
+
+        // Subdivide at the centroid
+        subdivideTriangleAtCentroid(trianglesIndices[i], vertices, triangles);
+
+        // Update the count
+        ++numberDividedTriangles;
+
+        // Update the marker
+        triangleMarkers[trianglesIndices[i]] = true;
+    }
+
+    // Compute the total number of vertices in the subdivided mesh
+    const uint64_t totalNumberVertices = _numberVertices + vertices.size();
+
+    // Compute the total number of MANIFOLD triangles in the subdivided mesh
+    const uint64_t numberManifoldTriangles = _numberTriangles - numberDividedTriangles;
+    const uint64_t totalNumberTriangles = numberManifoldTriangles + triangles.size();
+
+    // Allocate the new arrays
+    Vector3f* newVertices = new Vector3f[totalNumberVertices];
+    Triangle* newTriangles = new Triangle[totalNumberTriangles];
+
+    LOOP_PROGRESS(1, 5);
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < _numberVertices; ++i)
+    {
+        newVertices[i] = _vertices[i];
+    }
+
+    delete [] _vertices; _vertices = nullptr;
+
+    LOOP_PROGRESS(2, 5);
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < vertices.size(); ++i)
+    {
+        newVertices[_numberVertices + i] = vertices[i];
+    }
+
+    vertices.clear();
+    vertices.shrink_to_fit();
+
+    LOOP_PROGRESS(3, 5);
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < triangles.size(); ++i)
+    {
+        newTriangles[i] = triangles[i];
+    }
+
+    LOOP_PROGRESS(4, 5);
+    uint64_t tIndex = 0, nIndex = 0;
+    while (true)
+    {
+        tIndex++;
+
+        // If we reach the maximum break
+        if (tIndex > _numberTriangles)
+            break;
+
+        // If the triangles is in the markers list, then it will not be added
+        if (triangleMarkers[tIndex - 1])
+            continue;
+        else
+        {
+            newTriangles[triangles.size() + nIndex] = _triangles[tIndex - 1];
+            nIndex++;
+        }
+
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    delete [] _triangles; _triangles = nullptr;
+
+    triangles.clear();
+    triangles.shrink_to_fit();
+
+    _numberVertices = totalNumberVertices;
+    _numberTriangles = totalNumberTriangles;
+
+    _vertices = newVertices;
+    _triangles = newTriangles;
+}
+
+void Mesh::refineROIs(const ROIs& regions)
+{
+    // Selected triangles
+    std::vector< uint64_t > trianglesIndices;
+
+    // Select the triangles that are located within the ROI
+    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    {
+        // Get the triangle
+        const auto& triangle = _triangles[i];
+
+        // Get the vertices of the triangles
+        const auto v0 = _vertices[triangle[0]];
+        const auto v1 = _vertices[triangle[1]];
+        const auto v2 = _vertices[triangle[2]];
+
+        for (uint64_t j = 0; j < regions.size(); ++j)
+        {
+            const auto region = regions[j];
+            if (isTriangleInSphere(v0, v1, v2, region->center, region->radius))
+            {
+                trianglesIndices.push_back(i);
+            }
+        }
+    }
+
+    // The triangles are already selected, now time to refine them
+    refineSelectedTriangles(trianglesIndices);
+
+    trianglesIndices.clear();
+    trianglesIndices.shrink_to_fit();
+}
+
 void Mesh::refine()
 {
     // Starting the timer
@@ -1724,7 +1968,7 @@ void Mesh::refine()
         NeighborTriangle* ngr = _neighborList[i];
         while (ngr != nullptr)
         {
-            // If n is smaller than ngr->a we have an edge
+            // If i is smaller than ngr->a we have an edge
             if (i < ngr->a)
             {
                 totalNumberEdges++;
@@ -1738,9 +1982,9 @@ void Mesh::refine()
     }
 
     // Create the refined mesh structure
-    Mesh* refinedMesh =
-            instanciate(_numberVertices + totalNumberEdges,
-                        _numberTriangles * 4);
+    Mesh* refinedMesh = instanciate(_numberVertices + totalNumberEdges, _numberTriangles * 4);
+
+    // For the moment, just keep the old numbers.
     refinedMesh->_numberVertices = _numberVertices;
     refinedMesh->_numberTriangles = _numberTriangles;
 
@@ -1767,7 +2011,7 @@ void Mesh::refine()
     LOOP_STARTS("Splitting Edges");
     for (int64_t i = 0; i < UI2I64(_numberVertices); ++i)
     {
-        LOOP_PROGRESS_FRACTION(i, _numberVertices);
+        LOOP_PROGRESS(i, _numberVertices);
 
         // Get the coordinates of vertex i
         const float nx = refinedMesh->_vertices[i].x();
@@ -1790,12 +2034,9 @@ void Mesh::refine()
                 const float az = refinedMesh->_vertices[ngr->a].z();
 
                 // Add the new vertex coordinates of the splitted edge
-                refinedMesh->_vertices[_numberVertices + edgeNumber].x() =
-                        0.5f * (ax + nx);
-                refinedMesh->_vertices[_numberVertices + edgeNumber].y() =
-                        0.5f * (ay + ny);
-                refinedMesh->_vertices[_numberVertices + edgeNumber].z() =
-                        0.5f * (az + nz);
+                refinedMesh->_vertices[_numberVertices + edgeNumber].x() = 0.5f * (ax + nx);
+                refinedMesh->_vertices[_numberVertices + edgeNumber].y() = 0.5f * (ay + ny);
+                refinedMesh->_vertices[_numberVertices + edgeNumber].z() = 0.5f * (az + nz);
 
                 // Increase the edge number
                 edgeNumber++;
@@ -1851,12 +2092,9 @@ void Mesh::refine()
         // Then the three corner faces
         for (int64_t m = 0; m < 3; m++)
         {
-            refinedMesh->_triangles[triangleNumber][0] =
-                    localVertices[m];
-            refinedMesh->_triangles[triangleNumber][1] =
-                    additionalLocalVertices[m];
-            refinedMesh->_triangles[triangleNumber][2] =
-                    additionalLocalVertices[(m + 2) % 3];
+            refinedMesh->_triangles[triangleNumber][0] = localVertices[m];
+            refinedMesh->_triangles[triangleNumber][1] = additionalLocalVertices[m];
+            refinedMesh->_triangles[triangleNumber][2] = additionalLocalVertices[(m + 2) % 3];
             triangleNumber++;
         }
     }
@@ -1921,7 +2159,7 @@ bool Mesh::coarse(const float& coarseRate,
         TIMER_RESET;
         for (uint64_t i = 0; i < _numberTriangles; ++i)
         {
-            LOOP_PROGRESS_FRACTION(i, _numberTriangles);
+            LOOP_PROGRESS(i, _numberTriangles);
 
             // Indices
             Triangle& t = _triangles[i];
@@ -1973,7 +2211,7 @@ bool Mesh::coarse(const float& coarseRate,
     uint64_t vertexNumber = _numberVertices;
     for (int64_t n = 0; n < UI2I64(_numberVertices); ++n)
     {
-        LOOP_PROGRESS_FRACTION(n, _numberVertices);
+        LOOP_PROGRESS(n, _numberVertices);
 
         // Check if the vertex has enough neigborgs to be deleted
         char deleteFlag = 1;
@@ -2419,7 +2657,6 @@ void Mesh::coarseFlat(const float& flatnessRate,
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-
 void Mesh::optimizeAdaptively(const uint64_t &optimizationIterations,
                               const uint64_t &smoothingIterations,
                               const float &flatFactor,
@@ -2463,7 +2700,7 @@ void Mesh::optimize(const uint64_t &optimizationIterations,
     TIMER_SET;
 
     // Remove the unnecessary vertices in multiple iterations
-    coarseDense(denseFactor, optimizationIterations);
+    // coarseDense(denseFactor, optimizationIterations);
 
     // Smooth the normals
     // smoothNormals();

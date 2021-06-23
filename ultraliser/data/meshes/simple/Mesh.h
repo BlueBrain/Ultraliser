@@ -28,6 +28,7 @@
 #include <data/meshes/simple/NeighbourTriangle.h>
 #include <data/structures/Neighbors.h>
 #include <data/morphologies/Section.h>
+#include <data/common/ROI.h>
 
 namespace Ultraliser
 {
@@ -357,6 +358,36 @@ public:
      */
     void refine();
 
+
+    void createEdgeList();
+    /**
+     * @brief subdivideTriangleAtCentroid
+     * @param triangleIndex
+     * @param vertexList
+     * @param triangleList
+     */
+    void subdivideTriangleAtCentroid(const uint64_t& triangleIndex,
+                                     std::vector< Vector3f >& vertexList,
+                                     std::vector< Triangle >& triangleList);
+
+    /**
+     * @brief subdivideTriangleAtEdges
+     * @param triangleIndex
+     * @param vertexList
+     * @param triangleList
+     */
+    void subdivideTriangleAtEdges(const uint64_t& triangleIndex,
+                                  std::vector< Vector3f >& vertexList,
+                                  std::vector< Triangle >& triangleList);
+
+    void refineSelectedTriangles(const std::vector<uint64_t> &trianglesIndices);
+
+    /**
+     * @brief refineROIs
+     * @param regions
+     */
+    void refineROIs(const ROIs& regions);
+
     /**
      * @brief coarse
      * @param coarseRate
@@ -514,8 +545,8 @@ private:
      * @return
      */
     float _cotangentAngle(const Vector3f& pivot,
-                           const Vector3f& a,
-                           const Vector3f& b);
+                          const Vector3f& a,
+                          const Vector3f& b);
 
     void _computeNeighborhoods(Mesh& mesh,
                                Neighborhood& vertexNeighbors,
@@ -538,9 +569,7 @@ private:
 
     inline bool _triangleContainsVertex(const Triangle & t, const uint64_t vIndex)
     {
-        return (I2UI64(t.x()) == vIndex ||
-                I2UI64(t.y()) == vIndex ||
-                I2UI64(t.z()) == vIndex);
+        return (I2UI64(t.x()) == vIndex || I2UI64(t.y()) == vIndex || I2UI64(t.z()) == vIndex);
     }
 
 

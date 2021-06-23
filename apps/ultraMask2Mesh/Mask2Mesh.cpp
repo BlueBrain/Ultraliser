@@ -78,26 +78,26 @@ void run(int argc , const char** argv)
     generateVolumeArtifacts(volume, options);
 
 
-    // Generate the mesh using the DMC algorithm and adjust its scale
-    auto mesh = DualMarchingCubes::generateMeshFromVolume(volume);
+    // Extract the mesh from the volume again
+    auto reconstructedMesh = reconstructMeshFromVolume(volume, options);
 
     // Free the volume, it is not needed any further
     delete volume;
 
-    // If a scale factor is given, not 1.0, scale the mesh
-    if (!(Ultraliser::isEqual(options->xScaleFactor, 1.f) &&
-          Ultraliser::isEqual(options->xScaleFactor, 1.f) &&
-          Ultraliser::isEqual(options->xScaleFactor, 1.f)))
-    {
-        // Scale the mesh
-        mesh->scale(options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
-    }
+//    // If a scale factor is given, not 1.0, scale the mesh
+//    if (!(Ultraliser::isEqual(options->xScaleFactor, 1.f) &&
+//          Ultraliser::isEqual(options->xScaleFactor, 1.f) &&
+//          Ultraliser::isEqual(options->xScaleFactor, 1.f)))
+//    {
+//        // Scale the mesh
+//        reconstructedMesh->scale(options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
+//    }
 
-    // Generate the mesh artifacts
-    generateMarchingCubesMeshArtifacts(mesh, options);
+    // Generate the reconstructed mesh artifacts
+    generateReconstructedMeshArtifacts(reconstructedMesh, options);
 
     // Free
-    delete mesh;
+    delete reconstructedMesh;
     delete options;
 }
 

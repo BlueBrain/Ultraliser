@@ -160,7 +160,8 @@ void AppArguments::addOutputArguments()
                 "--prefix",
                 ARGUMENT_TYPE::STRING,
                 "A prefix that will be used to label the output files. "
-                "If this is not given, the name of the input file/directory will be considered.");
+                "If this is not given, the name of the input file/directory will be considered.",
+                ARGUMENT_PRESENCE::OPTIONAL);
     _args->addArgument(&prefix);
     _options->prefix = _args->getStringValue(&prefix);
 }

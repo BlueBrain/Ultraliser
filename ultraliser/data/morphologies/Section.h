@@ -76,13 +76,14 @@ public:
      * @param step
      * Resampling step.
      */
-    void resampleSectionUniformly(const float& step);
+    void resampleUniformly(const float& step);
 
     /**
      * @brief resampleSectionAdaptively
      * Resamples the section adaptively.
+     * @param relaxed
      */
-    void resampleSectionAdaptively();
+    void resampleAdaptively(const bool& relaxed = true);
 
     /**
      * @brief getParentIndices

@@ -59,7 +59,6 @@ Mesh::Mesh(const uint64_t &numVertices,
            const uint64_t &numTriangles)
 {
     // Initialization of public member variables
-
     _numberVertices = numVertices;
     _numberTriangles = numTriangles;
     _optimizationTime = 0.0;
@@ -406,8 +405,7 @@ Mesh* Mesh::instanciate(const uint64_t &numVertices,
                         const uint64_t &numTriangles)
 {
     // Initialization of public member variables
-    Mesh* instance = new Mesh(numVertices,
-                              numTriangles);
+    Mesh* instance = new Mesh(numVertices, numTriangles);
 
     // Return a pointer to the created mesh
     return instance;

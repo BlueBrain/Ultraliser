@@ -110,10 +110,34 @@ void run(int argc , const char** argv)
     // Free the volume, we do not need it anymore
     delete volume;
 
+    // Compute the ROIs
+    auto regions = vasculatureMorphology->collectRegionsWithThinStructures();
+
     // Generate the mesh artifacts
-    generateReconstructedMeshArtifacts(mesh, options);
+    // generateReconstructedMeshArtifacts(mesh, options);
+
+    // MC mesh output
+    if (options->writeMarchingCubeMesh)
+        generateMarchingCubesMeshArtifacts(mesh, options);
+
+    // Laplacian smoorhing
+    if (!options->ignoreLaplacianSmoothing || options->laplacianIterations > 0)
+        applyLaplacianOperator(mesh, options);
+
+    // Divide the mesh accodingly
+    for (uint64_t i = 0; i < 2; ++i)
+        mesh->refineROIs(regions);
+
+    mesh->exportMesh(options->meshPrefix + "-refined",
+                     options->exportOBJ, options->exportPLY,
+                     options->exportOFF, options->exportSTL);
+
+    // Optimize the mesh and create a watertight mesh
+    if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)
+        generateOptimizedMesh(mesh, options);
 
     // Free
+    delete vasculatureMorphology;
     delete mesh;
     delete options;
 }

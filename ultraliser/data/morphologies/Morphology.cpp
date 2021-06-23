@@ -454,6 +454,73 @@ void Morphology::computeMinMaxAvgSectionVolume(float& minSectionVolume,
     avgSectionVolume = avgValue / _sections.size();
 }
 
+void Morphology::resampleSectionsUniformly(const float step)
+{
+    LOG_STATUS("Resampling Morphology");
+
+    // Starting the timer
+    TIMER_SET;
+
+    LOOP_STARTS("Uniform Resampling")
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < _sections.size(); ++i)
+    {
+        _sections[i]->resampleUniformly(step);
+
+        LOOP_PROGRESS(PROGRESS, _sections.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
+void Morphology::resampleSectionsAdaptively(const bool& relaxed)
+{
+    LOG_STATUS("Resampling Morphology");
+
+    // Starting the timer
+    TIMER_SET;
+
+    LOOP_STARTS("Adaptive Resampling")
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < _sections.size(); ++i)
+    {
+        _sections[i]->resampleAdaptively(relaxed);
+
+        LOOP_PROGRESS(PROGRESS, _sections.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
+ROIs Morphology::collectRegionsWithThinStructures() const
+{
+    // Regions of interest
+    ROIs regions;
+
+    const auto threshold = 0.5f;
+
+    for (uint64_t i = 0; i < _sections.size(); ++i)
+    {
+        const Samples& samples = _sections[i]->getSamples();
+        for (uint64_t j = 0; j < samples.size(); ++j)
+        {
+            if (samples[j]->getRadius() < threshold)
+            {
+                // NOTE: We scale the region by 1.15 to guarantee that the triangles will be covered
+                regions.push_back(new ROI(samples[j]->getPosition(), samples[j]->getRadius() * 2.0));
+            }
+        }
+    }
+
+    // Return the regions of interest
+    return regions;
+}
+
+
 void Morphology::printDistributions(const std::string *prefix) const
 {
     // Starting the timer

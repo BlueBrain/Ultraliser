@@ -139,7 +139,6 @@ void VasculatureVMVReader::_readSamples()
     // Close the file stream
     stream.close();
 
-
     // Reads the vertices from the vertex block
     for (std::string line: verticesBlock)
     {

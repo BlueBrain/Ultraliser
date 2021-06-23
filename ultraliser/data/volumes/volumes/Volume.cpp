@@ -20,17 +20,17 @@
  **************************************************************************************************/
 
 #include "Volume.h"
-#include "../grids/VolumeGrid.h"
-#include "../voxels/DMCVoxel.h"
 #include <common/Common.h>
 #include <geometry/Intersection.h>
 #include <geometry/Utilities.h>
 #include <utilities/Utilities.h>
 #include <math/Functions.h>
 #include <data/images/TIFFImage.h>
-#include "../grids/BitVolumeGrid.h"
-#include "../grids/ByteVolumeGrid.h"
-#include "../grids/VoxelGrid.h"
+#include <data/volumes/grids/VolumeGrid.h>
+#include <data/volumes/voxels/DMCVoxel.h>
+#include <data/volumes/grids/BitVolumeGrid.h>
+#include <data/volumes/grids/ByteVolumeGrid.h>
+#include <data/volumes/grids/VoxelGrid.h>
 #include <data/volumes/grids/Grids.h>
 #include <data/meshes/simple/VolumeMesh.h>
 #include <data/meshes/simple/MeshOperations.h>
@@ -365,7 +365,7 @@ void Volume::_rasterizeParallel(Mesh* mesh, VolumeGrid* grid)
     LOOP_STARTS("Parallel Rasterization");
     PROGRESS_SET;
     OMP_PARALLEL_FOR
-    for (size_t tIdx = 0; tIdx < mesh->getNumberTriangles(); tIdx++)
+    for (uint64_t tIdx = 0; tIdx < mesh->getNumberTriangles(); tIdx++)
     {
         // Get the pMin and pMax of the triangle within the grid
         int64_t pMinTriangle[3], pMaxTriangle[3];
@@ -385,8 +385,8 @@ void Volume::_rasterizeParallel(Mesh* mesh, VolumeGrid* grid)
         }
 
         // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, mesh->getNumberTriangles());
-        PROGRESS_UPDATE;
+         LOOP_PROGRESS(PROGRESS, mesh->getNumberTriangles());
+         PROGRESS_UPDATE;
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
