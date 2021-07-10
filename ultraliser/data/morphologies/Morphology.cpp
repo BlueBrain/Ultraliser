@@ -496,15 +496,22 @@ void Morphology::resampleSectionsAdaptively(const bool& relaxed)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-ROIs Morphology::collectRegionsWithThinStructures() const
+ROIs Morphology::collectRegionsWithThinStructures(const float& threshold) const
 {
     // Regions of interest
     ROIs regions;
 
-    const auto threshold = 0.5f;
+    // Starting the timer
+    TIMER_SET;
 
+    LOOP_STARTS("Collecting ROIs");
+    PROGRESS_SET;
     for (uint64_t i = 0; i < _sections.size(); ++i)
     {
+        // Update the progress bar
+        LOOP_PROGRESS_FRACTION(PROGRESS, _sections.size());
+        PROGRESS_UPDATE;
+
         const Samples& samples = _sections[i]->getSamples();
         for (uint64_t j = 0; j < samples.size(); ++j)
         {
@@ -515,6 +522,10 @@ ROIs Morphology::collectRegionsWithThinStructures() const
             }
         }
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    LOG_SUCCESS("[ %d ] ROIs selected", regions.size());
 
     // Return the regions of interest
     return regions;

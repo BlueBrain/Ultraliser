@@ -104,6 +104,34 @@ Mesh* MarchingCubes::generateMesh(const bool &parallel)
     return mesh;
 }
 
+AdvancedMesh* MarchingCubes::generateAdvancedMesh(const bool &parallel)
+{
+    LOG_TITLE("Mesh Reconstruction with Marching Cubes");
+
+    // Build the mesh
+    Vertices vertices;
+    Triangles triangles;
+
+    // Start the timer
+    TIMER_SET;
+
+    LOG_STATUS("Building Mesh");
+    if (parallel)
+        _buildSharedVerticesParallel(vertices, triangles);
+    else
+        _buildSharedVertices(vertices, triangles);
+
+    // Reconstruct the mesh
+    AdvancedMesh* mesh = new AdvancedMesh(vertices, triangles);
+
+    // Statistics
+    _meshExtractionTime = GET_TIME_SECONDS;
+    LOG_STATUS_IMPORTANT("Mesh Reconstruction with Marching Cubes Stats.");
+    LOG_STATS(_meshExtractionTime);
+
+    return mesh;
+}
+
 void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &triangles)
 {
     // Start the timer
@@ -113,7 +141,7 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
     std::vector< uint64_t > polygons;
 
     // Adding a little bit of extra voxels
-    const int64_t extraVoxels = 5;
+    const int64_t extraVoxels = 2;
     const int64_t minValue = -1 * extraVoxels;
     const int64_t maxValue = extraVoxels;
 
@@ -129,12 +157,18 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
     const uint64_t size = (sizeX * sizeY * sizeZ * 3);
 
     // Mesh shared indices list
-    uint64_t* sharedIndices = new size_t[size];
+    uint64_t* sharedIndices;
+    try {
+        sharedIndices = new uint64_t[size];
+
+    }  catch (...) {
+        LOG_ERROR("Cannot allocate required memory for the Marching Cubes implementation!");
+    }
 
     // A list of lists of DMCVoxel's
     // This list will have reducedX entries to get filled in parallel
     MCVoxelsList volumeMCVoxels;
-    volumeMCVoxels.resize(static_cast< uint64_t >(sizeX));
+    volumeMCVoxels.resize(sizeX);
 
     // For computations and indexing ...
     const uint64_t z3 = sizeZ * 3;
@@ -238,6 +272,7 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
                 sharedIndices[idx] = uniqueIndices[5];
                 addSharedVertex(x_dx, y, z_dz, y_dy, 1, v[5], v[6], _isoValue, vertices);
             }
+
             if(edges & 0x400)
             {
                 uniqueIndices[10] = vertices.size();
@@ -663,11 +698,20 @@ void MarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangle
 Mesh* MarchingCubes::generateMeshFromVolume(Volume* volume, const bool &serialExecution)
 {
     // Reconstruct a watertight mesh from the volume with DMC
-    std::unique_ptr< MarchingCubes > workflowMC =
-            std::make_unique< MarchingCubes >(volume);
+    std::unique_ptr< MarchingCubes > workflow = std::make_unique< MarchingCubes >(volume);
 
     // Generate the DMC mesh
-    return workflowMC->generateMesh(!serialExecution);
+    return workflow->generateMesh(!serialExecution);
+}
+
+AdvancedMesh* MarchingCubes::generateAdvancedMeshFromVolume(Volume* volume,
+                                                            const bool &serialExecution)
+{
+    // Reconstruct a watertight mesh from the volume with DMC
+    std::unique_ptr< MarchingCubes > workflow = std::make_unique< MarchingCubes >(volume);
+
+    // Generate the DMC mesh
+    return workflow->generateAdvancedMesh(!serialExecution);
 }
 
 }

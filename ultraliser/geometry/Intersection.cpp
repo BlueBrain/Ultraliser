@@ -22,6 +22,7 @@
 #include <common/Common.h>
 #include <math/Macros.h>
 #include <geometry/Intersection.h>
+#include <math/Vector3f.h>
 
 #define X 0
 #define Y 1
@@ -55,6 +56,52 @@ namespace Ultraliser
   if(x1>max) max=x1;\
   if(x2<min) min=x2;\
   if(x2>max) max=x2;
+
+
+int planeBoxOverlap(Vector3f normal, float d, Vector3f maxBox)
+{
+    Vector3f vMin, vMax;
+
+    if (normal.x() > 0.f)
+    {
+        vMin.x() = -1 * maxBox.x();
+        vMax.x() = maxBox.x();
+    }
+    else
+    {
+        vMin.x() = maxBox.x();
+        vMax.x() = -1 * maxBox.x();
+    }
+
+    if (normal.y() > 0.f)
+    {
+        vMin.y() = -1 * maxBox.y();
+        vMax.y() = maxBox.y();
+    }
+    else
+    {
+        vMin.y() = maxBox.y();
+        vMax.y() = -1 * maxBox.y();
+    }
+
+    if (normal.z() > 0.f)
+    {
+        vMin.z() = -1 * maxBox.z();
+        vMax.z() = maxBox.z();
+    }
+    else
+    {
+        vMin.z() = maxBox.z();
+        vMax.z() = -1 * maxBox.z();
+    }
+
+    if (Vector3f::dot(normal, vMin) + d > 0.f)
+        return 0;
+    if (Vector3f::dot(normal, vMax) + d >= 0.f)
+        return 1;
+
+    return 0;
+}
 
 int planeBoxOverlap(double normal[3],double d, double maxbox[3])
 {
@@ -145,7 +192,7 @@ int checkTriangleBoxIntersection(double boxcenter[3],double boxhalfsize[3],doubl
    /*    find min, max of the triangle each direction, and test for overlap in */
    /*    that direction -- this is equivalent to testing a minimal AABB around */
    /*    the triangle against the AABB */
-#if 0
+#if 1
    /* This is the fastest branch on Sun */
    /* move everything so that the boxcenter is in (0,0,0) */
    SUB(v0,triverts[0],boxcenter);

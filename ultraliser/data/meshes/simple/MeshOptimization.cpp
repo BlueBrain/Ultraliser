@@ -35,6 +35,7 @@
 #include "TriangleOperations.h"
 #include <utilities/Utilities.h>
 #include <math/Math.h>
+#include <utilities/Utilities.h>
 #include <geometry/Intersection.h>
 #include <algorithms/SectionGeometry.h>
 
@@ -48,16 +49,41 @@
 namespace Ultraliser
 {
 
-void Mesh::destroyNeighborlist()
+void Mesh::_destroyVertexMarkers()
 {
-    NeighborTriangle* firstNGR = nullptr;
-    NeighborTriangle* auxNGR = nullptr;
+    if (_vertexMarkers.size() > 0)
+    {
+        _vertexMarkers.clear();
+        _vertexMarkers.shrink_to_fit();
+    }
+}
 
+void Mesh::_resetVertexMarkers()
+{
+    if (_vertexMarkers.size() == 0 || _vertexMarkers.size() < _numberVertices)
+    {
+        _destroyVertexMarkers();
+        _vertexMarkers.resize(_numberVertices);
+    }
+
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < _numberVertices; ++i)
+    {
+        _vertexMarkers[i] = 0;
+    }
+}
+
+void Mesh::_destroyNeighborlist()
+{
     if (_neighborList != nullptr)
     {
         // Release the single neighbors
+        OMP_PARALLEL_FOR
         for (uint64_t i = 0; i < _numberVertices; ++i)
         {
+            NeighborTriangle* firstNGR = nullptr;
+            NeighborTriangle* auxNGR = nullptr;
+
             firstNGR = _neighborList[i];
             while (firstNGR != nullptr)
             {
@@ -73,10 +99,10 @@ void Mesh::destroyNeighborlist()
     }
 }
 
-void Mesh::createNeighbourList()
+void Mesh::_createNeighbourList()
 {
     // Destroy exsisting neigborlist, if found
-    destroyNeighborlist();
+    _destroyNeighborlist();
 
     // Create an array of NeighborTriangle, used to store
     NeighborTriangle **neighborList = new NeighborTriangle*[_numberVertices];
@@ -85,25 +111,26 @@ void Mesh::createNeighbourList()
     for (uint64_t i = 0; i < _numberVertices; ++i)
         neighborList[i] = nullptr;
 
-    // Iterate over the triangless and collect line segments (a, b) and
-    // its connection to a triangles (c).
-    // Save the line segment so it forms a counter clockwise triangle with the
-    // origin vertices
-    NeighborTriangle *firstNGR, *secondNGR, *auxNGR;
-
     // Start the timer
     TIMER_SET;
 
     LOOP_STARTS("Creating Neighbour List");
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for (uint64_t i = 0; i < _numberTriangles; ++i)
     {
-        LOOP_PROGRESS(i, _numberTriangles);
+        PROGRESS_UPDATE;
+        LOOP_PROGRESS(PROGRESS, _numberTriangles);
 
+        // Iterate over the triangless and collect line segments (a, b) and
+        // its connection to a triangles (c).
+        // Save the line segment so it forms a counter clockwise triangle with the
+        // origin vertices
         const int64_t a = _triangles[i][0];
         const int64_t b = _triangles[i][1];
         const int64_t c = _triangles[i][2];
 
-        firstNGR = new NeighborTriangle();
+        NeighborTriangle *firstNGR = new NeighborTriangle();
         firstNGR->a = b;
         firstNGR->b = c;
         firstNGR->c = i;
@@ -128,6 +155,8 @@ void Mesh::createNeighbourList()
 
     // Statistics
     LOG_STATS(GET_TIME_SECONDS);
+
+    NeighborTriangle *firstNGR, *secondNGR, *auxNGR;
 
     // Order the neighbors so they are connected counter clockwise
     TIMER_RESET;
@@ -177,7 +206,7 @@ void Mesh::createNeighbourList()
             {
                 if (firstNGR->b != c)
                 {
-                    LOG_WARNING("Some polygons are not closed, Vertices: %d-%d", firstNGR->b, c);
+                    LOG_WARNING("Some polygons are not closed, Vertices: [%d - %d]", firstNGR->b, c);
                     LOG_WARNING("[%f, %f, %f]", F2D(_vertices[firstNGR->b].x()),
                                                 F2D(_vertices[firstNGR->b].y()),
                                                 F2D(_vertices[firstNGR->b].z()));
@@ -199,6 +228,89 @@ void Mesh::createNeighbourList()
     this->_neighborList = neighborList;
 }
 
+void Mesh::_selectVerticesInROI(const ROIs& regions)
+{
+    // Start the timer
+    TIMER_SET;
+    LOG_STATUS("Selecting ROI Vertices: Total [ %d ]", _numberVertices);
+
+    // Reset the vertex markers
+    _resetVertexMarkers();
+
+    // Select the triangles that are located within the ROI
+    LOOP_STARTS("Labeling Vertices");
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < _numberVertices; ++i)
+    {
+        // Get the vertex
+        const auto& vertex = _vertices[i];
+
+        // Make sure that you cover all the regions
+        for (uint64_t j = 0; j < regions.size(); ++j)
+        {
+            const auto region = regions[j];
+
+            // If the vertex is in the sphere
+            if (isPointInSphere(vertex, region->center, region->radius))
+            {
+                // Mark the vertices to avoid losing them
+                _vertexMarkers[i] = 1;
+            }
+        }
+
+        // Update the progress bar
+        LOOP_PROGRESS_FRACTION(PROGRESS, _numberVertices);
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    uint64_t numberSelectedVertices = 0;
+    for (uint64_t i = 0; i < _numberVertices; ++i)
+    {
+        if (_vertexMarkers[i] == 1)
+        {
+            numberSelectedVertices++;
+        }
+    }
+
+    LOG_SUCCESS("[ %d ] vertices are selected for [ %d ] ROIs",
+                numberSelectedVertices, regions.size());
+}
+
+void Mesh::optimizeAdapttivelyWithROI(const uint64_t &optimizationIterations,
+                                       const uint64_t &smoothingIterations,
+                                       const float &flatCoarseFactor,
+                                       const float &denseFactor,
+                                       const ROIs &regions)
+{
+    LOG_TITLE("Adaptive Mesh Optimization (ROI)");
+
+    // Starting the timer
+    TIMER_SET;
+
+    // Select the vertices in the ROI
+    _selectVerticesInROI(regions);
+
+    // Coarse flat
+    coarseFlat(flatCoarseFactor, optimizationIterations);
+
+    // Coarse dense
+    coarseDense(denseFactor, optimizationIterations);
+
+    // Destroy the vertex markers
+    _destroyVertexMarkers();
+
+    // Smooth again
+    smooth(15, 150, smoothingIterations);
+    smoothNormals();
+
+    // Statistics
+    LOG_STATUS_IMPORTANT("Total Optimization");
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
 bool Mesh::isValidVertex(const Vector3f& v)
 {
     if(isEqual(v.x(), VERTEX_DELETION_VALUE) ||
@@ -208,9 +320,7 @@ bool Mesh::isValidVertex(const Vector3f& v)
     return true;
 }
 
-float Mesh::getAngleSurfaceOnly(const int64_t &a,
-                                const int64_t &b,
-                                const int64_t &c,
+float Mesh::getAngleSurfaceOnly(const int64_t &a, const int64_t &b, const int64_t &c,
                                 bool &angleError)
 {
     const float ax = _vertices[a].x();
@@ -1585,7 +1695,7 @@ void Mesh::smoothNormals()
 
     // Check if neighborlist is created
     if (_neighborList == nullptr)
-        createNeighbourList();
+        _createNeighbourList();
 
     // Normal smooth all vertices
     LOOP_STARTS("Smoothing Normals");
@@ -1622,7 +1732,7 @@ bool Mesh::smooth(const int64_t &maxMinAngle, const int64_t &minMaxAngle,
 
     // Check if neighborlist is created
     if (_neighborList == nullptr)
-        createNeighbourList();
+        _createNeighbourList();
 
     // Global index
     int64_t i = 0;
@@ -1797,7 +1907,7 @@ void Mesh::refineSelectedTriangles(const std::vector< uint64_t >& trianglesIndic
     LOG_STATUS("Refining Triangles");
 
     // Destroy the neighbouring list becuase the number of vertices is going to change later
-    destroyNeighborlist();
+    _destroyNeighborlist();
 
     // Create the triangle markers
     std::vector< bool > triangleMarkers;
@@ -1909,6 +2019,11 @@ void Mesh::refineSelectedTriangles(const std::vector< uint64_t >& trianglesIndic
 
 void Mesh::refineROIs(const ROIs& regions)
 {
+    // Starting the timer
+    TIMER_SET;
+
+    LOG_STATUS("Refining Mesh Surface - ROI");
+
     // Selected triangles
     std::vector< uint64_t > trianglesIndices;
 
@@ -1936,20 +2051,24 @@ void Mesh::refineROIs(const ROIs& regions)
     // The triangles are already selected, now time to refine them
     refineSelectedTriangles(trianglesIndices);
 
+    // Clear the selected triangles list
     trianglesIndices.clear();
     trianglesIndices.shrink_to_fit();
+
+    // Statistics
+    LOG_STATUS("Refinement");
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void Mesh::refine()
 {
     // Starting the timer
     TIMER_SET;
-
     LOG_STATUS("Refining Mesh Surface");
 
     // Check if neighborlist is created
     if (_neighborList == nullptr)
-        createNeighbourList();
+        _createNeighbourList();
 
     // Create an array with the number of edges associated with each vertex
     int64_t* numEdges = new int64_t[_numberVertices];
@@ -2118,10 +2237,11 @@ void Mesh::refine()
     _triangles = refinedMesh->_triangles;
 
     // Recreate the neigborlist
-    createNeighbourList();
+    _createNeighbourList();
 
     // Statistics
-    // LOG_STATS(GET_TIME_SECONDS);
+    LOG_STATUS("Refinement");
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 bool Mesh::coarse(const float& coarseRate,
@@ -2130,10 +2250,14 @@ bool Mesh::coarse(const float& coarseRate,
                   const float& maxNormalAngle,
                   const int64_t &iteration)
 {
+    // If the mesh has less than 1k polygons, then don't coarse it
+    if (_numberTriangles < 1024)
+        return false;
+
     // Starting the timer
     TIMER_SET;
 
-    LOG_STATUS("Decimating Mesh [%d]", iteration + 1);
+    LOG_STATUS("Coarsing Mesh [%d]", iteration + 1);
 
     uint64_t initialNumberVertices = _numberVertices;
     uint64_t initialNumberTriangles = _numberTriangles;
@@ -2141,7 +2265,7 @@ bool Mesh::coarse(const float& coarseRate,
     // Check if neighborlist is created, otherwise create it
     if (_neighborList == nullptr)
     {
-        createNeighbourList();
+        _createNeighbourList();
     }
 
     // Allocate the vertex and triangle index arrays
@@ -2212,6 +2336,15 @@ bool Mesh::coarse(const float& coarseRate,
     for (int64_t n = 0; n < UI2I64(_numberVertices); ++n)
     {
         LOOP_PROGRESS(n, _numberVertices);
+
+        // If the vertex is labeled in the vertex markers, then ignore it
+        if (_vertexMarkers.size() > 0)
+        {
+            if (_vertexMarkers[n] == 1)
+            {
+                continue;
+            }
+        }
 
         // Check if the vertex has enough neigborgs to be deleted
         char deleteFlag = 1;
@@ -2560,6 +2693,11 @@ bool Mesh::coarse(const float& coarseRate,
                 _neighborList[startIndex] = _neighborList[n];
             }
 
+            if (_vertexMarkers.size() > 1)
+            {
+                _vertexMarkers[startIndex] = _vertexMarkers[n];
+            }
+
             vertexIndex[n] = startIndex;
             startIndex++;
         }
@@ -2639,7 +2777,7 @@ void Mesh::coarseDense(const float& denseRate, const int64_t &iterations)
         if (!coarse(denseRate, 0, 10, -1, i)) break;
 
     // Statistics
-    LOG_STATUS_IMPORTANT("Decimation Stats.");
+    LOG_STATUS_IMPORTANT("Dense Coarsing (Decimation) Stats.");
     LOG_STATS(GET_TIME_SECONDS);
 }
 
@@ -2653,7 +2791,7 @@ void Mesh::coarseFlat(const float& flatnessRate,
         coarse(flatnessRate, 1, 0, -1, i);
 
     // Statistics
-    LOG_STATUS("Flat Coarsing");
+    LOG_STATUS("Flat Coarsing (Decimation) Stats.");
     LOG_STATS(GET_TIME_SECONDS);
 }
 
@@ -2667,11 +2805,14 @@ void Mesh::optimizeAdaptively(const uint64_t &optimizationIterations,
     // Starting the timer
     TIMER_SET;
 
-    // Coarse flat
-    coarseFlat(flatFactor, optimizationIterations);
+    // Refine the mesh
+    refine();
 
     // Coarse dense
     coarseDense(denseFactor, optimizationIterations);
+
+    // Coarse flat
+    coarseFlat(flatFactor, optimizationIterations);
 
     // Smooth normals
     smoothNormals();

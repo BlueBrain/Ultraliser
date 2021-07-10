@@ -48,17 +48,27 @@ public:
 
     /**
      * @brief generateMesh
-     * Generate the mesh in parallel.
+     * Generate the mesh.
      * @param parallel
      * Do it in parallel.
      * @return
-     * THe reconstructed mesh.
+     * The reconstructed mesh.
      */
     Mesh* generateMesh(const bool& parallel = true);
 
     /**
+     * @brief generateAdvancedMesh
+     * Generate the mesh.
+     * @param parallel
+     * Do it in parallel.
+     * @return
+     * The reconstructed mesh.
+     */
+    AdvancedMesh* generateAdvancedMesh(const bool& parallel = true);
+
+    /**
      * @brief generateMeshFromVolume
-     * Generate a mesh from the DMC algorithm given an input volume.
+     * Generate a mesh from the MC algorithm given an input volume.
      *
      * @param volume
      * An input volume that will be used to create the mesh.
@@ -66,6 +76,19 @@ public:
      * A pointer to the mesh.
      */
     static Mesh* generateMeshFromVolume(Volume *volume, const bool &serialExecution = false);
+
+    /**
+     * @brief generateAdvancedMeshFromVolume
+     * Generate an advanced mesh from the MC algorithm given an input volume.
+     *
+     * @param volume
+     * An input volume that will be used to create the mesh.
+     * @return
+     * A pointer to the mesh.
+     */
+    static AdvancedMesh* generateAdvancedMeshFromVolume(Volume *volume,
+                                                        const bool &serialExecution = false);
+
 
 private:
 

@@ -364,7 +364,7 @@ void Volume::_rasterizeParallel(Mesh* mesh, VolumeGrid* grid)
 
     LOOP_STARTS("Parallel Rasterization");
     PROGRESS_SET;
-    OMP_PARALLEL_FOR
+    #pragma omp parallel for schedule(dynamic)
     for (uint64_t tIdx = 0; tIdx < mesh->getNumberTriangles(); tIdx++)
     {
         // Get the pMin and pMax of the triangle within the grid

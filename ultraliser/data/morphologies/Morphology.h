@@ -119,7 +119,7 @@ public:
      * Compiles a list of small structures in the morphology for the meshing.
      * @return
      */
-    ROIs collectRegionsWithThinStructures() const;
+    ROIs collectRegionsWithThinStructures(const float &threshold) const;
 
     /**
      * @brief computeMinMaxAvgSampleRadius

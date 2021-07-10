@@ -87,7 +87,7 @@ void AdvancedMesh::importPLY(const std::string &fileName)
     {
         LOOP_PROGRESS_FRACTION(i, triangles.size());
 
-        Ultraliser::Triangle triangle = triangles[i];
+        Triangle triangle = triangles[i];
         if (createIndexedTriangle(vertexList, triangle[0], triangle[1], triangle[2])) { }
     }
     LOOP_DONE;

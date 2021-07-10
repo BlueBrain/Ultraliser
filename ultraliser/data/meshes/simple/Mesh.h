@@ -174,16 +174,6 @@ public:
     void centerAtOrigin(void);
 
     /**
-     * @brief destroyNeighborlist
-     */
-    void destroyNeighborlist();
-
-    /**
-     * @brief createNeighbourList
-     */
-    void createNeighbourList();
-
-    /**
      * @brief getPositionSurfaceOnly
      * @param x
      * @param y
@@ -193,12 +183,8 @@ public:
      * @param c
      * @return
      */
-    Vector3f getPositionSurfaceOnly(const float& x,
-                                    const float& y,
-                                    const float& z,
-                                    const int64_t &a,
-                                    const int64_t &b,
-                                    const int64_t &c);
+    Vector3f getPositionSurfaceOnly(const float& x, const float& y, const float& z,
+                                    const int64_t &a, const int64_t &b, const int64_t &c);
     /**
      * @brief computeDotProduct
      * Computes the dot product of a triangle vertices
@@ -210,9 +196,7 @@ public:
      * Third vertex index.
      * @return
      */
-    float computeDotProduct(const int64_t &a,
-                            const int64_t &b,
-                            const int64_t &c);
+    float computeDotProduct(const int64_t &a, const int64_t &b, const int64_t &c);
 
     /**
      * @brief computeCrossProduct
@@ -221,9 +205,7 @@ public:
      * @param c
      * @return
      */
-    Vector3f computeCrossProduct(const int64_t &a,
-                                 const int64_t &b,
-                                 const int64_t &c);
+    Vector3f computeCrossProduct(const int64_t &a, const int64_t &b, const int64_t &c);
 
     /**
      * @brief rotate
@@ -252,8 +234,7 @@ public:
      * @param d
      * @return
      */
-    bool checkFlipAction(const int64_t &a, const int64_t &b,
-                         const int64_t &c, const int64_t &d);
+    bool checkFlipAction(const int64_t &a, const int64_t &b, const int64_t &c, const int64_t &d);
 
     /**
      * @brief computeEigenVector
@@ -262,9 +243,7 @@ public:
      * @param maxAngle
      * @return
      */
-    EigenVector computeEigenVector(const int64_t &index0,
-                                   Vector3f *eigenValue,
-                                   float* maxAngle);
+    EigenVector computeEigenVector(const int64_t &index0, Vector3f *eigenValue, float* maxAngle);
 
     /**
      * @brief moveVertexAlongSurface
@@ -287,9 +266,7 @@ public:
      * @param c
      * @return
      */
-    float getAngleSurfaceOnly(const int64_t &a,
-                              const int64_t &b,
-                              const int64_t &c,
+    float getAngleSurfaceOnly(const int64_t &a, const int64_t &b, const int64_t &c,
                               bool &angleError);
 
     /**
@@ -444,6 +421,20 @@ public:
                             const float &denseFactor);
 
     /**
+     * @brief optimizeAdapttivelyWithROI
+     * @param optimizationIterations
+     * @param smoothingIterations
+     * @param flatCoarseFactor
+     * @param denseCoarseFactor
+     * @param regions
+     */
+    void optimizeAdapttivelyWithROI(const uint64_t &optimizationIterations,
+                                    const uint64_t &smoothingIterations,
+                                    const float &flatFactor,
+                                    const float &denseFactor,
+                                    const ROIs &regions);
+
+    /**
      * @brief exportMesh
      * @param prefix
      * @param formatOBJ
@@ -454,8 +445,8 @@ public:
     void exportMesh(const std::string &prefix,
                     const bool &formatOBJ = false,
                     const bool &formatPLY = false,
-                    const bool & formatOFF = false,
-                    const bool & formatSTL = false) const;
+                    const bool &formatOFF = false,
+                    const bool &formatSTL = false) const;
 
     /**
      * @brief writeDistributions
@@ -471,7 +462,7 @@ public:
      * @param prefix
      */
     void printStats(const std::string &reference,
-                        const std::string* prefix = nullptr) const;
+                        const std::string *prefix = nullptr) const;
 
     /**
      * @brief getDefaultOptimizationTime
@@ -529,6 +520,23 @@ public:
      */
     void scaleAndTranslate(const Vector3f &center, const Vector3f &BoundingBox);
 
+    /**
+     * @brief updateData
+     * @param vertices
+     * @param numberVertices
+     * @param triangles
+     * @param numberTriangles
+     */
+    void updateData(const Vertices vertices, const Triangles triangles);
+
+    /**
+     * @brief relaseData
+     * Releases data temporarily.
+     * NOTE: Use this function carefully. If you release the data, make sure not to use any of
+     * the public functions of the Mesh untill the updateData() function is called again.
+     */
+    void relaseData() { _releaseData(); }
+
 private:
 
     /**
@@ -548,30 +556,101 @@ private:
                           const Vector3f& a,
                           const Vector3f& b);
 
+    /**
+     * @brief _computeNeighborhoods
+     * @param mesh
+     * @param vertexNeighbors
+     * @param faceNeighbors
+     */
     void _computeNeighborhoods(Mesh& mesh,
                                Neighborhood& vertexNeighbors,
                                Neighborhood& faceNeighbors);
 
+    /**
+     * @brief _computeKernel
+     * @param mesh
+     * @param vertexIndex
+     * @param verticesN
+     * @param facesN
+     * @return
+     */
     Vector3f _computeKernel(Mesh& mesh,
                             const uint64_t vertexIndex,
                             Neighbors& verticesN,
                             Neighbors& facesN);
 
+    /**
+     * @brief _computeCotangentWeight
+     * @param mesh
+     * @param vertexIndex
+     * @param neighborIndex
+     * @param faceN
+     * @return
+     */
     float _computeCotangentWeight(Mesh& mesh,
                                   const uint32_t vertexIndex,
                                   const uint32_t neighborIndex,
                                   Neighbors& faceN);
 
+    /**
+     * @brief _smoothVertex
+     * @param mesh
+     * @param vertexIndex
+     * @param kernel
+     * @param param
+     * @return
+     */
     Vector3f _smoothVertex(Mesh& mesh,
                            const uint64_t vertexIndex,
                            const Vector3f kernel,
                            const float param);
 
+    /**
+     * @brief _triangleContainsVertex
+     * @param t
+     * @param vIndex
+     * @return
+     */
     inline bool _triangleContainsVertex(const Triangle & t, const uint64_t vIndex)
     {
         return (I2UI64(t.x()) == vIndex || I2UI64(t.y()) == vIndex || I2UI64(t.z()) == vIndex);
     }
 
+    /**
+     * @brief destroyNeighborlist
+     */
+    void _destroyNeighborlist();
+
+    /**
+     * @brief _createNeighbourList
+     */
+    void _createNeighbourList();
+
+    /**
+     * @brief _updateVertexMarkers
+     */
+    void _resetVertexMarkers();
+
+    /**
+     * @brief _destroyVertexMarkers
+     */
+    void _destroyVertexMarkers();
+
+    /**
+     * @brief _updateTriangleMarkers
+     */
+    void _resetTriangleMarkers();
+
+    /**
+     * @brief _destroyTriangleMarkers
+     */
+    void _destroyTriangleMarkers();
+
+    /**
+     * @brief _selectVerticesInROI
+     * @param regions
+     */
+    void _selectVerticesInROI(const ROIs& regions);
 
 public:
 
@@ -589,7 +668,7 @@ public:
 
     /**
      * @brief neighbors
-     * A point32_ter to the neighbors (triangles).
+     * A Pointer to the neighbors (triangles).
      */
     Triangle* _neighbors;
 
@@ -597,9 +676,15 @@ private:
 
     /**
      * @brief neighborList
-     * Point32_ter to neighbour list.
+     * Pointer to neighbour list.
      */
     NeighborTriangle** _neighborList;
+
+    /**
+     * @brief _vertexMarkers
+     * The evrtex markers are used to preserve specific vertices in the mesh.
+     */
+    std::vector< uint8_t > _vertexMarkers;
 
     /**
      * @brief numberVertices

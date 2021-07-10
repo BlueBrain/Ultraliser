@@ -146,10 +146,58 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
     }
 }
 
-void applyLaplacianOperator(Mesh *mesh, const AppOptions* options)
+void ensureWatertightness(Mesh* mesh, const AppOptions* options)
 {
+    std::unique_ptr< AdvancedMesh > watertightMesh =  std::make_unique< AdvancedMesh >(
+                mesh->getVertices(), mesh->getNumberVertices(),
+                mesh->getTriangles(), mesh->getNumberTriangles());
+
+    // Release the data of the mesh to keep some free space for processing
+    mesh->relaseData();
+
+    if (options->preservePartitions)
+    {
+        // Split the mesh into partitions
+        std::vector < AdvancedMesh* > partitions = watertightMesh->splitPartitions();
+
+        // Ensure watertightness for the rest of the partitions
+        for (auto partition : partitions)
+        {
+            try {
+                partition->ensureWatertightness();
+            }  catch (...) {
+                LOG_WARNING("Soma partition is invalid");
+            }
+        }
+
+        // Ensures that the mesh is truly two-manifold with no self intersections
+        watertightMesh->ensureWatertightness();
+
+        // Merge back after checking the watertightness
+        watertightMesh->appendMeshes(partitions);
+
+        // Free
+        for (auto partition : partitions)
+            delete partition;
+    }
+    else
+    {
+        // Ensures that the mesh is truly two-advanced with no self intersections
+        watertightMesh->ensureWatertightness();
+    }
+
+    // Update the simple mesh data again
+    watertightMesh->toSimpleMesh(mesh);
+}
+
+void applyLaplacianOperator(Mesh *mesh, const AppOptions* options)
+{   
     // Apply the Laplacian filter
     mesh->smoothLaplacian(options->laplacianIterations);
+
+    // NOTE: Depending on the marching cubes algorithm, the laplacian operator might introduce some
+    // self intersections, this must be fixed
+    ensureWatertightness(mesh, options);
 
     // Export the mesh
     mesh->exportMesh(options->meshPrefix + LAPLACIAN_SUFFIX,
@@ -219,25 +267,60 @@ void createWatertightMesh(const Mesh* mesh, const AppOptions* options)
                                    options->exportOFF, options->exportSTL);
 }
 
-void generateOptimizedMesh(Mesh *mesh, const AppOptions* options)
+void generateOptimizedMeshWithROI(Mesh *mesh, const AppOptions* options, const ROIs& regions)
+{
+    mesh->optimizeAdapttivelyWithROI(options->optimizationIterations,
+                                     options->smoothingIterations,
+                                     options->flatFactor,
+                                     options->denseFactor,
+                                     regions);
+
+    if (!options->ignoreOptimizedNonWatertightMesh)
+    {
+        // Print the mesh statistcs
+        if (options->writeStatistics)
+            mesh->printStats(OPTIMIZED_STRING, &options->statisticsPrefix);
+
+        // Print the mesh statistcs
+        if (options->writeDistributions)
+            mesh->writeDistributions(OPTIMIZED_STRING, &options->distributionsPrefix);
+
+        // Export the mesh
+        if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
+            mesh->exportMesh(options->meshPrefix + OPTIMIZED_SUFFIX,
+                                options->exportOBJ, options->exportPLY,
+                                options->exportOFF, options->exportSTL);
+    }
+
+    // Fix self-intersections if any to create the watertight mesh
+    if (!options->ignoreSelfIntersections)
+        createWatertightMesh(mesh, options);
+}
+
+void optimizeMesh(Mesh *mesh, const AppOptions* options)
 {
     // Further adaptive optimization
     if (options->optimizeMeshAdaptively)
     {
-        mesh->optimizeAdaptively(options->optimizationIterations, options->smoothingIterations,
-                                    options->flatFactor, options->denseFactor);
-
-        mesh->smooth();
-        mesh->smoothNormals();
+        mesh->optimizeAdaptively(options->optimizationIterations,
+                                 options->smoothingIterations,
+                                 options->flatFactor,
+                                 options->denseFactor);
     }
     else
     {
         // Default optimization
         if (options->optimizeMeshHomogenous)
             mesh->optimize(options->optimizationIterations,
-                              options->smoothingIterations,
-                              options->denseFactor);
+                           options->smoothingIterations,
+                           options->denseFactor);
     }
+}
+
+void generateOptimizedMesh(Mesh *mesh, const AppOptions* options)
+{
+    // Optimize the mesh
+    optimizeMesh(mesh, options);
 
     if (!options->ignoreOptimizedNonWatertightMesh)
     {
@@ -289,6 +372,97 @@ Mesh* reconstructMeshFromVolume(Volume* volume, const AppOptions* options)
         return MarchingCubes::generateMeshFromVolume(volume, options->serialExecution);
 }
 
+AdvancedMesh* reconstructAdvancedMeshFromVolume(Volume* volume, const AppOptions* options)
+{
+    if (options->isosurfaceTechnique == DMC_STRING)
+        return DualMarchingCubes::generateAdvancedMeshFromVolume(volume, options->serialExecution);
+    else
+        return MarchingCubes::generateAdvancedMeshFromVolume(volume, options->serialExecution);
+}
+
+void optimizeMeshWithPartitions(AdvancedMesh* mesh, const AppOptions* options)
+{
+    // Simple mesh partitions
+    std::vector< Mesh* > simplePartitions;
+
+    // Split the mesh into partitions
+    std::vector < Ultraliser::AdvancedMesh* > partitions = mesh->splitPartitions(false);
+
+    // Handle the principal partition
+    try
+    {
+        // Convert the advanced mesh to the mesh
+        Mesh* simpleMesh = mesh->toSimpleMesh();
+
+        // Release the advanced mesh
+        delete mesh;
+
+        // Laplacian smoorhing on a per-partition-basis
+        if (!options->ignoreLaplacianSmoothing || options->laplacianIterations > 0)
+            simpleMesh->smoothLaplacian(options->laplacianIterations);
+
+        // Optimize the simple mesh
+        optimizeMesh(simpleMesh, options);
+
+        // Create an advanced mesh again for watertightness check
+        mesh = new AdvancedMesh(simpleMesh->getVertices(),
+                                simpleMesh->getNumberVertices(),
+                                simpleMesh->getTriangles(),
+                                simpleMesh->getNumberTriangles());
+
+        // Ensure its watertightness
+        mesh->ensureWatertightness();
+    }
+    catch (...)
+    {
+        LOG_ERROR("There was an issue processing the main partition!");
+    }
+
+    // Process the rest of the partitions
+    for (uint64_t i = 0; i < partitions.size(); ++i)
+    {
+        LOG_SUCCESS("Partition [%d / %d]", i, partitions.size());
+
+        AdvancedMesh* advancedMesh = partitions[i];
+
+        // Convert the advanced mesh to the mesh
+        Mesh* simpleMesh = advancedMesh->toSimpleMesh();
+
+        // Release the advanced mesh
+        delete advancedMesh;
+
+        // Laplacian smoorhing on a per-partition-basis
+        if (!options->ignoreLaplacianSmoothing || options->laplacianIterations > 0)
+            simpleMesh->smoothLaplacian(options->laplacianIterations);
+
+        // Optimize the simple mesh
+        try {
+            optimizeMesh(simpleMesh, options);
+        }  catch (...) {
+            LOG_WARNING("Cannot optimize partition [ %d ] of the mesh! Ignoring it", i);
+        }
+
+        // Create an advanced mesh again for watertightness check
+        advancedMesh = new AdvancedMesh(simpleMesh->getVertices(),
+                                        simpleMesh->getNumberVertices(),
+                                        simpleMesh->getTriangles(),
+                                        simpleMesh->getNumberTriangles());
+
+        // Ensure its watertightness
+        advancedMesh ->ensureWatertightness();
+
+        // Put the mesh back to the partitions
+        partitions[i] = advancedMesh;
+    }
+
+    // Merge back after checking the watertightness
+    mesh->appendMeshes(partitions);
+
+    // Free all the partitions
+    for (auto partition : partitions)
+        delete partition;
+}
+
 void generateMarchingCubesMeshArtifacts(const Mesh *mesh, const AppOptions* options)
 {   
     // Write the statistics of the reconstructed mesh from the marhcing cubes algorithm
@@ -332,6 +506,7 @@ void generateReconstructedMeshArtifacts(Mesh* mesh, const AppOptions* options)
     // Laplacian smoorhing
     if (!options->ignoreLaplacianSmoothing || options->laplacianIterations > 0)
         applyLaplacianOperator(mesh, options);
+
 
     // Optimize the mesh and create a watertight mesh
     if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)

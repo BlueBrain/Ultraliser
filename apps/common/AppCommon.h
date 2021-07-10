@@ -69,6 +69,27 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
 Mesh* loadInputMesh(const AppOptions* options);
 
 /**
+ * @brief optimizeMesh
+ * @param mesh
+ * @param options
+ */
+void optimizeMesh(Mesh *mesh, const AppOptions* options);
+
+/**
+ * @brief ensureWatertightness
+ * @param mesh
+ * @param options
+ */
+void ensureWatertightness(Mesh *mesh, const AppOptions* options);
+
+/**
+ * @brief optimizeMeshWithPartitions
+ * @param mesh
+ * @param options
+ */
+void optimizeMeshWithPartitions(AdvancedMesh* mesh, const AppOptions* options);
+
+/**
  * @brief applyLaplacianOperator
  * Apply the laplacian operator on the mesh.
  *
@@ -100,6 +121,14 @@ void createWatertightMesh(const Mesh* manifoldMesh, const AppOptions* options);
  * User-defined options given to the executable.
  */
 void generateOptimizedMesh(Mesh *dmcMesh, const AppOptions* options);
+
+/**
+ * @brief generateOptimizedMeshWithROI
+ * @param mesh
+ * @param options
+ * @param regions
+ */
+void generateOptimizedMeshWithROI(Mesh *mesh, const AppOptions* options, const ROIs& regions);
 
 /**
  * @brief generateMarchingCubesMeshArtifacts
@@ -158,5 +187,18 @@ Volume* reconstructVolumeFromMesh(Mesh* inputMesh, const AppOptions* options,
  * A pointer to the reconstructed mesh.
  */
 Mesh* reconstructMeshFromVolume(Volume* volume, const AppOptions* options);
+
+/**
+ * @brief reconstructAdvancedMeshFromVolume
+ * Reconstructs an advanced mesh from a given volume.
+ *
+ * @param volume
+ * Input volume.
+ * @param options
+ * System options.
+ * @return
+ * A pointer to the advanced mesh reconstructed from the volume.
+ */
+AdvancedMesh* reconstructAdvancedMeshFromVolume(Volume* volume, const AppOptions* options);
 
 }

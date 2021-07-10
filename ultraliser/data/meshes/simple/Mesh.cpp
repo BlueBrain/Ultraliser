@@ -820,6 +820,33 @@ void Mesh::printStats(const std::string &reference,
                  _optimizationTime);
 }
 
+void Mesh::updateData(Vertices vertices, Triangles triangles)
+{
+    _numberVertices = vertices.size();
+    _numberTriangles = triangles.size();
+    _optimizationTime = 0.0;
+
+    this->_vertices = new Vertex[_numberVertices];
+    this->_triangles = new Triangle[_numberTriangles];
+
+    const Vertex* vertexData = vertices.data();
+    const Triangle* triangleData = triangles.data();
+
+
+    for (uint64_t i = 0; i < _numberVertices; ++i)
+    {
+        this->_vertices[i] = vertexData[i];
+    }
+
+    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    {
+        this->_triangles[i] = triangleData[i];
+    }
+
+    _neighbors = nullptr;
+    _neighborList = nullptr;
+}
+
 void Mesh::_releaseData()
 {
     // Free allocated memory
@@ -827,7 +854,10 @@ void Mesh::_releaseData()
     delete [] _triangles;
 
     // Destroy neighbor_list
-    destroyNeighborlist();
+    _destroyNeighborlist();
+
+    // Destroy the vertex markers
+    _destroyVertexMarkers();
 }
 
 Mesh::~Mesh()

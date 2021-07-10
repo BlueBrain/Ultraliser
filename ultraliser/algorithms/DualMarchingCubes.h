@@ -70,6 +70,13 @@ public:
      */
     Mesh* generateMesh(const bool &paralle = true);
 
+    /**
+     * @brief generateAdvancedMesh
+     * @param paralle
+     * @return
+     */
+    AdvancedMesh* generateAdvancedMesh(const bool& paralle = true);
+
 public:
 
     /**
@@ -81,6 +88,17 @@ public:
      * A pointer to the mesh.
      */
     static Mesh* generateMeshFromVolume(Volume *volume, const bool &serialExecution = false);
+
+    /**
+     * @brief generateMeshFromVolume
+     * Generate an avanced mesh from the DMC algorithm given an input volume.
+     * @param volume
+     * An input volume that will be used to create the mesh.
+     * @return
+     * A pointer to the resulting mesh.
+     */
+    static AdvancedMesh* generateAdvancedMeshFromVolume(Volume* volume,
+                                                        const bool& serialExecution = false);
 
 private:
 

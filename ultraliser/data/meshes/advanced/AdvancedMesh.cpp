@@ -721,7 +721,113 @@ void AdvancedMesh::init(const AdvancedTriangle* t0, const bool keepReferences)
     eulerUpdate();
 }
 
-AdvancedMesh *AdvancedMesh::split()
+void AdvancedMesh::toSimpleMesh(Mesh* mesh)
+{
+    Vertices vertices;
+    Triangles triangles;
+
+    // Generic
+    Node *node;
+    AdvancedVertex *vertex;
+
+    // Compose the vertex list
+    FOR_EACH_VERTEX(vertex, node)
+    {
+        Vertex v(NODE_TO_DOUBLE(vertex->x), NODE_TO_DOUBLE(vertex->y), NODE_TO_DOUBLE(vertex->z));
+        vertices.push_back(v);
+    }
+
+    // Copy the vertices
+    float *auxVertices = new float[I2UI64(_vertices.numberElements())];
+
+    // Construct the faces from the vertices
+    uint64_t i = 0;
+    FOR_EACH_VERTEX(vertex, node)
+    {
+        auxVertices[i++] = D2F(vertex->x);
+    }
+
+    // Reset the counter
+    i = 0;
+    FOR_EACH_VERTEX(vertex, node)
+    {
+        vertex->x = i++;
+    }
+
+    // Triangle data
+    FOR_EACH_NODE(_triangles, node)
+    {
+        Triangle t(VERTEX_1(node), VERTEX_2(node), VERTEX_3(node));
+        triangles.push_back(t);
+    }
+
+    // Reset the counter
+    i = 0;
+    FOR_EACH_VERTEX(vertex, node)
+    {
+        vertex->x = F2D(auxVertices[i++]);
+    }
+
+    // Free the auxiliary array
+    delete[] auxVertices;
+
+    mesh->updateData(vertices, triangles);
+}
+
+Mesh* AdvancedMesh::toSimpleMesh() const
+{
+    Vertices vertices;
+    Triangles triangles;
+
+    // Generic
+    Node *node;
+    AdvancedVertex *vertex;
+
+    // Compose the vertex list
+    FOR_EACH_VERTEX(vertex, node)
+    {
+        Vertex v(NODE_TO_DOUBLE(vertex->x), NODE_TO_DOUBLE(vertex->y), NODE_TO_DOUBLE(vertex->z));
+        vertices.push_back(v);
+    }
+
+    // Copy the vertices
+    float *auxVertices = new float[I2UI64(_vertices.numberElements())];
+
+    // Construct the faces from the vertices
+    uint64_t i = 0;
+    FOR_EACH_VERTEX(vertex, node)
+    {
+        auxVertices[i++] = D2F(vertex->x);
+    }
+
+    // Reset the counter
+    i = 0;
+    FOR_EACH_VERTEX(vertex, node)
+    {
+        vertex->x = i++;
+    }
+
+    // Triangle data
+    FOR_EACH_NODE(_triangles, node)
+    {
+        Triangle t(VERTEX_1(node), VERTEX_2(node), VERTEX_3(node));
+        triangles.push_back(t);
+    }
+
+    // Reset the counter
+    i = 0;
+    FOR_EACH_VERTEX(vertex, node)
+    {
+        vertex->x = F2D(auxVertices[i++]);
+    }
+
+    // Free the auxiliary array
+    delete[] auxVertices;
+
+    return new Mesh(vertices, triangles);
+}
+
+AdvancedMesh *AdvancedMesh::split(const bool& verbose)
 {
     if (_triangles.numberElements() == 0)
         return nullptr;
@@ -736,7 +842,7 @@ AdvancedMesh *AdvancedMesh::split()
     selectConnectedComponent(triangles);
 
     // Create a new sub mesh from the original mesh
-    AdvancedMesh* splitMesh = createSubMeshFromSelection(triangles);
+    AdvancedMesh* splitMesh = createSubMeshFromSelection(triangles, verbose);
 
     // Remove the selected mesh from the original mesh
     removeSelectedTriangles();
@@ -745,7 +851,7 @@ AdvancedMesh *AdvancedMesh::split()
     return splitMesh;
 }
 
-std::vector< AdvancedMesh* > AdvancedMesh::splitPartitions()
+std::vector< AdvancedMesh* > AdvancedMesh::splitPartitions(const bool& verbose)
 {
     LOG_TITLE("Splitting Partitions");
 
@@ -753,16 +859,16 @@ std::vector< AdvancedMesh* > AdvancedMesh::splitPartitions()
     std::vector< AdvancedMesh* > partitions;
 
     // Get the number of partitions
-    eulerUpdate();
+    eulerUpdate(verbose);
 
     // Ensure that the mesh has no partitions
     while (_nShells > 1)
     {
         // Split and proceed
-        partitions.push_back(split());
+        partitions.push_back(split(verbose));
 
         // Update the mesh
-        eulerUpdate();
+        eulerUpdate(verbose);
     }
 
     // Return a list of all the partitions
@@ -1561,7 +1667,8 @@ void AdvancedMesh::reselectSelection(AdvancedTriangle* t0)
 }
 
 AdvancedMesh *AdvancedMesh::createSubMeshFromSelection(AdvancedTriangle* selection,
-                                                       bool keepReference)
+                                                       bool keepReference,
+                                                       const bool& verbose)
 {
     Node* iNode;
 
@@ -1851,7 +1958,7 @@ AdvancedMesh *AdvancedMesh::createSubMeshFromSelection(AdvancedTriangle* selecti
 
     // Update the sub-mesh object and return it
     subMeshObject->duplicateNonManifoldVertices();
-    subMeshObject->eulerUpdate();
+    subMeshObject->eulerUpdate(verbose);
 
     return subMeshObject;
 }
@@ -3172,7 +3279,7 @@ AdvancedTriangle*AdvancedMesh::topTriangle(AdvancedTriangle* t0)
     return (FABS(fe->t1->getNormal().z) > FABS(fe->t2->getNormal().z)) ? (fe->t1) : (fe->t2);
 }
 
-void AdvancedMesh::eulerUpdate()
+void AdvancedMesh::eulerUpdate(const bool& verbose)
 {
     // Generic data
     Node* node;
@@ -3188,36 +3295,36 @@ void AdvancedMesh::eulerUpdate()
     TIMER_SET;
 
     // Unmark all the triangles
-    LOOP_STARTS("Unmarking Triangles");
+    if (verbose) LOOP_STARTS("Unmarking Triangles");
     LOOP_COUNTER_SET;
     FOR_EACH_TRIANGLE(t1, node)
     {
-        LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
+        if (verbose) LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
 
         UNMARK_BIT(t1, 5);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOOP_DONE;
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
     // Unmark all the vertices
     TIMER_RESET;
-    LOOP_STARTS("Unmarking VERTICES");
+    if (verbose) LOOP_STARTS("Unmarking VERTICES");
     LOOP_COUNTER_RESET;
     FOR_EACH_VERTEX(v1, node)
     {
-        LOOP_PROGRESS_FRACTION(++COUNTER, _vertices.numberElements());
+        if (verbose) LOOP_PROGRESS_FRACTION(++COUNTER, _vertices.numberElements());
 
         UNMARK_BIT(v1, 5);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOOP_DONE;
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
     TIMER_RESET;
-    LOOP_STARTS("Collecting Triangles");
+    if (verbose) LOOP_STARTS("Collecting Triangles");
     LOOP_COUNTER_RESET;
     FOR_EACH_TRIANGLE(t1, node)
     {
-        LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
+        if (verbose) LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
 
         if (!IS_BIT(t1, 5))
         {
@@ -3248,28 +3355,28 @@ void AdvancedMesh::eulerUpdate()
             }
         }
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOOP_DONE;
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
     TIMER_RESET;
     LOOP_COUNTER_RESET;
-    LOOP_STARTS("Unmarking Triangles");
+    if (verbose) LOOP_STARTS("Unmarking Triangles");
     FOR_EACH_TRIANGLE(t1, node)
     {
-        LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
+        if (verbose) LOOP_PROGRESS_FRACTION(++COUNTER, _triangles.numberElements());
 
         UNMARK_BIT(t1, 5);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOOP_DONE;
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
     bool hasBoundary = false;
     TIMER_RESET;
     LOOP_COUNTER_RESET;
-    LOOP_STARTS("Checking Boundary Edges");
+    if (verbose) LOOP_STARTS("Checking Boundary Edges");
     FOR_EACH_EDGE(edge, node)
     {
-        LOOP_PROGRESS_FRACTION(++COUNTER, _edges.numberElements());
+        if (verbose) LOOP_PROGRESS_FRACTION(++COUNTER, _edges.numberElements());
         if (edge->isOnBoundary())
         {
             hasBoundary = true;
@@ -3278,18 +3385,18 @@ void AdvancedMesh::eulerUpdate()
             MARK_BIT(edge->v2, 5);
         }
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOOP_DONE;
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
     // Compute the boundaries
     if (hasBoundary)
     {
         TIMER_RESET;
         LOOP_COUNTER_RESET;
-        LOOP_STARTS("Checking Boundary Vertices");
+        if (verbose) LOOP_STARTS("Checking Boundary Vertices");
         FOR_EACH_VERTEX(v1, node)
         {
-            LOOP_PROGRESS_FRACTION(++COUNTER, _vertices.numberElements());
+            if (verbose) LOOP_PROGRESS_FRACTION(++COUNTER, _vertices.numberElements());
 
             if (IS_BIT(v1, 5))
             {
@@ -3300,14 +3407,18 @@ void AdvancedMesh::eulerUpdate()
                 }
             }
         }
-        LOOP_DONE;
-        LOG_STATS(GET_TIME_SECONDS);
+        if (verbose) LOOP_DONE;
+        if (verbose) LOG_STATS(GET_TIME_SECONDS);
     }
 
     if (_nShells > 1)
+    {
         LOG_WARNING("The mesh has [%d] partition(s) [INVALID]", _nShells);
+    }
     else
+    {
         LOG_SUCCESS("Mesh with 1 Partition", _nShells);
+    }
 
     // Update the data
     _nHandles = (_edges.numberElements() - _vertices.numberElements() -

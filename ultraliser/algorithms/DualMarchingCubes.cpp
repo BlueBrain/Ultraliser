@@ -70,6 +70,33 @@ Mesh* DualMarchingCubes::generateMesh(const bool& paralle)
     return mesh;
 }
 
+AdvancedMesh* DualMarchingCubes::generateAdvancedMesh(const bool& paralle)
+{
+    LOG_TITLE("Mesh Reconstruction with DMC");
+
+    // Build the mesh
+    Vertices vertices;
+    Triangles triangles;
+
+    // Strat the timer
+    TIMER_SET;
+
+    LOG_STATUS("Building Mesh");
+    if (paralle)
+        _buildSharedVerticesParallel(vertices, triangles);
+    else
+        _buildSharedVertices(vertices, triangles);
+
+    AdvancedMesh* mesh = new AdvancedMesh(vertices, triangles);
+
+    // Statistics
+    _meshExtractionTime = GET_TIME_SECONDS;
+    LOG_STATUS_IMPORTANT("Mesh Reconstruction with Dual Marching Cubes Stats.");
+    LOG_STATS(_meshExtractionTime);
+
+    return mesh;
+}
+
 int DualMarchingCubes::_getCellCode(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     // Determine for each cube corner if it is outside or inside
@@ -682,11 +709,21 @@ void DualMarchingCubes::_buildSharedVertices(Vertices &vertices, Triangles &tria
 Mesh* DualMarchingCubes::generateMeshFromVolume(Volume* volume, const bool& serialExecution)
 {
     // Reconstruct a watertight mesh from the volume with DMC
-    std::unique_ptr< DualMarchingCubes > workflowDMC =
-            std::make_unique< DualMarchingCubes >(volume);
+    std::unique_ptr< DualMarchingCubes > workflow = std::make_unique< DualMarchingCubes >(volume);
 
     // Generate the DMC mesh
-    return workflowDMC->generateMesh(!serialExecution);
+    return workflow->generateMesh(!serialExecution);
 }
+
+AdvancedMesh* DualMarchingCubes::generateAdvancedMeshFromVolume(Volume* volume,
+                                                                const bool& serialExecution)
+{
+    // Reconstruct a watertight mesh from the volume with DMC
+    std::unique_ptr< DualMarchingCubes > workflow = std::make_unique< DualMarchingCubes >(volume);
+
+    // Generate the DMC mesh
+    return workflow->generateAdvancedMesh(!serialExecution);
+}
+
 
 }

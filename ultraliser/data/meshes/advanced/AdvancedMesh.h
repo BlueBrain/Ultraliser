@@ -33,13 +33,14 @@
 #ifndef ULTRALISER_DATA_MESHES_ADVANCED_MESH_H
 #define ULTRALISER_DATA_MESHES_ADVANCED_MESH_H
 
+#include <data/meshes/advanced/math/Matrix.h>
 #include <data/meshes/advanced/primitives/AdvancedVertex.h>
 #include <data/meshes/advanced/primitives/AdvancedEdge.h>
 #include <data/meshes/advanced/primitives/AdvancedTriangle.h>
-#include <data/meshes/advanced/math/Matrix.h>
-#include <data/structures/Neighbors.h>
 #include <data/meshes/advanced/primitives/AdvancedIndexedMesh.hh>
 #include <data/meshes/simple/primitives/Primitives.h>
+#include <data/structures/Neighbors.h>
+#include <data/meshes/simple/Mesh.h>
 
 namespace Ultraliser
 {
@@ -52,7 +53,7 @@ inline void swapPointers(void **a, void **b)
 }
 
 /**
- * @brief The Mesh class
+ * @brief The AdvancedMesh class
  * This class represents a advanced and oriented triangle mesh.
  * Vertices, Edges and Triangles are stored in the Lists V, E and T
  * respectively. Methods boundaries(), handles() and shells() may
@@ -542,6 +543,12 @@ public:
      */
      AdvancedMesh* newObject(const char *s) const { return new AdvancedMesh(s); }
 
+     /**
+      * @brief toSimpleMesh
+      * Convertes the advanced mesh to a simple mesh.
+      * @return
+      */
+     Mesh* toSimpleMesh() const;
 
     /**
      * @brief exportMesh
@@ -633,7 +640,7 @@ public:
      * @return
      */
     AdvancedEdge* createEdge(ExtendedVertex *v1, ExtendedVertex *v2,
-                     const bool check = 1);
+                             const bool check = 1);
 
     /**
      * @brief createTriangle
@@ -888,7 +895,8 @@ public:
      * @return
      */
      AdvancedMesh *createSubMeshFromSelection(AdvancedTriangle *selection = nullptr,
-                                                    bool keepReference = 0);
+                                              bool keepReference = 0,
+                                              const bool &verbose = true);
 
     /**
      * @brief createSubMeshFromTriangle
@@ -1018,7 +1026,7 @@ public:
      * Possible selection flags are deleted by this method.
      * @return
      */
-     AdvancedMesh *split();
+     AdvancedMesh *split(const bool &verbose = true);
 
      /**
       * @brief splitPartitions
@@ -1026,7 +1034,7 @@ public:
       * @return
       * A list of all the mesh paritions, each of them is an independent mesh.
       */
-     std::vector< AdvancedMesh* > splitPartitions();
+     std::vector< AdvancedMesh* > splitPartitions(const bool &verbose = true);
 
      /**
       * @brief appendMeshes
@@ -1036,6 +1044,7 @@ public:
       */
      void appendMeshes(std::vector< AdvancedMesh* > listMeshes);
 
+     void toSimpleMesh(Mesh* mesh);
 
     /**
      * @brief getRegion
@@ -1266,7 +1275,7 @@ public:
 
      * The relative dirty bits are set to zero.
      */
-    void eulerUpdate();
+    void eulerUpdate(const bool &verbose = true);
 
     /**
      * @brief openToDisk

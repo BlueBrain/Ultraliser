@@ -105,40 +105,37 @@ void run(int argc , const char** argv)
     generateVolumeArtifacts(volume, options);
 
     // Generate the reconstructde mesh, scaled and translated to the original location
-    auto mesh = DualMarchingCubes::generateMeshFromVolume(volume);
+    auto advancedMesh = reconstructMeshFromVolume(volume, options);
 
     // Free the volume, we do not need it anymore
     delete volume;
 
-    // Compute the ROIs
-    auto regions = vasculatureMorphology->collectRegionsWithThinStructures();
+    // Optimize the mesh partitions
+    // optimizeMeshWithPartitions(advancedMesh, options);
+
+//    // Print the mesh statistcs
+//    if (options->writeStatistics)
+//        advancedMesh->printStats(WATERTIGHT_STRING, &options->statisticsPrefix);
+
+//    // Print the mesh statistcs
+//    if (options->writeDistributions)
+//        advancedMesh->writeDistributions(WATERTIGHT_STRING, &options->distributionsPrefix);
+
+//    // Export the mesh
+//    if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
+//        advancedMesh->exportMesh(options->meshPrefix + WATERTIGHT_SUFFIX,
+//                                 options->exportOBJ, options->exportPLY,
+//                                 options->exportOFF, options->exportSTL);
 
     // Generate the mesh artifacts
-    // generateReconstructedMeshArtifacts(mesh, options);
+    generateReconstructedMeshArtifacts(advancedMesh, options);
 
-    // MC mesh output
-    if (options->writeMarchingCubeMesh)
-        generateMarchingCubesMeshArtifacts(mesh, options);
-
-    // Laplacian smoorhing
-    if (!options->ignoreLaplacianSmoothing || options->laplacianIterations > 0)
-        applyLaplacianOperator(mesh, options);
-
-    // Divide the mesh accodingly
-    for (uint64_t i = 0; i < 2; ++i)
-        mesh->refineROIs(regions);
-
-    mesh->exportMesh(options->meshPrefix + "-refined",
-                     options->exportOBJ, options->exportPLY,
-                     options->exportOFF, options->exportSTL);
-
-    // Optimize the mesh and create a watertight mesh
-    if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)
-        generateOptimizedMesh(mesh, options);
+    // Compute the ROIs
+    // auto regions = vasculatureMorphology->collectRegionsWithThinStructures(0.4);
 
     // Free
     delete vasculatureMorphology;
-    delete mesh;
+    delete advancedMesh;
     delete options;
 }
 

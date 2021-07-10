@@ -269,7 +269,7 @@ public:
      * @brief voxelsPerMicron
      * Number of voxels per micron in case of auto resolution.
      */
-    uint64_t voxelsPerMicron;
+    float voxelsPerMicron;
 
     /**
      * @brief edgeGap

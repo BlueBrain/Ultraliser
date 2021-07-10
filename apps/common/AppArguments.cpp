@@ -205,12 +205,12 @@ void AppArguments::addVoxelizationArguments()
 
     Argument voxelsPerMicron(
                 "--voxels-per-micron",
-                ARGUMENT_TYPE::INTEGER,
+                ARGUMENT_TYPE::FLOAT,
                 "Number of voxels per micron in case --auto-resolution is used. Default 5.",
                 ARGUMENT_PRESENCE::OPTIONAL,
                 "5");
     _args->addArgument(&voxelsPerMicron);
-    _options->voxelsPerMicron = _args->getUnsignedIntegrValue(&voxelsPerMicron);
+    _options->voxelsPerMicron = _args->getFloatValue(&voxelsPerMicron);
 
     Argument volumeType(
                 "--volume-type",
