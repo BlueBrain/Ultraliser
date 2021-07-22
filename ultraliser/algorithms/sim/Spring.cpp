@@ -22,14 +22,49 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ALGORITHMS_ALGORITHMS_H
-#define ULTRALISER_ALGORITHMS_ALGORITHMS_H
+#include "Spring.h"
 
-#include <algorithms/DualMarchingCubes.h>
-#include <algorithms/FloodFiller.h>
-#include <algorithms/MarchingCubes.h>
-#include <algorithms/SectionGeometry.h>
-#include <algorithms/SomaGeometry.h>
-#include <algorithms/Sorting.h>
+namespace Ultraliser
+{
+namespace sim
+{
+Spring::Spring(NodePtr node0, NodePtr node1, float stiffness, float restLength_)
+    : node0(node0)
+    , node1(node1)
+    , stiffness(stiffness)
+    , restLength(restLength_)
+{
+    if (restLength == .0f)
+    {
+        restLength = length();
+    }
+}
 
-#endif  // ULTRALISER_ALGORITHMS_ALGORITHMS_H
+float Spring::length() const
+{
+    return (node0->position - node1->position).abs();
+}
+
+size_t SpringHash::operator()(const SpringPtr spring) const
+{
+    uint64_t id0 = spring->node0->index;
+    uint64_t id1 = spring->node1->index;
+    if (id1 > id0) std::swap(id1, id0);
+    return std::hash<unsigned int>{}(id0) ^ std::hash<unsigned int>{}(id1);
+}
+
+bool SpringEqual::operator()(const SpringPtr spring0,
+                             const SpringPtr spring1) const
+{
+    uint64_t id00 = spring0->node0->index;
+    uint64_t id01 = spring0->node1->index;
+    uint64_t id10 = spring1->node0->index;
+    uint64_t id11 = spring1->node1->index;
+    if (id01 > id00) std::swap(id00, id01);
+    if (id11 > id10) std::swap(id10, id11);
+    return (id00 == id10) && (id01 == id11);
+}
+
+}  // namespace sim
+
+}  // namespace Ultraliser

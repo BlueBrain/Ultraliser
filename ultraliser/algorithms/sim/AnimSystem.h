@@ -22,14 +22,72 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ALGORITHMS_ALGORITHMS_H
-#define ULTRALISER_ALGORITHMS_ALGORITHMS_H
+#ifndef ULTRALISER_SIM_ANIMSYSTEM_H
+#define ULTRALISER_SIM_ANIMSYSTEM_H
 
-#include <algorithms/DualMarchingCubes.h>
-#include <algorithms/FloodFiller.h>
-#include <algorithms/MarchingCubes.h>
-#include <algorithms/SectionGeometry.h>
-#include <algorithms/SomaGeometry.h>
-#include <algorithms/Sorting.h>
+#include "Mesh.h"
 
-#endif  // ULTRALISER_ALGORITHMS_ALGORITHMS_H
+namespace Ultraliser
+{
+namespace sim
+{
+/**
+ * @brief The AnimSystem class
+ */
+class AnimSystem
+{
+public:
+    /**
+     * @brief AnimSystem
+     * Constructor.
+     * @param dt
+     */
+    AnimSystem(float dt);
+
+    /**
+     * @brief anim
+     *
+     * @param mesh
+     */
+    void anim(MeshPtr mesh, uint64_t iterations = 1);
+
+    /**
+     * @brief anim
+     *
+     * @param meshes
+     */
+    void anim(Meshes meshes, uint64_t iterations = 1);
+
+    /**
+     * @brief setZeroForce
+     *
+     * @param nodes
+     */
+    void setZeroForce(Nodes& nodes);
+
+    /**
+     * @brief setZeroForce
+     *
+     * @param mesh
+     */
+    void setZeroForce(MeshPtr mesh);
+
+    /**
+     * @brief setZeroForce
+     *
+     * @param meshes
+     */
+    void setZeroForce(Meshes meshes);
+
+private:
+    /**
+     * @brief dt
+     */
+    float _dt;
+};
+
+}  // namespace sim
+
+}  // namespace Ultraliser
+
+#endif  // ULTRALISER_SIM_ANIMSYSTEM_H

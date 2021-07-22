@@ -3,40 +3,48 @@
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
  *
  * Author(s)
- *      Marwan Abdellah < marwan.abdellah@epfl.ch >
- *      Juan Jose Garcia Cantero < juanjose.garcia@epfl.ch>
+ *      Marwan Abdellah <marwan.abdellah@epfl.ch >
+ *      Juan Jose Garcia Cantero <juanjose.garcia@epfl.ch>
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
- * This library is free software; you can redistribute it and/or modify it under the terms of the
- * GNU General Public License version 3.0 as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 3.0 as published by the
+ * Free Software Foundation.
  *
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU General Public License along with this library;
- * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
- * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
+ * You should have received a copy of the GNU General Public License along with
+ * this library; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place - Suite 330, Boston, MA 02111-1307, USA. You can also find it on the
+ * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
 #include "NeuronMorphology.h"
+
+#include <common/Common.h>
+#include <data/morphologies/NeuronSWCReader.h>
+#include <utilities/Utilities.h>
 
 #include <stack>
 
 namespace Ultraliser
 {
-
 NeuronMorphology::NeuronMorphology(const NeuronSWCSamples& swcSamples)
 {
     // Construct the sections
     _constructMorphology(swcSamples);
 }
 
-Sections NeuronMorphology::getFirstSections() const
-{
-    return _firstSections;
-}
+Samples NeuronMorphology::getSomaSamples() const { return _somaSamples; }
+
+Sections NeuronMorphology::getFirstSections() const { return _firstSections; }
+
+Vector3f NeuronMorphology::getSomaCenter() const { return _somaCenter; }
+
+float NeuronMorphology::getSomaRadius() const { return _somaRadius; }
 
 void NeuronMorphology::_constructMorphology(const NeuronSWCSamples& swcSamples)
 {
@@ -50,7 +58,7 @@ void NeuronMorphology::_constructMorphology(const NeuronSWCSamples& swcSamples)
 
     samplesStack.push(swcSamples[0]);
     sectionStack.push(nullptr);
-    while(!samplesStack.empty())
+    while (!samplesStack.empty())
     {
         auto swcSample = samplesStack.top();
         samplesStack.pop();
@@ -71,12 +79,12 @@ void NeuronMorphology::_constructMorphology(const NeuronSWCSamples& swcSamples)
         if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
         if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
 
-        Sample* sample = new Sample( position, radius);
-        
+        Sample* sample = new Sample(position, radius);
+
         if (swcSample->type == SWCSampleType::SOMA)
         {
             _somaSamples.push_back(sample);
-            for (auto child: swcSample->childrenSamples)
+            for (auto child : swcSample->childrenSamples)
             {
                 samplesStack.push(child);
                 if (child->type == SWCSampleType::SOMA)
@@ -105,7 +113,7 @@ void NeuronMorphology::_constructMorphology(const NeuronSWCSamples& swcSamples)
             }
             else
             {
-                for (auto child: children)
+                for (auto child : children)
                 {
                     samplesStack.push(child);
                     section->addChildIndex(sectionId);
@@ -119,6 +127,48 @@ void NeuronMorphology::_constructMorphology(const NeuronSWCSamples& swcSamples)
             }
         }
     }
+
+    _somaCenter = Vector3f(0.0f);
+    _somaRadius = 0.0f;
+
+    if (_somaSamples.size() > 1)
+    {
+        for (auto sample : _somaSamples)
+        {
+            _somaCenter += sample->getPosition();
+        }
+        _somaCenter /= _somaSamples.size();
+        for (auto sample : _somaSamples)
+        {
+            _somaRadius += (sample->getPosition() - _somaCenter).abs();
+        }
+        _somaRadius /= _somaSamples.size();
+    }
+    else
+    {
+        _somaCenter = _somaSamples[0]->getPosition();
+        _somaRadius = _somaSamples[0]->getRadius();
+    }
 }
 
+NeuronMorphology* readNeuronMorphology(std::string& morphologyPath)
+{
+    if (String::subStringFound(morphologyPath, std::string(".swc")))
+    {
+        // Read the file
+        auto reader = std::make_unique<NeuronSWCReader>(morphologyPath);
+
+        // Get a pointer to the morphology to start using it
+        return reader->getMorphology();
+    }
+    else
+    {
+        LOG_ERROR("Unrecognized morphology file format [ %s ]",
+                  morphologyPath.c_str());
+    }
+
+    // To avoid any warning issues.
+    return nullptr;
 }
+
+}  // namespace Ultraliser

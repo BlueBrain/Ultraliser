@@ -1,9 +1,33 @@
+/***************************************************************************************************
+ * Copyright (c) 2016 - 2021
+ * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
+ *
+ * Author(s)
+ *      Marwan Abdellah <marwan.abdellah@epfl.ch >
+ *      Juan Jose Garcia Cantero <juanjose.garcia@epfl.ch>
+ *
+ * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 3.0 as published by the
+ * Free Software Foundation.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this library; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place - Suite 330, Boston, MA 02111-1307, USA. You can also find it on the
+ * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
+ **************************************************************************************************/
+
 #include "VolumeMesh.h"
 
 namespace Ultraliser
 {
-
-VolumeMesh::VolumeMesh(const uint64_t numberVertices, const uint64_t numberTriangles)
+VolumeMesh::VolumeMesh(const uint64_t numberVertices,
+                       const uint64_t numberTriangles)
 {
     vertices.resize(numberVertices);
     triangles.resize(numberTriangles);
@@ -18,13 +42,15 @@ void VolumeMesh::append(const VolumeMesh* inputMesh)
     uint64_t triangleCountOffset = triangles.size();
 
     // Expand and append the vertices and the triangles of the new mesh
-    vertices.insert(vertices.end(), inputMesh->vertices.begin(), inputMesh->vertices.end());
-    triangles.insert(triangles.end(), inputMesh->triangles.begin(), inputMesh->triangles.end());
+    vertices.insert(vertices.end(), inputMesh->vertices.begin(),
+                    inputMesh->vertices.end());
+    triangles.insert(triangles.end(), inputMesh->triangles.begin(),
+                     inputMesh->triangles.end());
 
     // Offset the new vertices to account for the addivity
     for (uint64_t i = triangleCountOffset; i < triangles.size(); ++i)
     {
-        for(uint64_t j = 0; j < 3; ++j)
+        for (uint64_t j = 0; j < 3; ++j)
         {
             triangles[i][j] += vertexCountOffset;
         }
@@ -33,7 +59,8 @@ void VolumeMesh::append(const VolumeMesh* inputMesh)
 
 VolumeMesh* VolumeMesh::constructUnitCube(const float scale)
 {
-    // The cube will have 8 vertices, 6 sides each with two triangles, therefore 12 triangles
+    // The cube will have 8 vertices, 6 sides each with two triangles, therefore
+    // 12 triangles
     VolumeMesh* unitCube = new VolumeMesh(8, 12);
 
     // Build the vertices
@@ -63,7 +90,8 @@ VolumeMesh* VolumeMesh::constructUnitCube(const float scale)
     return unitCube;
 }
 
-VolumeMesh* VolumeMesh::constructVoxelCube(const Vector3f &pMin, const Vector3f &pMax)
+VolumeMesh* VolumeMesh::constructVoxelCube(const Vector3f& pMin,
+                                           const Vector3f& pMax)
 {
     // Get the diagonal of the voxel
     Vector3f diagonal = pMax - pMin;
@@ -71,8 +99,7 @@ VolumeMesh* VolumeMesh::constructVoxelCube(const Vector3f &pMin, const Vector3f 
     // Transform for transforming the cube to the voxel location
     Matrix3f transform = Matrix3f::identity();
 
-    for (int32_t i = 0; i < DIMENSIONS; ++i)
-        transform(i, i) = diagonal[i];
+    for (int32_t i = 0; i < DIMENSIONS; ++i) transform(i, i) = diagonal[i];
 
     auto voxelCube = constructUnitCube();
     for (size_t i = 0; i < voxelCube->vertices.size(); ++i)
@@ -86,18 +113,16 @@ void VolumeMesh::computeBoundingBox(Vector3f& pMinIn, Vector3f& pMaxIn)
     // Create new variables to avoid any mess if the inputs are already
     // initialized with some values
     Vector3f pMin(std::numeric_limits<float>::max());
-    Vector3f pMax(std::numeric_limits<float>::min());
+    Vector3f pMax(std::numeric_limits<float>::lowest());
 
     for (uint64_t i = 0; i < vertices.size(); ++i)
     {
         Vertex vertex = vertices[i];
         for (int iDim = 0; iDim < DIMENSIONS; ++iDim)
         {
-            if (vertex[iDim] < pMin[iDim])
-                pMin[iDim] = vertex[iDim];
+            if (vertex[iDim] < pMin[iDim]) pMin[iDim] = vertex[iDim];
 
-            if (vertex[iDim] > pMax[iDim])
-                pMax[iDim] = vertex[iDim];
+            if (vertex[iDim] > pMax[iDim]) pMax[iDim] = vertex[iDim];
         }
     }
 
@@ -188,4 +213,4 @@ VolumeMesh::~VolumeMesh()
     triangles.shrink_to_fit();
 }
 
-}
+}  // namespace Ultraliser

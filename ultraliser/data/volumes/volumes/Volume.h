@@ -3,20 +3,23 @@
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
  *
  * Author(s)
- *      Marwan Abdellah < marwan.abdellah@epfl.ch >
+ *      Marwan Abdellah <marwan.abdellah@epfl.ch >
+ *      Juan Jose Garcia Cantero <juanjose.garcia@epfl.ch>
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
- * This library is free software; you can redistribute it and/or modify it under the terms of the
- * GNU General Public License version 3.0 as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 3.0 as published by the
+ * Free Software Foundation.
  *
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU General Public License along with this library;
- * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
- * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
+ * You should have received a copy of the GNU General Public License along with
+ * this library; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place - Suite 330, Boston, MA 02111-1307, USA. You can also find it on the
+ * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
 #ifndef ULTRALISER_DATA_VOLUME_H
@@ -24,14 +27,13 @@
 
 #include <common/Common.h>
 #include <data/common/GridIndex.h>
-#include <data/volumes/grids/BitVolumeGrid.h>
 #include <data/meshes/advanced/AdvancedMesh.h>
-#include <data/morphologies/Morphologies.h>
 #include <data/meshes/simple/Mesh.h>
+#include <data/morphologies/Morphologies.h>
+#include <data/volumes/grids/BitVolumeGrid.h>
 
 namespace Ultraliser
 {
-
 /**
  * @brief Te Volume class
  * Builds a voxel grid for a mesh where 0 stands for empty cell and 1 stands
@@ -39,7 +41,6 @@ namespace Ultraliser
  */
 class Volume
 {
-
 public:
     enum SOLID_VOXELIZATION_AXIS
     {
@@ -50,7 +51,6 @@ public:
     };
 
 public:
-
     /**
      * @brief Volume
      * Constructor
@@ -69,8 +69,8 @@ public:
      */
     Volume(const Vector3f& pMin,
            const Vector3f& pMax,
-           const uint64_t &baseResolution = 512,
-           const float &expansionRatio = 0.0,
+           const uint64_t& baseResolution = 512,
+           const float& expansionRatio = 0.0,
            const VolumeGrid::TYPE& gridType = VolumeGrid::TYPE::BIT);
 
     /**
@@ -94,7 +94,7 @@ public:
      * @param prefix
      * @param type
      */
-    Volume(const std::string &prefix,
+    Volume(const std::string& prefix,
            const VolumeGrid::TYPE& gridType = VolumeGrid::TYPE::BIT);
     ~Volume();
 
@@ -112,9 +112,9 @@ public:
      */
     uint8_t getValue(const uint64_t index) const;
 
-    uint8_t getConfirmedValue(const int64_t &x,
-                                      const int64_t &y,
-                                      const int64_t &z) const;
+    uint8_t getConfirmedValue(const int64_t& x,
+                              const int64_t& y,
+                              const int64_t& z) const;
     /**
      * @brief getValue
      * @param x
@@ -122,9 +122,9 @@ public:
      * @param z
      * @return
      */
-    uint8_t getValue(const int64_t &x,
-                     const int64_t &y,
-                     const int64_t &z) const;
+    uint8_t getValue(const int64_t& x,
+                     const int64_t& y,
+                     const int64_t& z) const;
 
     /**
      * @brief fillVoxel
@@ -132,9 +132,7 @@ public:
      * @param y
      * @param z
      */
-    void fillVoxel(const int64_t &x,
-                   const int64_t &y,
-                   const int64_t &z);
+    void fillVoxel(const int64_t& x, const int64_t& y, const int64_t& z);
 
     /**
      * @brief getByte
@@ -143,16 +141,14 @@ public:
      * @param z
      * @return
      */
-    uint8_t getByte(const int64_t &x,
-                    const int64_t &y,
-                    const int64_t &z) const;
+    uint8_t getByte(const int64_t& x, const int64_t& y, const int64_t& z) const;
 
     /**
      * @brief addByte
      * @param index
      * @param byte
      */
-    void addByte(const uint64_t &index, const uint8_t byte);
+    void addByte(const uint64_t& index, const uint8_t byte);
 
     /**
      * @brief clear
@@ -180,21 +176,29 @@ public:
      * Performs a surface voxelization on a list of input meshes in parallel.
      * @param meshFiles
      */
-    void surfaceVoxelization(const std::string &inputDirectory,
-                             const std::vector< std::string>& meshFiles);
+    void surfaceVoxelization(const std::string& inputDirectory,
+                             const std::vector<std::string>& meshFiles);
 
     /**
      * @brief surfaceVoxelizeVasculatureMorphology
      * @param morphology
      */
-    void surfaceVoxelizeVasculatureMorphologyParallel(VasculatureMorphology* vasculatureMorphology);
+    void surfaceVoxelizeVasculatureMorphologyParallel(
+        VasculatureMorphology* vasculatureMorphology);
+
+    /**
+     * @brief surfaceVoxelizeNeuronMorphology
+     * @param morphology
+     */
+    void surfaceVoxelizeNeuronMorphologyParallel(
+        NeuronMorphology* neuronMorphology);
 
     /**
      * @brief solidVoxelization
      * lood fill the exterior to figure out the interior.
      * @param algorithm
      */
-    void solidVoxelization(const SOLID_VOXELIZATION_AXIS& axis=X);
+    void solidVoxelization(const SOLID_VOXELIZATION_AXIS& axis = X);
 
     /**
      * @brief exportToMesh
@@ -204,11 +208,11 @@ public:
      * @param formatOFF
      * @param formatSTL
      */
-    void exportToMesh(const std::string &prefix,
-                      const bool &formatOBJ = false,
-                      const bool &formatPLY = false,
-                      const bool &formatOFF = false,
-                      const bool &formatSTL = false) const;
+    void exportToMesh(const std::string& prefix,
+                      const bool& formatOBJ = false,
+                      const bool& formatPLY = false,
+                      const bool& formatOFF = false,
+                      const bool& formatSTL = false) const;
 
     /**
      * @brief exportVolumeGridMesh
@@ -218,11 +222,11 @@ public:
      * @param formatOFF
      * @param formatSTL
      */
-    void exportVolumeGridToMesh(const std::string &prefix,
-                                const bool &formatOBJ = false,
-                                const bool &formatPLY = false,
-                                const bool &formatOFF = false,
-                                const bool &formatSTL = false) const;
+    void exportVolumeGridToMesh(const std::string& prefix,
+                                const bool& formatOBJ = false,
+                                const bool& formatPLY = false,
+                                const bool& formatOFF = false,
+                                const bool& formatSTL = false) const;
     /**
      * @brief exportBoundingBoxMesh
      * @param prefix
@@ -231,34 +235,34 @@ public:
      * @param formatOFF
      * @param formatSTL
      */
-    void exportBoundingBoxMesh(const std::string &prefix,
-                               const bool &formatOBJ = false,
-                               const bool &formatPLY = false,
-                               const bool &formatOFF = false,
-                               const bool &formatSTL = false) const;
+    void exportBoundingBoxMesh(const std::string& prefix,
+                               const bool& formatOBJ = false,
+                               const bool& formatPLY = false,
+                               const bool& formatOFF = false,
+                               const bool& formatSTL = false) const;
 
     /**
      * @brief writeStackXY
      * @param prefix
      */
-    void writeStackXY(const std::string &outputDirectory,
-                        const std::string &prefix) const;
+    void writeStackXY(const std::string& outputDirectory,
+                      const std::string& prefix) const;
 
     /**
      * @brief writeStackXZ
      * @param outputDirectory
      * @param prefix
      */
-    void writeStackXZ(const std::string &outputDirectory,
-                        const std::string &prefix) const;
+    void writeStackXZ(const std::string& outputDirectory,
+                      const std::string& prefix) const;
 
     /**
      * @brief writeStackZY
      * @param outputDirectory
      * @param prefix
      */
-    void writeStackZY(const std::string &outputDirectory,
-                        const std::string &prefix) const;
+    void writeStackZY(const std::string& outputDirectory,
+                      const std::string& prefix) const;
 
     /**
      * @brief writeVolumes
@@ -266,7 +270,7 @@ public:
      * @param binaryFormat
      * @param rawFormat
      */
-    void writeVolumes(const std::string &prefix,
+    void writeVolumes(const std::string& prefix,
                       const bool& binaryFormat = false,
                       const bool& rawFormat = false,
                       const bool& nrrdFormat = false) const;
@@ -278,8 +282,8 @@ public:
      * @param xy
      * @param zy
      */
-    void writeStacks(const std::string &outputDirectory,
-                     const std::string &prefix,
+    void writeStacks(const std::string& outputDirectory,
+                     const std::string& prefix,
                      const bool& xy = false,
                      const bool& xz = false,
                      const bool& zy = false) const;
@@ -294,7 +298,7 @@ public:
                  const bool xy = false,
                  const bool xz = false,
                  const bool zy = false,
-                 const bool &projectColorCoded = false) const;
+                 const bool& projectColorCoded = false) const;
 
     /**
      * @brief getWidth
@@ -360,14 +364,14 @@ public:
      * @brief printBenchmarks
      * @param mesh
      */
-    //void printBenchmarks(OriginalMesh* mesh) const;
+    // void printBenchmarks(OriginalMesh* mesh) const;
 
     /**
      * @brief addVolume
      * Adds volume with the same dimensions to the current one from a file.
      * @param volumePrefix
      */
-    void addVolume(const std::string &volumePrefix);
+    void addVolume(const std::string& volumePrefix);
 
     /**
      * @brief addVolumePass
@@ -383,10 +387,10 @@ public:
      * @param z
      * @return
      */
-    uint64_t mapToIndex(const int64_t &x,
-                        const int64_t &y,
-                        const int64_t &z,
-                        bool &outlier) const;
+    uint64_t mapToIndex(const int64_t& x,
+                        const int64_t& y,
+                        const int64_t& z,
+                        bool& outlier) const;
 
     /**
      * @brief fill
@@ -406,7 +410,7 @@ public:
      * @param y
      * @param z
      */
-    void fill(const int64_t &x, const int64_t &y, const int64_t &z);
+    void fill(const int64_t& x, const int64_t& y, const int64_t& z);
 
     /**
      * @brief clear
@@ -414,7 +418,7 @@ public:
      * @param y
      * @param z
      */
-    void clear(const int64_t &x, const int64_t &y, const int64_t &z);
+    void clear(const int64_t& x, const int64_t& y, const int64_t& z);
 
     /**
      * @brief isFilled
@@ -430,7 +434,7 @@ public:
      * @param z
      * @return
      */
-    bool isFilled(const int64_t &x, const int64_t &y, const int64_t &z) const;
+    bool isFilled(const int64_t& x, const int64_t& y, const int64_t& z) const;
 
     /**
      * @brief getFormatString
@@ -443,11 +447,10 @@ public:
      * @param reference
      * @param prefix
      */
-    void printStats(const std::string &reference,
-                          const std::string* prefix = nullptr) const;
+    void printStats(const std::string& reference,
+                    const std::string* prefix = nullptr) const;
 
 public:
-
     /**
      * @brief getLargestDimension
      * @param dimensions
@@ -461,10 +464,10 @@ public:
      * @return
      * A pointer to the reconstructed volume from the mask.
      */
-    static Volume* constructFromTiffMask(const std::string &maskDirectory,
-                                         const int64_t &maskWidth,
-                                         const int64_t &maskHeight,
-                                         const VolumeGrid::TYPE &gridType);
+    static Volume* constructFromTiffMask(const std::string& maskDirectory,
+                                         const int64_t& maskWidth,
+                                         const int64_t& maskHeight,
+                                         const VolumeGrid::TYPE& gridType);
 
     /**
      * @brief constructIsoValueVolume
@@ -481,8 +484,8 @@ public:
      * A binary volume (1 bit per voxel) corresponding to the given iso value.
      */
     static Volume* constructIsoValueVolume(const Volume* volume,
-                                           const uint8_t &isoValue,
-                                           const int64_t &padding = 32);
+                                           const uint8_t& isoValue,
+                                           const int64_t& padding = 32);
 
     /**
      * @brief constructFullRangeVolume
@@ -498,7 +501,7 @@ public:
      * A binary volume (1 bit per voxel) corresponding to the given iso value.
      */
     static Volume* constructFullRangeVolume(const Volume* volume,
-                                            const int64_t &padding = 32);
+                                            const int64_t& padding = 32);
 
     /**
      * @brief createHistogram
@@ -524,8 +527,11 @@ public:
      * @param pMax
      * Returned pMax of the voxel.
      */
-    void getVoxelBoundingBox(const int64_t& x, const int64_t& y, const int64_t& z,
-                             Vector3f& pMin, Vector3f& pMax) const;
+    void getVoxelBoundingBox(const int64_t& x,
+                             const int64_t& y,
+                             const int64_t& z,
+                             Vector3f& pMin,
+                             Vector3f& pMax) const;
 
     /**
      * @brief getVolumeBoundingBox
@@ -546,24 +552,23 @@ public:
     float getVoxelSize() const { return _voxelSize; }
 
 private:
-
     /**
      * @brief _loadHeaderData
      * @param prefix
      */
-    void _loadHeaderData(const std::string &prefix);
+    void _loadHeaderData(const std::string& prefix);
 
     /**
      * @brief _loadByteVolumeData
      * @param prefix
      */
-    void _loadByteVolumeData(const std::string &prefix);
+    void _loadByteVolumeData(const std::string& prefix);
 
     /**
      * @brief _loadBinaryVolumeData
      * @param prefix
      */
-    void _loadBinaryVolumeData(const std::string &prefix);
+    void _loadBinaryVolumeData(const std::string& prefix);
 
     /**
      * @brief _allocateGrid
@@ -591,8 +596,7 @@ private:
      * @param tMin
      * @param tMax
      */
-    void _getBoundingBox(Mesh* mesh ,
-                         uint64_t i, int64_t *tMin, int64_t *tMax);
+    void _getBoundingBox(Mesh* mesh, uint64_t i, int64_t* tMin, int64_t* tMax);
 
     /**
      * @brief _getTriangleBoundingBox
@@ -601,7 +605,8 @@ private:
      * @param tMax
      */
     void _getTriangleBoundingBox(AdvancedTriangle triangle,
-                                 int64_t *tMin, int64_t *tMax);
+                                 int64_t* tMin,
+                                 int64_t* tMax);
 
     /**
      * @brief _rasterize
@@ -624,13 +629,14 @@ private:
      */
     void _floodFill2D(const SOLID_VOXELIZATION_AXIS& axis);
 
-    void _floodFillAlongAxis(VolumeGrid* grid, const SOLID_VOXELIZATION_AXIS &axis);
+    void _floodFillAlongAxis(VolumeGrid* grid,
+                             const SOLID_VOXELIZATION_AXIS& axis);
 
     /**
      * @brief _floodFillAlongXYZ
      * @param grid
      */
-    void _floodFillAlongXYZ(VolumeGrid *grid);
+    void _floodFillAlongXYZ(VolumeGrid* grid);
 
     /**
      * @brief floodFill3D
@@ -643,7 +649,7 @@ private:
      * @param mesh
      * @param grid
      */
-    void _rasterize(AdvancedMesh *mesh, VolumeGrid* grid);
+    void _rasterize(AdvancedMesh* mesh, VolumeGrid* grid);
 
     /**
      * @brief vec2grid
@@ -651,7 +657,7 @@ private:
      * @param v
      * @param grid
      */
-    void _vec2grid(const Vector3f &v, GridIndex& grid);
+    void _vec2grid(const Vector3f& v, GridIndex& grid);
 
     /**
      * @brief _testTriangleCubeIntersection
@@ -683,11 +689,9 @@ private:
      * @return 1 of tje cube center is on the negative side, but the
      * projection is outside of the triangle.
      */
-    int _triangleCubeSign(Mesh* mesh, int tIdx,
-                          const GridIndex& boundingBox);
+    int _triangleCubeSign(Mesh* mesh, int tIdx, const GridIndex& boundingBox);
 
 private:
-
     /**
      * @brief grid
      */
@@ -760,15 +764,15 @@ private:
     double _addingVolumePassTime;
 
 public:
-
     /**
      * @brief getSolidvoxelizationAxis
      * @param argumentString
      * @return
      */
-    static SOLID_VOXELIZATION_AXIS getSolidvoxelizationAxis(const std::string &argumentString);
+    static SOLID_VOXELIZATION_AXIS getSolidvoxelizationAxis(
+        const std::string& argumentString);
 };
 
-}
+}  // namespace Ultraliser
 
-#endif // ULTRALISER_DATA_VOLUME_H
+#endif  // ULTRALISER_DATA_VOLUME_H

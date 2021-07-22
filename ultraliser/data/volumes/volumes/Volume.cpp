@@ -3,45 +3,49 @@
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
  *
  * Author(s)
- *      Marwan Abdellah < marwan.abdellah@epfl.ch >
+ *      Marwan Abdellah <marwan.abdellah@epfl.ch >
+ *      Juan Jose Garcia Cantero <juanjose.garcia@epfl.ch>
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
- * This library is free software; you can redistribute it and/or modify it under the terms of the
- * GNU General Public License version 3.0 as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 3.0 as published by the
+ * Free Software Foundation.
  *
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU General Public License along with this library;
- * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
- * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
+ * You should have received a copy of the GNU General Public License along with
+ * this library; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place - Suite 330, Boston, MA 02111-1307, USA. You can also find it on the
+ * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
 #include "Volume.h"
-#include "../grids/VolumeGrid.h"
-#include "../voxels/DMCVoxel.h"
+
 #include <common/Common.h>
+#include <data/images/TIFFImage.h>
+#include <data/meshes/simple/MeshOperations.h>
+#include <data/meshes/simple/VolumeMesh.h>
+#include <data/volumes/grids/Grids.h>
 #include <geometry/Intersection.h>
 #include <geometry/Utilities.h>
-#include <utilities/Utilities.h>
 #include <math/Functions.h>
-#include <data/images/TIFFImage.h>
+#include <utilities/Utilities.h>
+
 #include "../grids/BitVolumeGrid.h"
 #include "../grids/ByteVolumeGrid.h"
+#include "../grids/VolumeGrid.h"
 #include "../grids/VoxelGrid.h"
-#include <data/volumes/grids/Grids.h>
-#include <data/meshes/simple/VolumeMesh.h>
-#include <data/meshes/simple/MeshOperations.h>
+#include "../voxels/DMCVoxel.h"
 
 namespace Ultraliser
 {
-
 Volume::Volume(const Vector3f& pMin,
                const Vector3f& pMax,
-               const uint64_t &baseResolution,
-               const float &expansionRatio,
+               const uint64_t& baseResolution,
+               const float& expansionRatio,
                const VolumeGrid::TYPE& gridType)
     : _gridType(gridType)
     , _pMin(pMin)
@@ -74,7 +78,8 @@ Volume::Volume(const int64_t width,
     _gridDimensions.v[1] = height;
     _gridDimensions.v[2] = depth;
 
-    // Since we don't have any geometric bounds, use 1.0 for the voxel resolution
+    // Since we don't have any geometric bounds, use 1.0 for the voxel
+    // resolution
     // TODO: The voxel resolution should be computed from the given bounds
     _voxelSize = 1.0;
 
@@ -82,8 +87,7 @@ Volume::Volume(const int64_t width,
     _allocateGrid();
 }
 
-Volume::Volume(const std::string &prefix,
-               const VolumeGrid::TYPE& gridType)
+Volume::Volume(const std::string& prefix, const VolumeGrid::TYPE& gridType)
     : _gridType(gridType)
 {
     // Zero zero-padding
@@ -113,18 +117,21 @@ void Volume::_allocateGrid()
     {
     case VolumeGrid::TYPE::BIT:
     {
-        _grid = new BitVolumeGrid(_gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
+        _grid = new BitVolumeGrid(_gridDimensions.v[0], _gridDimensions.v[1],
+                                  _gridDimensions.v[2]);
         break;
     }
     case VolumeGrid::TYPE::BYTE:
     {
-        _grid = new ByteVolumeGrid(_gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
+        _grid = new ByteVolumeGrid(_gridDimensions.v[0], _gridDimensions.v[1],
+                                   _gridDimensions.v[2]);
         break;
     }
 
     case VolumeGrid::TYPE::VOXEL:
     {
-        _grid = new VoxelGrid(_gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
+        _grid = new VoxelGrid(_gridDimensions.v[0], _gridDimensions.v[1],
+                              _gridDimensions.v[2]);
         break;
     }
     }
@@ -145,25 +152,27 @@ void Volume::_createGrid(void)
         boundingBoxSize = (_pMax - _pMin);
     }
 
-    // Find the largest dimension of the mesh model to be able to create a scaled grid.
+    // Find the largest dimension of the mesh model to be able to create a
+    // scaled grid.
     _largestDimensionIdx = getLargestDimension(boundingBoxSize);
 
     // Compute the voxel size
-    _voxelSize = boundingBoxSize[_largestDimensionIdx] / (1.f * _baseResolution);
+    _voxelSize =
+        boundingBoxSize[_largestDimensionIdx] / (1.f * _baseResolution);
 
     // Compute the volume dimensions based on the current voxel size
     _gridDimensions.v[0] = F2UI64(std::round(boundingBoxSize[0] / _voxelSize));
     _gridDimensions.v[1] = F2UI64(std::round(boundingBoxSize[1] / _voxelSize));
     _gridDimensions.v[2] = F2UI64(std::round(boundingBoxSize[2] / _voxelSize));
 
-    LOG_SUCCESS("Volume Dimenions [ %d x %d x %d ]",
-                _gridDimensions.v[0] , _gridDimensions.v[1] , _gridDimensions.v[2]);
+    LOG_SUCCESS("Volume Dimenions [ %d x %d x %d ]", _gridDimensions.v[0],
+                _gridDimensions.v[1], _gridDimensions.v[2]);
 
     // Allocating the grid
     _allocateGrid();
 }
 
-void Volume::_loadHeaderData(const std::string &prefix)
+void Volume::_loadHeaderData(const std::string& prefix)
 {
     const std::string filePath = prefix + std::string(".hdr");
 
@@ -179,7 +188,7 @@ void Volume::_loadHeaderData(const std::string &prefix)
     hdrFileStream.close();
 }
 
-void Volume::_loadByteVolumeData(const std::string &prefix)
+void Volume::_loadByteVolumeData(const std::string& prefix)
 {
     // Load the header data of the volume including the dimensions and the size
     _loadHeaderData(prefix);
@@ -191,7 +200,7 @@ void Volume::_loadByteVolumeData(const std::string &prefix)
     _grid->loadByteVolumeData(prefix);
 }
 
-void Volume::_loadBinaryVolumeData(const std::string &prefix)
+void Volume::_loadBinaryVolumeData(const std::string& prefix)
 {
     _loadHeaderData(prefix);
 
@@ -212,12 +221,12 @@ void Volume::surfaceVoxelization(Mesh* mesh,
     TIMER_SET;
 
     if (verbose)
-        LOG_STATUS("Creating Volume Shell [%d x %d x %d]",
-                   _gridDimensions[0], _gridDimensions[1], _gridDimensions[2]);
+        LOG_STATUS("Creating Volume Shell [%d x %d x %d]", _gridDimensions[0],
+                   _gridDimensions[1], _gridDimensions[2]);
     if (parallel)
         _rasterizeParallel(mesh, _grid);
     else
-        _rasterize(mesh , _grid, verbose);
+        _rasterize(mesh, _grid, verbose);
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
 
     // Statistics
@@ -229,7 +238,7 @@ void Volume::surfaceVoxelization(Mesh* mesh,
 }
 
 void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
-        VasculatureMorphology* vasculatureMorphology)
+    VasculatureMorphology* vasculatureMorphology)
 {
     LOG_TITLE("Surface Voxelization (Parallel)");
 
@@ -246,11 +255,13 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
     for (uint64_t i = 0; i < sections.size(); i++)
     {
         // Construct the paths
-        Paths paths = vasculatureMorphology->getConnectedPathsFromParentsToChildren(sections[i]);
+        Paths paths =
+            vasculatureMorphology->getConnectedPathsFromParentsToChildren(
+                sections[i]);
         for (uint64_t j = 0; j < paths.size(); ++j)
         {
             auto mesh = new Mesh(paths[j]);
-            _rasterize(mesh , _grid);
+            _rasterize(mesh, _grid);
         }
 
         // Update the progress bar
@@ -264,10 +275,69 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
     // Statistics
     LOG_STATUS_IMPORTANT("Rasterization Stats.");
     LOG_STATS(_surfaceVoxelizationTime);
-
 }
 
-void Volume::surfaceVoxelization(AdvancedMesh *mesh)
+void Volume::surfaceVoxelizeNeuronMorphologyParallel(
+    NeuronMorphology* neuronMorphology)
+{
+    LOG_TITLE("Surface Voxelization (Parallel)");
+
+    // Start the timer
+    TIMER_SET;
+
+    // Get all the sections of the vascular morphology
+    Sections sections = neuronMorphology->getSections();
+
+    LOG_STATUS("Creating Volume Shell from Sections");
+    LOOP_STARTS("Rasterization");
+    PROGRESS_SET;
+
+    // Construct the soma geometry
+    auto mesh = new Mesh(neuronMorphology);
+    _rasterize(mesh, _grid);
+
+    auto firstSections = neuronMorphology->getFirstSections();
+    // Construct the geometry between soma and neurites
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < firstSections.size(); i++)
+    {
+        auto section = firstSections[i];
+        Samples samples = section->getSamples();
+        Vector3f newSamplePos = neuronMorphology->getSomaCenter();
+        samples.insert(samples.begin(),
+                       new Sample(newSamplePos, samples[0]->getRadius()));
+        auto mesh = new Mesh(samples);
+        _rasterize(mesh, _grid);
+        LOOP_PROGRESS(PROGRESS, firstSections.size() + sections.size());
+        PROGRESS_UPDATE;
+    }
+
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < sections.size(); i++)
+    {
+        // Construct the paths
+        Paths paths = neuronMorphology->getConnectedPathsFromParentsToChildren(
+            sections[i]);
+        for (uint64_t j = 0; j < paths.size(); ++j)
+        {
+            auto mesh = new Mesh(paths[j]);
+            _rasterize(mesh, _grid);
+        }
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, firstSections.size() + sections.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+
+    _surfaceVoxelizationTime = GET_TIME_SECONDS;
+
+    // Statistics
+    LOG_STATUS_IMPORTANT("Rasterization Stats.");
+    LOG_STATS(_surfaceVoxelizationTime);
+}
+
+void Volume::surfaceVoxelization(AdvancedMesh* mesh)
 {
     LOG_TITLE("Surface Voxelization");
 
@@ -275,7 +345,7 @@ void Volume::surfaceVoxelization(AdvancedMesh *mesh)
     TIMER_SET;
 
     LOG_STATUS("Creating Volume Shell");
-    _rasterize(mesh , _grid);
+    _rasterize(mesh, _grid);
 
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
 
@@ -283,27 +353,26 @@ void Volume::surfaceVoxelization(AdvancedMesh *mesh)
     LOG_STATS(_surfaceVoxelizationTime);
 }
 
-void Volume::surfaceVoxelization(const std::string &inputDirectory,
-                                 const std::vector< std::string>& meshFiles)
+void Volume::surfaceVoxelization(const std::string& inputDirectory,
+                                 const std::vector<std::string>& meshFiles)
 {
     LOG_TITLE("Surface Voxelization");
     TIMER_SET;
 
-    LOG_STATUS("Creating Volume Shell [%d x %d x %d]",
-               _gridDimensions[0], _gridDimensions[1], _gridDimensions[2]);
+    LOG_STATUS("Creating Volume Shell [%d x %d x %d]", _gridDimensions[0],
+               _gridDimensions[1], _gridDimensions[2]);
     uint64_t processedMeshCount = 0;
     LOOP_STARTS("Rasterization");
     PROGRESS_SET;
-    for( size_t iMesh = 0; iMesh < meshFiles.size(); iMesh++ )
+    for (size_t iMesh = 0; iMesh < meshFiles.size(); iMesh++)
     {
         // Create and load the mesh from the file
-        std::string meshName = meshFiles[ iMesh ];
+        std::string meshName = meshFiles[iMesh];
         std::string meshFile = meshName;
-        if( inputDirectory != EMPTY )
-            meshFile = inputDirectory + "/" + meshFile;
+        if (inputDirectory != EMPTY) meshFile = inputDirectory + "/" + meshFile;
 
         if (File::exists(meshFile))
-        {   
+        {
             // Input mesh
             auto mesh = new Mesh(meshFile, false);
 
@@ -332,7 +401,8 @@ void Volume::_rasterize(Mesh* mesh, VolumeGrid* grid, const bool& verbose)
 {
     if (verbose) LOOP_STARTS("Rasterization");
     size_t progress = 0;
-    for (size_t triangleIdx = 0; triangleIdx < mesh->getNumberTriangles(); ++triangleIdx)
+    for (size_t triangleIdx = 0; triangleIdx < mesh->getNumberTriangles();
+         ++triangleIdx)
     {
         ++progress;
         if (verbose) LOOP_PROGRESS(progress, mesh->getNumberTriangles());
@@ -395,12 +465,13 @@ void Volume::_rasterizeParallel(Mesh* mesh, VolumeGrid* grid)
 void Volume::_rasterize(AdvancedMesh* mesh, VolumeGrid* grid)
 {
     // Get a an array of triangles
-    AdvancedTriangle** triangles = (AdvancedTriangle **) mesh->_triangles.toArray();
+    AdvancedTriangle** triangles =
+        (AdvancedTriangle**)mesh->_triangles.toArray();
     int triangleCount = mesh->_triangles.numberElements();
 
     LOOP_STARTS("Rasterization");
     size_t progress = 0;
-    for (int i = 0; i <triangleCount; ++i)
+    for (int i = 0; i < triangleCount; ++i)
     {
         AdvancedTriangle triangle = *triangles[i];
 
@@ -410,14 +481,12 @@ void Volume::_rasterize(AdvancedMesh* mesh, VolumeGrid* grid)
         int64_t pMinTriangle[3], pMaxTriangle[3];
         _getTriangleBoundingBox(triangle, pMinTriangle, pMaxTriangle);
 
-        for (int64_t ix = pMinTriangle[0];
-             ix <= (pMaxTriangle[0]); ix++)
+        for (int64_t ix = pMinTriangle[0]; ix <= (pMaxTriangle[0]); ix++)
         {
-            for (int64_t iy = pMinTriangle[1];
-                 iy <= (pMaxTriangle[1]); iy++)
+            for (int64_t iy = pMinTriangle[1]; iy <= (pMaxTriangle[1]); iy++)
             {
-                for (int64_t iz = pMinTriangle[2];
-                     iz <= (pMaxTriangle[2]); iz++)
+                for (int64_t iz = pMinTriangle[2]; iz <= (pMaxTriangle[2]);
+                     iz++)
                 {
                     GridIndex gi(I2I64(ix), I2I64(iy), I2I64(iz));
                     if (_testTriangleGridIntersection(triangle, gi))
@@ -441,23 +510,27 @@ void Volume::solidVoxelization(const SOLID_VOXELIZATION_AXIS& axis)
     LOG_STATS(_solidVoxelizationTime);
 }
 
-void Volume::_floodFill2D(const SOLID_VOXELIZATION_AXIS &axis)
+void Volume::_floodFill2D(const SOLID_VOXELIZATION_AXIS& axis)
 {
     // Start the timer
     TIMER_SET;
 
     switch (axis)
     {
-    case X: _floodFillAlongAxis(_grid, SOLID_VOXELIZATION_AXIS::X);
+    case X:
+        _floodFillAlongAxis(_grid, SOLID_VOXELIZATION_AXIS::X);
         break;
 
-    case Y: _floodFillAlongAxis(_grid, SOLID_VOXELIZATION_AXIS::Y);
+    case Y:
+        _floodFillAlongAxis(_grid, SOLID_VOXELIZATION_AXIS::Y);
         break;
 
-    case Z: _floodFillAlongAxis(_grid, SOLID_VOXELIZATION_AXIS::Z);
+    case Z:
+        _floodFillAlongAxis(_grid, SOLID_VOXELIZATION_AXIS::Z);
         break;
 
-    case XYZ:_floodFillAlongXYZ(_grid);
+    case XYZ:
+        _floodFillAlongXYZ(_grid);
         break;
     }
 
@@ -465,7 +538,8 @@ void Volume::_floodFill2D(const SOLID_VOXELIZATION_AXIS &axis)
     _solidVoxelizationTime = GET_TIME_SECONDS;
 }
 
-void Volume::_floodFillAlongAxis(VolumeGrid* grid, const SOLID_VOXELIZATION_AXIS &axis)
+void Volume::_floodFillAlongAxis(VolumeGrid* grid,
+                                 const SOLID_VOXELIZATION_AXIS& axis)
 {
     /// Disable buffering
     setbuf(stdout, nullptr);
@@ -489,21 +563,24 @@ void Volume::_floodFillAlongAxis(VolumeGrid* grid, const SOLID_VOXELIZATION_AXIS
         dimension = getWidth();
         floodFillingAxis = AXIS::X;
         floodFillingString = "2D Slice Flood-filling (X-axis)";
-    } break;
+    }
+    break;
 
     case SOLID_VOXELIZATION_AXIS::Y:
     {
         dimension = getHeight();
         floodFillingAxis = AXIS::Y;
         floodFillingString = "2D Slice Flood-filling (Y-axis)";
-    } break;
+    }
+    break;
 
     case SOLID_VOXELIZATION_AXIS::Z:
     {
         dimension = getDepth();
         floodFillingAxis = AXIS::Z;
         floodFillingString = "2D Slice Flood-filling (Z-axis)";
-    } break;
+    }
+    break;
 
     // XYZ voxelization will be handled
     case SOLID_VOXELIZATION_AXIS::XYZ:
@@ -513,7 +590,7 @@ void Volume::_floodFillAlongAxis(VolumeGrid* grid, const SOLID_VOXELIZATION_AXIS
     LOOP_STARTS(floodFillingString.c_str());
     PROGRESS_SET;
     OMP_PARALLEL_FOR
-    for (int64_t i = 0 ; i < dimension; ++i)
+    for (int64_t i = 0; i < dimension; ++i)
     {
         grid->floodFillSliceAlongAxis(i, floodFillingAxis);
 
@@ -527,7 +604,7 @@ void Volume::_floodFillAlongAxis(VolumeGrid* grid, const SOLID_VOXELIZATION_AXIS
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Volume::_floodFillAlongXYZ(VolumeGrid *grid)
+void Volume::_floodFillAlongXYZ(VolumeGrid* grid)
 {
     // Volume grids per axis
     VolumeGrid *xGrid, *yGrid, *zGrid;
@@ -537,25 +614,27 @@ void Volume::_floodFillAlongXYZ(VolumeGrid *grid)
     {
     case VolumeGrid::TYPE::BIT:
     {
-        xGrid = new BitVolumeGrid(static_cast< BitVolumeGrid* >(grid));
-        yGrid = new BitVolumeGrid(static_cast< BitVolumeGrid* >(grid));
-        zGrid = new BitVolumeGrid(static_cast< BitVolumeGrid* >(grid));
-
-    } break;
+        xGrid = new BitVolumeGrid(static_cast<BitVolumeGrid*>(grid));
+        yGrid = new BitVolumeGrid(static_cast<BitVolumeGrid*>(grid));
+        zGrid = new BitVolumeGrid(static_cast<BitVolumeGrid*>(grid));
+    }
+    break;
 
     case VolumeGrid::TYPE::BYTE:
     {
-        xGrid = new ByteVolumeGrid(static_cast< ByteVolumeGrid* >(grid));
-        yGrid = new ByteVolumeGrid(static_cast< ByteVolumeGrid* >(grid));
-        zGrid = new ByteVolumeGrid(static_cast< ByteVolumeGrid* >(grid));
-    } break;
+        xGrid = new ByteVolumeGrid(static_cast<ByteVolumeGrid*>(grid));
+        yGrid = new ByteVolumeGrid(static_cast<ByteVolumeGrid*>(grid));
+        zGrid = new ByteVolumeGrid(static_cast<ByteVolumeGrid*>(grid));
+    }
+    break;
 
     case VolumeGrid::TYPE::VOXEL:
     {
-        xGrid = new VoxelGrid(static_cast< VoxelGrid* >(grid));
-        yGrid = new VoxelGrid(static_cast< VoxelGrid* >(grid));
-        zGrid = new VoxelGrid(static_cast< VoxelGrid* >(grid));
-    } break;
+        xGrid = new VoxelGrid(static_cast<VoxelGrid*>(grid));
+        yGrid = new VoxelGrid(static_cast<VoxelGrid*>(grid));
+        zGrid = new VoxelGrid(static_cast<VoxelGrid*>(grid));
+    }
+    break;
     }
 
     // Flood fill along the three axes
@@ -563,7 +642,8 @@ void Volume::_floodFillAlongXYZ(VolumeGrid *grid)
     _floodFillAlongAxis(yGrid, SOLID_VOXELIZATION_AXIS::Y);
     _floodFillAlongAxis(zGrid, SOLID_VOXELIZATION_AXIS::Z);
 
-    // Blend the three grids using AND operation and store the final result in the xGrid
+    // Blend the three grids using AND operation and store the final result in
+    // the xGrid
     xGrid->andWithAnotherGrid(yGrid);
     xGrid->andWithAnotherGrid(zGrid);
 
@@ -576,8 +656,11 @@ void Volume::_floodFillAlongXYZ(VolumeGrid *grid)
     delete zGrid;
 }
 
-void Volume::getVoxelBoundingBox(const int64_t& x, const int64_t& y, const int64_t& z,
-                                 Vector3f& pMin, Vector3f& pMax) const
+void Volume::getVoxelBoundingBox(const int64_t& x,
+                                 const int64_t& y,
+                                 const int64_t& z,
+                                 Vector3f& pMin,
+                                 Vector3f& pMax) const
 {
     // pMin
     pMin.x() = _pMin[0] + (x * _voxelSize);
@@ -599,8 +682,7 @@ void Volume::getVolumeBoundingBox(Vector3f& pMin, Vector3f& pMax) const
     pMax.z() = _pMax.z();
 }
 
-int Volume::_triangleCubeSign(Mesh *mesh,
-                              int tIdx, const GridIndex & gi)
+int Volume::_triangleCubeSign(Mesh* mesh, int tIdx, const GridIndex& gi)
 {
     Vector3f boxcenter((0.5f + gi[0]) * _voxelSize + _pMin[0],
                        (0.5f + gi[1]) * _voxelSize + _pMin[1],
@@ -615,12 +697,10 @@ int Volume::_triangleCubeSign(Mesh *mesh,
     Vector3f n = Vector3f::cross(e1, e2).normalized();
     Vector3f d = boxcenter - tv[0];
     float dotp = Vector3f::dot(n, d);
-    if (dotp > 0)
-        return 2;
+    if (dotp > 0) return 2;
 
     // Too far away
-    if (dotp < -0.9f * _voxelSize)
-        return 3;
+    if (dotp < -0.9f * _voxelSize) return 3;
 
     n.normalize();
     d = boxcenter - (Vector3f::dot(n, d)) * n;
@@ -629,26 +709,25 @@ int Volume::_triangleCubeSign(Mesh *mesh,
     // n0.normalize();
     float thresh = 1.0;
 
-    if (Vector3f::dot(n0, n) < -thresh)
-        return 1;
+    if (Vector3f::dot(n0, n) < -thresh) return 1;
 
     Vector3f n1 = Vector3f::cross(tv[2] - d, tv[0] - d);
     // n1.normalize();
-    if (Vector3f::dot(n1, n) < -thresh)
-        return 1;
+    if (Vector3f::dot(n1, n) < -thresh) return 1;
 
     Vector3f n2 = Vector3f::cross(tv[0] - d, tv[1] - d);
     // n2.normalize();
-    if (Vector3f::dot(n2, n)< -thresh)
-        return 1;
+    if (Vector3f::dot(n2, n) < -thresh) return 1;
 
     return -1;
 }
 
-bool Volume::_testTriangleCubeIntersection(Mesh* mesh, uint64_t triangleIdx, const GridIndex& voxel)
+bool Volume::_testTriangleCubeIntersection(Mesh* mesh,
+                                           uint64_t triangleIdx,
+                                           const GridIndex& voxel)
 {
     // Get the origin of the voxel
-    double  voxelOrigin[3];
+    double voxelOrigin[3];
     voxelOrigin[0] = _pMin[0] + (voxel[0] * _voxelSize);
     voxelOrigin[1] = _pMin[1] + (voxel[1] * _voxelSize);
     voxelOrigin[2] = _pMin[2] + (voxel[2] * _voxelSize);
@@ -675,7 +754,8 @@ bool Volume::_testTriangleCubeIntersection(Mesh* mesh, uint64_t triangleIdx, con
         for (size_t j = 0; j < 3; ++j)
         {
             // Load all the verticies of the selected triangle in _triangle_
-            triangle[i][j] = mesh->getVertices()[mesh->getTriangles()[triangleIdx][i]][j];
+            triangle[i][j] =
+                mesh->getVertices()[mesh->getTriangles()[triangleIdx][i]][j];
         }
     }
 
@@ -687,7 +767,7 @@ bool Volume::_testTriangleGridIntersection(AdvancedTriangle triangle,
                                            const GridIndex& voxel)
 {
     // Get the origin of the voxel
-    double  voxelOrigin[3];
+    double voxelOrigin[3];
     voxelOrigin[0] = _pMin[0] + (voxel[0] * _voxelSize);
     voxelOrigin[1] = _pMin[1] + (voxel[1] * _voxelSize);
     voxelOrigin[2] = _pMin[2] + (voxel[2] * _voxelSize);
@@ -719,12 +799,13 @@ bool Volume::_testTriangleGridIntersection(AdvancedTriangle triangle,
     triangleArray[2][2] = triangle.v3()->z;
 
     // Test if the triangle and the voxel are intersecting or not
-    return checkTriangleBoxIntersection(voxelCenter, voxelHalfSize, triangleArray);
+    return checkTriangleBoxIntersection(voxelCenter, voxelHalfSize,
+                                        triangleArray);
 }
 
 uint64_t Volume::_clampIndex(uint64_t idx, uint64_t dimension)
 {
-    idx = std::max(uint64_t(0) , idx);
+    idx = std::max(uint64_t(0), idx);
     idx = std::min(idx, uint64_t(_grid->getDimension(dimension) - 1));
     return idx;
 }
@@ -736,7 +817,9 @@ void Volume::_vec2grid(const Vector3f& point, GridIndex& gridIndex)
     gridIndex[2] = F2I64((point[2] - _pMin[2]) / _voxelSize);
 }
 
-void Volume::_getTriangleBoundingBox(AdvancedTriangle triangle, int64_t *tMin, int64_t *tMax)
+void Volume::_getTriangleBoundingBox(AdvancedTriangle triangle,
+                                     int64_t* tMin,
+                                     int64_t* tMax)
 {
     // Find the index of the voxel that intersects the triangle
     GridIndex vIdx;
@@ -769,22 +852,23 @@ void Volume::_getTriangleBoundingBox(AdvancedTriangle triangle, int64_t *tMin, i
 
         for (uint64_t k = 0; k < DIMENSIONS; ++k)
         {
-            if (vIdx[k] - 1 < (tMin[k]))
-                tMin[k] = (vIdx[k] - 1);
+            if (vIdx[k] - 1 < (tMin[k])) tMin[k] = (vIdx[k] - 1);
 
-            if (vIdx[k] > (tMax[k]))
-                tMax[k] = (vIdx[k]);
+            if (vIdx[k] > (tMax[k])) tMax[k] = (vIdx[k]);
         }
     }
 
-    for (int32_t ii = 0; ii < DIMENSIONS ; ++ii)
+    for (int32_t ii = 0; ii < DIMENSIONS; ++ii)
     {
         tMin[ii] = std::max(int64_t(0), tMin[ii] - 1);
         tMax[ii] = std::min(int64_t(_grid->getDimension(ii) - 2), tMax[ii] + 2);
     }
 }
 
-void Volume::_getBoundingBox(Mesh* mesh, uint64_t i, int64_t *tMin, int64_t *tMax)
+void Volume::_getBoundingBox(Mesh* mesh,
+                             uint64_t i,
+                             int64_t* tMin,
+                             int64_t* tMax)
 {
     // The bounding box of the triangle
     Vector3f pMin, pMax;
@@ -795,33 +879,28 @@ void Volume::_getBoundingBox(Mesh* mesh, uint64_t i, int64_t *tMin, int64_t *tMa
     _vec2grid(pMin, vMin);
     _vec2grid(pMax, vMax);
 
-    tMin[0] = vMin[0]; tMin[1] = vMin[1]; tMin[2] = vMin[2];
-    tMax[0] = vMax[0]; tMax[1] = vMax[1]; tMax[2] = vMax[2];
+    tMin[0] = vMin[0];
+    tMin[1] = vMin[1];
+    tMin[2] = vMin[2];
+    tMax[0] = vMax[0];
+    tMax[1] = vMax[1];
+    tMax[2] = vMax[2];
 
     tMin[0] = std::max(int64_t(0), tMin[0]);
-    tMax[0] = std::min(int64_t(_grid->getWidth() - 1) , tMax[0]);
+    tMax[0] = std::min(int64_t(_grid->getWidth() - 1), tMax[0]);
 
     tMin[1] = std::max(int64_t(0), tMin[1]);
-    tMax[1] = std::min(int64_t(_grid->getHeight() - 1) , tMax[1]);
+    tMax[1] = std::min(int64_t(_grid->getHeight() - 1), tMax[1]);
 
     tMin[2] = std::max(int64_t(0), tMin[2]);
-    tMax[2] = std::min(int64_t(_grid->getDepth() - 1) , tMax[2]);
+    tMax[2] = std::min(int64_t(_grid->getDepth() - 1), tMax[2]);
 }
 
-int64_t Volume::getWidth(void) const
-{
-    return _grid->getWidth();
-}
+int64_t Volume::getWidth(void) const { return _grid->getWidth(); }
 
-int64_t Volume::getHeight(void) const
-{
-    return _grid->getHeight();
-}
+int64_t Volume::getHeight(void) const { return _grid->getHeight(); }
 
-int64_t Volume::getDepth(void) const
-{
-    return _grid->getDepth();
-}
+int64_t Volume::getDepth(void) const { return _grid->getDepth(); }
 
 uint64_t Volume::getNumberVoxels(void) const
 {
@@ -848,7 +927,9 @@ bool Volume::isFilled(const u_int64_t& index) const
     return _grid->isFilled(index);
 }
 
-bool Volume::isFilled(const int64_t &x, const int64_t &y, const int64_t &z) const
+bool Volume::isFilled(const int64_t& x,
+                      const int64_t& y,
+                      const int64_t& z) const
 {
     bool outlier;
     uint64_t index = mapToIndex(x, y, z, outlier);
@@ -858,9 +939,13 @@ bool Volume::isFilled(const int64_t &x, const int64_t &y, const int64_t &z) cons
         return isFilled(index);
 }
 
-uint64_t Volume::mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z, bool& outlier) const
+uint64_t Volume::mapToIndex(const int64_t& x,
+                            const int64_t& y,
+                            const int64_t& z,
+                            bool& outlier) const
 {
-    if(x >= getWidth()  || x < 0 || y >= getHeight() || y < 0 || z >= getDepth()  || z < 0)
+    if (x >= getWidth() || x < 0 || y >= getHeight() || y < 0 ||
+        z >= getDepth() || z < 0)
     {
         outlier = true;
         return 0;
@@ -873,16 +958,18 @@ uint64_t Volume::mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z
 }
 
 void Volume::project(const std::string prefix,
-                     const bool xy, const bool xz, const bool zy,
-                     const bool &projectColorCoded) const
+                     const bool xy,
+                     const bool xz,
+                     const bool zy,
+                     const bool& projectColorCoded) const
 {
     _grid->projectVolume(prefix, xy, xz, zy, projectColorCoded);
 }
 
-void Volume::writeVolumes(const std::string &prefix,
+void Volume::writeVolumes(const std::string& prefix,
                           const bool& binaryFormat,
                           const bool& rawFormat,
-                          const bool &nrrdFormat) const
+                          const bool& nrrdFormat) const
 {
     if (binaryFormat || rawFormat || nrrdFormat)
     {
@@ -915,7 +1002,8 @@ void Volume::writeVolumes(const std::string &prefix,
     }
 }
 
-void Volume::writeStackXY(const std::string &outputDirectory, const std::string &prefix) const
+void Volume::writeStackXY(const std::string& outputDirectory,
+                          const std::string& prefix) const
 {
     // Starts the timer
     TIMER_SET;
@@ -943,9 +1031,9 @@ void Volume::writeStackXY(const std::string &outputDirectory, const std::string 
                                             I2I64(getDepth() - 1 - z), outlier);
 
                 if (_grid->isFilled(index) && !outlier)
-                    slice->setPixelColor(i , j, WHITE);
+                    slice->setPixelColor(i, j, WHITE);
                 else
-                    slice->setPixelColor(i , j, BLACK);
+                    slice->setPixelColor(i, j, BLACK);
             }
         }
 
@@ -964,8 +1052,8 @@ void Volume::writeStackXY(const std::string &outputDirectory, const std::string 
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Volume::writeStackXZ(const std::string &outputDirectory,
-                            const std::string &prefix) const
+void Volume::writeStackXZ(const std::string& outputDirectory,
+                          const std::string& prefix) const
 {
     // Starts the timer
     TIMER_SET;
@@ -989,13 +1077,13 @@ void Volume::writeStackXZ(const std::string &outputDirectory,
             for (int64_t k = 0; k < getDepth(); k++)
             {
                 bool outlier;
-                uint64_t index = mapToIndex(I2I64(i), I2I64(k),
-                                            I2I64(getHeight() - 1 - y), outlier);
+                uint64_t index = mapToIndex(
+                    I2I64(i), I2I64(k), I2I64(getHeight() - 1 - y), outlier);
 
                 if (_grid->isFilled(index) && !outlier)
-                    slice->setPixelColor(i , k, WHITE);
+                    slice->setPixelColor(i, k, WHITE);
                 else
-                    slice->setPixelColor(i , k, BLACK);
+                    slice->setPixelColor(i, k, BLACK);
             }
         }
 
@@ -1014,8 +1102,8 @@ void Volume::writeStackXZ(const std::string &outputDirectory,
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Volume::writeStackZY(const std::string &outputDirectory,
-                            const std::string &prefix) const
+void Volume::writeStackZY(const std::string& outputDirectory,
+                          const std::string& prefix) const
 {
     // Starts the timer
     TIMER_SET;
@@ -1038,13 +1126,13 @@ void Volume::writeStackZY(const std::string &outputDirectory,
             for (int64_t j = 0; j < getHeight(); j++)
             {
                 bool outlier;
-                uint64_t index = mapToIndex(I2I64(getWidth() - 1 - i),
-                                            I2I64(j), I2I64(z), outlier);
+                uint64_t index = mapToIndex(I2I64(getWidth() - 1 - i), I2I64(j),
+                                            I2I64(z), outlier);
 
                 if (_grid->isFilled(index) && !outlier)
-                    slice->setPixelColor(z , getHeight() - j - 1, WHITE);
+                    slice->setPixelColor(z, getHeight() - j - 1, WHITE);
                 else
-                    slice->setPixelColor(z , getHeight() - j - 1, BLACK);
+                    slice->setPixelColor(z, getHeight() - j - 1, BLACK);
             }
         }
 
@@ -1060,10 +1148,10 @@ void Volume::writeStackZY(const std::string &outputDirectory,
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Volume::writeStacks(const std::string &outputDirectory,
-                         const std::string &prefix,
+void Volume::writeStacks(const std::string& outputDirectory,
+                         const std::string& prefix,
                          const bool& xy,
-                         const bool &xz,
+                         const bool& xz,
                          const bool& zy) const
 {
     // Start timer
@@ -1073,14 +1161,11 @@ void Volume::writeStacks(const std::string &outputDirectory,
     {
         LOG_TITLE("Writing Stacks");
 
-        if (xy)
-            writeStackXY(outputDirectory, prefix);
+        if (xy) writeStackXY(outputDirectory, prefix);
 
-        if (xz)
-            writeStackXZ(outputDirectory, prefix);
+        if (xz) writeStackXZ(outputDirectory, prefix);
 
-        if (zy)
-            writeStackZY(outputDirectory, prefix);
+        if (zy) writeStackZY(outputDirectory, prefix);
 
         // Statictics
         LOG_STATUS_IMPORTANT("Writing Stacks Stats.");
@@ -1088,15 +1173,18 @@ void Volume::writeStacks(const std::string &outputDirectory,
     }
 }
 
-void Volume::exportToMesh(const std::string &prefix,
-                          const bool &formatOBJ, const bool &formatPLY,
-                          const bool &formatOFF, const bool &formatSTL) const
+void Volume::exportToMesh(const std::string& prefix,
+                          const bool& formatOBJ,
+                          const bool& formatPLY,
+                          const bool& formatOFF,
+                          const bool& formatSTL) const
 {
     if (!(formatOBJ || formatPLY || formatOFF || formatSTL))
     {
-        LOG_WARNING("Exporto mesh option must be enabled to export this mesh. "
-                    "User one of the following: "
-                    "[--export-obj, --export-ply, --export-off, --export-stl]");
+        LOG_WARNING(
+            "Exporto mesh option must be enabled to export this mesh. "
+            "User one of the following: "
+            "[--export-obj, --export-ply, --export-off, --export-stl]");
         return;
     }
 
@@ -1104,7 +1192,7 @@ void Volume::exportToMesh(const std::string &prefix,
     LOG_TITLE("Constructing Volume Mesh");
 
     // The generated mesh from the volume
-    std::unique_ptr< VolumeMesh > volumeMesh = std::make_unique< VolumeMesh >();
+    std::unique_ptr<VolumeMesh> volumeMesh = std::make_unique<VolumeMesh>();
 
     // Delta value
     const Vector3f delta(1, 1, 1);
@@ -1119,15 +1207,15 @@ void Volume::exportToMesh(const std::string &prefix,
             for (int64_t k = 0; k < _grid->getDepth(); ++k)
             {
                 // Skip empty voxels
-                if (_grid->isEmpty(i, j, k))
-                    continue;
+                if (_grid->isEmpty(i, j, k)) continue;
 
                 Vector3f coordinate(i, j, k);
                 Vector3f pMin = _pMin + (_voxelSize * coordinate);
                 Vector3f pMax = pMin + Vector3f(_voxelSize);
 
                 // A mesh representing the bounding box of the cube
-                VolumeMesh* voxelCube = VolumeMesh::constructVoxelCube(pMin, pMax);
+                VolumeMesh* voxelCube =
+                    VolumeMesh::constructVoxelCube(pMin, pMax);
 
                 // Append it to the volume mesh
                 volumeMesh->append(voxelCube);
@@ -1148,45 +1236,48 @@ void Volume::exportToMesh(const std::string &prefix,
     const std::string outputPrefix = prefix + VOLUME_MESH_SUFFIX;
     if (formatOBJ)
     {
-        exportOBJ(outputPrefix,
-                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
-                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+        exportOBJ(outputPrefix, volumeMesh->vertices.data(),
+                  volumeMesh->vertices.size(), volumeMesh->triangles.data(),
+                  volumeMesh->triangles.size());
     }
 
     if (formatPLY)
     {
-        exportPLY(outputPrefix,
-                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
-                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+        exportPLY(outputPrefix, volumeMesh->vertices.data(),
+                  volumeMesh->vertices.size(), volumeMesh->triangles.data(),
+                  volumeMesh->triangles.size());
     }
 
     if (formatSTL)
     {
-        exportSTL(outputPrefix,
-                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
-                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+        exportSTL(outputPrefix, volumeMesh->vertices.data(),
+                  volumeMesh->vertices.size(), volumeMesh->triangles.data(),
+                  volumeMesh->triangles.size());
     }
 
     if (formatOFF)
     {
-        exportOFF(outputPrefix,
-                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
-                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+        exportOFF(outputPrefix, volumeMesh->vertices.data(),
+                  volumeMesh->vertices.size(), volumeMesh->triangles.data(),
+                  volumeMesh->triangles.size());
     }
 
     LOG_STATUS_IMPORTANT("Exporting Volume Mesh Stats.");
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Volume::exportVolumeGridToMesh(const std::string &prefix,
-                                    const bool &formatOBJ, const bool &formatPLY,
-                                    const bool &formatOFF, const bool &formatSTL) const
+void Volume::exportVolumeGridToMesh(const std::string& prefix,
+                                    const bool& formatOBJ,
+                                    const bool& formatPLY,
+                                    const bool& formatOFF,
+                                    const bool& formatSTL) const
 {
     if (!(formatOBJ || formatPLY || formatOFF || formatSTL))
     {
-        LOG_WARNING("Exporto mesh option must be enabled to export this mesh. "
-                    "User one of the following: "
-                    "[--export-obj, --export-ply, --export-off, --export-stl]");
+        LOG_WARNING(
+            "Exporto mesh option must be enabled to export this mesh. "
+            "User one of the following: "
+            "[--export-obj, --export-ply, --export-off, --export-stl]");
         return;
     }
 
@@ -1194,13 +1285,13 @@ void Volume::exportVolumeGridToMesh(const std::string &prefix,
     LOG_TITLE("Constructing Volume Grid Mesh");
 
     // The generated mesh from the volume
-    std::unique_ptr< VolumeMesh > volumeGridMesh = std::make_unique< VolumeMesh >();
+    std::unique_ptr<VolumeMesh> volumeGridMesh = std::make_unique<VolumeMesh>();
 
     // Delta value
     const Vector3f delta(1, 1, 1);
 
     LOOP_STARTS("Iterating over the grid")
-    for (int64_t i = 0; i <  _grid->getWidth(); ++i)
+    for (int64_t i = 0; i < _grid->getWidth(); ++i)
     {
         LOOP_PROGRESS(i, _grid->getWidth());
 
@@ -1209,11 +1300,14 @@ void Volume::exportVolumeGridToMesh(const std::string &prefix,
             for (int64_t k = 0; k < _grid->getDepth(); ++k)
             {
                 Vector3f coordinate(i, j, k);
-                Vector3f pMin = _baseResolution * (coordinate - 0.5f * delta) + _pMin;
-                Vector3f pMax = _baseResolution * (coordinate + 0.5f * delta) + _pMin;
+                Vector3f pMin =
+                    _baseResolution * (coordinate - 0.5f * delta) + _pMin;
+                Vector3f pMax =
+                    _baseResolution * (coordinate + 0.5f * delta) + _pMin;
 
                 // A mesh representing the bounding box of the cube
-                VolumeMesh* voxelCube = VolumeMesh::constructVoxelCube(pMin, pMax);
+                VolumeMesh* voxelCube =
+                    VolumeMesh::constructVoxelCube(pMin, pMax);
 
                 // Append it to the volume mesh
                 volumeGridMesh->append(voxelCube);
@@ -1250,45 +1344,52 @@ void Volume::exportVolumeGridToMesh(const std::string &prefix,
     const std::string outputPrefix = prefix + VOLUME_GRID_MESH_SUFFIX;
     if (formatOBJ)
     {
-        exportOBJ(outputPrefix,
-                  volumeGridMesh->vertices.data(), volumeGridMesh->vertices.size(),
-                  volumeGridMesh->triangles.data(), volumeGridMesh->triangles.size());
+        exportOBJ(outputPrefix, volumeGridMesh->vertices.data(),
+                  volumeGridMesh->vertices.size(),
+                  volumeGridMesh->triangles.data(),
+                  volumeGridMesh->triangles.size());
     }
 
     if (formatPLY)
     {
-        exportPLY(outputPrefix,
-                  volumeGridMesh->vertices.data(), volumeGridMesh->vertices.size(),
-                  volumeGridMesh->triangles.data(), volumeGridMesh->triangles.size());
+        exportPLY(outputPrefix, volumeGridMesh->vertices.data(),
+                  volumeGridMesh->vertices.size(),
+                  volumeGridMesh->triangles.data(),
+                  volumeGridMesh->triangles.size());
     }
 
     if (formatSTL)
     {
-        exportSTL(outputPrefix,
-                  volumeGridMesh->vertices.data(), volumeGridMesh->vertices.size(),
-                  volumeGridMesh->triangles.data(), volumeGridMesh->triangles.size());
+        exportSTL(outputPrefix, volumeGridMesh->vertices.data(),
+                  volumeGridMesh->vertices.size(),
+                  volumeGridMesh->triangles.data(),
+                  volumeGridMesh->triangles.size());
     }
 
     if (formatOFF)
     {
-        exportOFF(outputPrefix,
-                  volumeGridMesh->vertices.data(), volumeGridMesh->vertices.size(),
-                  volumeGridMesh->triangles.data(), volumeGridMesh->triangles.size());
+        exportOFF(outputPrefix, volumeGridMesh->vertices.data(),
+                  volumeGridMesh->vertices.size(),
+                  volumeGridMesh->triangles.data(),
+                  volumeGridMesh->triangles.size());
     }
 
     LOG_STATUS_IMPORTANT("Exporting Volume Mesh Stats.");
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Volume::exportBoundingBoxMesh(const std::string &prefix,
-                                   const bool &formatOBJ, const bool &formatPLY,
-                                   const bool &formatOFF, const bool &formatSTL) const
+void Volume::exportBoundingBoxMesh(const std::string& prefix,
+                                   const bool& formatOBJ,
+                                   const bool& formatPLY,
+                                   const bool& formatOFF,
+                                   const bool& formatSTL) const
 {
     if (!(formatOBJ || formatPLY || formatOFF || formatSTL))
     {
-        LOG_WARNING("Exporto mesh option must be enabled to export this mesh. "
-                    "User one of the following: "
-                    "[--export-obj, --export-ply, --export-off, --export-stl]");
+        LOG_WARNING(
+            "Exporto mesh option must be enabled to export this mesh. "
+            "User one of the following: "
+            "[--export-obj, --export-ply, --export-off, --export-stl]");
         return;
     }
 
@@ -1296,7 +1397,7 @@ void Volume::exportBoundingBoxMesh(const std::string &prefix,
     LOG_TITLE("Constructing Volume Bounding Box Mesh");
 
     // The generated mesh from the volume
-    std::unique_ptr< VolumeMesh > volumeMesh = std::make_unique< VolumeMesh >();
+    std::unique_ptr<VolumeMesh> volumeMesh = std::make_unique<VolumeMesh>();
 
     // Delta value
     const Vector3f delta(1, 1, 1);
@@ -1334,30 +1435,30 @@ void Volume::exportBoundingBoxMesh(const std::string &prefix,
     const std::string outputPrefix = prefix + VOLUME_BOUNDING_BOX_MESH_SUFFIX;
     if (formatOBJ)
     {
-        exportOBJ(outputPrefix,
-                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
-                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+        exportOBJ(outputPrefix, volumeMesh->vertices.data(),
+                  volumeMesh->vertices.size(), volumeMesh->triangles.data(),
+                  volumeMesh->triangles.size());
     }
 
     if (formatPLY)
     {
-        exportPLY(outputPrefix,
-                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
-                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+        exportPLY(outputPrefix, volumeMesh->vertices.data(),
+                  volumeMesh->vertices.size(), volumeMesh->triangles.data(),
+                  volumeMesh->triangles.size());
     }
 
     if (formatSTL)
     {
-        exportSTL(outputPrefix,
-                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
-                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+        exportSTL(outputPrefix, volumeMesh->vertices.data(),
+                  volumeMesh->vertices.size(), volumeMesh->triangles.data(),
+                  volumeMesh->triangles.size());
     }
 
     if (formatOFF)
     {
-        exportOFF(outputPrefix,
-                  volumeMesh->vertices.data(), volumeMesh->vertices.size(),
-                  volumeMesh->triangles.data(), volumeMesh->triangles.size());
+        exportOFF(outputPrefix, volumeMesh->vertices.data(),
+                  volumeMesh->vertices.size(), volumeMesh->triangles.data(),
+                  volumeMesh->triangles.size());
     }
 
     LOG_STATUS_IMPORTANT("Exporting Volume Bounding Box Mesh Stats.");
@@ -1377,11 +1478,12 @@ uint8_t Volume::getValue(const uint64_t index) const
         return 0;
 }
 
-uint8_t Volume::getConfirmedValue(const int64_t &x,
-                                  const int64_t &y,
-                                  const int64_t &z) const
+uint8_t Volume::getConfirmedValue(const int64_t& x,
+                                  const int64_t& y,
+                                  const int64_t& z) const
 {
-    if(x > getWidth() - 1 || x < 0 || y > getHeight() - 1 || y < 0 || z > getDepth() -1  || z < 0)
+    if (x > getWidth() - 1 || x < 0 || y > getHeight() - 1 || y < 0 ||
+        z > getDepth() - 1 || z < 0)
         return 0;
 
     if (_grid->isFilled(x, y, z))
@@ -1390,10 +1492,9 @@ uint8_t Volume::getConfirmedValue(const int64_t &x,
         return 0;
 }
 
-
-uint8_t Volume::getValue(const int64_t &x,
-                         const int64_t &y,
-                         const int64_t &z) const
+uint8_t Volume::getValue(const int64_t& x,
+                         const int64_t& y,
+                         const int64_t& z) const
 {
     if (_grid->isFilled(x, y, z))
         return 255;
@@ -1401,9 +1502,9 @@ uint8_t Volume::getValue(const int64_t &x,
         return 0;
 }
 
-uint8_t Volume::getByte(const int64_t &x,
-                        const int64_t &y,
-                        const int64_t &z) const
+uint8_t Volume::getByte(const int64_t& x,
+                        const int64_t& y,
+                        const int64_t& z) const
 {
     bool outlier;
     uint64_t index = mapToIndex(x, y, z, outlier);
@@ -1413,11 +1514,8 @@ uint8_t Volume::getByte(const int64_t &x,
         return _grid->getByte(index);
 }
 
-void Volume::fillVoxel(const int64_t &x,
-                       const int64_t &y,
-                       const int64_t &z)
+void Volume::fillVoxel(const int64_t& x, const int64_t& y, const int64_t& z)
 {
-
     if (x - 1 < 0 || x > _gridDimensions[0])
     {
         return;
@@ -1461,42 +1559,28 @@ void Volume::fillVoxel(const int64_t &x,
     _grid->fillVoxel(x + 1, y, z + 1);
     _grid->fillVoxel(x + 1, y - 1, z + 1);
     _grid->fillVoxel(x + 1, y + 1, z + 1);
-
 }
 
-void Volume::addByte(const uint64_t &index, const uint8_t byte)
+void Volume::addByte(const uint64_t& index, const uint8_t byte)
 {
     _grid->addByte(index, byte);
 }
 
-void Volume::clear(void)
-{
-    _grid->clear();
-}
+void Volume::clear(void) { _grid->clear(); }
 
-void Volume::fill(const int64_t &x,
-                  const int64_t &y,
-                  const int64_t &z)
+void Volume::fill(const int64_t& x, const int64_t& y, const int64_t& z)
 {
     _grid->fillVoxel(x, y, z);
 }
 
-void  Volume::fill(const u_int64_t& index)
-{
-    _grid->fillVoxel(index);
-}
+void Volume::fill(const u_int64_t& index) { _grid->fillVoxel(index); }
 
-void Volume::clear(const int64_t &x,
-                   const int64_t &y,
-                   const int64_t &z)
+void Volume::clear(const int64_t& x, const int64_t& y, const int64_t& z)
 {
     _grid->clearVoxel(x, y, z);
 }
 
-void  Volume::clear(const u_int64_t& index)
-{
-    _grid->clearVoxel(index);
-}
+void Volume::clear(const u_int64_t& index) { _grid->clearVoxel(index); }
 
 uint64_t Volume::computeNumberNonZeroVoxels(void) const
 {
@@ -1514,14 +1598,14 @@ float Volume::computeVolume() const
     const uint64_t numberNonZeroVoxels = _grid->computeNumberNonZeroVoxels();
 
     // Get the voxel volume in units3
-    const float voxelVolume =
-            _voxelSize * _voxelSize * _voxelSize;
+    const float voxelVolume = _voxelSize * _voxelSize * _voxelSize;
 
     // Return the result
     return voxelVolume * numberNonZeroVoxels;
 }
 
-void Volume::printStats(const std::string &reference, const std::string *prefix) const
+void Volume::printStats(const std::string& reference,
+                        const std::string* prefix) const
 {
     LOG_TITLE("Volume Statistics");
 
@@ -1533,7 +1617,8 @@ void Volume::printStats(const std::string &reference, const std::string *prefix)
     if (prefix != nullptr)
     {
         // Create the file
-        std::string fileName = *prefix + "-" + reference + VOLUME_INFO_EXTENSION;
+        std::string fileName =
+            *prefix + "-" + reference + VOLUME_INFO_EXTENSION;
         LOG_STATUS("Writing Info. [ %s ] \n", fileName.c_str());
 
         FILE* info = fopen(fileName.c_str(), "w");
@@ -1542,23 +1627,22 @@ void Volume::printStats(const std::string &reference, const std::string *prefix)
         if (bounds.x() > 0.f || bounds.y() > 0.f || bounds.z() > 0.f)
         {
             fprintf(info, "\t* Bounding Box:         | [%f, %f, %f] \n",
-                     F2D(bounds.x()), F2D(bounds.y()), F2D(bounds.z()));
+                    F2D(bounds.x()), F2D(bounds.y()), F2D(bounds.z()));
             fprintf(info, "\t* pMin:                 | [%f, %f, %f] \n",
-                     F2D(_pMin.x()), F2D(_pMin.y()), F2D(_pMin.z()));
+                    F2D(_pMin.x()), F2D(_pMin.y()), F2D(_pMin.z()));
             fprintf(info, "\t* pMax:                 | [%f, %f, %f] \n",
-                     F2D(_pMax.x()), F2D(_pMax.y()), F2D(_pMax.z()));
+                    F2D(_pMax.x()), F2D(_pMax.y()), F2D(_pMax.z()));
         }
 
         fprintf(info, "\t* Resolution            | [%d] x [%d] x [%d] \n",
-                 I2I32(getWidth()), I2I32(getHeight()), I2I32(getDepth()));
+                I2I32(getWidth()), I2I32(getHeight()), I2I32(getDepth()));
         fprintf(info, "\t* Number of Voxels      | %" PRIu64 " \n",
                 getNumberVoxels());
         fprintf(info, "\t* Volume Format         | %s \n",
-                 getFormatString().c_str());
+                getFormatString().c_str());
         fprintf(info, "\t* Size in Memory        | %sBytes \n",
-                 FORMAT(getNumberBytes()));
-        fprintf(info, "\t* Volume                | %f³ \n",
-                 F2D(volumeSize));
+                FORMAT(getNumberBytes()));
+        fprintf(info, "\t* Volume                | %f³ \n", F2D(volumeSize));
 
         // Close the file
         fclose(info);
@@ -1568,24 +1652,20 @@ void Volume::printStats(const std::string &reference, const std::string *prefix)
 
     if (bounds.x() > 0.f || bounds.y() > 0.f || bounds.z() > 0.f)
     {
-        LOG_INFO("\t* Bounding Box:         | [%f, %f, %f]",
-                 F2D(bounds.x()), F2D(bounds.y()), F2D(bounds.z()));
-        LOG_INFO("\t* pMin:                 | [%f, %f, %f]",
-                 F2D(_pMin.x()), F2D(_pMin.y()), F2D(_pMin.z()));
-        LOG_INFO("\t* pMax:                 | [%f, %f, %f]",
-                 F2D(_pMax.x()), F2D(_pMax.y()), F2D(_pMax.z()));
+        LOG_INFO("\t* Bounding Box:         | [%f, %f, %f]", F2D(bounds.x()),
+                 F2D(bounds.y()), F2D(bounds.z()));
+        LOG_INFO("\t* pMin:                 | [%f, %f, %f]", F2D(_pMin.x()),
+                 F2D(_pMin.y()), F2D(_pMin.z()));
+        LOG_INFO("\t* pMax:                 | [%f, %f, %f]", F2D(_pMax.x()),
+                 F2D(_pMax.y()), F2D(_pMax.z()));
     }
 
     LOG_INFO("\t* Resolution            | [%d] x [%d] x [%d]",
              I2I32(getWidth()), I2I32(getHeight()), I2I32(getDepth()));
-    LOG_INFO("\t* Number of Voxels      | %" PRIu64 "",
-             getNumberVoxels());
-    LOG_INFO("\t* Volume Format         | %s",
-             getFormatString().c_str());
-    LOG_INFO("\t* Size in Memory        | %sBytes",
-             FORMAT(getNumberBytes()));
-    LOG_INFO("\t* Volume                | %f³",
-             F2D(volumeSize));
+    LOG_INFO("\t* Number of Voxels      | %" PRIu64 "", getNumberVoxels());
+    LOG_INFO("\t* Volume Format         | %s", getFormatString().c_str());
+    LOG_INFO("\t* Size in Memory        | %sBytes", FORMAT(getNumberBytes()));
+    LOG_INFO("\t* Volume                | %f³", F2D(volumeSize));
 }
 
 void Volume::addVolumePass(const Volume* volume)
@@ -1603,7 +1683,8 @@ void Volume::addVolumePass(const Volume* volume)
         return;
     }
 
-    // Loop over the volume elements byte-by-byte and add them to the corresponding one in this voume
+    // Loop over the volume elements byte-by-byte and add them to the
+    // corresponding one in this voume
     for (size_t i = 0; i < volume->getNumberBytes(); ++i)
     {
         addByte(i, volume->getByte(i));
@@ -1612,7 +1693,7 @@ void Volume::addVolumePass(const Volume* volume)
     _addingVolumePassTime = GET_TIME_SECONDS;
 }
 
-void Volume::addVolume(const std::string &volumePrefix)
+void Volume::addVolume(const std::string& volumePrefix)
 {
     Volume* volume = new Volume(volumePrefix, VolumeGrid::TYPE::BYTE);
 
@@ -1637,16 +1718,12 @@ void Volume::addVolume(const std::string &volumePrefix)
     delete volume;
 }
 
-uint64_t Volume::getNumberBytes(void) const
-{
-    return _grid->getNumberBytes();
-}
+uint64_t Volume::getNumberBytes(void) const { return _grid->getNumberBytes(); }
 
 int32_t Volume::getLargestDimension(const Vector3f& dimensions)
 {
     uint32_t index = 0;
     float value = dimensions[index];
-
 
     for (int32_t i = 1; i < DIMENSIONS; ++i)
     {
@@ -1660,14 +1737,11 @@ int32_t Volume::getLargestDimension(const Vector3f& dimensions)
     return index;
 }
 
-Volume::~Volume()
-{
-    delete _grid;
-}
+Volume::~Volume() { delete _grid; }
 
 Volume* Volume::constructIsoValueVolume(const Volume* volume,
                                         const uint8_t& isoValue,
-                                        const int64_t &padding)
+                                        const int64_t& padding)
 {
     Vector3f pMin(0.f), pMax(1.f);
 
@@ -1675,10 +1749,9 @@ Volume* Volume::constructIsoValueVolume(const Volume* volume,
     pMax.y() *= volume->getHeight();
     pMax.z() *= volume->getDepth();
 
-    Volume* isoVolume = new Volume(volume->getWidth() + padding,
-                                   volume->getHeight() + padding,
-                                   volume->getDepth() + padding,
-                                   pMin, pMax, VolumeGrid::TYPE::BIT);
+    Volume* isoVolume = new Volume(
+        volume->getWidth() + padding, volume->getHeight() + padding,
+        volume->getDepth() + padding, pMin, pMax, VolumeGrid::TYPE::BIT);
 
     LOG_STATUS("Constructing Iso Volume");
     for (int64_t x = 0; x < volume->getWidth(); ++x)
@@ -1711,8 +1784,7 @@ std::vector<uint64_t> Volume::createHistogram(const Volume* volume)
     histogram.resize(256);
 
     // Initialization
-    for (uint64_t i = 0; i < 256; ++i)
-        histogram[i] = 0;
+    for (uint64_t i = 0; i < 256; ++i) histogram[i] = 0;
 
     for (int64_t x = 0; x < volume->getWidth(); ++x)
     {
@@ -1731,7 +1803,7 @@ std::vector<uint64_t> Volume::createHistogram(const Volume* volume)
 }
 
 Volume* Volume::constructFullRangeVolume(const Volume* volume,
-                                         const int64_t &padding)
+                                         const int64_t& padding)
 {
     Vector3f pMin(0.f), pMax(1.f);
 
@@ -1739,10 +1811,9 @@ Volume* Volume::constructFullRangeVolume(const Volume* volume,
     pMax.y() *= volume->getHeight();
     pMax.z() *= volume->getDepth();
 
-    Volume* isoVolume = new Volume(volume->getWidth() + padding,
-                                   volume->getHeight() + padding,
-                                   volume->getDepth() + padding,
-                                   pMin, pMax, VolumeGrid::TYPE::BYTE);
+    Volume* isoVolume = new Volume(
+        volume->getWidth() + padding, volume->getHeight() + padding,
+        volume->getDepth() + padding, pMin, pMax, VolumeGrid::TYPE::BYTE);
 
     LOG_STATUS("Constructing Iso Volume");
     for (int64_t x = 0; x < volume->getWidth(); ++x)
@@ -1760,7 +1831,6 @@ Volume* Volume::constructFullRangeVolume(const Volume* volume,
                     isoVolume->fill(xIso, yIso, zIso);
                 else
                     isoVolume->clear(xIso, yIso, zIso);
-
             }
         }
     }
@@ -1770,9 +1840,10 @@ Volume* Volume::constructFullRangeVolume(const Volume* volume,
 }
 
 Volume* Volume::constructFromTiffMask(
-        const std::string &maskDirectory,
-        const int64_t &maskWidth, const int64_t &maskHeight,
-        const Ultraliser::VolumeGrid::TYPE& gridType)
+    const std::string& maskDirectory,
+    const int64_t& maskWidth,
+    const int64_t& maskHeight,
+    const Ultraliser::VolumeGrid::TYPE& gridType)
 {
     // Set the timer
     TIMER_SET;
@@ -1781,7 +1852,7 @@ Volume* Volume::constructFromTiffMask(
     LOG_STATUS("Mask Directory [ %s ]", maskDirectory.c_str());
 
     // Get a list of all the stacks of the masks
-    std::vector< std::string > maskFiles;
+    std::vector<std::string> maskFiles;
     Ultraliser::Directory::list(maskDirectory, maskFiles, ".tif");
 
     // Sort the mask files
@@ -1790,30 +1861,28 @@ Volume* Volume::constructFromTiffMask(
     // Adding a little delta
     int64_t numZeroPaddingVoxels = 16;
     Volume* maskVolume = new Volume(
-                maskWidth + numZeroPaddingVoxels,
-                maskHeight + numZeroPaddingVoxels,
-                I2I64(maskFiles.size()) + numZeroPaddingVoxels,
-                Vector3f(),
-                Vector3f(),
-                gridType);
-    LOG_INFO("%d %d %d", maskVolume->getWidth(), maskVolume->getHeight(), maskVolume->getDepth());
+        maskWidth + numZeroPaddingVoxels, maskHeight + numZeroPaddingVoxels,
+        I2I64(maskFiles.size()) + numZeroPaddingVoxels, Vector3f(), Vector3f(),
+        gridType);
+    LOG_INFO("%d %d %d", maskVolume->getWidth(), maskVolume->getHeight(),
+             maskVolume->getDepth());
 
     PROGRESS_SET;
     OMP_PARALLEL_FOR
-    for(int64_t i = 0; i < I2I64(maskFiles.size()); ++i)
+    for (int64_t i = 0; i < I2I64(maskFiles.size()); ++i)
     {
         // Read the image
         std::string imagePath = maskDirectory + "/" + maskFiles[I2UI64(i)];
-        std::unique_ptr< TiffImage > image(new TiffImage);
+        std::unique_ptr<TiffImage> image(new TiffImage);
         image->setimageFile(imagePath);
         image->readImage();
 
         // Update the volume
-        for(int64_t x = 0; x < maskWidth; ++x)
+        for (int64_t x = 0; x < maskWidth; ++x)
         {
-            for(int64_t y = 0; y < maskHeight; ++y)
+            for (int64_t y = 0; y < maskHeight; ++y)
             {
-                if(image->isPixelFilled(I2I32(x), I2I32(y)))
+                if (image->isPixelFilled(I2I32(x), I2I32(y)))
                 {
                     maskVolume->fill(x + numZeroPaddingVoxels / 2,
                                      y + numZeroPaddingVoxels / 2,
@@ -1835,7 +1904,8 @@ Volume* Volume::constructFromTiffMask(
     return maskVolume;
 }
 
-Volume::SOLID_VOXELIZATION_AXIS Volume::getSolidvoxelizationAxis(const std::string &argumentString)
+Volume::SOLID_VOXELIZATION_AXIS Volume::getSolidvoxelizationAxis(
+    const std::string& argumentString)
 {
     if (argumentString == "x")
     {
@@ -1856,12 +1926,14 @@ Volume::SOLID_VOXELIZATION_AXIS Volume::getSolidvoxelizationAxis(const std::stri
     else
     {
         // Error, therefore terminate
-        LOG_ERROR("The option [ %s ] is not valid for --solid-voxelization-axis! "
-                  "Please use one of the following [x, y, z, xyz].", argumentString.c_str());
+        LOG_ERROR(
+            "The option [ %s ] is not valid for --solid-voxelization-axis! "
+            "Please use one of the following [x, y, z, xyz].",
+            argumentString.c_str());
 
         // For the sake of compilation only.
         return SOLID_VOXELIZATION_AXIS::XYZ;
     }
 }
 
-}
+}  // namespace Ultraliser

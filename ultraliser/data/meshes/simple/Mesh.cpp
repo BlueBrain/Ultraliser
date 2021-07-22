@@ -3,44 +3,49 @@
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
  *
  * Author(s)
- *      Marwan Abdellah < marwan.abdellah@epfl.ch >
+ *      Marwan Abdellah <marwan.abdellah@epfl.ch >
+ *      Juan Jose Garcia Cantero <juanjose.garcia@epfl.ch>
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
- * This library is free software; you can redistribute it and/or modify it under the terms of the
- * GNU General Public License version 3.0 as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 3.0 as published by the
+ * Free Software Foundation.
  *
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU General Public License along with this library;
- * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
- * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
+ * You should have received a copy of the GNU General Public License along with
+ * this library; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place - Suite 330, Boston, MA 02111-1307, USA. You can also find it on the
+ * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
 #include "Mesh.h"
+
+#include <algorithms/SectionGeometry.h>
+#include <algorithms/SomaGeometry.h>
+#include <geometry/Intersection.h>
+#include <math/Math.h>
+#include <utilities/Utilities.h>
+
 #include "MeshOperations.h"
 #include "MeshStatistics.h"
 #include "TriangleOperations.h"
-#include <utilities/Utilities.h>
-#include <math/Math.h>
-#include <geometry/Intersection.h>
-#include <algorithms/SectionGeometry.h>
 
 #define ANGLE_ERROR 0.123456789f
 
-#define MAXIMUM_FLOAT_VALUE  99999.f
+#define MAXIMUM_FLOAT_VALUE 99999.f
 #define MINIMUM_FLOAT_VALUE -99999.f
 
-#define MAXIMUM_DOUBLE_VALUE  99999.0
+#define MAXIMUM_DOUBLE_VALUE 99999.0
 #define MINIMUM_DOUBLE_VALUE -99999.0
 
 #define VERTEX_DELETION_VALUE -998.3824223883588f
 
 namespace Ultraliser
 {
-
 Mesh::Mesh()
 {
     // Initialization of public member variables
@@ -55,11 +60,9 @@ Mesh::Mesh()
     _neighborList = nullptr;
 }
 
-Mesh::Mesh(const uint64_t &numVertices,
-           const uint64_t &numTriangles)
+Mesh::Mesh(const uint64_t& numVertices, const uint64_t& numTriangles)
 {
     // Initialization of public member variables
-
     _numberVertices = numVertices;
     _numberTriangles = numTriangles;
     _optimizationTime = 0.0;
@@ -80,6 +83,15 @@ Mesh::Mesh(const Samples& samples)
     _triangles = sg.triangles;
 }
 
+Mesh::Mesh(NeuronMorphology* morphology)
+{
+    SomaGeometry sg(morphology);
+    _numberVertices = sg.numVertices;
+    _vertices = sg.vertices;
+    _numberTriangles = sg.numTriangles;
+    _triangles = sg.triangles;
+}
+
 Mesh::Mesh(Vertices vertices, Triangles triangles)
 {
     _numberVertices = vertices.size();
@@ -91,7 +103,6 @@ Mesh::Mesh(Vertices vertices, Triangles triangles)
 
     const Vertex* vertexData = vertices.data();
     const Triangle* triangleData = triangles.data();
-
 
     for (uint64_t i = 0; i < _numberVertices; ++i)
     {
@@ -107,7 +118,7 @@ Mesh::Mesh(Vertices vertices, Triangles triangles)
     _neighborList = nullptr;
 }
 
-Mesh::Mesh(const std::string &fileName, const bool& verbose)
+Mesh::Mesh(const std::string& fileName, const bool& verbose)
 {
     // Import the mesh from a given file
     import(fileName, verbose);
@@ -118,21 +129,16 @@ Mesh::Mesh(const std::string &fileName, const bool& verbose)
     _neighborList = nullptr;
 }
 
-const Vertex* Mesh::getVertices() const
-{
-    return _vertices;
-}
+const Vertex* Mesh::getVertices() const { return _vertices; }
 
-const Triangle* Mesh::getTriangles() const
-{
-    return _triangles;
-}
+const Triangle* Mesh::getTriangles() const { return _triangles; }
 
 void Mesh::getTriangleBoundingBox(const uint64_t& triangleIndex,
-                                  Vector3f& pMin, Vector3f& pMax) const
+                                  Vector3f& pMin,
+                                  Vector3f& pMax) const
 {
     pMin = Vector3f(std::numeric_limits<float>::max());
-    pMax = Vector3f(std::numeric_limits<float>::min());
+    pMax = Vector3f(std::numeric_limits<float>::lowest());
 
     Triangle triangle = getTriangles()[triangleIndex];
     for (uint64_t vertexIndex = 0; vertexIndex < 3; ++vertexIndex)
@@ -140,11 +146,9 @@ void Mesh::getTriangleBoundingBox(const uint64_t& triangleIndex,
         Vector3f vertex = getVertices()[triangle[vertexIndex]];
         for (int iDim = 0; iDim < DIMENSIONS; ++iDim)
         {
-            if (vertex[iDim] < pMin[iDim])
-                pMin[iDim] = vertex[iDim];
+            if (vertex[iDim] < pMin[iDim]) pMin[iDim] = vertex[iDim];
 
-            if (vertex[iDim] > pMax[iDim])
-                pMax[iDim] = vertex[iDim];
+            if (vertex[iDim] > pMax[iDim]) pMax[iDim] = vertex[iDim];
         }
     }
 }
@@ -154,18 +158,16 @@ void Mesh::computeBoundingBox(Vector3f& pMinIn, Vector3f& pMaxIn)
     // Create new variables to avoid any mess if the inputs are already
     // initialized with some values
     Vector3f pMin(std::numeric_limits<float>::max());
-    Vector3f pMax(std::numeric_limits<float>::min());
+    Vector3f pMax(std::numeric_limits<float>::lowest());
 
     for (uint64_t i = 0; i < _numberVertices; ++i)
     {
         Vertex vertex = _vertices[i];
         for (int iDim = 0; iDim < DIMENSIONS; ++iDim)
         {
-            if (vertex[iDim] < pMin[iDim])
-                pMin[iDim] = vertex[iDim];
+            if (vertex[iDim] < pMin[iDim]) pMin[iDim] = vertex[iDim];
 
-            if (vertex[iDim] > pMax[iDim])
-                pMax[iDim] = vertex[iDim];
+            if (vertex[iDim] > pMax[iDim]) pMax[iDim] = vertex[iDim];
         }
     }
 
@@ -181,7 +183,7 @@ void Mesh::computeRelaxedBoundingBox(Vector3f& pMinIn,
     // Create new variables to avoid any mess if the inputs are already
     // initialized with some values
     Vector3f pMin(std::numeric_limits<float>::max());
-    Vector3f pMax(std::numeric_limits<float>::min());
+    Vector3f pMax(std::numeric_limits<float>::lowest());
 
     // Compute the actual bounding box
     computeBoundingBox(pMin, pMax);
@@ -274,10 +276,12 @@ void Mesh::append(const Mesh* inputMesh)
     uint64_t triangleCountOffset = _numberTriangles;
 
     // New number of vertices
-    uint64_t newNumberVertices = vertexCountOffset + inputMesh->getNumberVertices();
+    uint64_t newNumberVertices =
+        vertexCountOffset + inputMesh->getNumberVertices();
 
     // New number of triangles
-    uint64_t newNumberTriangles = triangleCountOffset + inputMesh->getNumberTriangles();
+    uint64_t newNumberTriangles =
+        triangleCountOffset + inputMesh->getNumberTriangles();
 
     Vector3f* newVertices = new Vector3f[newNumberVertices];
     Triangle* newTriangles = new Triangle[newNumberTriangles];
@@ -334,7 +338,7 @@ void Mesh::append(const Mesh* inputMesh)
     delete tmpTriangle;
 }
 
-void Mesh::import(const std::string &fileName, const bool &verbose)
+void Mesh::import(const std::string& fileName, const bool& verbose)
 {
     // Start the timer
     TIMER_SET;
@@ -352,7 +356,7 @@ void Mesh::import(const std::string &fileName, const bool &verbose)
     Triangles loadedTriangles;
 
     // Switch to the corresponding loader based on the extension
-    switch(fileName[strlen(fileName.c_str()) - 1])
+    switch (fileName[strlen(fileName.c_str()) - 1])
     {
     case 'y':
     case 'Y':
@@ -371,7 +375,7 @@ void Mesh::import(const std::string &fileName, const bool &verbose)
     {
         importSTL(fileName, loadedVertices, loadedTriangles, verbose);
         break;
-    }   
+    }
     case 'f':
     case 'F':
     {
@@ -402,32 +406,21 @@ void Mesh::import(const std::string &fileName, const bool &verbose)
     if (verbose) LOG_STATS(GET_TIME_SECONDS);
 }
 
-Mesh* Mesh::instanciate(const uint64_t &numVertices,
-                        const uint64_t &numTriangles)
+Mesh* Mesh::instanciate(const uint64_t& numVertices,
+                        const uint64_t& numTriangles)
 {
     // Initialization of public member variables
-    Mesh* instance = new Mesh(numVertices,
-                              numTriangles);
+    Mesh* instance = new Mesh(numVertices, numTriangles);
 
     // Return a pointer to the created mesh
     return instance;
 }
 
+double Mesh::getDefaultOptimizationTime() const { return _optimizationTime; }
 
-double Mesh::getDefaultOptimizationTime() const
-{
-    return _optimizationTime;
-}
+uint64_t Mesh::getNumberVertices() const { return _numberVertices; }
 
-uint64_t Mesh::getNumberVertices() const
-{
-    return _numberVertices;
-}
-
-uint64_t Mesh::getNumberTriangles() const
-{
-    return _numberTriangles;
-}
+uint64_t Mesh::getNumberTriangles() const { return _numberTriangles; }
 
 float Mesh::_cotangentAngle(const Vector3f& pivot,
                             const Vector3f& a,
@@ -449,7 +442,7 @@ void Mesh::_computeNeighborhoods(Mesh& mesh,
     vertexNeighbors.resize(mesh.getNumberVertices());
     faceNeighbors.resize(mesh.getNumberVertices());
 
-    for(uint64_t i = 0; i < mesh.getNumberTriangles(); ++i)
+    for (uint64_t i = 0; i < mesh.getNumberTriangles(); ++i)
     {
         const auto& face = mesh._triangles[i];
 
@@ -478,13 +471,12 @@ Vector3f Mesh::_computeKernel(Mesh& mesh,
 
     const auto& currentVertex = mesh._vertices[vertexIndex];
 
-    for(const auto& nv : verticesN)
+    for (const auto& nv : verticesN)
     {
-        if(nv == vertexIndex)
-            continue;
+        if (nv == vertexIndex) continue;
 
-        const auto weight = _computeCotangentWeight(mesh, vertexIndex,
-                                                    nv, facesN);
+        const auto weight =
+            _computeCotangentWeight(mesh, vertexIndex, nv, facesN);
         sumWeights += weight;
         sumPos += mesh._vertices[nv] * weight;
     }
@@ -501,35 +493,39 @@ float Mesh::_computeCotangentWeight(Mesh& mesh,
 {
     uint64_t edge1 = 0, edge2 = 0;
     bool firstFound = false, secondFound = false;
-    for(const auto & nvFace : faceN)
+    for (const auto& nvFace : faceN)
     {
         const Triangle& f = mesh._triangles[nvFace];
-        if(_triangleContainsVertex(f, vertexIndex) &&
-           _triangleContainsVertex(f, neighborIndex))
+        if (_triangleContainsVertex(f, vertexIndex) &&
+            _triangleContainsVertex(f, neighborIndex))
         {
-            if(!firstFound)
+            if (!firstFound)
             {
                 firstFound = true;
-                edge1 = f.x() != vertexIndex &&
-                        f.x() != neighborIndex ? f.x() : (f.y() != vertexIndex &&
-                        f.y() != neighborIndex ? f.y() : f.z());
+                edge1 = f.x() != vertexIndex && f.x() != neighborIndex
+                            ? f.x()
+                            : (f.y() != vertexIndex && f.y() != neighborIndex
+                                   ? f.y()
+                                   : f.z());
             }
-            else if(!secondFound)
+            else if (!secondFound)
             {
                 secondFound = true;
-                edge2 = f.x() != vertexIndex &&
-                        f.x() != neighborIndex ? f.x() : (f.y() != vertexIndex &&
-                        f.y() != neighborIndex ? f.y() : f.z());
+                edge2 = f.x() != vertexIndex && f.x() != neighborIndex
+                            ? f.x()
+                            : (f.y() != vertexIndex && f.y() != neighborIndex
+                                   ? f.y()
+                                   : f.z());
             }
         }
 
-        if(firstFound && secondFound)
-            break;
+        if (firstFound && secondFound) break;
     }
 
-    if(!firstFound || !secondFound)
+    if (!firstFound || !secondFound)
     {
-        throw std::runtime_error("LaplacianSmoothOperator: Mesh has boundaries");
+        throw std::runtime_error(
+            "LaplacianSmoothOperator: Mesh has boundaries");
     }
 
     const auto& pivotA = (mesh._vertices[edge1]);
@@ -554,7 +550,8 @@ Vertex Mesh::_smoothVertex(Mesh& mesh,
     return pos;
 }
 
-void Mesh::scaleAndTranslate(const Vector3f &center, const Vector3f &BoundingBox)
+void Mesh::scaleAndTranslate(const Vector3f& center,
+                             const Vector3f& BoundingBox)
 {
     // Center the reconstructed mesh at the origin
     centerAtOrigin();
@@ -564,7 +561,8 @@ void Mesh::scaleAndTranslate(const Vector3f &center, const Vector3f &BoundingBox
     computeBoundingBox(pMinGenerated, pMaxGenerated);
 
     // Compute the scale needed
-    const Ultraliser::Vector3f currentBoundingBox = pMaxGenerated - pMinGenerated;
+    const Ultraliser::Vector3f currentBoundingBox =
+        pMaxGenerated - pMinGenerated;
     const Ultraliser::Vector3f scaleValue = BoundingBox / currentBoundingBox;
 
     // Scale the mesh
@@ -579,8 +577,7 @@ void Mesh::applyLaplacianSmooth(const uint32_t& numIterations,
                                 const float& inflateMu)
 {
     // If no iterations, return
-    if (numIterations < 1)
-        return;
+    if (numIterations < 1) return;
 
     LOG_TITLE("Laplacian Smoothing");
     TIMER_SET;
@@ -588,39 +585,38 @@ void Mesh::applyLaplacianSmooth(const uint32_t& numIterations,
     Neighborhood vertexN, faceN;
     _computeNeighborhoods(*this, vertexN, faceN);
 
-    std::vector< Vertex > smoothedVertices(_numberVertices);
+    std::vector<Vertex> smoothedVertices(_numberVertices);
     LOOP_STARTS("Smoothing")
-    for(uint32_t i = 0; i < numIterations; ++i)
+    for (uint32_t i = 0; i < numIterations; ++i)
     {
-        #pragma omp parallel for
-        for(uint64_t v = 0; v < _numberVertices; ++v)
+#pragma omp parallel for
+        for (uint64_t v = 0; v < _numberVertices; ++v)
         {
             const Vector3f kernel =
-                    _computeKernel(*this, v, vertexN[v], faceN[v]);
+                _computeKernel(*this, v, vertexN[v], faceN[v]);
 
-            smoothedVertices[v] =
-                    _smoothVertex(*this, v, kernel, smoothLambda);
+            smoothedVertices[v] = _smoothVertex(*this, v, kernel, smoothLambda);
         }
 
-        // Update vertices
-        #pragma omp parallel for
-        for(uint64_t v = 0; v < _numberVertices; ++v)
+// Update vertices
+#pragma omp parallel for
+        for (uint64_t v = 0; v < _numberVertices; ++v)
         {
             _vertices[v] = smoothedVertices[v];
         }
 
-        #pragma omp parallel for
-        for(uint64_t v = 0; v < _numberVertices; ++v)
+#pragma omp parallel for
+        for (uint64_t v = 0; v < _numberVertices; ++v)
         {
-            const Vector3f kernel =_computeKernel(*this, v, vertexN[v], faceN[v]);
+            const Vector3f kernel =
+                _computeKernel(*this, v, vertexN[v], faceN[v]);
 
-            smoothedVertices[v] =
-                    _smoothVertex(*this, v, kernel, inflateMu);
+            smoothedVertices[v] = _smoothVertex(*this, v, kernel, inflateMu);
         }
 
-        // Update vertices
-        #pragma omp parallel for
-        for(uint64_t v = 0; v < _numberVertices; ++v)
+// Update vertices
+#pragma omp parallel for
+        for (uint64_t v = 0; v < _numberVertices; ++v)
         {
             _vertices[v] = smoothedVertices[v];
         }
@@ -640,8 +636,7 @@ void Mesh::applyLaplacianSmooth(const uint32_t& numIterations,
 void Mesh::smoothLaplacian(uint64_t numIterations)
 {
     // If no iterations, return
-    if (numIterations < 1)
-        return;
+    if (numIterations < 1) return;
 
     LOG_TITLE("Laplacian Smoothing");
     TIMER_SET;
@@ -650,12 +645,12 @@ void Mesh::smoothLaplacian(uint64_t numIterations)
     _computeNeighborhoods(*this, vertexN, faceN);
 
     // A new list of vertices
-    auto newVertices = std::make_unique< Vertex[] >(_numberVertices);
+    auto newVertices = std::make_unique<Vertex[]>(_numberVertices);
 
     LOOP_STARTS("Smoothing")
     for (uint64_t i = 0; i < numIterations; ++i)
     {
-        #pragma omp parallel for
+#pragma omp parallel for
         for (uint64_t iVertex = 0; iVertex < _numberVertices; ++iVertex)
         {
             // New vertex
@@ -686,8 +681,8 @@ void Mesh::smoothLaplacian(uint64_t numIterations)
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
 
-    // Update vertices
-    #pragma omp parallel for
+// Update vertices
+#pragma omp parallel for
     for (size_t iVertex = 0; iVertex < _numberVertices; ++iVertex)
     {
         _vertices[iVertex] = newVertices[iVertex];
@@ -703,11 +698,11 @@ void Mesh::smoothLaplacian(uint64_t numIterations)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Mesh::exportMesh(const std::string &prefix,
-                      const bool &formatOBJ,
-                      const bool &formatPLY,
-                      const bool &formatOFF,
-                      const bool &formatSTL) const
+void Mesh::exportMesh(const std::string& prefix,
+                      const bool& formatOBJ,
+                      const bool& formatPLY,
+                      const bool& formatOFF,
+                      const bool& formatSTL) const
 {
     if (formatOBJ || formatPLY || formatOFF || formatSTL)
     {
@@ -718,26 +713,26 @@ void Mesh::exportMesh(const std::string &prefix,
 
         if (formatOBJ)
         {
-            exportOBJ(prefix,
-                      _vertices, _numberVertices, _triangles, _numberTriangles);
+            exportOBJ(prefix, _vertices, _numberVertices, _triangles,
+                      _numberTriangles);
         }
 
         if (formatPLY)
         {
-            exportPLY(prefix, _vertices, _numberVertices, _triangles, _numberTriangles);
+            exportPLY(prefix, _vertices, _numberVertices, _triangles,
+                      _numberTriangles);
         }
-
 
         if (formatOFF)
         {
-            exportOFF(prefix,
-                      _vertices, _numberVertices, _triangles, _numberTriangles);
+            exportOFF(prefix, _vertices, _numberVertices, _triangles,
+                      _numberTriangles);
         }
 
         if (formatSTL)
         {
-            exportSTL(prefix,
-                      _vertices, _numberVertices, _triangles, _numberTriangles);
+            exportSTL(prefix, _vertices, _numberVertices, _triangles,
+                      _numberTriangles);
         }
 
         LOG_STATUS_IMPORTANT("Exporting Mesh Stats.");
@@ -745,23 +740,26 @@ void Mesh::exportMesh(const std::string &prefix,
     }
 }
 
-void Mesh::writeDistributions(const std::string &reference, const std::string *prefix) const
+void Mesh::writeDistributions(const std::string& reference,
+                              const std::string* prefix) const
 {
     LOG_TITLE("Mesh Distributions");
 
     // Write the distributions
-    MeshStatistics stats (_vertices, _triangles, _numberVertices, _numberTriangles);
+    MeshStatistics stats(_vertices, _triangles, _numberVertices,
+                         _numberTriangles);
     stats.writeStatsDistributions(*prefix + "-" + reference);
 }
 
-void Mesh::printStats(const std::string &reference,
-                          const std::string *prefix) const
+void Mesh::printStats(const std::string& reference,
+                      const std::string* prefix) const
 {
     LOG_TITLE("Mesh Statistics");
 
     LOG_STATUS("Collecting Stats.");
 
-    float area = computeMeshSurfaceArea(_vertices, _triangles, _numberTriangles);
+    float area =
+        computeMeshSurfaceArea(_vertices, _triangles, _numberTriangles);
     float volume = computeMeshVolume(_vertices, _triangles, _numberTriangles);
 
     Vector3f pMin, pMax;
@@ -788,10 +786,8 @@ void Mesh::printStats(const std::string &reference,
                 FORMAT(_numberVertices));
         fprintf(info, "\t* Number Triangles      | %s \n",
                 FORMAT(_numberTriangles));
-        fprintf(info, "\t* Surface Area          | %f² \n",
-                F2D(area));
-        fprintf(info, "\t* Volume                | %f³ \n",
-                F2D(volume));
+        fprintf(info, "\t* Surface Area          | %f² \n", F2D(area));
+        fprintf(info, "\t* Volume                | %f³ \n", F2D(volume));
 
         if (_optimizationTime > 0.0)
             fprintf(info, "\t* Optimization Time     | %f Seconds",
@@ -802,39 +798,31 @@ void Mesh::printStats(const std::string &reference,
     }
 
     LOG_STATUS_IMPORTANT("Mesh Stats. [ %s ]", reference.c_str());
-    LOG_INFO("\t* Bounding Box:         | [%f, %f, %f]",
-             F2D(bounds.x()), F2D(bounds.y()), F2D(bounds.z()));
-    LOG_INFO("\t* pMin:                 | [%f, %f, %f]",
-             F2D(pMin.x()), F2D(pMin.y()), F2D(pMin.z()));
-    LOG_INFO("\t* pMax:                 | [%f, %f, %f]",
-             F2D(pMax.x()), F2D(pMax.y()), F2D(pMax.z()));
-    LOG_INFO("\t* Number Vertices       | %s",
-             FORMAT(_numberVertices));
-    LOG_INFO("\t* Number Triangles      | %s",
-             FORMAT(_numberTriangles));
-    LOG_INFO("\t* Surface Area          | %f²",
-             F2D(area));
-    LOG_INFO("\t* Volume                | %f³",
-             F2D(volume));
+    LOG_INFO("\t* Bounding Box:         | [%f, %f, %f]", F2D(bounds.x()),
+             F2D(bounds.y()), F2D(bounds.z()));
+    LOG_INFO("\t* pMin:                 | [%f, %f, %f]", F2D(pMin.x()),
+             F2D(pMin.y()), F2D(pMin.z()));
+    LOG_INFO("\t* pMax:                 | [%f, %f, %f]", F2D(pMax.x()),
+             F2D(pMax.y()), F2D(pMax.z()));
+    LOG_INFO("\t* Number Vertices       | %s", FORMAT(_numberVertices));
+    LOG_INFO("\t* Number Triangles      | %s", FORMAT(_numberTriangles));
+    LOG_INFO("\t* Surface Area          | %f²", F2D(area));
+    LOG_INFO("\t* Volume                | %f³", F2D(volume));
 
     if (_optimizationTime > 0.0)
-        LOG_INFO("\t* Optimization Time     | %f Seconds",
-                 _optimizationTime);
+        LOG_INFO("\t* Optimization Time     | %f Seconds", _optimizationTime);
 }
 
 void Mesh::_releaseData()
 {
     // Free allocated memory
-    delete [] _vertices;
-    delete [] _triangles;
+    delete[] _vertices;
+    delete[] _triangles;
 
     // Destroy neighbor_list
     destroyNeighborlist();
 }
 
-Mesh::~Mesh()
-{
-    _releaseData();
-}
+Mesh::~Mesh() { _releaseData(); }
 
-}
+}  // namespace Ultraliser

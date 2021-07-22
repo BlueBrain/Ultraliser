@@ -4,6 +4,7 @@
 #
 # Author(s)
 #       Marwan Abdellah <marwan.abdellah@epfl.ch>
+#       Juan Jose Garcia Cantero <juanjose.garcia@epfl.ch>
 #
 # For complete list of authors, please see AUTHORS.md
 #
@@ -24,7 +25,7 @@
 ####################################################################################################
 
 # Application name
-set(APP_NAME ultraVasculatureMorphology2Mesh)
+set(APP_NAME ultraNeuroMorpho2Mesh)
 
 # Add the current directory to include directories
 include_directories(${CMAKE_BINARY_DIR}/include)

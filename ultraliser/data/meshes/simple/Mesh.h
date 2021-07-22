@@ -3,41 +3,43 @@
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
  *
  * Author(s)
- *      Marwan Abdellah < marwan.abdellah@epfl.ch >
+ *      Marwan Abdellah <marwan.abdellah@epfl.ch >
+ *      Juan Jose Garcia Cantero <juanjose.garcia@epfl.ch>
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
- * This library is free software; you can redistribute it and/or modify it under the terms of the
- * GNU General Public License version 3.0 as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 3.0 as published by the
+ * Free Software Foundation.
  *
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU General Public License along with this library;
- * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
- * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
+ * You should have received a copy of the GNU General Public License along with
+ * this library; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place - Suite 330, Boston, MA 02111-1307, USA. You can also find it on the
+ * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
 #ifndef ULTRALISER_DATA_MESH_SIMPLE_MESH_H
 #define ULTRALISER_DATA_MESH_SIMPLE_MESH_H
 
 #include <common/Common.h>
-#include <math/Math.h>
-#include <data/meshes/simple/primitives/Primitives.h>
 #include <data/meshes/simple/NeighbourTriangle.h>
-#include <data/structures/Neighbors.h>
+#include <data/meshes/simple/primitives/Primitives.h>
+#include <data/morphologies/NeuronMorphology.h>
 #include <data/morphologies/Section.h>
+#include <data/structures/Neighbors.h>
+#include <math/Math.h>
 
 namespace Ultraliser
 {
-
 /**
  * @brief The Mesh class
  */
 class Mesh
 {
-
 public:
     /**
      * @brief OptimizationMesh
@@ -57,19 +59,25 @@ public:
      * @param numVertices
      * @param numTriangles
      */
-    Mesh(const uint64_t &numVertices, const uint64_t &numTriangles);
+    Mesh(const uint64_t& numVertices, const uint64_t& numTriangles);
 
     /**
      * @brief OptimizationMesh
      * @param fileName
      */
-    Mesh(const std::string &fileName, const bool &verbose = false);
+    Mesh(const std::string& fileName, const bool& verbose = false);
 
     /**
      * @brief Mesh
      * @param section
      */
     Mesh(const Samples& samples);
+
+    /**
+     * @brief Mesh
+     * @param morphology
+     */
+    Mesh(NeuronMorphology* morphology);
 
     /**
      * @brief append
@@ -84,7 +92,7 @@ public:
      * @param filename
      * @param verbose
      */
-    void import(const std::string &fileName, const bool& verbose = true);
+    void import(const std::string& fileName, const bool& verbose = true);
 
     /**
      * @brief instanciate
@@ -94,8 +102,8 @@ public:
      * @param numTriangles
      * @return
      */
-    Mesh* instanciate(const uint64_t &numVertices,
-                      const uint64_t &numTriangles);
+    Mesh* instanciate(const uint64_t& numVertices,
+                      const uint64_t& numTriangles);
 
     /**
      * @brief getVertices
@@ -114,7 +122,9 @@ public:
      * @param pMin
      * @param pMax
      */
-    void getTriangleBoundingBox(const uint64_t &triangleIndex, Vector3f& pMin, Vector3f& pMax) const;
+    void getTriangleBoundingBox(const uint64_t& triangleIndex,
+                                Vector3f& pMin,
+                                Vector3f& pMax) const;
 
     /**
      * @brief translate
@@ -126,13 +136,13 @@ public:
      * @brief rotate
      * @param matrix
      */
-    void rotate(const Matrix4f &matrix);
+    void rotate(const Matrix4f& matrix);
 
     /**
      * @brief transform
      * @param matrix
      */
-    void transform(const Matrix4f &matrix);
+    void transform(const Matrix4f& matrix);
 
     /**
      * @brief uniformScale
@@ -165,7 +175,7 @@ public:
                                    Vector3f& pMaxIn,
                                    const float& relaxationPercentage = 1.0);
 
-    Mesh & operator = (const Mesh mesh);
+    Mesh& operator=(const Mesh mesh);
 
     /**
      * @brief centerAtOrigin
@@ -195,9 +205,9 @@ public:
     Vector3f getPositionSurfaceOnly(const float& x,
                                     const float& y,
                                     const float& z,
-                                    const int64_t &a,
-                                    const int64_t &b,
-                                    const int64_t &c);
+                                    const int64_t& a,
+                                    const int64_t& b,
+                                    const int64_t& c);
     /**
      * @brief computeDotProduct
      * Computes the dot product of a triangle vertices
@@ -209,9 +219,9 @@ public:
      * Third vertex index.
      * @return
      */
-    float computeDotProduct(const int64_t &a,
-                            const int64_t &b,
-                            const int64_t &c);
+    float computeDotProduct(const int64_t& a,
+                            const int64_t& b,
+                            const int64_t& c);
 
     /**
      * @brief computeCrossProduct
@@ -220,9 +230,9 @@ public:
      * @param c
      * @return
      */
-    Vector3f computeCrossProduct(const int64_t &a,
-                                 const int64_t &b,
-                                 const int64_t &c);
+    Vector3f computeCrossProduct(const int64_t& a,
+                                 const int64_t& b,
+                                 const int64_t& c);
 
     /**
      * @brief rotate
@@ -234,8 +244,12 @@ public:
      * @param angle
      * @return
      */
-    Vector3f rotate(const float& sx, const float& sy, const float& sz,
-                    const float& theta, const float& phi, const float& angle);
+    Vector3f rotate(const float& sx,
+                    const float& sy,
+                    const float& sz,
+                    const float& theta,
+                    const float& phi,
+                    const float& angle);
 
     /**
      * @brief edgeFlipping
@@ -251,8 +265,10 @@ public:
      * @param d
      * @return
      */
-    bool checkFlipAction(const int64_t &a, const int64_t &b,
-                         const int64_t &c, const int64_t &d);
+    bool checkFlipAction(const int64_t& a,
+                         const int64_t& b,
+                         const int64_t& c,
+                         const int64_t& d);
 
     /**
      * @brief computeEigenVector
@@ -261,8 +277,8 @@ public:
      * @param maxAngle
      * @return
      */
-    EigenVector computeEigenVector(const int64_t &index0,
-                                   Vector3f *eigenValue,
+    EigenVector computeEigenVector(const int64_t& index0,
+                                   Vector3f* eigenValue,
                                    float* maxAngle);
 
     /**
@@ -286,10 +302,10 @@ public:
      * @param c
      * @return
      */
-    float getAngleSurfaceOnly(const int64_t &a,
-                              const int64_t &b,
-                              const int64_t &c,
-                              bool &angleError);
+    float getAngleSurfaceOnly(const int64_t& a,
+                              const int64_t& b,
+                              const int64_t& c,
+                              bool& angleError);
 
     /**
      * @brief getVertexNormal
@@ -299,7 +315,7 @@ public:
      * @return
      * The computed normal.
      */
-    Vector3f getVertexNormal(const int64_t &index);
+    Vector3f getVertexNormal(const int64_t& index);
 
     /**
      * @brief computeAngles
@@ -312,8 +328,10 @@ public:
      */
     void computeAngles(float* computedMinAngle,
                        float* computedMaxAngle,
-                       int64_t* numSmall, int64_t* numLarge,
-                       int64_t maxMinAngle, int64_t minMaxAngle);
+                       int64_t* numSmall,
+                       int64_t* numLarge,
+                       int64_t maxMinAngle,
+                       int64_t minMaxAngle);
 
     /**
      * @brief subdividePolygin
@@ -321,9 +339,9 @@ public:
      * @param triangleAvailableList
      * @param triangleAvailableIndex
      */
-    void subdividePolygin(NeighborTriangle *starNGR,
-                          int64_t *triangleAvailableList,
-                          int64_t *triangleAvailableIndex);
+    void subdividePolygin(NeighborTriangle* starNGR,
+                          int64_t* triangleAvailableList,
+                          int64_t* triangleAvailableIndex);
 
     /**
      * @brief smoothNormal
@@ -340,9 +358,9 @@ public:
      * @param flipEdges
      * @return
      */
-    bool smooth(const int64_t &maxMinAngle = 15,
-                const int64_t &minMaxAngle = 150,
-                const int64_t &maxIterations = 6,
+    bool smooth(const int64_t& maxMinAngle = 15,
+                const int64_t& minMaxAngle = 150,
+                const int64_t& maxIterations = 6,
                 const bool& flipEdges = true);
 
     /**
@@ -370,21 +388,21 @@ public:
                 const float& flatnessRate,
                 const float& densenessWeight,
                 const float& maxNormalAngle,
-                const int64_t &iteration = 1);
+                const int64_t& iteration = 1);
 
     /**
      * @brief coarseDense
      * @param denseRate
      * @param iterations
      */
-    void coarseDense(const float &denseRate, const int64_t &iterations = 1);
+    void coarseDense(const float& denseRate, const int64_t& iterations = 1);
 
     /**
      * @brief coarseFlat
      * @param flatnessRate
      * @param iterations
      */
-    void coarseFlat(const float &flatnessRate, const int64_t &iterations = 1);
+    void coarseFlat(const float& flatnessRate, const int64_t& iterations = 1);
 
     /**
      * @brief optimizeUsingDefaultParameters
@@ -396,8 +414,8 @@ public:
      * @param smoothingIterations
      * @param denseFactor
      */
-    void optimize(const uint64_t &optimizationIterations,
-                  const int64_t &smoothingIterations,
+    void optimize(const uint64_t& optimizationIterations,
+                  const int64_t& smoothingIterations,
                   const float& denseFactor);
 
     /**
@@ -407,10 +425,10 @@ public:
      * @param flatFactor
      * @param denseFactor
      */
-    void optimizeAdaptively(const uint64_t &optimizationIterations,
-                            const uint64_t &smoothingIterations,
-                            const float &flatFactor,
-                            const float &denseFactor);
+    void optimizeAdaptively(const uint64_t& optimizationIterations,
+                            const uint64_t& smoothingIterations,
+                            const float& flatFactor,
+                            const float& denseFactor);
 
     /**
      * @brief exportMesh
@@ -420,27 +438,27 @@ public:
      * @param formatOFF
      * @param formatSTL
      */
-    void exportMesh(const std::string &prefix,
-                    const bool &formatOBJ = false,
-                    const bool &formatPLY = false,
-                    const bool & formatOFF = false,
-                    const bool & formatSTL = false) const;
+    void exportMesh(const std::string& prefix,
+                    const bool& formatOBJ = false,
+                    const bool& formatPLY = false,
+                    const bool& formatOFF = false,
+                    const bool& formatSTL = false) const;
 
     /**
      * @brief writeDistributions
      * @param reference
      * @param prefix
      */
-    void writeDistributions(const std::string &reference,
-                            const std::string *prefix) const;
+    void writeDistributions(const std::string& reference,
+                            const std::string* prefix) const;
 
     /**
      * @brief printStats
      * @param reference
      * @param prefix
      */
-    void printStats(const std::string &reference,
-                        const std::string* prefix = nullptr) const;
+    void printStats(const std::string& reference,
+                    const std::string* prefix = nullptr) const;
 
     /**
      * @brief getDefaultOptimizationTime
@@ -476,7 +494,7 @@ public:
      * @param inflateMu
      * Inflate kernel multiplier (must be equal or less than 0).
      */
-    void applyLaplacianSmooth(const uint32_t &numIterations = 1,
+    void applyLaplacianSmooth(const uint32_t& numIterations = 1,
                               const float& smoothLambda = 0.2,
                               const float& inflateMu = 0.1);
 
@@ -490,16 +508,16 @@ public:
 
     /**
      * @brief scaleAndTranslateGeneratedMesh
-     * Scale the translate the generated mesh to fit the dimensions of the input mesh.
+     * Scale the translate the generated mesh to fit the dimensions of the input
+     * mesh.
      * @param center
      * The center of the input mesh.
      * @param BoundingBox
      * The bounding box of the input mesh.
      */
-    void scaleAndTranslate(const Vector3f &center, const Vector3f &BoundingBox);
+    void scaleAndTranslate(const Vector3f& center, const Vector3f& BoundingBox);
 
 private:
-
     /**
      * @brief _releaseData
      * Releases the data of the mesh.
@@ -514,8 +532,8 @@ private:
      * @return
      */
     float _cotangentAngle(const Vector3f& pivot,
-                           const Vector3f& a,
-                           const Vector3f& b);
+                          const Vector3f& a,
+                          const Vector3f& b);
 
     void _computeNeighborhoods(Mesh& mesh,
                                Neighborhood& vertexNeighbors,
@@ -536,16 +554,14 @@ private:
                            const Vector3f kernel,
                            const float param);
 
-    inline bool _triangleContainsVertex(const Triangle & t, const uint64_t vIndex)
+    inline bool _triangleContainsVertex(const Triangle& t,
+                                        const uint64_t vIndex)
     {
-        return (I2UI64(t.x()) == vIndex ||
-                I2UI64(t.y()) == vIndex ||
+        return (I2UI64(t.x()) == vIndex || I2UI64(t.y()) == vIndex ||
                 I2UI64(t.z()) == vIndex);
     }
 
-
 public:
-
     /**
      * @brief vertices
      * A list of all the vertices in the mesh.
@@ -565,7 +581,6 @@ public:
     Triangle* _neighbors;
 
 private:
-
     /**
      * @brief neighborList
      * Point32_ter to neighbour list.
@@ -593,6 +608,6 @@ private:
     friend class MeshStatistics;
 };
 
-}
+}  // namespace Ultraliser
 
-#endif // ULTRALISER_DATA_MESH_SIMPLE_MESH_H
+#endif  // ULTRALISER_DATA_MESH_SIMPLE_MESH_H

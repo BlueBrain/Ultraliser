@@ -22,14 +22,73 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ALGORITHMS_ALGORITHMS_H
-#define ULTRALISER_ALGORITHMS_ALGORITHMS_H
+#ifndef ULTRALISER_SIM_NODE_H
+#define ULTRALISER_SIM_NODE_H
 
-#include <algorithms/DualMarchingCubes.h>
-#include <algorithms/FloodFiller.h>
-#include <algorithms/MarchingCubes.h>
-#include <algorithms/SectionGeometry.h>
-#include <algorithms/SomaGeometry.h>
-#include <algorithms/Sorting.h>
+#include <math/Math.h>
 
-#endif  // ULTRALISER_ALGORITHMS_ALGORITHMS_H
+namespace Ultraliser
+{
+namespace sim
+{
+/**
+ * @brief The Node class
+ */
+class Node
+{
+public:
+    /**
+     * @brief Node
+     *
+     * @param position
+     * @param fixed
+     */
+    Node(Vector3f position_, bool fixed_ = false)
+        : position(position_)
+        , fixed(fixed_)
+        , index(0)
+    {
+    }
+
+public:
+    /**
+     * @brief position
+     */
+    Vector3f position;
+
+    /**
+     * @brief velocity
+     */
+    Vector3f velocity;
+
+    /**
+     * @brief force
+     */
+    Vector3f force;
+
+    /**
+     * @brief position fixed
+     */
+    bool fixed;
+
+    /**
+     * @brief index
+     */
+    uint32_t index;
+};
+
+/**
+ * @brief NodePtr
+ */
+typedef Node* NodePtr;
+
+/**
+ * @brief Nodes
+ */
+typedef std::vector<NodePtr> Nodes;
+
+}  // namespace sim
+
+}  // namespace Ultraliser
+
+#endif  // ULTRALISER_SIM_NODE_H

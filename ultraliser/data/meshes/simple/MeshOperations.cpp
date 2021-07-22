@@ -3,35 +3,40 @@
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
  *
  * Author(s)
- *      Marwan Abdellah < marwan.abdellah@epfl.ch >
+ *      Marwan Abdellah <marwan.abdellah@epfl.ch >
+ *      Juan Jose Garcia Cantero <juanjose.garcia@epfl.ch>
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
- * This library is free software; you can redistribute it and/or modify it under the terms of the
- * GNU General Public License version 3.0 as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 3.0 as published by the
+ * Free Software Foundation.
  *
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU General Public License along with this library;
- * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
- * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
+ * You should have received a copy of the GNU General Public License along with
+ * this library; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place - Suite 330, Boston, MA 02111-1307, USA. You can also find it on the
+ * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
 #include "MeshOperations.h"
-#include "TriangleOperations.h"
-#include <math/Math.h>
+
 #include <common/Common.h>
-#include <utilities/Utilities.h>
+#include <math/Math.h>
 #include <utilities/TypeConversion.h>
+#include <utilities/Utilities.h>
+
+#include "TriangleOperations.h"
 
 namespace Ultraliser
 {
-
 void computeMeshBoundingBox(const Vertex* vertices,
-                            const int64_t &numberVertices,
-                            Vector3f& pMin, Vector3f& pMax,
+                            const int64_t& numberVertices,
+                            Vector3f& pMin,
+                            Vector3f& pMax,
                             const bool& verbose)
 {
     // Starting the timer
@@ -41,9 +46,9 @@ void computeMeshBoundingBox(const Vertex* vertices,
     pMin.y() = std::numeric_limits<float>::max();
     pMin.z() = std::numeric_limits<float>::max();
 
-    pMax.x() = std::numeric_limits<float>::min();
-    pMax.y() = std::numeric_limits<float>::min();
-    pMax.z() = std::numeric_limits<float>::min();
+    pMax.x() = std::numeric_limits<float>::lowest();
+    pMax.y() = std::numeric_limits<float>::lowest();
+    pMax.z() = std::numeric_limits<float>::lowest();
 
     if (verbose) LOOP_STARTS("Computing Bounding Box");
     for (int64_t i = 0; i < numberVertices; ++i)
@@ -66,9 +71,9 @@ void computeMeshBoundingBox(const Vertex* vertices,
     if (verbose) LOG_STATS(GET_TIME_SECONDS);
 }
 
-float computeMeshVolume(const Vertex *vertices,
+float computeMeshVolume(const Vertex* vertices,
                         const Triangle* triangles,
-                        const int64_t &numberTriangles,
+                        const int64_t& numberTriangles,
                         const bool& verbose)
 {
     // Starting the timer
@@ -109,8 +114,8 @@ float computeMeshVolume(const Vertex *vertices,
 
 float computeMeshSurfaceArea(const Vertex* vertices,
                              const Triangle* triangles,
-                             const int64_t &numberTriangles,
-                             const bool &verbose)
+                             const int64_t& numberTriangles,
+                             const bool& verbose)
 {
     // Starting the timer
     TIMER_SET;
@@ -123,7 +128,6 @@ float computeMeshSurfaceArea(const Vertex* vertices,
     OMP_PARALLEL_FOR
     for (int64_t i = 0; i < numberTriangles; ++i)
     {
-
         // Update the progress bar
         if (verbose) LOOP_PROGRESS(PROGRESS, numberTriangles);
         PROGRESS_UPDATE;
@@ -153,8 +157,10 @@ float computeMeshSurfaceArea(const Vertex* vertices,
     return meshSurfaceArea;
 }
 
-void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& triangles,
-               const bool &verbose)
+void importOBJ(const std::string& filePath,
+               Vertices& vertices,
+               Triangles& triangles,
+               const bool& verbose)
 {
     // Start the timer
     TIMER_SET;
@@ -184,28 +190,23 @@ void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& trian
         std::getline(file, line);
 
         // End of file
-        if (file.eof())
-            break;
+        if (file.eof()) break;
 
         // End of data
-        if (line == OBJ_END_FLAG)
-            break;
+        if (line == OBJ_END_FLAG) break;
 
         // Wrong line
-        if (line.size() < 3)
-            continue;
+        if (line.size() < 3) continue;
 
         // Comment
-        if (line.at(0) == OBJ_HASH)
-            continue;
+        if (line.at(0) == OBJ_HASH) continue;
 
         // Get the line
         std::stringstream dataStream(line);
         dataStream >> token;
 
         // Vertex normal
-        if (token == OBJ_VERTEX_NORMAL_FLAG)
-            continue;
+        if (token == OBJ_VERTEX_NORMAL_FLAG) continue;
 
         // Vertex
         if (token == OBJ_VERTEX_FLAG)
@@ -225,7 +226,7 @@ void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& trian
             std::stringstream faceLineStream(line);
 
             // A list of face vertices (and only the vertices)
-            std::vector< int64_t > faceVertices;
+            std::vector<int64_t> faceVertices;
 
             // Consume the face 'f' token to proceed to the actual faces
             faceLineStream >> token;
@@ -278,7 +279,8 @@ void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& trian
             // Otherwise, error
             else
             {
-                LOG_ERROR("The mesh [%s] has faces with N-gons!", filePath.c_str());
+                LOG_ERROR("The mesh [%s] has faces with N-gons!",
+                          filePath.c_str());
             }
         }
 
@@ -294,7 +296,9 @@ void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& trian
     file.close();
 }
 
-void importPLY(const std::string &filePath, Vertices& vertices, Triangles& triangles,
+void importPLY(const std::string& filePath,
+               Vertices& vertices,
+               Triangles& triangles,
                const bool& verbose)
 {
     // Start the timer
@@ -308,8 +312,7 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
     while (true)
     {
         std::getline(file, line);
-        if (std::string::npos != line.find(PLY_VERTEX_FLAG))
-            break;
+        if (std::string::npos != line.find(PLY_VERTEX_FLAG)) break;
     }
 
     // Tokenize
@@ -329,12 +332,10 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
     {
         // Faces
         std::getline(file, line);
-        if (std::string::npos != line.find(PLY_FACE_FLAG))
-            break;
+        if (std::string::npos != line.find(PLY_FACE_FLAG)) break;
 
         // Textures
-        if (std::string::npos != line.find(PLY_TEXTURE_FLAG))
-            hasTexture = true;
+        if (std::string::npos != line.find(PLY_TEXTURE_FLAG)) hasTexture = true;
     }
 
     std::stringstream lineStream(line);
@@ -345,8 +346,7 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
     {
         // Done
         std::getline(file, line);
-        if (std::string::npos != line.find(PLY_END_FLAG))
-            break;
+        if (std::string::npos != line.find(PLY_END_FLAG)) break;
     }
 
     // Resize the vertex array
@@ -354,8 +354,7 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
 
     // Resize the texture array
     Textures textures;
-    if (hasTexture)
-        textures.resize(numberVertices);
+    if (hasTexture) textures.resize(numberVertices);
 
     // Reading the vertices
     if (verbose) LOOP_STARTS("Loading Vertices");
@@ -378,7 +377,6 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
     if (verbose) LOOP_DONE;
     if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
-
     // Read the triangles
     if (verbose) LOOP_STARTS("Loading Triangles");
     for (uint64_t i = 0; i < numberTriangles; ++i)
@@ -395,7 +393,6 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
     if (verbose) LOG_STATUS_IMPORTANT("Importing Stats.");
     if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
-
     // Close the file
     file.close();
 }
@@ -406,8 +403,9 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
  * ASCII STL
  * An ASCII STL file begins with the line
  *      solid name
- * where name is optional string (though if name is omitted there must still be a space after solid).
- * The file continues with any number of triangles, each represented as follows:
+ * where name is optional string (though if name is omitted there must still be
+ * a space after solid). The file continues with any number of triangles, each
+ * represented as follows:
  *
  * facet normal ni nj nk
  *      outer loop
@@ -416,9 +414,8 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
  *          vertex v3x v3y v3z
  *      endloop
  *  endfacet
- * where each n or v is a floating-point number in sign-mantissa-"e"-sign-exponent format.
- * The file concludes with
- *  endsolid name
+ * where each n or v is a floating-point number in
+ * sign-mantissa-"e"-sign-exponent format. The file concludes with endsolid name
  *
  * Binary STL
  * UINT8[80]    – Header                 -     80 bytes
@@ -434,11 +431,13 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
  * @param filePath
  * @return
  */
-void importSTL(const std::string &filePath, Vertices& vertices, Triangles& triangles,
-               const bool &verbose)
+void importSTL(const std::string& filePath,
+               Vertices& vertices,
+               Triangles& triangles,
+               const bool& verbose)
 {
     // Open the file
-    FILE *filePointer;
+    FILE* filePointer;
     if ((filePointer = fopen(filePath.c_str(), "r")) == nullptr)
     {
         // File not there
@@ -448,18 +447,21 @@ void importSTL(const std::string &filePath, Vertices& vertices, Triangles& trian
     // Check if the STL file is BINARY OR ASCII encoded
     bool isBinary = false;
     char keyWord[64] = "";
-    if (fscanf(filePointer, "%5s", keyWord)) { /* NOTHING TO DO */ }
+    if (fscanf(filePointer, "%5s", keyWord))
+    { /* NOTHING TO DO */
+    }
     if (strcmp(keyWord, STL_SOLID_KEYWORD.c_str()))
     {
         isBinary = true;
     }
 
-    // In some cases, it might look ASCII just because it begins with 'solid', so double check
+    // In some cases, it might look ASCII just because it begins with 'solid',
+    // so double check
     if (!isBinary)
     {
         rewind(filePointer);
 
-        char *line;
+        char* line;
         if ((line = File::readLineFromFile(filePointer, 0)) == nullptr)
         {
             isBinary = true;
@@ -489,7 +491,9 @@ void importSTL(const std::string &filePath, Vertices& vertices, Triangles& trian
 
         // Read the array (4 elements)
         int numberElements = 0;
-        if (fread(&numberElements, 4, 1, filePointer)) { /* NOTHING TO DO */ }
+        if (fread(&numberElements, 4, 1, filePointer))
+        { /* NOTHING TO DO */
+        }
 
         uint64_t vertexIndex = 0;
         for (int i = 0; i < numberElements; ++i)
@@ -502,17 +506,14 @@ void importSTL(const std::string &filePath, Vertices& vertices, Triangles& trian
             }
 
             // Vertices
-            Vertex v1((*((float *)(facet + 12))),
-                      (*((float *)(facet + 16))),
-                      (*((float *)(facet + 20))));
+            Vertex v1((*((float*)(facet + 12))), (*((float*)(facet + 16))),
+                      (*((float*)(facet + 20))));
 
-            Vertex v2((*((float *)(facet + 24))),
-                      (*((float *)(facet + 28))),
-                      (*((float *)(facet + 32))));
+            Vertex v2((*((float*)(facet + 24))), (*((float*)(facet + 28))),
+                      (*((float*)(facet + 32))));
 
-            Vertex v3((*((float *)(facet + 36))),
-                      (*((float *)(facet + 40))),
-                      (*((float *)(facet + 44))));
+            Vertex v3((*((float*)(facet + 36))), (*((float*)(facet + 40))),
+                      (*((float*)(facet + 44))));
 
             // Construct the triangles with the vertices on the fly
             Triangle triangle;
@@ -542,18 +543,19 @@ void importSTL(const std::string &filePath, Vertices& vertices, Triangles& trian
         uint64_t vertexIndex = 0;
 
         // Proceed with ASCII encoding
-        char *line;
+        char* line;
         while ((line = File::readLineFromFile(filePointer, 0)) != nullptr)
         {
             // Geth the coordinates
             float x, y, z;
-            sscanf(line,"%64s %f %f %f", keyWord, &x, &y, &z);
+            sscanf(line, "%64s %f %f %f", keyWord, &x, &y, &z);
 
             // Normal
             if (strcmp(keyWord, STL_FACET_KEYWORD.c_str()) == 0)
             {
                 char normalKeyWord[64] = "";
-                sscanf(line,"%64s %64s %f %f %f", keyWord , normalKeyWord, &x, &y, &z);
+                sscanf(line, "%64s %64s %f %f %f", keyWord, normalKeyWord, &x,
+                       &y, &z);
             }
             else
             {
@@ -580,7 +582,8 @@ void importSTL(const std::string &filePath, Vertices& vertices, Triangles& trian
                         vertices.push_back(vertex);
                         vertexIndex++;
 
-                        // Now all vertices of the triangle are reconstructed, building triangle
+                        // Now all vertices of the triangle are reconstructed,
+                        // building triangle
                         Triangle triangle;
                         triangle[0] = vertexIndex - 1;
                         triangle[1] = vertexIndex - 2;
@@ -601,14 +604,16 @@ void importSTL(const std::string &filePath, Vertices& vertices, Triangles& trian
     fclose(filePointer);
 }
 
-void importOFF(const std::string &filePath, Vertices& vertices, Triangles& triangles,
-               const bool &verbose)
+void importOFF(const std::string& filePath,
+               Vertices& vertices,
+               Triangles& triangles,
+               const bool& verbose)
 {
     // Start the timer
     TIMER_SET;
 
     // Open the file
-    FILE *filePointer;
+    FILE* filePointer;
     if ((filePointer = fopen(filePath.c_str(), "r")) == nullptr)
     {
         // File not there
@@ -617,7 +622,9 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
 
     // The first line must have OFF keyword
     char streamData[256];
-    if (fscanf(filePointer, "%255s", streamData)) { /* NOTHING TO DO */ }
+    if (fscanf(filePointer, "%255s", streamData))
+    { /* NOTHING TO DO */
+    }
     if (strcmp(streamData, "OFF") || feof(filePointer))
     {
         // File not there
@@ -625,16 +632,17 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
     }
 
     // Proceed to the first line
-    char *line;
+    char* line;
     do
     {
         line = File::readLineFromFile(filePointer);
-    } while (line[0] == '#' || line[0] == '\0' || !sscanf(line, "%256s", streamData));
+    } while (line[0] == '#' || line[0] == '\0' ||
+             !sscanf(line, "%256s", streamData));
 
     // Got the first line, that has the data of the mesh
     uint64_t numberVertices, numberTriangles, numberEdges;
-    if (sscanf(line, "%" PRIu64 " %" PRIu64 " %" PRIu64 "",
-               &numberVertices, &numberTriangles, &numberEdges) < 3)
+    if (sscanf(line, "%" PRIu64 " %" PRIu64 " %" PRIu64 "", &numberVertices,
+               &numberTriangles, &numberEdges) < 3)
     {
         LOG_ERROR("The mesh file [ %s ] is corrupted!", filePath.c_str());
     }
@@ -669,7 +677,8 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
         }
         else
         {
-            LOG_ERROR("Could not read coordinates for vertex [ %" PRIu64 "]", i);
+            LOG_ERROR("Could not read coordinates for vertex [ %" PRIu64 "]",
+                      i);
         }
     }
     if (verbose) LOOP_DONE;
@@ -683,15 +692,17 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
     if (verbose) LOOP_STARTS("Loading Triangles");
     for (uint64_t i = 0; i < numberTriangles; ++i)
     {
-         LOOP_PROGRESS(i, numberTriangles);
+        LOOP_PROGRESS(i, numberTriangles);
 
         // Scan the triangle data
         uint64_t i1, i2, i3, i4;
-        if (fscanf(filePointer,"%" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "",
-                   &i4, &i1, &i2, &i3) == 4)
+        if (fscanf(filePointer,
+                   "%" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "", &i4, &i1,
+                   &i2, &i3) == 4)
         {
             if (i1 < 0 || i2 < 0 || i3 < 0 || i4 < 3 ||
-                i1 > (numberVertices - 1) || i2 > (numberVertices - 1) || i3 > (numberVertices - 1))
+                i1 > (numberVertices - 1) || i2 > (numberVertices - 1) ||
+                i3 > (numberVertices - 1))
             {
                 LOG_ERROR("Invalid index at face [ %" PRIu64 "]!", i);
             }
@@ -713,7 +724,9 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
                 {
                     if (fscanf(filePointer, "%" PRIu64 "", &i3) != 1)
                     {
-                        LOG_ERROR("Could not read indexes for face [ %" PRIu64 "]", i);
+                        LOG_ERROR("Could not read indexes for face [ %" PRIu64
+                                  "]",
+                                  i);
                     }
                     else
                     {
@@ -731,11 +744,11 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
     if (verbose) LOG_STATS(GET_TIME_SECONDS);
 }
 
-void exportOBJ(const std::string &prefix,
-               const Vertex *vertices,
-               const uint64_t &numberVertices,
+void exportOBJ(const std::string& prefix,
+               const Vertex* vertices,
+               const uint64_t& numberVertices,
                const Triangle* triangles,
-               const uint64_t &numberTriangles)
+               const uint64_t& numberTriangles)
 {
     // Open the file
     std::string fileName = prefix + OBJ_EXTENSION;
@@ -756,10 +769,8 @@ void exportOBJ(const std::string &prefix,
     {
         LOOP_PROGRESS_FRACTION(i, numberVertices);
 
-        stream << OBJ_VERTEX_FLAG << SPACE
-               << vertices[i][0] << SPACE
-               << vertices[i][1] << SPACE
-               << vertices[i][2] << NEW_LINE;
+        stream << OBJ_VERTEX_FLAG << SPACE << vertices[i][0] << SPACE
+               << vertices[i][1] << SPACE << vertices[i][2] << NEW_LINE;
     }
     LOOP_DONE;
 
@@ -773,10 +784,9 @@ void exportOBJ(const std::string &prefix,
     for (uint64_t i = 0; i < numberTriangles; ++i)
     {
         LOOP_PROGRESS_FRACTION(i, numberTriangles);
-        stream << OBJ_FACE_FLAG << SPACE
-               << triangles[i][0] + 1 << SPACE
-               << triangles[i][1] + 1 << SPACE
-               << triangles[i][2] + 1 << NEW_LINE;
+        stream << OBJ_FACE_FLAG << SPACE << triangles[i][0] + 1 << SPACE
+               << triangles[i][1] + 1 << SPACE << triangles[i][2] + 1
+               << NEW_LINE;
     }
     LOOP_DONE;
 
@@ -784,17 +794,17 @@ void exportOBJ(const std::string &prefix,
     LOG_STATS(GET_TIME_SECONDS);
 
     // Add the end flags
-    stream<<OBJ_END_FLAG;
+    stream << OBJ_END_FLAG;
 
     // Close the file stream
     stream.close();
 }
 
-void exportOFF(const std::string &prefix,
-               const Vertex *vertices,
-               const uint64_t &numberVertices,
+void exportOFF(const std::string& prefix,
+               const Vertex* vertices,
+               const uint64_t& numberVertices,
                const Triangle* triangles,
-               const uint64_t &numberTriangles)
+               const uint64_t& numberTriangles)
 {
     // Open a stream to write the data
     std::string fileName = prefix + OFF_EXTENSION;
@@ -811,9 +821,8 @@ void exportOFF(const std::string &prefix,
     outputStream << "OFF" << std::endl;
 
     // Counts
-    outputStream << numberVertices << SPACE
-                 << numberTriangles << SPACE
-                 << numberVertices  + numberTriangles - 2 << std::endl;
+    outputStream << numberVertices << SPACE << numberTriangles << SPACE
+                 << numberVertices + numberTriangles - 2 << std::endl;
 
     // Write the vertices, with scientific precision
     LOOP_STARTS("Writing Vertices");
@@ -824,8 +833,7 @@ void exportOFF(const std::string &prefix,
     {
         LOOP_PROGRESS_FRACTION(i, numberVertices);
 
-        outputStream << vertices[i].x() << SPACE
-                     << vertices[i].y() << SPACE
+        outputStream << vertices[i].x() << SPACE << vertices[i].y() << SPACE
                      << vertices[i].z() << NEW_LINE;
     }
     LOOP_DONE;
@@ -839,10 +847,8 @@ void exportOFF(const std::string &prefix,
         LOOP_PROGRESS(i, numberTriangles);
 
         // Preprend with 3 for the edges (triangle and not quad mesh)
-        outputStream << "3 "
-                     << triangles[i][0] << SPACE
-                     << triangles[i][1] << SPACE
-                     << triangles[i][2] << NEW_LINE;
+        outputStream << "3 " << triangles[i][0] << SPACE << triangles[i][1]
+                     << SPACE << triangles[i][2] << NEW_LINE;
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
@@ -851,11 +857,11 @@ void exportOFF(const std::string &prefix,
     outputStream.close();
 }
 
-void exportSTL(const std::string &prefix,
-               const Vertex *vertices,
-               const uint64_t &,
+void exportSTL(const std::string& prefix,
+               const Vertex* vertices,
+               const uint64_t&,
                const Triangle* triangles,
-               const uint64_t &numberTriangles)
+               const uint64_t& numberTriangles)
 {
     // Open a stream to write the data
     std::string fileName = prefix + STL_EXTENSION;
@@ -863,10 +869,11 @@ void exportSTL(const std::string &prefix,
     LOG_STATUS("Exporting STL Mesh : [ %s ]", fileName.c_str());
 
     // If the path does not exist, just set a warning and return
-    FILE *filePointer;
+    FILE* filePointer;
     if ((filePointer = fopen(fileName.c_str(), "w")) == nullptr)
     {
-        LOG_WARNING("Can NOT write the mesh to the following file [ %s ]!", fileName.c_str());
+        LOG_WARNING("Can NOT write the mesh to the following file [ %s ]!",
+                    fileName.c_str());
         return;
     }
 
@@ -893,7 +900,8 @@ void exportSTL(const std::string &prefix,
         Vector3f normal = computeNormal(v0, v1, v2);
 
         // Face normal
-        fprintf(filePointer, " facet normal %f %f %f", normal.x(), normal.y(), normal.z());
+        fprintf(filePointer, " facet normal %f %f %f", normal.x(), normal.y(),
+                normal.z());
         fprintf(filePointer, "\n");
 
         // Outer loop
@@ -931,11 +939,11 @@ void exportSTL(const std::string &prefix,
     fclose(filePointer);
 }
 
-void exportPLY(const std::string &prefix,
-               const Vertex *vertices,
-               const uint64_t &numberVertices,
+void exportPLY(const std::string& prefix,
+               const Vertex* vertices,
+               const uint64_t& numberVertices,
                const Triangle* triangles,
-               const uint64_t &numberTriangles,
+               const uint64_t& numberTriangles,
                bool writeASCII)
 {
     // Start the timer
@@ -947,7 +955,7 @@ void exportPLY(const std::string &prefix,
     LOG_STATUS("Exporting PLY Mesh : [ %s ]", filePath.c_str());
 
     // Open file for writing
-    FILE *filePointer;
+    FILE* filePointer;
     if ((filePointer = fopen(filePath.c_str(), "w")) == nullptr)
     {
         LOG_WARNING("Cannot write [ %s ]! ", filePath.c_str());
@@ -995,7 +1003,8 @@ void exportPLY(const std::string &prefix,
         for (uint64_t i = 0; i < numberVertices; i++)
         {
             LOOP_PROGRESS_FRACTION(i, numberVertices);
-            fprintf(filePointer, "%f %f %f", vertices[i].x(), vertices[i].y(), vertices[i].z());
+            fprintf(filePointer, "%f %f %f", vertices[i].x(), vertices[i].y(),
+                    vertices[i].z());
             fprintf(filePointer, "\n");
         }
         LOOP_DONE;
@@ -1029,7 +1038,8 @@ void exportPLY(const std::string &prefix,
             LOOP_PROGRESS(i, numberTriangles);
 
             // Preprend with 3 for the edges (triangle and not quad mesh)
-            fprintf(filePointer, "3 %ld %ld %ld", triangles[i][0], triangles[i][1], triangles[i][2]);
+            fprintf(filePointer, "3 %ld %ld %ld", triangles[i][0],
+                    triangles[i][1], triangles[i][2]);
             fprintf(filePointer, "\n");
         }
         LOOP_DONE;
@@ -1061,4 +1071,4 @@ void exportPLY(const std::string &prefix,
     fclose(filePointer);
 }
 
-}
+}  // namespace Ultraliser

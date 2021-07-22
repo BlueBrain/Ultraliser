@@ -4,6 +4,7 @@
 #
 # Author(s)
 #       Marwan Abdellah <marwan.abdellah@epfl.ch>
+#       Juan Jose Garcia Cantero <juanjose.garcia@epfl.ch>
 #
 # For complete list of authors, please see AUTHORS.md
 #
@@ -23,39 +24,34 @@
 # You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
 ####################################################################################################
 
-# ultraMask2Mesh
-if(${ULTRALISER_USE_TIFF})
-    add_subdirectory(ultraMask2Mesh)
-else(${ULTRALISER_USE_TIFF})
-    message(STATUS "ultraMask2Mesh will not be compiled. Missing TIFF!")
-endif(${ULTRALISER_USE_TIFF})
+# Application name
+set(APP_NAME ultraVessMorpho2Mesh)
 
-# ultraMesh2Mesh
-add_subdirectory(ultraMesh2Mesh)
+# Add the current directory to include directories
+include_directories(${CMAKE_BINARY_DIR}/include)
 
-# ultraMeshes2Mesh
-add_subdirectory(ultraMeshes2Mesh)
+# Source files
+file(GLOB ${APP_NAME}_SOURCE_FILES "*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/../common/*.cpp")
 
-# ultraVolume2Mesh
-add_subdirectory(ultraVolume2Mesh)
+# Header files
+file(GLOB ${APP_NAME}_HEADER_FILES "*.h" "*.hh")
 
-# ultraMesh2Volume
-add_subdirectory(ultraMesh2Volume)
+# Add the current directory to include directories
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../common/")
 
-# ultraCleanMesh
-add_subdirectory(ultraCleanMesh)
+# Executable
+add_executable(${APP_NAME}
+    ${${APP_NAME}_SOURCE_FILES}
+    ${${APP_NAME}_SOURCE_FILES}
+)
 
-# ultraSplitPartitions
-add_subdirectory(ultraSplitPartitions)
+# Link against ultraliser
+target_link_libraries(${APP_NAME} ultraliser)
 
-# ultraVessMorpho2Mesh
-if(${ULTRALISER_USE_H5})
-    add_subdirectory(ultraVessMorpho2Mesh)
-else(${ULTRALISER_USE_H5})
-    message(STATUS "ultraVessMorpho2Mesh will not be compiled. Missing H5!")
-endif(${ULTRALISER_USE_H5})
+# Copy the executable after the build
+add_custom_command(TARGET ${APP_NAME} POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${APP_NAME}>
+                   ${CMAKE_BINARY_DIR}/bin)
 
-# ultraNeuroMorpho2Mesh
-add_subdirectory(ultraNeuroMorpho2Mesh)
-
-
+# Install the executable in the bin directory
+install(TARGETS ${APP_NAME} DESTINATION bin)
