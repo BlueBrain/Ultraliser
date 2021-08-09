@@ -60,7 +60,7 @@ void NeuronSWCReader::_readSamples(const std::string &swcMorphologyFilePath)
         if (!swcFile.is_open())
         {
             LOG_WARNING("Unable to open an SWC morphology file [ %s ]",
-                      swcMorphologyFilePath.c_str());
+                        swcMorphologyFilePath.c_str());
         }
         std::string line;
         while(!swcFile.eof())
@@ -72,20 +72,29 @@ void NeuronSWCReader::_readSamples(const std::string &swcMorphologyFilePath)
             if (line.empty() || line[0] == '#')
                 continue;
 
+            // Construct a new sample
             NeuronSWCSample* sample = new NeuronSWCSample();
             int64_t parentId, type;
             std::stringstream sstr(line);
-            sstr >> sample->id >> type >>
-                    sample->x >> sample->y >> sample->z >> sample->r >> parentId;
+            sstr >> sample->id >>
+                    type >>
+                    sample->x >> sample->y >> sample->z >>
+                    sample->r >>
+                    parentId;
 
+            // Somatic samples or neurite
+            // TODO: We might need to account for axons, apicals and basals
             if (type == 1)
                 sample->type = SWCSampleType::SOMA;
             else
                 sample->type = SWCSampleType::NEURITE;
 
+            // Adding the sample to the list
             _samples.push_back(sample);
 
             samplesMap[sample->id] = sample;
+
+            // Find the parent
             if (parentId >= 0)
             {
                 auto search = samplesMap.find(parentId);

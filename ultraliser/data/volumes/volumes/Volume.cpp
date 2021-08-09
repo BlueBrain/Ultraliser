@@ -280,7 +280,7 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
 void Volume::surfaceVoxelizeNeuronMorphologyParallel(
     NeuronMorphology* neuronMorphology)
 {
-    LOG_TITLE("Surface Voxelization (Parallel)");
+    LOG_TITLE("Neuron Surface Voxelization (Parallel)");
 
     // Start the timer
     TIMER_SET;

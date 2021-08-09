@@ -3,8 +3,8 @@
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
  *
  * Author(s)
- *      Marwan Abdellah <marwan.abdellah@epfl.ch >
  *      Juan Jose Garcia Cantero <juanjose.garcia@epfl.ch>
+ *      Marwan Abdellah <marwan.abdellah@epfl.ch >
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -26,14 +26,21 @@
 
 namespace Ultraliser
 {
-namespace sim
+namespace Simulation
 {
-AnimSystem::AnimSystem(float dt) : _dt(dt) {}
 
-void AnimSystem::anim(MeshPtr mesh, uint64_t iterations)
+AnimSystem::AnimSystem(float dt)
+    : _dt(dt)
 {
+    /// EMPTY CONSTRUCTOR
+}
+
+void AnimSystem::animate(MeshPtr mesh, uint64_t iterations)
+{
+    // Damping factor
     double kd = mesh->damping;
-    for (uint64_t it = 0; it < iterations; ++it)
+
+    for (uint64_t it = 0; it < iterations; it++)
     {
         // Reset node forces to zero value
         setZeroForce(mesh);
@@ -43,29 +50,39 @@ void AnimSystem::anim(MeshPtr mesh, uint64_t iterations)
         for (uint64_t i = 0; i < mesh->springs.size(); ++i)
         {
             auto spring = mesh->springs[i];
+
+            // Get per spring stiffness constant
             double ks = spring->stiffness;
 
+            // Compute spring nodes distance
             Vector3f d = spring->node1->position - spring->node0->position;
+
+            // Get per spring rest length
             double r = spring->restLength;
+
+            // Compute nodes distance norm
             double l = d.abs();
+
+            // Compute nodes velocities difference to apply damping force
             Vector3f v = spring->node1->velocity - spring->node0->velocity;
+
+            // Compute per spring force as the sum of stress and damping components
             Vector3f f0 = Vector3f::ZERO;
             if (l > 0.0)
             {
-                f0 =
-                    (ks * (l / r - 1.0) + kd * (v.dot(v, d) / (l * r))) * d / l;
+                f0 = (ks * (l / r - 1.0) + kd * (v.dot(v, d) / (l * r))) * d / l;
             }
             spring->force = f0;
         }
 
-        // Add spring force to nodes
+        // Add spring force to nodes out of the parallel loop to avoid concurrency problems
         for (auto spring : mesh->springs)
         {
             spring->node0->force += spring->force;
             spring->node1->force -= spring->force;
         }
 
-        // Update nodes velocity and position
+        // Update nodes velocity and position applying an symplectic integration scheme
         OMP_PARALLEL_FOR
         for (uint64_t i = 0; i < mesh->nodes.size(); ++i)
         {
@@ -81,11 +98,11 @@ void AnimSystem::anim(MeshPtr mesh, uint64_t iterations)
     }
 }
 
-void AnimSystem::anim(Meshes meshes, uint64_t iterations)
+void AnimSystem::animate(Meshes meshes, uint64_t iterations)
 {
     for (auto mesh : meshes)
     {
-        anim(mesh, iterations);
+        animate(mesh, iterations);
     }
 }
 
@@ -98,7 +115,10 @@ void AnimSystem::setZeroForce(Nodes& nodes)
     }
 }
 
-void AnimSystem::setZeroForce(MeshPtr mesh) { setZeroForce(mesh->nodes); }
+void AnimSystem::setZeroForce(MeshPtr mesh)
+{
+    setZeroForce(mesh->nodes);
+}
 
 void AnimSystem::setZeroForce(Meshes meshes)
 {
@@ -108,6 +128,5 @@ void AnimSystem::setZeroForce(Meshes meshes)
     }
 }
 
-}  // namespace sim
-
-}  // namespace Ultraliser
+}
+}

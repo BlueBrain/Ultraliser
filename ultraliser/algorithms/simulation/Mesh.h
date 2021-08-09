@@ -3,8 +3,8 @@
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
  *
  * Author(s)
- *      Marwan Abdellah <marwan.abdellah@epfl.ch >
  *      Juan Jose Garcia Cantero <juanjose.garcia@epfl.ch>
+ *      Marwan Abdellah <marwan.abdellah@epfl.ch >
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -22,99 +22,97 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_SIM_SPRING_H
-#define ULTRALISER_SIM_SPRING_H
+#ifndef ULTRALISER_ALGORITHMS_SIMULATION_MESH_H
+#define ULTRALISER_ALGORITHMS_SIMULATION_MESH_H
 
-#include "Node.h"
+#include "Spring.h"
 
 namespace Ultraliser
 {
-namespace sim
+namespace Simulation
 {
 /**
- * @brief The Spring class
+ * @brief The Mesh class
  */
-class Spring
+class Mesh
 {
 public:
-    /**
-     * @brief Spring
-     * Constructor.
-     * @param position
-     * @param fixed
-     */
-    Spring(NodePtr node0,
-           NodePtr node1,
-           float stiffness,
-           float restLength = .0f);
 
     /**
-     * @brief length
+     * @brief Mesh
+     * Constructor
+     *
+     * @param stiff
+     * Spring stiffness
+     * @param damp
+     * Spring damping
      */
-    float length() const;
+    Mesh(float stiff = 1000.f, float damp = 1.f)
+        : stiffness(stiff)
+        , damping(damp){};
+
+    /**
+     * @brief Mesh
+     * Constructor
+     *
+     * @param nodes
+     * Mesh nodes
+     * @param springs
+     * Mesh springs
+     */
+    Mesh(Nodes nodes, Springs springs, float stiffnes = 1000.f, float damping = 1.f)
+        : Mesh(stiffnes, damping)
+    {
+        this->nodes = nodes;
+        this->springs = springs;
+    };
+
+    /**
+     * @brief ~Mesh
+     * Destructor
+     */
+    ~Mesh()
+    {
+        for (auto node : nodes)
+            delete node;
+
+        for (auto spring : springs)
+            delete spring;
+    }
 
 public:
     /**
-     * @brief node0
+     * @brief nodes
      */
-    NodePtr node0;
+    Nodes nodes;
 
     /**
-     * @brief node1
+     * @brief springs
      */
-    NodePtr node1;
+    Springs springs;
 
     /**
-     * @brief spring stiffness
+     * @brief stiffness
      */
     float stiffness;
 
     /**
-     * @brief spring rest length
+     * @brief damping
      */
-    float restLength;
-
-    /**
-     * @brief spring force
-     */
-    Vector3f force;
+    float damping;
 };
 
 /**
- * @brief SpringPtr
+ * @brief MeshPtr
  */
-typedef Spring* SpringPtr;
+typedef Mesh* MeshPtr;
 
 /**
- * @brief Springs
+ * @brief Meshes
  */
-typedef std::vector<SpringPtr> Springs;
+typedef std::vector<MeshPtr> Meshes;
 
-/**
- * @brief The Spring Hash class
- */
-class SpringHash
-{
-public:
-    size_t operator()(const SpringPtr spring) const;
-};
+}
+}
 
-/**
- * @brief The Spring Equal class
- */
-class SpringEqual
-{
-public:
-    bool operator()(const SpringPtr spring0, const SpringPtr spring1) const;
-};
-
-/**
- * @brief UniqueSprings
- */
-typedef std::unordered_set<SpringPtr, SpringHash, SpringEqual> UniqueSprings;
-
-}  // namespace sim
-
-}  // namespace Ultraliser
-
-#endif  // ULTRALISER_SIM_SPRING_H
+#endif  // ULTRALISER_ALGORITHMS_SIMULATION_MESH_H

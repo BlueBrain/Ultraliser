@@ -3,8 +3,8 @@
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
  *
  * Author(s)
- *      Marwan Abdellah <marwan.abdellah@epfl.ch >
  *      Juan Jose Garcia Cantero <juanjose.garcia@epfl.ch>
+ *      Marwan Abdellah <marwan.abdellah@epfl.ch >
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -22,89 +22,77 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_SIM_MESH_H
-#define ULTRALISER_SIM_MESH_H
+#ifndef ULTRALISER_ALGORITHMS_SIMULATION_ANIM_SYSTEM_H
+#define ULTRALISER_ALGORITHMS_SIMULATION_ANIM_SYSTEM_H
 
-#include "Spring.h"
+#include "Mesh.h"
 
 namespace Ultraliser
 {
-namespace sim
+namespace Simulation
 {
+
 /**
- * @brief The Mesh class
+ * @brief The AnimSystem class
  */
-class Mesh
+class AnimSystem
 {
 public:
-    /**
-     * @brief Mesh
-     * Constructor.
-     */
-    Mesh(float stiffnes = 1000.f, float damping = 1.f)
-        : stiffness(stiffness)
-        , damping(damping){};
 
     /**
-     * @brief Mesh
-     * Constructor.
+     * @brief AnimSystem
+     * Constructor
+     *
+     * @param dt
+     * Simulation time-step.
+     */
+    AnimSystem(float dt);
+
+    /**
+     * @brief anim
+     *
+     * @param mesh
+     */
+    void animate(MeshPtr mesh, uint64_t iterations = 1);
+
+    /**
+     * @brief anim
+     *
+     * @param meshes
+     */
+    void animate(Meshes meshes, uint64_t iterations = 1);
+
+    /**
+     * @brief setZeroForce
+     *
      * @param nodes
-     * @param springs
      */
-    Mesh(Nodes nodes,
-         Springs springs,
-         float stiffnes = 1000.f,
-         float damping = 1.f)
-        : Mesh(stiffnes, damping)
-    {
-        this->nodes = nodes;
-        this->springs = springs;
-    };
+    void setZeroForce(Nodes& nodes);
 
     /**
-     * @brief ~Mesh
-     * Destructor.
+     * @brief setZeroForce
+     *
+     * @param mesh
      */
-    ~Mesh()
-    {
-        for (auto node : nodes) delete node;
-        for (auto spring : springs) delete spring;
-    }
-
-public:
-    /**
-     * @brief nodes
-     */
-    Nodes nodes;
+    void setZeroForce(MeshPtr mesh);
 
     /**
-     * @brief springs
+     * @brief setZeroForce
+     *
+     * @param meshes
      */
-    Springs springs;
+    void setZeroForce(Meshes meshes);
+
+private:
 
     /**
-     * @brief stiffness
+     * @brief _dt
+     * Animation time-step.
      */
-    float stiffness;
-
-    /**
-     * @brief damping
-     */
-    float damping;
+    float _dt;
 };
 
-/**
- * @brief MeshPtr
- */
-typedef Mesh* MeshPtr;
+}
+}
 
-/**
- * @brief Meshes
- */
-typedef std::vector<MeshPtr> Meshes;
-
-}  // namespace sim
-
-}  // namespace Ultraliser
-
-#endif  // ULTRALISER_SIM_MESH_H
+#endif  // ULTRALISER_ALGORITHMS_SIMULATION_ANIM_SYSTEM_H

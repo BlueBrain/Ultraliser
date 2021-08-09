@@ -25,7 +25,8 @@
 #ifndef ULTRALISER_ICOSPHERE_GEOMETRY_H
 #define ULTRALISER_ICOSPHERE_GEOMETRY_H
 
-// clang-format off
+#include <common/Common.h>
+
 namespace Ultraliser
 {
 /**

@@ -577,7 +577,7 @@ void Mesh::computeAngles(float* computedMinAngle, float* computedMaxAngle,
 {
     // Initialize the angles
     float minAngle = std::numeric_limits< float >::max();
-    float maxAngle = std::numeric_limits< float >::min();
+    float maxAngle = std::numeric_limits< float >::lowest();
 
     // Initialize the numbers
     int64_t smallNumber = 0;

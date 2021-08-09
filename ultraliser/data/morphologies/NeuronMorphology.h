@@ -1,4 +1,4 @@
-/***************************************************************************************************
+﻿/***************************************************************************************************
  * Copyright (c) 2016 - 2021
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
  *
@@ -31,18 +31,22 @@
 
 namespace Ultraliser
 {
+
 class NeuronMorphology : public Morphology
 {
 public:
+
     /**
      * @brief NeuronMorphology
      * Constructor
+     *
      * @param swcSamples
-     * Samples list
+     * A list of SWC samples.
      */
     NeuronMorphology(const NeuronSWCSamples& swcSamples);
 
 public:
+
     /**
      * @brief getSomaSamples
      * @return Returns a reference to the list of soma samples.
@@ -56,11 +60,41 @@ public:
      */
     Sections getFirstSections() const;
 
+    /**
+     * @brief getSomaCenter
+     * Gets the center of the soma.
+     *
+     * @return
+     * The Cartesian center of the soma.
+     */
     Vector3f getSomaCenter() const;
 
-    float getSomaRadius() const;
+    /**
+     * @brief getSomaMeanRadius
+     * Gets the average radius of the soma.
+     * @return
+     * The average radius of the soma.
+     */
+    float getSomaMeanRadius() const;
+
+    /**
+     * @brief getSomaMinRadius
+     * Gets the minimum radius of the soma.
+     * @return
+     * The minimum radius of the soma.
+     */
+    float getSomaMinRadius() const;
+
+    /**
+     * @brief getSomaMaxRadius
+     * Gets the maximum radius of the soma.
+     * @return
+     * The maximum radius of the soma.
+     */
+    float getSomaMaxRadius() const;
 
 private:
+
     /**
      * @brief _constructMorphology
      * Loads the morphology data from the param swcSamples.
@@ -70,25 +104,54 @@ private:
     void _constructMorphology(const NeuronSWCSamples& swcSamples);
 
 private:
+
     /**
      * @brief _somaSamples
-     * A list of the actual samples of the morphology soma
+     * A list of the actual samples of the morphology soma.
      */
     Samples _somaSamples;
 
     /**
      * @brief _firstSecion
-     * A list of the first neurites secitions of the morphology
+     * A list of the first neurites secitions of the morphology.
      */
     Sections _firstSections;
 
+    /**
+     * @brief _somaCenter
+     * The center of the soma.
+     */
     Vector3f _somaCenter;
 
-    float _somaRadius;
+    /**
+     * @brief _somaMeanRadius
+     * The mean radius of the soma.
+     */
+    float _somaMeanRadius;
+
+    /**
+     * @brief _somaMinRadius
+     * The minimum radius of the soma.
+     */
+    float _somaMinRadius;
+
+    /**
+     * @brief _somaMaxRadius
+     * The maximum radius of the soma.
+     */
+    float _somaMaxRadius;
 };
 
+/**
+ * @brief readNeuronMorphology
+ * Reads the neuronal morphology from a given file.
+ * @param morphologyPath
+ * The path to the morpholog.
+ * @return
+ * NeuronMorphology object.
+ */
 NeuronMorphology* readNeuronMorphology(std::string& morphologyPath);
 
-}  // namespace Ultraliser
+}
 
 #endif  // ULTRALISER_DATA_MORPHOLOGIES_NEURON_MORPHOLOGY_H

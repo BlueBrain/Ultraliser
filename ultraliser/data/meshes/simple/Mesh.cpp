@@ -85,11 +85,13 @@ Mesh::Mesh(const Samples& samples)
 
 Mesh::Mesh(NeuronMorphology* morphology)
 {
-    SomaGeometry sg(morphology);
-    _numberVertices = sg.numVertices;
-    _vertices = sg.vertices;
-    _numberTriangles = sg.numTriangles;
-    _triangles = sg.triangles;
+    // Construct the somatic mesh from the neuron morphology
+    SomaGeometry somaGeometry(morphology);
+
+    _numberVertices = somaGeometry.numVertices;
+    _vertices = somaGeometry.vertices;
+    _numberTriangles = somaGeometry.numTriangles;
+    _triangles = somaGeometry.triangles;
 }
 
 Mesh::Mesh(Vertices vertices, Triangles triangles)

@@ -27,68 +27,80 @@
 
 #include <data/meshes/simple/primitives/Primitives.h>
 #include <data/morphologies/NeuronMorphology.h>
-
-#include "sim/AnimSystem.h"
+#include <algorithms/simulation/AnimSystem.h>
 
 namespace Ultraliser
 {
+
 /**
  * @brief The SomaGeometry class
  */
 class SomaGeometry
 {
 public:
+
     /**
      * @brief SomaGeometry
-     * Constructor.
+     * Constructor
+     *
      * @param morphology
-     * neuron moprhology to generate soma mesh from.
+     * The given neuron moprhology to generate the somatic mesh from.
      */
     SomaGeometry(NeuronMorphology* morphology);
 
 private:
+
     /**
      * @brief _insert
      * Insert spring in the unique springs set.
+     *
      * @param spring
+     * The given spring to be added.
      * @param springs
-     * @return
+     * A set of springs where the given spring will be added.
      */
-    void _insert(sim::SpringPtr spring, sim::UniqueSprings& springs);
+    void _insert(Simulation::SpringPtr spring, Simulation::UniqueSprings& springs);
 
     /**
      * @brief _loadIcosphereGeometry
      * Load geoemtry from icosphere data.
+     *
      * @return MeshPtr
+     * A pointer to the simulation mesh.
      */
-    sim::MeshPtr _loadIcosphereGeometry();
+    Simulation::MeshPtr _loadIcosphereGeometry();
 
     /**
      * @brief _nodesToVertices
-     * Dump nodes information to vertices and triangles.
-     * @return
+     * Dumps nodes' information to vertices and triangles.
      */
-    void _nodesToVertices(sim::Nodes& nodes);
+    void _nodesToVertices(Simulation::Nodes& nodes);
 
     /**
      * @brief _generateIcosphereSprings
      * Add springs based in the coarse icospehere geometry.
+     *
      * @param mesh
+     * Simulation mesh.
      * @param stiffness
-     * @return
+     * Simulation stiffness.
      */
-    void _generateIcosphereSprings(sim::MeshPtr mesh, float stiffness);
+    void _generateIcosphereSprings(Simulation::MeshPtr mesh, float stiffness);
 
     /**
      * @brief _generatePullSprings
-     * Add springs incharge to pull in the fisrSections directions.
+     * Adds springs incharge to pull in the fisrSections directions.
+     *
      * @param mesh
+     * Simulation mesh.
      * @param stiffness
+     * Simulation stiffness.
      * @param firstSecions
+     * A list of the first sections of the neuronal mophology.
      * @param restLengthThreshold
-     * @return
+     * The threshold length of the springs at the resting state.
      */
-    void _generatePullSprings(sim::MeshPtr mesh,
+    void _generatePullSprings(Simulation::MeshPtr mesh,
                               float stiffness,
                               const Sections& firstSections,
                               float restLengthThreshold = 0.2);
@@ -96,13 +108,16 @@ private:
     /**
      * @brief _fixCenterNode
      * Fixes the center nodes of the initial icosphere based on the threshold.
+     *
      * @param nodes
+     * Ico-sphere nodes list.
      * @param threshold
-     * @return
+     * A given threshold to fix the nodes at.
      */
-    void _fixCenterNodes(sim::Nodes& nodes, float threshold);
+    void _fixCenterNodes(Simulation::Nodes& nodes, float threshold);
 
 public:
+
     /**
      * @brief vertices
      * A list of all the vertices in the soma geometry.
@@ -128,13 +143,16 @@ public:
     uint64_t numTriangles;
 
 private:
+
     /**
      * @brief _somaCenter
+     * The center of the soma. Typically this is the origin, unless otherwise specified.
      */
     Vector3f _somaCenter;
 
     /**
      * @brief _somaRadius;
+     * The average radius of the soma.
      */
     float _somaRadius;
 };

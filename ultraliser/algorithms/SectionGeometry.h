@@ -40,7 +40,8 @@ public:
 
     /**
      * @brief CrossSectionGeometry
-     * Constructor.
+     * Constructor
+     *
      * @param samples
      * polyline samples to generate mesh from.
      * @param numberOfSides
@@ -50,7 +51,8 @@ public:
 
     /**
      * @brief CrossSectionGeometry
-     * Constructor.
+     * Constructor
+     *
      * @param samples
      * polyline samples to generate mesh from.
      * @param numberOfSides
@@ -58,12 +60,12 @@ public:
      * @param samplesPerSegment
      * number of samples per polyline segment
      */
-    SectionGeometry(const Samples& samples, uint64_t numberOfSides,
-                    uint64_t samplesPerSegment);
+    SectionGeometry(const Samples& samples, uint64_t numberOfSides, uint64_t samplesPerSegment);
 
     /**
      * @brief CrossSectionGeometry
-     * Constructor.
+     * Constructor
+     *
      * @param samples
      * polyline samples to generate mesh from.
      * @param numberOfSides
@@ -71,8 +73,7 @@ public:
      * @param pSamplesPerSegment
      * numbers vector of samples per polyline segment
      */
-    SectionGeometry(const Samples& samples, uint64_t numberOfSides,
-                    uint64_t* pSamplesPerSegment);
+    SectionGeometry(const Samples& samples, uint64_t numberOfSides, uint64_t* pSamplesPerSegment);
     
     virtual ~SectionGeometry();
 
@@ -121,7 +122,8 @@ public:
     
     /**
      * @brief CrossSectionGeometry
-     * Constructor.
+     * Constructor
+     *
      * @param numVertices
      * Number of the vertices of the cross section geometry.
      * @Param position
@@ -138,7 +140,8 @@ public:
 
     /**
      * @brief CrossSectionGeometry
-     * Copy constructor.
+     * Copy constructor
+     *
      * @param input
      * Input cross section geometry to be copied.
      */
@@ -147,6 +150,7 @@ public:
     /**
      * @brief setPosition
      * Updates the position of the cross section geometry.
+     *
      * @param position
      * The new position.
      */
@@ -155,6 +159,7 @@ public:
     /**
      * @brief setOrientation
      * Updates the oriantation of the cross section geometry.
+     *
      * @param orientation
      * The new orientation.
      */
@@ -163,6 +168,7 @@ public:
     /**
      * @brief setRadius
      * Updates the radius of the cross section geometry.
+     *
      * @param radius
      * The new radius.
      */
@@ -170,8 +176,8 @@ public:
 
     /**
      * @brief setPosition
-     * Updates the position, orientation and radius of the cross section
-     * geometry.
+     * Updates the position, orientation and radius of the cross section geometry.
+     *
      * @param position
      * The new position.
      * @param orientation

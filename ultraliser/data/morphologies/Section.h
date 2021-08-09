@@ -71,6 +71,14 @@ public:
     Samples getSamples() const;
 
     /**
+     * @brief getFirstSample
+     * Gets the first sample along the section./
+     * @return
+     * A pointer to the first sample along the section.
+     */
+    Sample* getFirstSample() const;
+
+    /**
      * @brief resampleSectionUniformly
      * Resamples the section uniformy.
      * @param step

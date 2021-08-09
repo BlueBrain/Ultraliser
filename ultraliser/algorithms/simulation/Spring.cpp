@@ -3,8 +3,8 @@
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
  *
  * Author(s)
- *      Marwan Abdellah <marwan.abdellah@epfl.ch >
  *      Juan Jose Garcia Cantero <juanjose.garcia@epfl.ch>
+ *      Marwan Abdellah <marwan.abdellah@epfl.ch >
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -22,73 +22,56 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_SIM_NODE_H
-#define ULTRALISER_SIM_NODE_H
-
-#include <math/Math.h>
+#include "Spring.h"
 
 namespace Ultraliser
 {
-namespace sim
+namespace Simulation
 {
-/**
- * @brief The Node class
- */
-class Node
+
+Spring::Spring(NodePtr n0, NodePtr n1, float stiff, float rLength)
+    : node0(n0)
+    , node1(n1)
+    , stiffness(stiff)
+    , restLength(rLength)
 {
-public:
-    /**
-     * @brief Node
-     *
-     * @param position
-     * @param fixed
-     */
-    Node(Vector3f position_, bool fixed_ = false)
-        : position(position_)
-        , fixed(fixed_)
-        , index(0)
+    if (restLength == 0.f)
     {
+        restLength = length();
     }
+}
 
-public:
-    /**
-     * @brief position
-     */
-    Vector3f position;
+float Spring::length() const
+{
+    // Compute the current length of the spring
+    return (node0->position - node1->position).abs();
+}
 
-    /**
-     * @brief velocity
-     */
-    Vector3f velocity;
+size_t SpringHash::operator()(const SpringPtr spring) const
+{
+    uint64_t id0 = spring->node0->index;
+    uint64_t id1 = spring->node1->index;
 
-    /**
-     * @brief force
-     */
-    Vector3f force;
+    if (id1 > id0)
+        std::swap(id1, id0);
 
-    /**
-     * @brief position fixed
-     */
-    bool fixed;
+    return std::hash<unsigned int>{}(id0) ^ std::hash<unsigned int>{}(id1);
+}
 
-    /**
-     * @brief index
-     */
-    uint32_t index;
-};
+bool SpringEqual::operator()(const SpringPtr spring0, const SpringPtr spring1) const
+{
+    uint64_t id00 = spring0->node0->index;
+    uint64_t id01 = spring0->node1->index;
+    uint64_t id10 = spring1->node0->index;
+    uint64_t id11 = spring1->node1->index;
 
-/**
- * @brief NodePtr
- */
-typedef Node* NodePtr;
+    if (id01 > id00)
+        std::swap(id00, id01);
+    if (id11 > id10)
+        std::swap(id10, id11);
 
-/**
- * @brief Nodes
- */
-typedef std::vector<NodePtr> Nodes;
+    return (id00 == id10) && (id01 == id11);
+}
 
-}  // namespace sim
-
-}  // namespace Ultraliser
-
-#endif  // ULTRALISER_SIM_NODE_H
+}
+}

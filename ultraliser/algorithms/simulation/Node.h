@@ -3,8 +3,8 @@
  * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
  *
  * Author(s)
- *      Marwan Abdellah <marwan.abdellah@epfl.ch >
  *      Juan Jose Garcia Cantero <juanjose.garcia@epfl.ch>
+ *      Marwan Abdellah <marwan.abdellah@epfl.ch >
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -22,49 +22,76 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#include "Spring.h"
+#ifndef ULTRALISER_ALGORITHMS_SIMULATION_NODE_H
+#define ULTRALISER_ALGORITHMS_SIMULATION_NODE_H
+
+#include <math/Math.h>
 
 namespace Ultraliser
 {
-namespace sim
+namespace Simulation
 {
-Spring::Spring(NodePtr node0, NodePtr node1, float stiffness, float restLength_)
-    : node0(node0)
-    , node1(node1)
-    , stiffness(stiffness)
-    , restLength(restLength_)
+
+/**
+ * @brief The Node class
+ */
+class Node
 {
-    if (restLength == .0f)
+public:
+
+    /**
+     * @brief Node
+     *
+     * @param position
+     * @param fixed
+     */
+    Node(Vector3f pos, bool fix = false)
+        : position(pos)
+        , fixed(fix)
+        , index(0)
     {
-        restLength = length();
+        /// EMPTY CONSTRUCTOR
     }
+
+public:
+
+    /**
+     * @brief position
+     */
+    Vector3f position;
+
+    /**
+     * @brief velocity
+     */
+    Vector3f velocity;
+
+    /**
+     * @brief force
+     */
+    Vector3f force;
+
+    /**
+     * @brief position fixed
+     */
+    bool fixed;
+
+    /**
+     * @brief index
+     */
+    uint32_t index;
+};
+
+/**
+ * @brief NodePtr
+ */
+typedef Node* NodePtr;
+
+/**
+ * @brief Nodes
+ */
+typedef std::vector< NodePtr > Nodes;
+
+}
 }
 
-float Spring::length() const
-{
-    return (node0->position - node1->position).abs();
-}
-
-size_t SpringHash::operator()(const SpringPtr spring) const
-{
-    uint64_t id0 = spring->node0->index;
-    uint64_t id1 = spring->node1->index;
-    if (id1 > id0) std::swap(id1, id0);
-    return std::hash<unsigned int>{}(id0) ^ std::hash<unsigned int>{}(id1);
-}
-
-bool SpringEqual::operator()(const SpringPtr spring0,
-                             const SpringPtr spring1) const
-{
-    uint64_t id00 = spring0->node0->index;
-    uint64_t id01 = spring0->node1->index;
-    uint64_t id10 = spring1->node0->index;
-    uint64_t id11 = spring1->node1->index;
-    if (id01 > id00) std::swap(id00, id01);
-    if (id11 > id10) std::swap(id10, id11);
-    return (id00 == id10) && (id01 == id11);
-}
-
-}  // namespace sim
-
-}  // namespace Ultraliser
+#endif  // ULTRALISER_ALGORITHMS_SIMULATION_NODE_H

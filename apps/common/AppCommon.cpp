@@ -115,9 +115,9 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
 
 
         // Compute the bounding box of the group
-        pMax.x() = std::numeric_limits< float >::min();
-        pMax.y() = std::numeric_limits< float >::min();
-        pMax.z() = std::numeric_limits< float >::min();
+        pMax.x() = std::numeric_limits< float >::lowest();
+        pMax.y() = std::numeric_limits< float >::lowest();
+        pMax.z() = std::numeric_limits< float >::lowest();
 
         pMin.x() = std::numeric_limits< float >::max();
         pMin.z() = std::numeric_limits< float >::max();

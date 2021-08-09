@@ -33,15 +33,13 @@ AppOptions* parseArguments(const int& argc, const char** argv)
     // Arguments
     std::unique_ptr<AppArguments> args = std::make_unique<AppArguments>(
         argc, argv,
-        "This tool reconstructs a watertight polygonal mesh from an input "
-        "neuron "
-        "morphology. The generated mesh can be also optimized to reduce the "
-        "number of "
-        "triangles while preserving the volume. "
-        "The output mesh is guaranteed in all cases to be two-advanced with no "
-        "self-intersecting "
-        "faces unless the --ignore-self-intersections flag is enabled.");
+        "This tool reconstructs a watertight polygonal mesh from an input neuron morphology. "
+        "The generated mesh can be also optimized to reduce the number of triangles while "
+        "preserving the volume. "
+        "The output mesh is guaranteed in all cases to be two-manifold with no self-intersections"
+        "unless the --ignore-self-intersections flag is enabled.");
 
+    // Adding the arguments
     args->addInputMorphologyArguments();
     args->addOutputArguments();
     args->addVolumeArguments();
@@ -54,8 +52,7 @@ AppOptions* parseArguments(const int& argc, const char** argv)
 
     LOG_TITLE("Creating Context");
 
-    // Verify the arguments after parsing them and extracting the application
-    // options.
+    // Verify the arguments after parsing them and extracting the application options.
     options->verifyInputMorphologyArgument();
     options->verifyOutputDirectoryArgument();
     options->verifyBoudsFileArgument();
@@ -77,16 +74,14 @@ void run(int argc, const char** argv)
     auto neuronMorphology = readNeuronMorphology(options->inputMorphologyPath);
 
     if (options->writeStatistics)
-        neuronMorphology->printStats(options->prefix,
-                                     &options->statisticsPrefix);
+        neuronMorphology->printStats(options->prefix, &options->statisticsPrefix);
 
     if (options->writeDistributions)
         neuronMorphology->printDistributions(&options->distributionsPrefix);
 
     // Get relaxed bounding box to build the volume
     Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
-    neuronMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB,
-                                     inputCenter);
+    neuronMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
 
     // Get the largest dimension
     float largestDimension = inputBB.getLargestDimension();
@@ -98,8 +93,7 @@ void run(int argc, const char** argv)
         resolution = uint64_t(options->voxelsPerMicron * largestDimension);
     else
         resolution = options->volumeResolution;
-    LOG_WARNING("Volume resolution [%d], Largest dimension [%f]", resolution,
-                largestDimension);
+    LOG_WARNING("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);
 
     // Construct the volume
     Volume* volume =
