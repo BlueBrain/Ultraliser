@@ -232,7 +232,9 @@ void NeuronMorphology::_constructMorphology(const NeuronSWCSamples& swcSamples)
 
 NeuronMorphology* readNeuronMorphology(std::string& morphologyPath)
 {
-    if (String::subStringFound(morphologyPath, std::string(".swc")))
+    if (String::subStringFound(morphologyPath, std::string(".swc")) ||
+        String::subStringFound(morphologyPath, std::string(".SWC")) ||
+        String::subStringFound(morphologyPath, std::string(".Swc")))
     {
         // Read the file
         auto reader = std::make_unique< NeuronSWCReader >(morphologyPath);
