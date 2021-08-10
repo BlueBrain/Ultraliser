@@ -23,7 +23,6 @@
  **************************************************************************************************/
 
 #include "NeuronMorphology.h"
-
 #include <common/Common.h>
 #include <data/morphologies/NeuronSWCReader.h>
 #include <utilities/Utilities.h>
@@ -244,8 +243,7 @@ NeuronMorphology* readNeuronMorphology(std::string& morphologyPath)
     }
     else
     {
-        LOG_ERROR("Unrecognized morphology file format [ %s ]",
-                  morphologyPath.c_str());
+        LOG_ERROR("Unrecognized morphology file format [ %s ]", morphologyPath.c_str());
     }
 
     // To avoid any warning issues.

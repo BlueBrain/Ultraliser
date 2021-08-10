@@ -98,8 +98,7 @@ void VasculatureH5Reader::_readStructure()
 void VasculatureH5Reader::_readConnectivity()
 {
     // Read the connectivity data set
-    H5::DataSet connectivityDataSet =
-            _h5MorphologyFile->openDataSet("connectivity");
+    H5::DataSet connectivityDataSet = _h5MorphologyFile->openDataSet("connectivity");
 
     // Get its data-space to be able to access its dimensionality
     H5::DataSpace dataspace = connectivityDataSet.getSpace();

@@ -385,7 +385,7 @@ void Mesh::import(const std::string& fileName, const bool& verbose)
         break;
     }
     default:
-        LOG_ERROR("The mesh [ %s ] CANNOT be read.", fileName.c_str());
+        LOG_ERROR("The mesh [ %s ] CANNOT be read!", fileName.c_str());
     }
 
     _numberVertices = loadedVertices.size();
