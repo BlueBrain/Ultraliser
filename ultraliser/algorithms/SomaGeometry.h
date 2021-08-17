@@ -45,8 +45,15 @@ public:
      *
      * @param morphology
      * The given neuron moprhology to generate the somatic mesh from.
+     * @param stiffness
+     * Simulation stiffness factor. Takes values between 0 and 1.
+     * @param dt
+     * Simulation time increment.
+     * @param numIterations
+     * Nunber of simulation iterations.
      */
-    SomaGeometry(NeuronMorphology* morphology);
+    SomaGeometry(NeuronMorphology* morphology, float stiffness = 1.0f, float dt = 0.01f, 
+                 uint32_t numIterations = 8000);
 
 private:
 
@@ -83,9 +90,11 @@ private:
      * @param mesh
      * Simulation mesh.
      * @param stiffness
-     * Simulation stiffness.
+     * Simulation stiffness
+     * @return 
+     * Icosphere springs.
      */
-    void _generateIcosphereSprings(Simulation::MeshPtr mesh, float stiffness);
+     Simulation::Springs _generateIcosphereSprings(Simulation::MeshPtr mesh, float stiffness);
 
     /**
      * @brief _generatePullSprings
@@ -99,11 +108,13 @@ private:
      * A list of the first sections of the neuronal mophology.
      * @param restLengthThreshold
      * The threshold length of the springs at the resting state.
+     * @return 
+     * Pull springs.
      */
-    void _generatePullSprings(Simulation::MeshPtr mesh,
-                              float stiffness,
-                              const Sections& firstSections,
-                              float restLengthThreshold = 0.2);
+    Simulation::Springs _generatePullSprings(Simulation::MeshPtr mesh,
+                                             float stiffness,
+                                             const Sections& firstSections,
+                                             float restLengthThreshold = 0.2);
 
     /**
      * @brief _fixCenterNode

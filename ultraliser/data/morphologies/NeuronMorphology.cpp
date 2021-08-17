@@ -226,6 +226,8 @@ void NeuronMorphology::_constructMorphology(const NeuronSWCSamples& swcSamples)
     {
         _somaCenter = _somaSamples[0]->getPosition();
         _somaMeanRadius = _somaSamples[0]->getRadius();
+        _somaMinRadius = _somaMeanRadius;
+        _somaMaxRadius = _somaMeanRadius;
     }
 }
 

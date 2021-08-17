@@ -86,7 +86,7 @@ Mesh::Mesh(const Samples& samples)
 Mesh::Mesh(NeuronMorphology* morphology)
 {
     // Construct the somatic mesh from the neuron morphology
-    SomaGeometry somaGeometry(morphology);
+    SomaGeometry somaGeometry(morphology, 1.0f, 0.01f, 6000);
 
     _numberVertices = somaGeometry.numVertices;
     _vertices = somaGeometry.vertices;

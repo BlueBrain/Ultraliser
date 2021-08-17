@@ -28,7 +28,8 @@
 
 namespace Ultraliser
 {
-SomaGeometry::SomaGeometry(NeuronMorphology* morphology)
+SomaGeometry::SomaGeometry(NeuronMorphology* morphology, float stiffness, float dt, 
+    uint32_t numIterations)
     : numVertices(0)
     , numTriangles(0)
 {
@@ -41,12 +42,29 @@ SomaGeometry::SomaGeometry(NeuronMorphology* morphology)
         _somaRadius = morphology->getSomaMinRadius();
 
         auto mesh = _loadIcosphereGeometry();
-        _fixCenterNodes(mesh->nodes, 0.5);
-        _generateIcosphereSprings(mesh, 500);
-        _generatePullSprings(mesh, 100.0f, morphology->getFirstSections(), 0.2);
 
-        Simulation::AnimSystem animSystem(0.01f);
-        animSystem.animate(mesh, 1000);
+        // Compute maximum stiffness to preserve the simulation stability
+        float springStiffness = (1.0f / (dt / (2 * M_PI))) * 0.01f * clamp(stiffness, 0.0f, 1.0f);
+        float pullStiffness = 0.0f;
+
+        auto icoSprings = _generateIcosphereSprings(mesh, springStiffness);
+        auto pullSprings = _generatePullSprings(mesh, 0.0f, morphology->getFirstSections(), 0.01f);
+
+        Simulation::AnimSystem animSystem(dt);
+
+        // Perform the icosphere animation adapting the stiffness of the pull springs
+        Simulation::Springs& springs = mesh->springs;
+        float stiffnessIncrement = springStiffness / numIterations;
+        for (uint32_t i = 0; i < numIterations; ++i)
+        {
+            pullStiffness += stiffnessIncrement;
+            for(auto spring : pullSprings)
+                spring->stiffness = pullStiffness;
+            springs = icoSprings;
+            springs.insert(springs.begin(), pullSprings.begin(), pullSprings.end());
+            animSystem.animate(mesh);
+        }
+
         _nodesToVertices(mesh->nodes);
     }
     else
@@ -118,7 +136,8 @@ void SomaGeometry::_nodesToVertices(Simulation::Nodes& nodes)
     }
 }
 
-void SomaGeometry::_generateIcosphereSprings(Simulation::MeshPtr mesh, float stiffness)
+Simulation::Springs SomaGeometry::_generateIcosphereSprings(Simulation::MeshPtr mesh, 
+                                                            float stiffness)
 {
     Simulation::UniqueSprings uSprings;
     for (uint64_t i = 0; i < IcosphereTetsIndicesSize; ++i)
@@ -135,14 +154,16 @@ void SomaGeometry::_generateIcosphereSprings(Simulation::MeshPtr mesh, float sti
         _insert(new Simulation::Spring(node1, node3, stiffness), uSprings);
         _insert(new Simulation::Spring(node2, node3, stiffness), uSprings);
     }
-    mesh->springs.insert(mesh->springs.end(), uSprings.begin(), uSprings.end());
+    Simulation::Springs springs(uSprings.begin(), uSprings.end());
+    return springs;
 }
 
-void SomaGeometry::_generatePullSprings(Simulation::MeshPtr mesh,
-                                        float stiffness,
-                                        const Sections& firstSections,
-                                        float restLengthThreshold)
+Simulation::Springs SomaGeometry::_generatePullSprings(Simulation::MeshPtr mesh,
+                                                       float stiffness,
+                                                       const Sections& firstSections,
+                                                       float restLengthThreshold)
 {
+    Simulation::Springs springs;
     for (auto section : firstSections)
     {
         Vector3f startPos = section->getSamples()[0]->getPosition();
@@ -154,9 +175,9 @@ void SomaGeometry::_generatePullSprings(Simulation::MeshPtr mesh,
 
         // Compute displacement from icosphere surface to neurite start
         float diff = (startPos - surfacePos).abs();
-        if (diff < 0.1)
+        if (diff < 0.1f)
         {
-            diff = 0.1;
+            diff = 0.1f;
         }
         direction *= diff;
 
@@ -171,11 +192,12 @@ void SomaGeometry::_generatePullSprings(Simulation::MeshPtr mesh,
                 Vector3f linkPosition = node->position + direction;
                 auto linkNode = new Simulation::Node(linkPosition, true);
                 mesh->nodes.push_back(linkNode);
-                mesh->springs.push_back(new Simulation::Spring(
+                springs.push_back(new Simulation::Spring(
                     node, linkNode, stiffness, diff * restLengthThreshold));
             }
         }
     }
+    return springs;
 }
 
 void SomaGeometry::_fixCenterNodes(Simulation::Nodes& nodes, float threshold)

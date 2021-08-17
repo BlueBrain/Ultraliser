@@ -37,9 +37,6 @@ AnimSystem::AnimSystem(float dt)
 
 void AnimSystem::animate(MeshPtr mesh, uint64_t iterations)
 {
-    // Damping factor
-    double kd = mesh->damping;
-
     for (uint64_t it = 0; it < iterations; it++)
     {
         // Reset node forces to zero value
@@ -49,30 +46,7 @@ void AnimSystem::animate(MeshPtr mesh, uint64_t iterations)
         OMP_PARALLEL_FOR
         for (uint64_t i = 0; i < mesh->springs.size(); ++i)
         {
-            auto spring = mesh->springs[i];
-
-            // Get per spring stiffness constant
-            double ks = spring->stiffness;
-
-            // Compute spring nodes distance
-            Vector3f d = spring->node1->position - spring->node0->position;
-
-            // Get per spring rest length
-            double r = spring->restLength;
-
-            // Compute nodes distance norm
-            double l = d.abs();
-
-            // Compute nodes velocities difference to apply damping force
-            Vector3f v = spring->node1->velocity - spring->node0->velocity;
-
-            // Compute per spring force as the sum of stress and damping components
-            Vector3f f0 = Vector3f::ZERO;
-            if (l > 0.0)
-            {
-                f0 = (ks * (l / r - 1.0) + kd * (v.dot(v, d) / (l * r))) * d / l;
-            }
-            spring->force = f0;
+            mesh->springs[i]->computeForce();
         }
 
         // Add spring force to nodes out of the parallel loop to avoid concurrency problems
@@ -89,10 +63,8 @@ void AnimSystem::animate(MeshPtr mesh, uint64_t iterations)
             auto node = mesh->nodes[i];
             if (!node->fixed)
             {
-                Vector3f v = node->velocity + node->force * _dt;
-                Vector3f x = node->position + v * _dt;
-                node->velocity = v;
-                node->position = x;
+                node->velocity = node->velocity + node->force * _dt;
+                node->position = node->position + node->velocity * _dt;
             }
         }
     }

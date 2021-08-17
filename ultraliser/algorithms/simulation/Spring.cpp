@@ -47,6 +47,29 @@ float Spring::length() const
     return (node0->position - node1->position).abs();
 }
 
+void Spring::computeForce()
+{
+    // Compute damping constant from stiffness constant
+    double kd = stiffness * 0.01f;
+
+    // Compute spring nodes distance
+    Vector3f d = node1->position - node0->position;
+
+    // Compute nodes distance norm
+    double l = d.abs();
+
+    // Compute nodes velocities difference to apply damping force
+    Vector3f v = node1->velocity - node0->velocity;
+
+    // Compute per spring force as the sum of stress and damping components
+    force = Vector3f::ZERO;
+    if (l > 0.0f)
+    {
+        force = (stiffness * (l / restLength - 1.0f) +
+                 kd * (v.dot(v, d) / (l * restLength))) * d / l;
+    }
+}
+
 size_t SpringHash::operator()(const SpringPtr spring) const
 {
     uint64_t id0 = spring->node0->index;

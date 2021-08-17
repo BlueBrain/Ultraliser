@@ -60,6 +60,12 @@ public:
      */
     float length() const;
 
+    /**
+     * @brief computeForce
+     * Compute spring force based on nodes positions and velocities
+     */
+    void computeForce();
+
 public:
 
     /**
