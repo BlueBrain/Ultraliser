@@ -61,5 +61,8 @@ add_subdirectory(ultraNeuroMorpho2Mesh)
 # ultraH5MeshConverter
 add_subdirectory(ultraH5MeshConverter)
 
+# ultraVerifyVMVConnectivity
+# add_subdirectory(ultraVerifyVMVConnectivity)
+
 
 

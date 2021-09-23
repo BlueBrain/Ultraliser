@@ -20,35 +20,39 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_READER_H
-#define ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_READER_H
+#ifndef ULTRALISER_DATA_MORPHOLOGIES_NEURON_SWC_READER_H
+#define ULTRALISER_DATA_MORPHOLOGIES_NEURON_SWC_READER_H
 
 #include <string>
 #include <vector>
-#include <data/morphologies/VasculatureH5Sample.hh>
-#include <data/morphologies/VasculatureH5Section.hh>
-#include <data/morphologies/VasculatureH5Connectivity.hh>
-#include <data/morphologies/VasculatureMorphology.h>
-
-#include <hdf5.h>
-#include "H5Cpp.h"
+#include <data/morphologies/swc/NeuronSWCSample.hh>
+#include <data/morphologies/NeuronMorphology.h>
 
 namespace Ultraliser
 {
 
-class VasculatureH5Reader
+class NeuronSWCReader
 {
 public:
-    VasculatureH5Reader(const std::string &h5MorphologyFilePath);
 
+    /**
+     * @brief NeuronSWCReader
+     * Constructor
+     * @param swcMorphologyFilePath
+     * The path to the morphology file.
+     */
+    NeuronSWCReader(const std::string &swcMorphologyFilePath);
+    
+    ~NeuronSWCReader();
+    
 public:
 
     /**
      * @brief getMorphology
-     * Return a pointer to the vasculature morphology.
+     * Return a pointer to the neuron morphology.
      * @return Return a pointer to the morphology.
      */
-    VasculatureMorphology* getMorphology();
+    NeuronMorphology* getMorphology();
 
 private:
 
@@ -56,52 +60,16 @@ private:
      * @brief _readSamples
      * Reads the samples from the morphology file.
      */
-    void _readSamples();
-
-    /**
-     * @brief _readStructure
-     * Reads the structure, or the sections, from the morphology file.
-     */
-    void _readStructure();
-
-    /**
-     * @brief _readConnectivity
-     * Reads the connectivity information form the morphology file.
-     */
-    void _readConnectivity();
+    void _readSamples(const std::string &swcMorphologyFilePath);
 
 private:
 
     /**
-     * @brief _h5MorphologyFile
-     * The path to the H5 morphology file
-     */
-    std::string _h5MorphologyFilePath;
-
-    /**
-     * @brief _h5MorphologyFile
-     * A pointer to the .h5 file where we can access all of its data.
-     */
-    H5::H5File* _h5MorphologyFile;
-
-    /**
      * @brief _samples
-     * Vasculature samples.
+     * Neuron samples.
      */
-    VasculatureH5Samples _samples;
-
-    /**
-     * @brief _structure
-     * Vasculature structure.
-     */
-    VasculatureH5Sections _structure;
-
-    /**
-     * @brief _connectivity
-     * Vasculature connectivity.
-     */
-    VasculatureH5ConnectivityList _connectivity;
+    NeuronSWCSamples _samples;
 };
 
 }
-#endif // ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_READER_H
+#endif // ULTRALISER_DATA_MORPHOLOGIES_NEURON_SWC_READER_H

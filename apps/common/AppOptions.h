@@ -202,6 +202,11 @@ public:
     std::string meshPrefix;
 
     /**
+     * @brief morphologyPrefix
+     */
+    std::string morphologyPrefix;
+
+    /**
      * @brief volumePrefix
      */
     std::string volumePrefix;

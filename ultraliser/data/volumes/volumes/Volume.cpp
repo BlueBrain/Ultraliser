@@ -238,7 +238,7 @@ void Volume::surfaceVoxelization(Mesh* mesh,
 }
 
 void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
-    VasculatureMorphology* vasculatureMorphology)
+        VasculatureMorphology* vasculatureMorphology)
 {
     LOG_TITLE("Surface Voxelization (Parallel)");
 
@@ -255,9 +255,7 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
     for (uint64_t i = 0; i < sections.size(); i++)
     {
         // Construct the paths
-        Paths paths =
-            vasculatureMorphology->getConnectedPathsFromParentsToChildren(
-                sections[i]);
+        Paths paths = vasculatureMorphology->getConnectedPathsFromParentsToChildren(sections[i]);
         for (uint64_t j = 0; j < paths.size(); ++j)
         {
             auto mesh = new Mesh(paths[j]);
@@ -305,7 +303,7 @@ void Volume::surfaceVoxelizeNeuronMorphologyParallel(
         Samples samples = section->getSamples();
         Vector3f newSamplePos = neuronMorphology->getSomaCenter();
         samples.insert(samples.begin(),
-                       new Sample(newSamplePos, samples[0]->getRadius()));
+                       new Sample(newSamplePos, samples[0]->getRadius(), i));
         auto mesh = new Mesh(samples);
         _rasterize(mesh, _grid);
         LOOP_PROGRESS(PROGRESS, firstSections.size() + sections.size());
@@ -359,8 +357,8 @@ void Volume::surfaceVoxelization(const std::string& inputDirectory,
     LOG_TITLE("Surface Voxelization");
     TIMER_SET;
 
-    LOG_STATUS("Creating Volume Shell [%d x %d x %d]", _gridDimensions[0],
-               _gridDimensions[1], _gridDimensions[2]);
+    LOG_STATUS("Creating Volume Shell [%d x %d x %d]",
+               _gridDimensions[0], _gridDimensions[1], _gridDimensions[2]);
     uint64_t processedMeshCount = 0;
     LOOP_STARTS("Rasterization");
     PROGRESS_SET;

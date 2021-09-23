@@ -59,9 +59,13 @@ Samples Section::getSamples() const
 
 Sample* Section::getFirstSample() const
 {
-    return _samples.at(0);
+    return _samples.front();
 }
 
+Sample* Section::getLastSample() const
+{
+    return _samples.back();
+}
 
 std::vector< uint64_t > Section::getParentIndices() const
 {

@@ -143,6 +143,13 @@ public:
     Vector3f zxy() const;
 
     /**
+     * @brief distance
+     * @param v
+     * @return
+     */
+    float distance(const Vector3f& v) const;
+
+    /**
      * @brief abs
      * @return
      */

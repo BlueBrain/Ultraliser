@@ -148,6 +148,13 @@ Vector3f Vector3f::zxy() const
     return Vector3f(_elements[2], _elements[0], _elements[1]);
 }
 
+float Vector3f::distance(const Vector3f& v) const
+{
+    return sqrt((v._elements[0] - _elements[0]) * (v._elements[0] - _elements[0]) +
+                (v._elements[1] - _elements[1]) * (v._elements[1] - _elements[1]) +
+                (v._elements[2] - _elements[2]) * (v._elements[2] - _elements[2]));
+}
+
 float Vector3f::abs() const
 {
     return sqrt(_elements[0] * _elements[0] +

@@ -24,17 +24,12 @@
 
 #include <data/morphologies/Sample.h>
 #include <data/morphologies/Section.h>
-#include <data/morphologies/Morphologies.h>
 #include <data/morphologies/Morphology.h>
-#include <data/morphologies/NeuronSWCReader.h>
-#include <data/morphologies/NeuronSWCSample.hh>
 #include <data/morphologies/NeuronMorphology.h>
-#include <data/morphologies/VasculatureH5Reader.h>
-#include <data/morphologies/VasculatureH5Sample.hh>
-#include <data/morphologies/VasculatureH5Section.hh>
-#include <data/morphologies/VasculatureH5Connectivity.hh>
 #include <data/morphologies/VasculatureMorphology.h>
-#include <data/morphologies/VasculatureVMVReader.h>
+#include <data/morphologies/h5/H5.h>
+#include <data/morphologies/swc/SWC.h>
+#include <data/morphologies/vmv/VMV.h>
 
 #endif // ULTRALISER_DATA_MORPHOLOGIES_DATA_H
 

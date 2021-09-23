@@ -13,8 +13,8 @@ VasculatureVMVReader::VasculatureVMVReader(const std::string &vmvMorphologyFileP
     // Read the samples
     _readSamples();
 
-    // Read the connectivity
-    _readConnectivity();
+    // Read the strands
+    _readStrands();
 }
 
 VasculatureMorphology* VasculatureVMVReader::getMorphology()
@@ -151,7 +151,7 @@ void VasculatureVMVReader::_readSamples()
              std::back_inserter(tokens));
 
         // Vertex index is ignored
-        // const uint64_t vertexIndex = S2UI(tokens[0]);
+        const uint64_t vertexIndex = S2UI(tokens[0]);
 
         // Sample attributes
         const float x = S2F(tokens[1]);
@@ -162,12 +162,12 @@ void VasculatureVMVReader::_readSamples()
             r = 0.1;
 
         // Construct the sample
-        Sample* sample = new Sample(Vector3f(x, y, z), r);
+        Sample* sample = new Sample(Vector3f(x, y, z), r, vertexIndex);
         _samples.push_back(sample);
     }
 }
 
-void VasculatureVMVReader::_readConnectivity()
+void VasculatureVMVReader::_readStrands()
 {
     std::ifstream stream;
     stream.open(_vmvMorphologyFile.c_str());
@@ -215,7 +215,6 @@ void VasculatureVMVReader::_readConnectivity()
         copy(std::istream_iterator< std::string >(iss),
              std::istream_iterator< std::string >(),
              std::back_inserter(tokens));
-        // LOG_INFO("%s", cleanLine.c_str());
 
         // Section index is at index 0 of the tokens
         uint64_t sectionIndex = S2UI(tokens[0]);
@@ -224,7 +223,6 @@ void VasculatureVMVReader::_readConnectivity()
         // Fill the section with its sampless
         for (uint64_t i = 1; i < tokens.size(); ++i)
         {
-            //LOG_INFO("%s", tokens[i].c_str());
             // Get the section sample and construct it
             const uint64_t sampleIndex = S2UI(tokens[i]);
             section->addSample(_samples[sampleIndex - 1]);

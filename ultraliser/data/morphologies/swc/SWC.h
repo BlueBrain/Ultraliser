@@ -4,7 +4,6 @@
  *
  * Author(s)
  *      Marwan Abdellah < marwan.abdellah@epfl.ch >
- *      Juan Jose Garcia Cantero < juanjose.garcia@epfl.ch>
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -20,32 +19,14 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#include "Sample.h"
+#ifndef ULTRALISER_DATA_MORPHOLOGIES_SWC_H
+#define ULTRALISER_DATA_MORPHOLOGIES_SWC_H
 
-namespace Ultraliser
-{
+#include <data/morphologies/swc/NeuronSWCSample.hh>
+#include <data/morphologies/swc/NeuronSWCReader.h>
 
-Sample::Sample(const Vector3f &position, const float &radius, const uint64_t &index)
-    : _position(position)
-    , _radius(radius)
-    , _index(index)
-{
-    /// EMPTY CONSTRUCTOR
-}
+#endif // ULTRALISER_DATA_MORPHOLOGIES_SWC_H
 
-Ultraliser::Vector3f Sample::getPosition() const
-{
-    return _position;
-}
 
-float Sample::getRadius() const
-{
-    return _radius;
-}
 
-uint64_t Sample::getIndex() const
-{
-    return _index;
-}
 
-}

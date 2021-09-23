@@ -168,6 +168,16 @@ void AppOptions::createRespectiveDirectories()
         mkdir(path.str().c_str(), 0777);
     }
 
+    // Morphologies directory
+    // TODO: FIXME
+    if (true)
+    {
+        std::stringstream path;
+        path << outputDirectory << "/" << MORPHOLOGIES_DIRECTORY;
+        mkdir(path.str().c_str(), 0777);
+    }
+
+
     // Volumes directory
     if (exportBitVolume || exportByteVolume || exportNRRDVolume)
     {
@@ -216,6 +226,8 @@ void AppOptions::initializeContext()
             outputDirectory + "/" + prefix;
     meshPrefix =
             outputDirectory + "/" + MESHES_DIRECTORY +  "/" + prefix;
+    morphologyPrefix =
+            outputDirectory + "/" + MORPHOLOGIES_DIRECTORY +  "/" + prefix;
     volumePrefix =
             outputDirectory + "/" + VOLUMES_DIRECTORY +  "/" + prefix;
     projectionPrefix =
@@ -224,7 +236,6 @@ void AppOptions::initializeContext()
             outputDirectory + "/" + STATISTICS_DIRECTORY +  "/" + prefix;
     distributionsPrefix =
             outputDirectory + "/" + DISTRIBUTIONS_DIRECTORY +  "/" + prefix;
-
     // Create the respective directories
     createRespectiveDirectories();
 

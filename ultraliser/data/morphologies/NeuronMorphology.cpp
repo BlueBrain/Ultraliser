@@ -24,7 +24,7 @@
 
 #include "NeuronMorphology.h"
 #include <common/Common.h>
-#include <data/morphologies/NeuronSWCReader.h>
+#include <data/morphologies/swc/NeuronSWCReader.h>
 #include <utilities/Utilities.h>
 #include <bits/stdc++.h>
 #include <stack>
@@ -111,7 +111,7 @@ void NeuronMorphology::_constructMorphology(const NeuronSWCSamples& swcSamples)
         if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
 
         // Construct a new sample
-        Sample* sample = new Sample(position, radius);
+        Sample* sample = new Sample(position, radius, swcSample->id);
 
         // If this sample is somatic, either the soma average sample or a profile point
         if (swcSample->type == SWCSampleType::SOMA)

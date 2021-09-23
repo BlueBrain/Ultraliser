@@ -24,9 +24,9 @@
 #define ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_MORPHOLOGY_H
 
 #include <data/morphologies/Morphology.h>
-#include <data/morphologies/VasculatureH5Sample.hh>
-#include <data/morphologies/VasculatureH5Section.hh>
-#include <data/morphologies/VasculatureH5Connectivity.hh>
+#include <data/morphologies/h5/VasculatureH5Sample.hh>
+#include <data/morphologies/h5/VasculatureH5Section.hh>
+#include <data/morphologies/h5/VasculatureH5Connectivity.hh>
 #include <utilities/Utilities.h>
 
 namespace Ultraliser
@@ -42,7 +42,7 @@ public:
 
     /**
      * @brief VasculatureMorphology
-     * Constructor
+     * Constructor for H5 morphologies.
      * @param h5Samples
      * Samples list
      * @param h5Sections
@@ -64,40 +64,23 @@ public:
      */
     VasculatureMorphology(Samples samples, Sections sections);
 
-private:
+public:
 
     /**
-     * @brief _constructSections
-     * Loads the sections data from the _h5Samples and _h5Sections lists.
+     * @brief writeVMV
+     * Writes the morphology into a VMV file.
+     * @param prefix
+     * File prefix, i.e. full path to the output file without extension.
      */
-    void _constructSections();
+    void writeVMV(const std::string prefix);
 
     /**
-     * @brief _connectSections
-     * Construct the connected graph of the morphology using the
-     * _h5Connectivity list.
+     * @brief writeH5
+     * Writes the morphology into an H5 file.
+     * @param prefix
+     * File prefix, i.e. full path to the output file without extension.
      */
-    void _connectSections();
-
-private:
-
-    /**
-     * @brief _h5Samples
-     * Morphology samples as loaded from the .h5 morphology file.
-     */
-    const VasculatureH5Samples _h5Samples;
-
-    /**
-     * @brief _h5Sections
-     * Morphology sections as loaded from the .h5 morphology file.
-     */
-    const VasculatureH5Sections _h5Sections;
-
-    /**
-     * @brief _h5Connectivity
-     * Morphology connectivity list as loaded from the .h5 morphology file.
-     */
-    const VasculatureH5ConnectivityList _h5Connectivity;
+    void writeH5(const std::string prefix);
 };
 
 VasculatureMorphology* readVascularMorphology(std::string& morphologyPath);

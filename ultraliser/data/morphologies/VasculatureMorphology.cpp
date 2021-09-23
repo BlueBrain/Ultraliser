@@ -24,8 +24,9 @@
 #include <common/Common.h>
 #include <utilities/Utilities.h>
 #include <utilities/TypeConversion.h>
-#include <data/morphologies/VasculatureH5Reader.h>
-#include <data/morphologies/VasculatureVMVReader.h>
+#include <data/morphologies/h5/VasculatureH5Reader.h>
+#include <data/morphologies/vmv/VasculatureVMVReader.h>
+#include <data/morphologies/vmv/VasculatureVMVWriter.h>
 
 namespace Ultraliser
 {
@@ -33,32 +34,19 @@ namespace Ultraliser
 VasculatureMorphology::VasculatureMorphology
 (const VasculatureH5Samples& h5Samples, const VasculatureH5Sections& h5Sections,
  const VasculatureH5ConnectivityList& h5Connectivity)
-    : _h5Samples(h5Samples)
-    , _h5Sections(h5Sections)
-    , _h5Connectivity(h5Connectivity)
-{
-    // Construct the sections
-    _constructSections();
-
-    // Connect the sections
-    _connectSections();
-}
-
-void VasculatureMorphology::_constructSections()
 {
     _pMin = Vector3f(std::numeric_limits<float>::max());
     _pMax = Vector3f(std::numeric_limits<float>::lowest());
 
     // Construct the samples list that will be used later to build the sections
-    for (auto h5Sample : _h5Samples)
+    for (uint64_t i = 0; i < h5Samples.size(); ++i)
     {
-        Ultraliser::Vector3f position(h5Sample.x, h5Sample.y, h5Sample.z);
-        Sample* sample = new Sample(Ultraliser::Vector3f(h5Sample.x, h5Sample.y, h5Sample.z),
-                                    h5Sample.r * 0.5f);
+        Ultraliser::Vector3f position(h5Samples[i].x, h5Samples[i].y, h5Samples[i].z);
+        Sample* sample = new Sample(position, h5Samples[i].r * 0.5f, i);
         _samples.push_back(sample);
 
-        Vector3f pMaxSample = position + Vector3f(h5Sample.r * 0.5f);
-        Vector3f pMinSample = position - Vector3f(h5Sample.r * 0.5f);
+        Vector3f pMaxSample = position + Vector3f(h5Samples[i].r * 0.5f);
+        Vector3f pMinSample = position - Vector3f(h5Samples[i].r * 0.5f);
 
         if (pMaxSample.x() > _pMax.x()) _pMax.x() = pMaxSample.x();
         if (pMaxSample.y() > _pMax.y()) _pMax.y() = pMaxSample.y();
@@ -70,19 +58,19 @@ void VasculatureMorphology::_constructSections()
     }
 
     // Construct the sections list
-    for (uint64_t i = 0; i < _h5Sections.size(); ++i)
+    for (uint64_t i = 0; i < h5Sections.size(); ++i)
     {
         Section* section = new Section(i);
 
         // The initial sample always stays the same
-        const uint64_t startingSampleIndex = I2UI64(_h5Sections[i].firstSampleIndex);
+        const uint64_t startingSampleIndex = I2UI64(h5Sections[i].firstSampleIndex);
 
         // The last sample is different
         uint64_t endSampleIndex;
-        if (i < _h5Sections.size() - 1)
-            endSampleIndex = I2UI64(_h5Sections[i + 1].firstSampleIndex);
+        if (i < h5Sections.size() - 1)
+            endSampleIndex = I2UI64(h5Sections[i + 1].firstSampleIndex);
         else
-            endSampleIndex = _h5Samples.size();
+            endSampleIndex = h5Samples.size();
 
         // Add the samples to the section
         for (uint64_t j = startingSampleIndex; j < endSampleIndex; ++j)
@@ -91,19 +79,17 @@ void VasculatureMorphology::_constructSections()
         // Append the reconstructed section to the list
         _sections.push_back(section);
     }
-}
 
-void VasculatureMorphology::_connectSections()
-{
-    for (uint64_t i = 0; i < _h5Connectivity.size(); ++i)
+    // Connect the sections using the connectivity information
+    for (uint64_t i = 0; i < h5Connectivity.size(); ++i)
     {
         // Get the parent section and add to it the index of a child section
-        Section* parentSection = _sections[I2UI64(_h5Connectivity[i].parentSectionIndex)];
-        parentSection->addChildIndex(I2UI64(_h5Connectivity[i].childSectionIndex));
+        Section* parentSection = _sections[I2UI64(h5Connectivity[i].parentSectionIndex)];
+        parentSection->addChildIndex(I2UI64(h5Connectivity[i].childSectionIndex));
 
         // Get the child section and add to it the index of a parent section
-        Section* childSection = _sections[I2UI64(_h5Connectivity[i].childSectionIndex)];
-        childSection->addParentIndex(I2UI64(_h5Connectivity[i].parentSectionIndex));
+        Section* childSection = _sections[I2UI64(h5Connectivity[i].childSectionIndex)];
+        childSection->addParentIndex(I2UI64(h5Connectivity[i].parentSectionIndex));
     }
 }
 
@@ -133,6 +119,49 @@ VasculatureMorphology::VasculatureMorphology(Samples samples, Sections sections)
         if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
         if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
     }
+
+    // Detect the connectivity if it is not existing
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < _sections.size(); ++i)
+    {
+        // iSection data
+        auto iSection = _sections[i];
+        auto iFirstSample = iSection->getFirstSample()->getPosition();
+        auto iLastSample = iSection->getLastSample()->getPosition();
+
+        for (uint64_t j = 0; j < _sections.size(); ++j)
+        {
+            // Same section, continue
+            if (i == j)
+                continue;
+
+            auto jSection = _sections[j];
+            auto jFirstSample = jSection->getFirstSample()->getPosition();
+            auto jLastSample = jSection->getLastSample()->getPosition();
+
+            // That is a child
+            if (iLastSample.distance(jFirstSample) < 0.0001)
+            {
+                iSection->addChildIndex(jSection->getIndex() - 1);
+            }
+
+            // That is a parent
+            if (iFirstSample.distance(jLastSample) < 0.0001)
+            {
+                iSection->addParentIndex(jSection->getIndex() - 1);
+            }
+        }
+    }
+}
+
+void VasculatureMorphology::writeVMV(const std::string prefix)
+{
+    writeMorphologyToVMVFile(this, prefix);
+}
+
+void VasculatureMorphology::writeH5(const std::string prefix)
+{
+
 }
 
 VasculatureMorphology* readVascularMorphology(std::string& morphologyPath)
@@ -163,5 +192,4 @@ VasculatureMorphology* readVascularMorphology(std::string& morphologyPath)
     // To avoid any warning issues.
     return nullptr;
 }
-
 }

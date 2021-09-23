@@ -1,9 +1,9 @@
 #ifndef VASCULATURE_VMV_READER_H
 #define VASCULATURE_VMV_READER_H
 
-#include <data/morphologies/VasculatureH5Sample.hh>
-#include <data/morphologies/VasculatureH5Section.hh>
-#include <data/morphologies/VasculatureH5Connectivity.hh>
+#include <data/morphologies/h5/VasculatureH5Sample.hh>
+#include <data/morphologies/h5/VasculatureH5Section.hh>
+#include <data/morphologies/h5/VasculatureH5Connectivity.hh>
 #include <data/morphologies/VasculatureMorphology.h>
 
 namespace Ultraliser
@@ -45,10 +45,10 @@ private:
     void _readSamples();
 
     /**
-     * @brief _readConnectivity
+     * @brief _readStrands
      * Reads the connectivity information form the morphology file.
      */
-    void _readConnectivity();
+    void _readStrands();
 
 private:
 

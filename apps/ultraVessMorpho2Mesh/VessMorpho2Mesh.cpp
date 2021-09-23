@@ -74,21 +74,18 @@ void run(int argc, const char** argv)
     auto options = parseArguments(argc, argv);
 
     // Read the file into a morphology structure
-    auto vasculatureMorphology =
-        readVascularMorphology(options->inputMorphologyPath);
+    auto vasculatureMorphology = readVascularMorphology(options->inputMorphologyPath);
+    vasculatureMorphology->writeVMV(options->morphologyPrefix);
 
     if (options->writeStatistics)
-        vasculatureMorphology->printStats(options->prefix,
-                                          &options->statisticsPrefix);
+        vasculatureMorphology->printStats(options->prefix, &options->statisticsPrefix);
 
     if (options->writeDistributions)
-        vasculatureMorphology->printDistributions(
-            &options->distributionsPrefix);
+        vasculatureMorphology->printDistributions(&options->distributionsPrefix);
 
     // Get relaxed bounding box to build the volume
     Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
-    vasculatureMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB,
-                                          inputCenter);
+    vasculatureMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
 
     // Get the largest dimension
     float largestDimension = inputBB.getLargestDimension();

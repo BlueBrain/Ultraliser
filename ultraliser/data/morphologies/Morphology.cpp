@@ -55,11 +55,9 @@ Sections Morphology::getSections() const { return _sections; }
 
 Samples Morphology::getSamples() const { return _samples; }
 
-Paths Morphology::getConnectedPathsFromParentsToChildren(
-    const Section* section) const
+Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section) const
 {
-    // All possible combination of paths along the section (from parents to
-    // children)
+    // All possible combination of paths along the section (from parents to children)
     Paths paths;
 
     // Get the parents data
@@ -103,12 +101,10 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(
             Samples childSamples = childSection->getSamples();
 
             // Section samples
-            pathSamples.insert(pathSamples.begin(), sectionSamples.begin(),
-                               sectionSamples.end());
+            pathSamples.insert(pathSamples.begin(), sectionSamples.begin(), sectionSamples.end());
 
             // Child section samples
-            pathSamples.insert(pathSamples.end(), childSamples.begin() + 1,
-                               childSamples.end());
+            pathSamples.insert(pathSamples.end(), childSamples.begin() + 1, childSamples.end());
 
             // Add the path
             paths.push_back(pathSamples);
@@ -131,8 +127,7 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(
             Samples parentSamples = parentSection->getSamples();
 
             // Parent section samples
-            pathSamples.insert(pathSamples.begin(), parentSamples.begin(),
-                               parentSamples.end());
+            pathSamples.insert(pathSamples.begin(), parentSamples.begin(), parentSamples.end());
 
             // Section samples
             pathSamples.insert(pathSamples.end(), sectionSamples.begin() + 1,

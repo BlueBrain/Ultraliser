@@ -26,8 +26,7 @@
 #define ULTRALISER_DATA_MORPHOLOGIES_NEURON_MORPHOLOGY_H
 
 #include <data/morphologies/Morphology.h>
-
-#include <data/morphologies/NeuronSWCSample.hh>
+#include <data/morphologies/swc/NeuronSWCSample.hh>
 
 namespace Ultraliser
 {
