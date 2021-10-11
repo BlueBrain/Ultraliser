@@ -36,9 +36,13 @@ AppOptions* parseArguments(const int& argc , const char** argv)
               "nicer topology and less tessellation.");
 
 
+    args->addInputVolumeArguments();
     args->addInputVolumeParametersArguments();
+    args->addVolumeProjectionArguments();
+    args->addSolidVoxelizationArguments();
     args->addOutputArguments();
-    args->addVolumeArguments();
+    args->addStacksArguments();
+    args->addVolumeExportArguments();
     args->addMeshArguments();
     args->addSuppressionArguments();
     args->addDataArguments();
@@ -49,11 +53,6 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     LOG_TITLE("Creating Context");
 
     /// Validate the arguments
-    if (!Ultraliser::File::exists(options->inputMeshPath))
-    {
-        LOG_ERROR("The file [ %s ] does NOT exist! ", options->inputMeshPath.c_str());
-    }
-
     // Try to make the output directory
     mkdir(options->outputDirectory.c_str(), 0777);
     if (!Ultraliser::Directory::exists(options->outputDirectory))
@@ -65,18 +64,8 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     if (!(options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL))
     {
         LOG_ERROR("The user must specify at least one output format of the "
-                  "mesh to export: [--export-obj, --export-ply, --export-off, --export-stl]");
-    }
-
-    if (options->boundsFile == NO_DEFAULT_VALUE)
-    {
-        LOG_WARNING("The bounding box of the volume will be computed on the fly");
-        options->boundsFile = EMPTY;
-    }
-    else
-    {
-        LOG_WARNING("The bounding box of the volume will be loaded from [ %s ]",
-                    options->boundsFile.c_str());
+                  "mesh to export: [--export-obj-mesh, --export-ply-mesh, "
+                  "                 --export-off-mesh, --export-stl-mesh]");
     }
 
     // If no prefix is given, use the file name
@@ -125,7 +114,6 @@ void run(int argc , const char** argv)
         // Construct a bit volume with a specific iso value
         volume = Ultraliser::Volume::constructFullRangeVolume(
                     loadedVolume, options->zeroPaddingVoxels);
-
     }
     else
     {
@@ -144,11 +132,8 @@ void run(int argc , const char** argv)
     // Generate the volume artifacts based on the given options
     generateVolumeArtifacts(volume, options);
 
-    // Generate the reconstructed mesh using the marching cubes algorithm and adjust its scale
-    auto mesh = DualMarchingCubes::generateMeshFromVolume(volume);
-
-    // Free the voulme
-    delete volume;
+    // Extract the mesh from the volume again
+    auto reconstructedMesh = reconstructMeshFromVolume(volume, options);
 
     // If a scale factor is given, not 1.0, scale the mesh, otherwise avoid the expensive operation
     if (!(isEqual(options->xScaleFactor, 1.f) &&
@@ -156,14 +141,22 @@ void run(int argc , const char** argv)
           isEqual(options->xScaleFactor, 1.f)))
     {
         // Scale the mesh
-        mesh->scale(options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
+        reconstructedMesh->scale(options->xScaleFactor,
+                                 options->yScaleFactor,
+                                 options->zScaleFactor);
     }
 
+    // Free the voulme
+    delete volume;
+
     // Generate the mesh artifacts
-    generateMarchingCubesMeshArtifacts(mesh, options);
+    generateMarchingCubesMeshArtifacts(reconstructedMesh, options);
+
+    // Generate the reconstructed mesh artifacts
+    generateReconstructedMeshArtifacts(reconstructedMesh, options);
 
     // Free
-    delete mesh;
+    delete reconstructedMesh;
     delete options;
 }
 

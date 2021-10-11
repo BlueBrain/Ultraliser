@@ -103,7 +103,7 @@ void AppArguments::addInputVolumeArguments()
     Argument inputVolume(
                 "--volume",
                 ARGUMENT_TYPE::STRING,
-                "The absolute path to the volume.",
+                "The absolute path to the volume (prefix).",
                 ARGUMENT_PRESENCE::MANDATORY);
     _args->addArgument(&inputVolume);
     _options->inputVolumePath = _args->getStringValue(&inputVolume);
@@ -126,7 +126,7 @@ void AppArguments::addInputVolumeParametersArguments()
                 "If the voxel contains any value other than zero, then use it."
                 "If this option is set the --iso-value option is ignored.");
     _args->addArgument(&fullRangeIsoValue);
-    _options->fullRangeIsoValue = _args->getIntegrValue(&fullRangeIsoValue);
+    _options->fullRangeIsoValue = _args->getBoolValue(&fullRangeIsoValue);
 
     Argument writeHistogram(
                 "--write-histogram",
@@ -164,6 +164,32 @@ void AppArguments::addOutputArguments()
                 ARGUMENT_PRESENCE::OPTIONAL);
     _args->addArgument(&prefix);
     _options->prefix = _args->getStringValue(&prefix);
+}
+
+void AppArguments::addSolidVoxelizationArguments()
+{
+    Argument useSolidVoxelization(
+                "--solid",
+                ARGUMENT_TYPE::BOOL,
+                "Use solid voxelization to fill the interior of the volume shell.");
+    _args->addArgument(&useSolidVoxelization);
+    _options->useSolidVoxelization = _args->getBoolValue(&useSolidVoxelization);
+
+    Argument voxelizationAxis(
+                "--voxelization-axis",
+                ARGUMENT_TYPE::STRING,
+                "The axis where the solid voxelization operation will be performed. "
+                "Use one of the following options [x, y, z, or xyz]. "
+                "If you use x or y or z the voxelization will happen along a single axis, "
+                "otherwise, using xyz will perform the solid voxelization along the three main "
+                "axes of the volume to avoid filling any loops in the morphology."
+                "By default, the Z-axis solid voxelization with xyz is applied if the --solid "
+                "flag is set.",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "z");
+    _args->addArgument(&voxelizationAxis);
+    _options->voxelizationAxis = Volume::getSolidvoxelizationAxis(
+                _args->getStringValue(&voxelizationAxis));
 }
 
 void AppArguments::addVoxelizationArguments()
@@ -222,28 +248,7 @@ void AppArguments::addVoxelizationArguments()
     _args->addArgument(&volumeType);
     _options->volumeType = _args->getStringValue(&volumeType);
 
-    Argument useSolidVoxelization(
-                "--solid",
-                ARGUMENT_TYPE::BOOL,
-                "Use solid voxelization to fill the interior of the volume shell.");
-    _args->addArgument(&useSolidVoxelization);
-    _options->useSolidVoxelization = _args->getBoolValue(&useSolidVoxelization);
-
-    Argument voxelizationAxis(
-                "--voxelization-axis",
-                ARGUMENT_TYPE::STRING,
-                "The axis where the solid voxelization operation will be performed. "
-                "Use one of the following options [x, y, z, or xyz]. "
-                "If you use x or y or z the voxelization will happen along a single axis, "
-                "otherwise, using xyz will perform the solid voxelization along the three main "
-                "axes of the volume to avoid filling any loops in the morphology."
-                "By default, the Z-axis solid voxelization with xyz is applied if the --solid "
-                "flag is set.",
-                ARGUMENT_PRESENCE::OPTIONAL,
-                "z");
-    _args->addArgument(&voxelizationAxis);
-    _options->voxelizationAxis = Volume::getSolidvoxelizationAxis(
-                _args->getStringValue(&voxelizationAxis));
+    addSolidVoxelizationArguments();
 }
 
 void AppArguments::addVolumeProjectionArguments()
@@ -516,7 +521,7 @@ void AppArguments::addMeshScaleArguments()
                 ARGUMENT_PRESENCE::OPTIONAL,
                 "1.0");
     _args->addArgument(&xScaleFactor);
-    _options->xScaleFactor = _args->getIntegrValue(&xScaleFactor);
+    _options->xScaleFactor = _args->getFloatValue(&xScaleFactor);
 
     Argument yScaleFactor(
                 "--y-scale",
@@ -525,7 +530,7 @@ void AppArguments::addMeshScaleArguments()
                 ARGUMENT_PRESENCE::OPTIONAL,
                 "1.0");
     _args->addArgument(&yScaleFactor);
-    _options->yScaleFactor = _args->getIntegrValue(&yScaleFactor);
+    _options->yScaleFactor = _args->getFloatValue(&yScaleFactor);
 
     Argument zScaleFactor(
                 "--z-scale",
@@ -534,7 +539,7 @@ void AppArguments::addMeshScaleArguments()
                 ARGUMENT_PRESENCE::OPTIONAL,
                 "1.0");
     _args->addArgument(&zScaleFactor);
-    _options->zScaleFactor = _args->getIntegrValue(&zScaleFactor);
+    _options->zScaleFactor = _args->getFloatValue(&zScaleFactor);
 }
 
 void AppArguments::addMeshArguments()

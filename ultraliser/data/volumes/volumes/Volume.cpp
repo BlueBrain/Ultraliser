@@ -1704,34 +1704,7 @@ Volume* Volume::constructIsoValueVolume(const Volume* volume,
     return isoVolume;
 }
 
-std::vector<uint64_t> Volume::createHistogram(const Volume* volume)
-{
-    // Allocation
-    std::vector<uint64_t> histogram;
-    histogram.resize(256);
-
-    // Initialization
-    for (uint64_t i = 0; i < 256; ++i)
-        histogram[i] = 0;
-
-    for (int64_t x = 0; x < volume->getWidth(); ++x)
-    {
-        LOOP_PROGRESS(x, volume->getWidth());
-        for (int64_t y = 0; y < volume->getHeight(); ++y)
-        {
-            for (int64_t z = 0; z < volume->getDepth(); ++z)
-            {
-                histogram[volume->getByte(x, y, z)] += 1;
-            }
-        }
-    }
-
-    // Return the histogram array
-    return histogram;
-}
-
-Volume* Volume::constructFullRangeVolume(const Volume* volume,
-                                         const int64_t &padding)
+Volume* Volume::constructFullRangeVolume(const Volume* volume, const int64_t &padding)
 {
     Vector3f pMin(0.f), pMax(1.f);
 
@@ -1757,9 +1730,13 @@ Volume* Volume::constructFullRangeVolume(const Volume* volume,
                 int64_t zIso = z + F2I64(padding / 2.f);
 
                 if (volume->getByte(x, y, z) > 0)
+                {
                     isoVolume->fill(xIso, yIso, zIso);
+                }
                 else
+                {
                     isoVolume->clear(xIso, yIso, zIso);
+                }
 
             }
         }
@@ -1767,6 +1744,32 @@ Volume* Volume::constructFullRangeVolume(const Volume* volume,
     LOOP_DONE;
 
     return isoVolume;
+}
+
+std::vector<uint64_t> Volume::createHistogram(const Volume* volume)
+{
+    // Allocation
+    std::vector<uint64_t> histogram;
+    histogram.resize(256);
+
+    // Initialization
+    for (uint64_t i = 0; i < 256; ++i)
+        histogram[i] = 0;
+
+    for (int64_t x = 0; x < volume->getWidth(); ++x)
+    {
+        LOOP_PROGRESS(x, volume->getWidth());
+        for (int64_t y = 0; y < volume->getHeight(); ++y)
+        {
+            for (int64_t z = 0; z < volume->getDepth(); ++z)
+            {
+                histogram[volume->getByte(x, y, z)] += 1;
+            }
+        }
+    }
+
+    // Return the histogram array
+    return histogram;
 }
 
 Volume* Volume::constructFromTiffMask(

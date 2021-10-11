@@ -84,6 +84,11 @@ public:
     void addOutputArguments();
 
     /**
+     * @brief addSolidVoxelizationArguments
+     */
+    void addSolidVoxelizationArguments();
+
+    /**
      * @brief addVoxelizationArguments
      */
     void addVoxelizationArguments();
