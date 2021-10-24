@@ -99,8 +99,7 @@ void run(int argc , const char** argv)
     if (options->writeHistogram)
     {
         // Create the histogram
-        std::vector<uint64_t> histogram =
-                Ultraliser::Volume::createHistogram(loadedVolume);
+        std::vector<uint64_t> histogram = Ultraliser::Volume::createHistogram(loadedVolume);
 
         // Write the histogram to a file
         const std::string path = prefix.str() + std::string(".histogram");

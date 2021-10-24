@@ -593,11 +593,8 @@ void Mesh::applyLaplacianSmooth(const uint32_t& numIterations,
         #pragma omp parallel for
         for(uint64_t v = 0; v < _numberVertices; ++v)
         {
-            const Vector3f kernel =
-                    _computeKernel(*this, v, vertexN[v], faceN[v]);
-
-            smoothedVertices[v] =
-                    _smoothVertex(*this, v, kernel, smoothLambda);
+            const Vector3f kernel = _computeKernel(*this, v, vertexN[v], faceN[v]);
+            smoothedVertices[v] = _smoothVertex(*this, v, kernel, smoothLambda);
         }
 
         // Update vertices
@@ -611,9 +608,7 @@ void Mesh::applyLaplacianSmooth(const uint32_t& numIterations,
         for(uint64_t v = 0; v < _numberVertices; ++v)
         {
             const Vector3f kernel =_computeKernel(*this, v, vertexN[v], faceN[v]);
-
-            smoothedVertices[v] =
-                    _smoothVertex(*this, v, kernel, inflateMu);
+            smoothedVertices[v] = _smoothVertex(*this, v, kernel, inflateMu);
         }
 
         // Update vertices

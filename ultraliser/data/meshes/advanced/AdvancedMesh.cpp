@@ -4165,8 +4165,7 @@ void AdvancedMesh::writeDistributions(const std::string &reference, const std::s
     stats.writeStatsDistributions(*prefix + "-" + reference);
 }
 
-void AdvancedMesh::printStats(const std::string &reference,
-                                  const std::string *prefix)
+void AdvancedMesh::printStats(const std::string &reference, const std::string *prefix)
 {
     LOG_TITLE("Mesh Statistics");
 
