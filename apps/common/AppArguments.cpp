@@ -575,6 +575,25 @@ void AppArguments::addDataArguments()
     _options->serialExecution = _args->getBoolValue(&serialExecution);
 }
 
+void AppArguments::addRasterizationAlgorithm()
+{
+    Argument sphereRasterizationAlgorithm(
+                "--sphereRaster",
+                ARGUMENT_TYPE::BOOL,
+                "Compute the reconstruted volume using spheres rasterization.");
+    _args->addArgument(&sphereRasterizationAlgorithm);
+    _options->useSphereRasterizationAlgorithm = _args->getBoolValue(&sphereRasterizationAlgorithm);
+
+
+    Argument triangleRasterizationAlgorithm(
+                "--triangleRaster",
+                ARGUMENT_TYPE::BOOL,
+                "Compute the reconstruted volume using triangle mesh rasterization.");
+    _args->addArgument(&triangleRasterizationAlgorithm);
+    _options->useSphereRasterizationAlgorithm = 
+        !_args->getBoolValue(&triangleRasterizationAlgorithm);
+}
+
 void AppArguments::addSuppressionArguments()
 {
     Argument watertight(

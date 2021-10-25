@@ -290,6 +290,12 @@ public:
     bool useSolidVoxelization = false;
 
     /**
+     * @brief sphereRasterization
+     * Use sphere rasterization voxelization to fill the volume.
+     */
+    bool useSphereRasterizationAlgorithm = true;
+
+    /**
      * @brief voxelizationAxis
      * The axis where the solid voxelization operation will be performed.
      */

@@ -163,6 +163,11 @@ public:
     void addDataArguments();
 
     /**
+     * @brief addRasterizationAlgorithm
+     */
+    void addRasterizationAlgorithm();
+
+    /**
      * @brief getOptions
      * @return System option
      */

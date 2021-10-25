@@ -229,7 +229,8 @@ void Volume::surfaceVoxelization(Mesh* mesh,
 }
 
 void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
-        VasculatureMorphology* vasculatureMorphology)
+        VasculatureMorphology* vasculatureMorphology,
+        bool sphereRasterization)
 {
     LOG_TITLE("Surface Voxelization (Parallel)");
 
@@ -242,20 +243,42 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
     LOG_STATUS("Creating Volume Shell from Sections");
     LOOP_STARTS("Rasterization");
     PROGRESS_SET;
-    OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < sections.size(); i++)
-    {
-        // Construct the paths
-        Paths paths = vasculatureMorphology->getConnectedPathsFromParentsToChildren(sections[i]);
-        for (uint64_t j = 0; j < paths.size(); ++j)
-        {
-            auto mesh = new Mesh(paths[j]);
-            _rasterize(mesh , _grid);
-        }
 
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, sections.size());
-        PROGRESS_UPDATE;
+    if (sphereRasterization)
+    {
+        OMP_PARALLEL_FOR
+        for (uint64_t i = 0; i < sections.size(); i++)
+        {
+            auto section = sections[i];
+            auto samples = section->getSamples();
+            
+            for (uint64_t j = 0; j < samples.size(); ++j)
+            {
+                _rasterize(samples[j], _grid);
+            }
+
+            // Update the progress bar
+            LOOP_PROGRESS(PROGRESS, sections.size());
+            PROGRESS_UPDATE;
+        }
+    }
+    else
+    {
+        OMP_PARALLEL_FOR
+        for (uint64_t i = 0; i < sections.size(); i++)
+        {
+            // Construct the paths
+            Paths paths = vasculatureMorphology->getConnectedPathsFromParentsToChildren(sections[i]);
+            for (uint64_t j = 0; j < paths.size(); ++j)
+            {
+                auto mesh = new Mesh(paths[j]);
+                _rasterize(mesh , _grid);
+            }
+
+            // Update the progress bar
+            LOOP_PROGRESS(PROGRESS, sections.size());
+            PROGRESS_UPDATE;
+        }
     }
     LOOP_DONE;
 
@@ -355,6 +378,26 @@ void Volume::_rasterize(Mesh* mesh, VolumeGrid* grid, const bool& verbose)
         }
     }
     if (verbose) LOOP_DONE;
+}
+
+void Volume::_rasterize(Sample* sample, VolumeGrid* grid)
+{
+    // Get the pMin and pMax of the sphere within the grid
+        int64_t pMinTriangle[3], pMaxTriangle[3];
+        _getBoundingBox(sample, pMinTriangle, pMaxTriangle);
+
+        for (int64_t ix = pMinTriangle[0]; ix <= pMaxTriangle[0]; ++ix)
+        {
+            for (int64_t iy = pMinTriangle[1]; iy <= pMaxTriangle[1]; ++iy)
+            {
+                for (int64_t iz = pMinTriangle[2]; iz <= pMaxTriangle[2]; ++iz)
+                {
+                    GridIndex gi(I2I64(ix), I2I64(iy), I2I64(iz));
+                    if (_testSampleCubeIntersection(sample, gi))
+                        grid->fillVoxel(I2I64(ix), I2I64(iy), I2I64(iz));
+                }
+            }
+        }
 }
 
 void Volume::_rasterizeParallel(Mesh* mesh, VolumeGrid* grid)
@@ -683,6 +726,31 @@ bool Volume::_testTriangleCubeIntersection(Mesh* mesh, uint64_t triangleIdx, con
     return checkTriangleBoxIntersection(voxelCenter, voxelHalfSize, triangle);
 }
 
+bool Volume::_testSampleCubeIntersection(Sample* sample, const GridIndex& voxel)
+{
+    // Get the origin of the voxel
+    Vector3f voxelOrigin;
+    voxelOrigin[0] = _pMin[0] + (voxel[0] * _voxelSize);
+    voxelOrigin[1] = _pMin[1] + (voxel[1] * _voxelSize);
+    voxelOrigin[2] = _pMin[2] + (voxel[2] * _voxelSize);
+    // Voxel size
+    Vector3f voxelSize(_voxelSize);
+    // Voxel end
+    Vector3f voxelEnd = voxelOrigin + voxelSize;
+
+    Vector3f center = sample->getPosition();
+    float r2 = pow(sample->getRadius(),2);
+    float minDist = 0;
+
+    for (uint8_t i = 0; i < 3; ++i)
+    {
+        if (center[i] < voxelOrigin[i]) minDist += pow(center[i] - voxelOrigin[i], 2);
+        else if (center[i] > voxelEnd[i]) minDist += pow(center[i] - voxelEnd[i], 2);
+    }
+
+    return minDist <= r2;
+}
+
 bool Volume::_testTriangleGridIntersection(AdvancedTriangle triangle,
                                            const GridIndex& voxel)
 {
@@ -789,6 +857,32 @@ void Volume::_getBoundingBox(Mesh* mesh, uint64_t i, int64_t *tMin, int64_t *tMa
     // The bounding box of the triangle
     Vector3f pMin, pMax;
     mesh->getTriangleBoundingBox(i, pMin, pMax);
+
+    // Get the indices of the grid that correspond to the bounding box
+    GridIndex vMin, vMax;
+    _vec2grid(pMin, vMin);
+    _vec2grid(pMax, vMax);
+
+    tMin[0] = vMin[0]; tMin[1] = vMin[1]; tMin[2] = vMin[2];
+    tMax[0] = vMax[0]; tMax[1] = vMax[1]; tMax[2] = vMax[2];
+
+    tMin[0] = std::max(int64_t(0), tMin[0]);
+    tMax[0] = std::min(int64_t(_grid->getWidth() - 1) , tMax[0]);
+
+    tMin[1] = std::max(int64_t(0), tMin[1]);
+    tMax[1] = std::min(int64_t(_grid->getHeight() - 1) , tMax[1]);
+
+    tMin[2] = std::max(int64_t(0), tMin[2]);
+    tMax[2] = std::min(int64_t(_grid->getDepth() - 1) , tMax[2]);
+}
+
+void Volume::_getBoundingBox(Sample* sample, int64_t *tMin, int64_t *tMax)
+{
+    // The bounding box of the sphere
+    Vector3f pMin, pMax;
+    Vector3f radius(sample->getRadius());
+    pMin = sample->getPosition() - radius;
+    pMax = sample->getPosition() + radius;
 
     // Get the indices of the grid that correspond to the bounding box
     GridIndex vMin, vMax;

@@ -187,7 +187,8 @@ public:
      * @brief surfaceVoxelizeVasculatureMorphology
      * @param morphology
      */
-    void surfaceVoxelizeVasculatureMorphologyParallel(VasculatureMorphology* vasculatureMorphology);
+    void surfaceVoxelizeVasculatureMorphologyParallel(VasculatureMorphology* vasculatureMorphology, 
+                                                      bool sphereRasterization = true);
 
     /**
      * @brief solidVoxelization
@@ -595,6 +596,15 @@ private:
                          uint64_t i, int64_t *tMin, int64_t *tMax);
 
     /**
+     * @brief _getBoundingBox
+     * @param sample
+     * @param tMin
+     * @param tMax
+     */
+    void _getBoundingBox(Sample* sample, int64_t *tMin, int64_t *tMax);
+
+
+    /**
      * @brief _getTriangleBoundingBox
      * @param triangle
      * @param tMin
@@ -609,6 +619,13 @@ private:
      * @param grid
      */
     void _rasterize(Mesh* mesh, VolumeGrid* grid, const bool& verbose = false);
+
+    /**
+     * @brief _rasterize
+     * @param sample
+     * @param grid
+     */
+    void _rasterize(Sample* sample, VolumeGrid* grid);
 
     /**
      * @brief _rasterizeParallel
@@ -663,6 +680,15 @@ private:
     bool _testTriangleCubeIntersection(Mesh* mesh,
                                        uint64_t tIdx,
                                        const GridIndex& voxel);
+
+    /**
+     * @brief _testSampleCubeIntersection
+     * @param sample
+     * @param voxel
+     * @return
+     */
+    bool _testSampleCubeIntersection(Sample* sample,
+                                     const GridIndex& voxel);
 
     /**
      * @brief _testTriangleGridIntersection

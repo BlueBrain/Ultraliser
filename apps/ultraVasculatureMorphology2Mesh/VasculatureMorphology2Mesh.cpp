@@ -42,6 +42,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     args->addMeshArguments();
     args->addSuppressionArguments();
     args->addDataArguments();
+    args->addRasterizationAlgorithm();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -95,7 +96,8 @@ void run(int argc , const char** argv)
                                 VolumeGrid::getType(options->volumeType));
 
     // Voxelize morphology
-    volume->surfaceVoxelizeVasculatureMorphologyParallel(vasculatureMorphology);
+    volume->surfaceVoxelizeVasculatureMorphologyParallel(vasculatureMorphology,
+                                                         options->useSphereRasterizationAlgorithm);
 
     // Enable solid voxelization
     if (options->useSolidVoxelization)
