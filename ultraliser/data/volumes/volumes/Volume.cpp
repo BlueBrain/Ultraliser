@@ -230,7 +230,7 @@ void Volume::surfaceVoxelization(Mesh* mesh,
 
 void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
         VasculatureMorphology* vasculatureMorphology,
-        bool sphereRasterization)
+        const std::string &packingAlgorithm)
 {
     LOG_TITLE("Surface Voxelization (Parallel)");
 
@@ -243,26 +243,28 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
     LOG_STATUS("Creating Volume Shell from Sections");
     LOOP_STARTS("Rasterization");
     PROGRESS_SET;
-
-    if (sphereRasterization)
+    if (packingAlgorithm == POLYLINE_SPHERE_PACKING)
     {
         OMP_PARALLEL_FOR
-        for (uint64_t i = 0; i < sections.size(); i++)
+        for (uint64_t i = 0; i < sections.size(); ++i)
         {
             auto section = sections[i];
             auto samples = section->getSamples();
-            
-            for (uint64_t j = 0; j < samples.size(); ++j)
-            {
-                _rasterize(samples[j], _grid);
-            }
+
+            // Rasterize a polyline representing the section samples
+            auto mesh = new Mesh(samples);
+            _rasterize(mesh, _grid);
+
+            // Rasterize the first and last samples as spheres to fill any gaps
+            _rasterize(samples.front(), _grid);
+            _rasterize(samples.back(), _grid);
 
             // Update the progress bar
             LOOP_PROGRESS(PROGRESS, sections.size());
             PROGRESS_UPDATE;
         }
     }
-    else
+    else if (packingAlgorithm == POLYLINE_PACKING)
     {
         OMP_PARALLEL_FOR
         for (uint64_t i = 0; i < sections.size(); i++)
@@ -279,6 +281,14 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
             LOOP_PROGRESS(PROGRESS, sections.size());
             PROGRESS_UPDATE;
         }
+    }
+    else if (packingAlgorithm == SDF_PACKING)
+    {
+        LOG_ERROR("SDF packing algorithm is not implemented.");
+    }
+    else
+    {
+        LOG_ERROR("[%s] is not a correct packing algorithm.");
     }
     LOOP_DONE;
 

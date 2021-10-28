@@ -123,6 +123,20 @@ void AppOptions::verifyMaskDimensionsArguments()
     }
 }
 
+void AppOptions::verifyPackingAlgorithmArgument()
+{
+    if (!(packingAlgorithm == POLYLINE_PACKING ||
+          packingAlgorithm == POLYLINE_SPHERE_PACKING ||
+          packingAlgorithm == SDF_PACKING))
+    {
+        LOG_ERROR("The given packing algorithm [%s] is not correct! "
+                  "Please use one of the following packing algorithms: "
+                  "[%s, %s or %s]",
+                  packingAlgorithm.c_str(),
+                  POLYLINE_PACKING.c_str(), POLYLINE_SPHERE_PACKING.c_str(), SDF_PACKING.c_str());
+    }
+}
+
 void AppOptions::verifyMeshExportLogic()
 {
 

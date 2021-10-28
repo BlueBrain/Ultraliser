@@ -165,7 +165,7 @@ public:
     /**
      * @brief addRasterizationAlgorithm
      */
-    void addRasterizationAlgorithm();
+    void addPackingAlgorithmArguments();
 
     /**
      * @brief getOptions

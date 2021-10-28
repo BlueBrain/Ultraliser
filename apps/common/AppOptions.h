@@ -111,6 +111,12 @@ public:
     void verifyMaskDimensionsArguments();
 
     /**
+     * @brief verifyPackingAlgorithmArgument
+     * Verifies the option given to the packing algorithm
+     */
+    void verifyPackingAlgorithmArgument();
+
+    /**
      * @brief verifyMeshExportArguments
      * Verifies the mesh export options.
      */
@@ -290,10 +296,10 @@ public:
     bool useSolidVoxelization = false;
 
     /**
-     * @brief sphereRasterization
-     * Use sphere rasterization voxelization to fill the volume.
+     * @brief packingAlgorithm
+     * The packing algorithm used to create the proxy mesh.
      */
-    bool useSphereRasterizationAlgorithm = true;
+    std::string packingAlgorithm;
 
     /**
      * @brief voxelizationAxis

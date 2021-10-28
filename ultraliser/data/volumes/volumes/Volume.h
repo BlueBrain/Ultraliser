@@ -184,11 +184,16 @@ public:
                              const std::vector< std::string>& meshFiles);
 
     /**
-     * @brief surfaceVoxelizeVasculatureMorphology
-     * @param morphology
+     * @brief surfaceVoxelizeVasculatureMorphologyParallel
+     * Create the volumetric shell of the vasculature morphology.
+     * @param vasculatureMorphology
+     * The input vascular morphology.
+     * @param packingAlgorithm
+     * The used packing algorithm.
      */
-    void surfaceVoxelizeVasculatureMorphologyParallel(VasculatureMorphology* vasculatureMorphology, 
-                                                      bool sphereRasterization = true);
+    void surfaceVoxelizeVasculatureMorphologyParallel(
+            VasculatureMorphology* vasculatureMorphology,
+            const std::string& packingAlgorithm = POLYLINE_PACKING);
 
     /**
      * @brief solidVoxelization

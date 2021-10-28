@@ -575,23 +575,17 @@ void AppArguments::addDataArguments()
     _options->serialExecution = _args->getBoolValue(&serialExecution);
 }
 
-void AppArguments::addRasterizationAlgorithm()
+void AppArguments::addPackingAlgorithmArguments()
 {
-    Argument sphereRasterizationAlgorithm(
-                "--sphereRaster",
-                ARGUMENT_TYPE::BOOL,
-                "Compute the reconstruted volume using spheres rasterization.");
-    _args->addArgument(&sphereRasterizationAlgorithm);
-    _options->useSphereRasterizationAlgorithm = _args->getBoolValue(&sphereRasterizationAlgorithm);
-
-
-    Argument triangleRasterizationAlgorithm(
-                "--triangleRaster",
-                ARGUMENT_TYPE::BOOL,
-                "Compute the reconstruted volume using triangle mesh rasterization.");
-    _args->addArgument(&triangleRasterizationAlgorithm);
-    _options->useSphereRasterizationAlgorithm = 
-        !_args->getBoolValue(&triangleRasterizationAlgorithm);
+    Argument packingAlgorithm(
+                "--packing-algorithm",
+                ARGUMENT_TYPE::STRING,
+                "The packing algorithm used to create the proxy mesh. "
+                "Options: [polylines, polylines-with-spheres, sdf]. Default [polylines].",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                POLYLINE_PACKING);
+    _args->addArgument(&packingAlgorithm);
+    _options->packingAlgorithm = _args->getStringValue(&packingAlgorithm);
 }
 
 void AppArguments::addSuppressionArguments()

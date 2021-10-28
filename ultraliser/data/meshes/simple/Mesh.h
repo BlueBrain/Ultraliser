@@ -68,9 +68,10 @@ public:
 
     /**
      * @brief Mesh
-     * @param section
+     * @param samples
+     * @param bevelSides
      */
-    Mesh(const Samples& samples);
+    Mesh(const Samples& samples, const uint64_t &bevelSides = 16);
 
     /**
      * @brief append

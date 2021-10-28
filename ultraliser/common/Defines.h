@@ -159,6 +159,11 @@
 #define OFF_HEADER                              STRING("OFF")
 #define OFF_HSIZE                               3
 
+// Packing algorithms
+#define POLYLINE_PACKING                        STRING("polylines")
+#define POLYLINE_SPHERE_PACKING                 STRING("polylines-with-spheres")
+#define SDF_PACKING                             STRING("sdf")
+
 // String flags
 #define BACK_SLASH                              STRING("/")
 #define DOUBLE_BACK_SLASH                       STRING("//")

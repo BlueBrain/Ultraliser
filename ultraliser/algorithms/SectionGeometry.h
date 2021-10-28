@@ -42,9 +42,9 @@ public:
      * @brief CrossSectionGeometry
      * Constructor.
      * @param samples
-     * polyline samples to generate mesh from.
+     * Polyline samples to generate mesh from.
      * @param numberOfSides
-     * per sample geometry number of sides
+     * Per sample geometry number of sides
      */
     SectionGeometry(const Samples& samples, uint64_t numberOfSides);
 

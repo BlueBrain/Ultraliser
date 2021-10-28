@@ -70,13 +70,16 @@ Mesh::Mesh(const uint64_t &numVertices,
     _neighborList = nullptr;
 }
 
-Mesh::Mesh(const Samples& samples)
+Mesh::Mesh(const Samples& samples, const uint64_t& bevelSides)
 {
-    SectionGeometry sg(samples, 16);
-    _numberVertices = sg.numVertices;
-    _vertices = sg.vertices;
-    _numberTriangles = sg.numTriangles;
-    _triangles = sg.triangles;
+    // Construct the section geometry from the samples
+    SectionGeometry sectionGeometry(samples, bevelSides);
+
+    // Update the mesh data
+    _numberVertices = sectionGeometry.numVertices;
+    _vertices = sectionGeometry.vertices;
+    _numberTriangles = sectionGeometry.numTriangles;
+    _triangles = sectionGeometry.triangles;
 }
 
 Mesh::Mesh(Vertices vertices, Triangles triangles)

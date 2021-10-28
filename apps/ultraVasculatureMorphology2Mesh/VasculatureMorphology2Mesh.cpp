@@ -42,7 +42,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     args->addMeshArguments();
     args->addSuppressionArguments();
     args->addDataArguments();
-    args->addRasterizationAlgorithm();
+    args->addPackingAlgorithmArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -54,6 +54,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyOutputDirectoryArgument();
     options->verifyBoudsFileArgument();
     options->verifyMorphologyPrefixArgument();
+    options->verifyPackingAlgorithmArgument();
 
     // Initialize context
     options->initializeContext();
@@ -97,7 +98,7 @@ void run(int argc , const char** argv)
 
     // Voxelize morphology
     volume->surfaceVoxelizeVasculatureMorphologyParallel(vasculatureMorphology,
-                                                         options->useSphereRasterizationAlgorithm);
+                                                         options->packingAlgorithm);
 
     // Enable solid voxelization
     if (options->useSolidVoxelization)
@@ -111,23 +112,6 @@ void run(int argc , const char** argv)
 
     // Free the volume, we do not need it anymore
     delete volume;
-
-    // Optimize the mesh partitions
-    // optimizeMeshWithPartitions(advancedMesh, options);
-
-//    // Print the mesh statistcs
-//    if (options->writeStatistics)
-//        advancedMesh->printStats(WATERTIGHT_STRING, &options->statisticsPrefix);
-
-//    // Print the mesh statistcs
-//    if (options->writeDistributions)
-//        advancedMesh->writeDistributions(WATERTIGHT_STRING, &options->distributionsPrefix);
-
-//    // Export the mesh
-//    if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
-//        advancedMesh->exportMesh(options->meshPrefix + WATERTIGHT_SUFFIX,
-//                                 options->exportOBJ, options->exportPLY,
-//                                 options->exportOFF, options->exportSTL);
 
     // Generate the mesh artifacts
     generateReconstructedMeshArtifacts(advancedMesh, options);
