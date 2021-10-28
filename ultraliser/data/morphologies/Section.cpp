@@ -240,8 +240,11 @@ void Section::resampleUniformly(const float& step)
 
                 // If the position of the new sample goes beyond the segment length, break
                 if ((position - sample0->getPosition()).abs() > distance)
+                {
+                    // Add the last sample of the segment
+                    newSamples.push_back(sample1);
                     break;
-
+                }
                 // Otherwise, interpolate the new sample and add it
                 const float radius = 0.5 *
                         (newSamples[index - 1]->getRadius() + sample1->getRadius());
@@ -255,9 +258,6 @@ void Section::resampleUniformly(const float& step)
                 ++perSegmentIndex;
             }
         }
-
-        // Add the last sample to the new list
-        newSamples.push_back(_samples.back());
 
         // Clear the old samples list
         _samples.clear();
@@ -399,7 +399,11 @@ void Section::resampleAdaptively(const bool& relaxed)
 
                 // If the position of the new sample goes beyond the segment length, break
                 if ((position - sample0->getPosition()).abs() > distance)
+                { 
+                    // Add the last sample of the segment
+                    newSamples.push_back(sample1);
                     break;
+                }
 
                 // Add the new sample to the list of new sample
                 auto sample = new Sample(position, newSampleRadius);
@@ -410,9 +414,6 @@ void Section::resampleAdaptively(const bool& relaxed)
                 ++perSegmentIndex;
             }
         }
-
-        // Add the last sample to the new list
-        newSamples.push_back(_samples.back());
 
         // Clear the old samples list
         _samples.clear();
