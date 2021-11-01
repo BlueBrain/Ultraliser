@@ -251,14 +251,14 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
             auto section = sections[i];
             auto samples = section->getSamples();
 
-            // Rasterize a polyline representing the section samples
+           // Rasterize a polyline representing the section samples
             auto mesh = new Mesh(samples);
             _rasterize(mesh, _grid);
 
             // Rasterize the first and last samples as spheres to fill any gaps
             _rasterize(samples.front(), _grid);
             _rasterize(samples.back(), _grid);
-
+ 
             // Update the progress bar
             LOOP_PROGRESS(PROGRESS, sections.size());
             PROGRESS_UPDATE;
@@ -284,7 +284,25 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
     }
     else if (packingAlgorithm == SDF_PACKING)
     {
-        LOG_ERROR("SDF packing algorithm is not implemented.");
+        OMP_PARALLEL_FOR
+        for (uint64_t i = 0; i < sections.size(); ++i)
+        {
+            auto section = sections[i];
+            auto samples = section->getSamples();
+
+            // Rasterize each segment of the section samples
+            for (uint32_t i = 0; i < samples.size() - 1; ++i)
+                _rasterize(samples[i], samples[i + 1], _grid);
+
+            // Rasterize the last segment of the section
+            auto children = section->getChildrenIndices();
+            if (children.size() > 0)
+                _rasterize(samples.back(), sections[children[0]]->getSamples()[0], _grid);
+            // Update the progress bar
+            LOOP_PROGRESS(PROGRESS, sections.size());
+            PROGRESS_UPDATE;
+        }
+        
     }
     else
     {
@@ -393,21 +411,44 @@ void Volume::_rasterize(Mesh* mesh, VolumeGrid* grid, const bool& verbose)
 void Volume::_rasterize(Sample* sample, VolumeGrid* grid)
 {
     // Get the pMin and pMax of the sphere within the grid
-        int64_t pMinTriangle[3], pMaxTriangle[3];
-        _getBoundingBox(sample, pMinTriangle, pMaxTriangle);
+    int64_t pMinTriangle[3], pMaxTriangle[3];
+    _getBoundingBox(sample, pMinTriangle, pMaxTriangle);
 
-        for (int64_t ix = pMinTriangle[0]; ix <= pMaxTriangle[0]; ++ix)
+    for (int64_t ix = pMinTriangle[0]; ix <= pMaxTriangle[0]; ++ix)
+    {
+        for (int64_t iy = pMinTriangle[1]; iy <= pMaxTriangle[1]; ++iy)
         {
-            for (int64_t iy = pMinTriangle[1]; iy <= pMaxTriangle[1]; ++iy)
+            for (int64_t iz = pMinTriangle[2]; iz <= pMaxTriangle[2]; ++iz)
             {
-                for (int64_t iz = pMinTriangle[2]; iz <= pMaxTriangle[2]; ++iz)
-                {
-                    GridIndex gi(I2I64(ix), I2I64(iy), I2I64(iz));
-                    if (_testSampleCubeIntersection(sample, gi))
-                        grid->fillVoxel(I2I64(ix), I2I64(iy), I2I64(iz));
-                }
+                GridIndex gi(I2I64(ix), I2I64(iy), I2I64(iz));
+                if (_testSampleCubeIntersection(sample, gi))
+                    grid->fillVoxel(I2I64(ix), I2I64(iy), I2I64(iz));
             }
         }
+    }
+}
+
+void Volume::_rasterize(Sample* sample0, Sample* sample1, VolumeGrid* grid, float stepAlpha)
+{
+    Vector3f position0 = sample0->getPosition();
+    Vector3f position1 = sample1->getPosition();
+    float radius0 = sample0->getRadius();
+    float radius1 = sample1->getRadius();
+
+    // Compute the number of interpolation steps, and the position and radius increment    
+    float minRadius = std::min(radius0, radius1) * stepAlpha;
+    float distance = (position1 - position0).abs();
+    uint32_t numSteps = std::ceil( distance/ minRadius);
+    Vector3f positionIncrement = (position1 - position0) / numSteps;
+    float radiusIncrement =  (radius1 - radius0) / numSteps;
+
+    for (uint32_t i = 0; i <= numSteps; ++i)
+    {
+        // Compute the interpolated sample
+        Sample sample(position0 + positionIncrement * i,
+                        radius0 + radiusIncrement * i);
+        _rasterize(&sample, grid);
+    }
 }
 
 void Volume::_rasterizeParallel(Mesh* mesh, VolumeGrid* grid)
@@ -738,26 +779,25 @@ bool Volume::_testTriangleCubeIntersection(Mesh* mesh, uint64_t triangleIdx, con
 
 bool Volume::_testSampleCubeIntersection(Sample* sample, const GridIndex& voxel)
 {
-    // Get the origin of the voxel
-    Vector3f voxelOrigin;
-    voxelOrigin[0] = _pMin[0] + (voxel[0] * _voxelSize);
-    voxelOrigin[1] = _pMin[1] + (voxel[1] * _voxelSize);
-    voxelOrigin[2] = _pMin[2] + (voxel[2] * _voxelSize);
-    // Voxel size
-    Vector3f voxelSize(_voxelSize);
-    // Voxel end
-    Vector3f voxelEnd = voxelOrigin + voxelSize;
-
-    Vector3f center = sample->getPosition();
-    float r2 = pow(sample->getRadius(),2);
-    float minDist = 0;
-
+    // Voxel half size
+    float voxelHalfSize = _voxelSize * 0.5f;    
+    // Get the center of the voxel
+    Vector3f voxelCenter;
+    voxelCenter[0] = _pMin[0] + (voxel[0] * _voxelSize) + voxelHalfSize;
+    voxelCenter[1] = _pMin[1] + (voxel[1] * _voxelSize) + voxelHalfSize;
+    voxelCenter[2] = _pMin[2] + (voxel[2] * _voxelSize) + voxelHalfSize;
+ 
+    Vector3f position = sample->getPosition() - voxelCenter;
+    position[0] = abs(position[0]);
+    position[1] = abs(position[1]);
+    position[2] = abs(position[2]);
+    float r2 = pow(sample->getRadius(), 2);
+    float minDist = 0.0f;
+    
     for (uint8_t i = 0; i < 3; ++i)
     {
-        if (center[i] < voxelOrigin[i]) minDist += pow(center[i] - voxelOrigin[i], 2);
-        else if (center[i] > voxelEnd[i]) minDist += pow(center[i] - voxelEnd[i], 2);
+        if (position[i] > voxelHalfSize) minDist += pow(position[i] - voxelHalfSize, 2);
     }
-
     return minDist <= r2;
 }
 
@@ -893,6 +933,42 @@ void Volume::_getBoundingBox(Sample* sample, int64_t *tMin, int64_t *tMax)
     Vector3f radius(sample->getRadius());
     pMin = sample->getPosition() - radius;
     pMax = sample->getPosition() + radius;
+
+    // Get the indices of the grid that correspond to the bounding box
+    GridIndex vMin, vMax;
+    _vec2grid(pMin, vMin);
+    _vec2grid(pMax, vMax);
+
+    tMin[0] = vMin[0]; tMin[1] = vMin[1]; tMin[2] = vMin[2];
+    tMax[0] = vMax[0]; tMax[1] = vMax[1]; tMax[2] = vMax[2];
+
+    tMin[0] = std::max(int64_t(0), tMin[0]);
+    tMax[0] = std::min(int64_t(_grid->getWidth() - 1) , tMax[0]);
+
+    tMin[1] = std::max(int64_t(0), tMin[1]);
+    tMax[1] = std::min(int64_t(_grid->getHeight() - 1) , tMax[1]);
+
+    tMin[2] = std::max(int64_t(0), tMin[2]);
+    tMax[2] = std::min(int64_t(_grid->getDepth() - 1) , tMax[2]);
+}
+
+void Volume::_getBoundingBox(Sample* sample0, Sample* sample1, int64_t *tMin, int64_t *tMax)
+{
+    // The bounding box of the sphere
+    Vector3f pMin, pMax;
+    Vector3f radius0(sample0->getRadius());
+    Vector3f minimum0 = sample0->getPosition() - radius0;
+    Vector3f maximum0 = sample0->getPosition() + radius0;
+    Vector3f radius1(sample1->getRadius());
+    Vector3f minimum1 = sample1->getPosition() - radius1;
+    Vector3f maximum1 = sample1->getPosition() + radius1;
+    
+    pMin[0] = std::min(minimum0[0], minimum1[0]);
+    pMin[1] = std::min(minimum0[1], minimum1[1]);
+    pMin[2] = std::min(minimum0[2], minimum1[2]);
+    pMax[0] = std::max(maximum0[0], maximum1[0]);
+    pMax[1] = std::max(maximum0[1], maximum1[1]);
+    pMax[2] = std::max(maximum0[2], maximum1[2]);
 
     // Get the indices of the grid that correspond to the bounding box
     GridIndex vMin, vMax;

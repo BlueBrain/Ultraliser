@@ -608,6 +608,14 @@ private:
      */
     void _getBoundingBox(Sample* sample, int64_t *tMin, int64_t *tMax);
 
+    /**
+     * @brief _getBoundingBox
+     * @param sample0
+     * @param sample1
+     * @param tMin
+     * @param tMax
+     */
+    void _getBoundingBox(Sample* sample0, Sample* sample1, int64_t *tMin, int64_t *tMax);
 
     /**
      * @brief _getTriangleBoundingBox
@@ -631,6 +639,15 @@ private:
      * @param grid
      */
     void _rasterize(Sample* sample, VolumeGrid* grid);
+
+    /**
+     * @brief _rasterize
+     * @param sample0
+     * @param sample1
+     * @param grid
+     * @param stepAlpha
+     */
+    void _rasterize(Sample* sample0, Sample* sample1, VolumeGrid* grid, float stepAlpha = 0.1f);
 
     /**
      * @brief _rasterizeParallel
