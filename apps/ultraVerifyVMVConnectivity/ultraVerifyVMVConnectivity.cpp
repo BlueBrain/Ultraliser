@@ -22,24 +22,21 @@
 #include <Ultraliser.h>
 #include <AppCommon.h>
 #include <AppArguments.h>
+#include <hdf5.h>
+#include "H5Cpp.h"
 
 namespace Ultraliser
 {
 
 AppOptions* parseArguments(const int& argc , const char** argv)
 {
+    // Arguments
     std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This tool reconstructs a watertight polygonal mesh from an input "
-              "non-watertight mesh. The generated mesh can be also optimized to "
-              "reduce the number of triangles while preserving the volume. "
-              "The output mesh is guaranteed in all cases to be two-manifold");
+              "This tools verifies the connecitivty of the VMV datasets and creates the "
+              "connectivity if it is missing.");
 
-    args->addInputMeshArguments();
+    args->addInputMorphologyArguments();
     args->addOutputArguments();
-    args->addVolumeArguments();
-    args->addMeshArguments();
-    args->addSuppressionArguments();
-    args->addDataArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -47,49 +44,32 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     LOG_TITLE("Creating Context");
 
     // Verify the arguments after parsing them and extracting the application options.
-    options->verifyInputMeshArgument();
+    options->verifyInputMorphologyArgument();
     options->verifyOutputDirectoryArgument();
-    options->verifyBoudsFileArgument();
-    options->verifyMeshExportArguments();
-    options->verifyMeshPrefixArgument();
-    options->verifyIsoSurfaceExtractionArgument();
 
-    // Initialize context, once everything is in place and all the options are verified
+    // Initialize context
     options->initializeContext();
 
     // Return the executable options
     return options;
 }
 
+
 void run(int argc , const char** argv)
 {
-    // Parse the arguments and get the tool options
+    // Parse the arguments and get the values
     auto options = parseArguments(argc, argv);
 
-    // Load the input mesh
-    auto inputMesh = loadInputMesh(options);
+    // Read the file into a morphology structure
+    auto vasculatureMorphology = readVascularMorphology(options->inputMorphologyPath);
 
-    // Creates the volume grid to start processing the mesh
-    /// NOTE: The input mesh is release within this operation
-    auto volume = reconstructVolumeFromMesh(inputMesh, options);
+    // If the vascular morphology has the connectivity information, then exit
 
-    // Generate the volume artifacts based on the given options
-    generateVolumeArtifacts(volume, options);
+    // Otherwise, create the connectivity information
 
-    // Extract the mesh from the volume again
-    auto reconstructedMesh = reconstructMeshFromVolume(volume, options);
 
-    // Free the volume, it is not needed any further
-    delete volume;
 
-    // Generate the reconstructed mesh artifacts
-    generateReconstructedMeshArtifacts(reconstructedMesh, options);
-
-    // Free
-    delete reconstructedMesh;
-    delete options;
 }
-
 }
 
 int main(int argc , const char** argv)

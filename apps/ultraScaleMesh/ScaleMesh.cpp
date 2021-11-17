@@ -28,18 +28,15 @@ namespace Ultraliser
 
 AppOptions* parseArguments(const int& argc , const char** argv)
 {
+    // Arguments
     std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This tool reconstructs a watertight polygonal mesh from an input "
-              "non-watertight mesh. The generated mesh can be also optimized to "
-              "reduce the number of triangles while preserving the volume. "
-              "The output mesh is guaranteed in all cases to be two-manifold");
+              "This tool scales an input mesh in the X, Y and Z dimensions with given scale factors "
+              "to fit.");
 
     args->addInputMeshArguments();
     args->addOutputArguments();
-    args->addVolumeArguments();
-    args->addMeshArguments();
-    args->addSuppressionArguments();
-    args->addDataArguments();
+    args->addMeshExportArguments();
+    args->addMeshScaleArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -49,12 +46,10 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     // Verify the arguments after parsing them and extracting the application options.
     options->verifyInputMeshArgument();
     options->verifyOutputDirectoryArgument();
-    options->verifyBoudsFileArgument();
     options->verifyMeshExportArguments();
     options->verifyMeshPrefixArgument();
-    options->verifyIsoSurfaceExtractionArgument();
 
-    // Initialize context, once everything is in place and all the options are verified
+    // Initialize context
     options->initializeContext();
 
     // Return the executable options
@@ -63,33 +58,20 @@ AppOptions* parseArguments(const int& argc , const char** argv)
 
 void run(int argc , const char** argv)
 {
-    // Parse the arguments and get the tool options
+    // Parse the arguments and get the values
     auto options = parseArguments(argc, argv);
 
-    // Load the input mesh
-    auto inputMesh = loadInputMesh(options);
+    // Load the mesh
+    std::unique_ptr< Mesh > inputMesh = std::make_unique< Mesh >(options->inputMeshPath);
 
-    // Creates the volume grid to start processing the mesh
-    /// NOTE: The input mesh is release within this operation
-    auto volume = reconstructVolumeFromMesh(inputMesh, options);
+    // Scale the mesh
+    inputMesh->scale(options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
 
-    // Generate the volume artifacts based on the given options
-    generateVolumeArtifacts(volume, options);
-
-    // Extract the mesh from the volume again
-    auto reconstructedMesh = reconstructMeshFromVolume(volume, options);
-
-    // Free the volume, it is not needed any further
-    delete volume;
-
-    // Generate the reconstructed mesh artifacts
-    generateReconstructedMeshArtifacts(reconstructedMesh, options);
-
-    // Free
-    delete reconstructedMesh;
-    delete options;
+    // Export the repaired mesh
+    inputMesh->exportMesh(options->prefix,
+                          options->exportOBJ, options->exportPLY,
+                          options->exportOFF, options->exportSTL);
 }
-
 }
 
 int main(int argc , const char** argv)

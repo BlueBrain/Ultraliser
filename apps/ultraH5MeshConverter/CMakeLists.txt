@@ -1,27 +1,30 @@
-################################################################################
-# Copyright (c) 2016 - 2019
+####################################################################################################
+# Copyright (c) 2016 - 2021
 # Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
-# Author(s): Marwan Abdellah <marwan.abdellah@epfl.ch>
+#
+# Author(s)
+#       Marwan Abdellah <marwan.abdellah@epfl.ch>
+#
+# For complete list of authors, please see AUTHORS.md
 #
 # This file is part of Ultraliser <https://github.com/BlueBrain/Ultraliser>
 #
-# This library is free software; you can redistribute it and/or modify it under
-# the terms of the GNU Lesser General Public License version 3.0 as published
-# by the Free Software Foundation.
+# This library is free software; you can redistribute it and/or modify it under the terms of the
+# GNU Lesser General Public License version 3.0 as published by the Free Software Foundation.
 #
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.
+# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU Lesser General Public License
-# along with this library; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-################################################################################
+# You should have received a copy of the GNU Lesser General Public License along with this library;
+# if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA 02110-1301 USA.
+# You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
+####################################################################################################
 
 # Application name
-set(APP_NAME ultraMeshQualityChecker)
+set(APP_NAME ultraH5MeshConverter)
 
 # Add the current directory to include directories
 include_directories(${CMAKE_BINARY_DIR}/include)

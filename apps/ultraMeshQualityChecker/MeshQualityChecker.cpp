@@ -21,92 +21,67 @@
  ******************************************************************************/
 
 #include <Ultraliser.h>
-#include "Args.h"
+#include <AppCommon.h>
+#include <AppArguments.h>
 
-Options* parseArguments(Args* args)
+namespace Ultraliser
 {
-    Ultraliser::Argument inputMesh(
-                "--mesh",
-                ARGUMENT_TYPE::STRING,
-                "The full path to the mesh.",
-                ARGUMENT_PRESENCE::MANDATORY);
-    args->addArgument(&inputMesh);
+AppOptions* parseArguments(const int& argc , const char** argv)
+{
+    std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
+              "This tool reconstructs a watertight polygonal mesh from an input "
+              "non-watertight mesh. The generated mesh can be also optimized to "
+              "reduce the number of triangles while preserving the volume. "
+              "The output mesh is guaranteed in all cases to be two-manifold");
 
-    Ultraliser::Argument outputDirectory(
-                "--output-directory",
-                ARGUMENT_TYPE::STRING,
-                "Output directory where the results will be generated.",
-                ARGUMENT_PRESENCE::MANDATORY);
-    args->addArgument(&outputDirectory);
-
-    Ultraliser::Argument prefix(
-                "--prefix",
-                ARGUMENT_TYPE::STRING,
-                "Just a prefix that will be used to label the output files. "
-                "If this is not given by the user, the name of the mesh file "
-                "will be used.");
-    args->addArgument(&prefix);
-
-    // Parse the command line options
-    args->parse();
-
-    // Construct the options
-    Options* options = new Options();
+    args->addInputMeshArguments();
+    args->addOutputArguments();
 
     // Get all the options
-    options->inputMesh = args->getStringValue(&inputMesh);
-    options->outputDirectory = args->getStringValue(&outputDirectory);
-    options->prefix = args->getStringValue(&prefix);
+    AppOptions* options = args->getOptions();
 
-    /// Validate the arguments
-    if (!Ultraliser::File::exists(options->inputMesh))
-    {
-        LOG_ERROR("The file [%s] does NOT exist! ", options->inputMesh.c_str());
-    }
+    LOG_TITLE("Creating Context");
 
-    // Try to make the output directory
-    mkdir(options->outputDirectory.c_str(), 0777);
-    if (!Ultraliser::Directory::exists(options->outputDirectory))
-    {
-        LOG_ERROR("The directory [%s] does NOT exist!",
-                  options->outputDirectory.c_str());
-    }
+    // Verify the arguments after parsing them and extracting the application options.
+    options->verifyInputMeshArgument();
+    options->verifyOutputDirectoryArgument();
+    options->verifyMeshPrefixArgument();
 
-    // If no prefix is given, use the file name
-    if (options->prefix == NO_DEFAULT_VALUE)
-    {
-        options->prefix = Ultraliser::File::getName(options->inputMesh);
-    }
+    // Intuitive
+    options->writeStatistics = true;
+    options->writeDistributions = true;
 
-    // Construct the output prefix
-    options->outputPrefix = options->outputDirectory + "/" + options->prefix;
-
-
-    LOG_TITLE("Ultralizing");
+    // Initialize context, once everything is in place and all the options are verified
+    options->initializeContext();
 
     // Return the executable options
     return options;
 }
 
+void run(int argc , const char** argv)
+{
+    // Parse the arguments and get the tool options
+    auto options = parseArguments(argc, argv);
+
+    // Load the mesh
+    std::unique_ptr< Mesh > inputMesh = std::make_unique< Mesh >(options->inputMeshPath);
+
+    // Write the statistics of the input mesh
+    inputMesh->printStats("", &options->statisticsPrefix);
+
+    // Write the statistics of the input mesh
+    inputMesh->writeDistributions("", &options->statisticsPrefix);
+}
+}
+
 int main(int argc , const char** argv)
 {
-    // Arguments
-    Args args(argc, argv,
-              "This tool checks thq quality of the input mesh and report a "
-              "file with all the measures.");
+    TIMER_SET;
 
-    // Parse the arguments and get the values
-    Options* options = parseArguments(&args);
+    Ultraliser::run(argc, argv);
 
-    /// Load the mesh
-    std::unique_ptr< Ultraliser::AdvancedMesh> inputMesh = std::make_unique< Ultraliser::AdvancedMesh >(
-                options->inputMesh);
-
-    // Print the stats.
-    inputMesh->printStats("input", &options->outputPrefix);
-
-    // Print the distributions
-    inputMesh->writeDistributions("input", &options->outputPrefix);
+    LOG_STATUS_IMPORTANT("Ultralization Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
 
     ULTRALISER_DONE;
 }

@@ -50,7 +50,8 @@ Volume* createVolumeGrid(Mesh *mesh, const AppOptions* options)
 void computeBoundingBoxForMeshes(const std::string& boundsFile,
                                  const std::string& inputMeshesDirectory,
                                  std::vector< std::string > meshFiles,
-                                 Vector3f& pMax, Vector3f& pMin)
+                                 Vector3f& pMax, Vector3f& pMin,
+                                 const float& xScale,const float& yScale,const float& zScale)
 {
     if (boundsFile == EMPTY)
     {
@@ -80,6 +81,9 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
             {
                 // Load the mesh
                 auto mesh = new Ultraliser::Mesh(meshFile, false);
+
+                // Scale the mesh
+                mesh->scale(xScale, yScale, zScale);
 
                 // Compute its bounding box
                 Ultraliser::Vector3f pMinMesh, pMaxMesh;
@@ -165,8 +169,8 @@ void ensureWatertightness(Mesh* mesh, const AppOptions* options)
         {
             try {
                 partition->ensureWatertightness();
-            }  catch (...) {
-                LOG_WARNING("Soma partition is invalid");
+            } catch (...) {
+                LOG_WARNING("Some partition is invalid");
             }
         }
 
@@ -199,18 +203,21 @@ void applyLaplacianOperator(Mesh *mesh, const AppOptions* options)
     // self intersections, this must be fixed
     ensureWatertightness(mesh, options);
 
-    // Export the mesh
-    mesh->exportMesh(options->meshPrefix + LAPLACIAN_SUFFIX,
-                     options->exportOBJ, options->exportPLY,
-                     options->exportOFF, options->exportSTL);
+    if (!options->ignoreLaplacianMesh)
+    {
+        // Print the mesh statistcs
+        if (options->writeStatistics)
+            mesh->printStats(LAPLACIAN_STRING, &options->statisticsPrefix);
 
-    // Print the mesh statistcs
-    if (options->writeStatistics)
-        mesh->printStats(LAPLACIAN_STRING, &options->statisticsPrefix);
+        // Print the mesh distributions
+        if (options->writeDistributions)
+            mesh->printStats(LAPLACIAN_STRING, &options->distributionsPrefix);
 
-    // Print the mesh distributions
-    if (options->writeDistributions)
-        mesh->printStats(LAPLACIAN_STRING, &options->distributionsPrefix);
+        // Export the laplacian mesh
+        mesh->exportMesh(options->meshPrefix + LAPLACIAN_SUFFIX,
+                         options->exportOBJ, options->exportPLY,
+                         options->exportOFF, options->exportSTL);
+    }
 }
 
 void createWatertightMesh(const Mesh* mesh, const AppOptions* options)
@@ -232,7 +239,7 @@ void createWatertightMesh(const Mesh* mesh, const AppOptions* options)
             try {
                 mesh->ensureWatertightness();
             }  catch (...) {
-                LOG_WARNING("Soma partition is invalid");
+                LOG_WARNING("Some partition in the mesh is invalid");
             }
         }
 
@@ -275,7 +282,7 @@ void generateOptimizedMeshWithROI(Mesh *mesh, const AppOptions* options, const R
                                      options->denseFactor,
                                      regions);
 
-    if (!options->ignoreOptimizedNonWatertightMesh)
+    if (!options->ignoreOptimizedMesh)
     {
         // Print the mesh statistcs
         if (options->writeStatistics)
@@ -293,7 +300,7 @@ void generateOptimizedMeshWithROI(Mesh *mesh, const AppOptions* options, const R
     }
 
     // Fix self-intersections if any to create the watertight mesh
-    if (!options->ignoreSelfIntersections)
+    if (!options->ignoreWatertightMesh)
         createWatertightMesh(mesh, options);
 }
 
@@ -322,7 +329,7 @@ void generateOptimizedMesh(Mesh *mesh, const AppOptions* options)
     // Optimize the mesh
     optimizeMesh(mesh, options);
 
-    if (!options->ignoreOptimizedNonWatertightMesh)
+    if (!options->ignoreOptimizedMesh)
     {
         // Print the mesh statistcs
         if (options->writeStatistics)
@@ -335,18 +342,21 @@ void generateOptimizedMesh(Mesh *mesh, const AppOptions* options)
         // Export the mesh
         if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
             mesh->exportMesh(options->meshPrefix + OPTIMIZED_SUFFIX,
-                                options->exportOBJ, options->exportPLY,
-                                options->exportOFF, options->exportSTL);
+                             options->exportOBJ, options->exportPLY,
+                             options->exportOFF, options->exportSTL);
     }
 
-    // Fix self-intersections if any to create the watertight mesh
-    if (!options->ignoreSelfIntersections)
-        createWatertightMesh(mesh, options);
 }
 
 Volume* reconstructVolumeFromMesh(Mesh* inputMesh, const AppOptions* options,
                                   const bool& releaseInputMesh)
 {
+    // Scale the mesh
+    inputMesh->scale(options->xScaleFactor,
+                     options->yScaleFactor,
+                     options->zScaleFactor);
+
+    // Create the volume from the mesh
     auto volume = createVolumeGrid(inputMesh, options);
 
     // Surface voxelization
@@ -398,7 +408,7 @@ void optimizeMeshWithPartitions(AdvancedMesh* mesh, const AppOptions* options)
         delete mesh;
 
         // Laplacian smoorhing on a per-partition-basis
-        if (!options->ignoreLaplacianSmoothing || options->laplacianIterations > 0)
+        if (options->laplacianIterations > 0)
             simpleMesh->smoothLaplacian(options->laplacianIterations);
 
         // Optimize the simple mesh
@@ -432,7 +442,7 @@ void optimizeMeshWithPartitions(AdvancedMesh* mesh, const AppOptions* options)
         delete advancedMesh;
 
         // Laplacian smoorhing on a per-partition-basis
-        if (!options->ignoreLaplacianSmoothing || options->laplacianIterations > 0)
+        if (options->laplacianIterations > 0)
             simpleMesh->smoothLaplacian(options->laplacianIterations);
 
         // Optimize the simple mesh
@@ -465,21 +475,32 @@ void optimizeMeshWithPartitions(AdvancedMesh* mesh, const AppOptions* options)
 
 void generateMarchingCubesMeshArtifacts(const Mesh *mesh, const AppOptions* options)
 {   
+    // Set the string based on the iso-surface reconstruction algorithm MC or DMC
+    std::string artifactString;
+    std::string artifactSuffix;
+    if (options->isosurfaceTechnique == DMC_STRING)
+    {
+        artifactString = DMC_STRING; artifactSuffix = DMC_SUFFIX;
+    }
+    else
+    {
+        artifactString = MC_STRING; artifactSuffix = MC_SUFFIX;
+    }
+
     // Write the statistics of the reconstructed mesh from the marhcing cubes algorithm
     if (options->writeStatistics)
-        mesh->printStats(MC_STRING, &options->statisticsPrefix);
+        mesh->printStats(artifactString, &options->statisticsPrefix);
 
     // Distributions
     if (options->writeDistributions)
-        mesh->writeDistributions(MC_STRING, &options->distributionsPrefix);
+        mesh->writeDistributions(artifactString, &options->distributionsPrefix);
 
     // Export the MC mesh
     if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
-        mesh->exportMesh(options->meshPrefix + MC_SUFFIX,
+        mesh->exportMesh(options->meshPrefix + artifactSuffix,
                          options->exportOBJ, options->exportPLY,
                          options->exportOFF, options->exportSTL);
 }
-
 
 Mesh* loadInputMesh(const AppOptions* options)
 {
@@ -492,25 +513,27 @@ Mesh* loadInputMesh(const AppOptions* options)
 
     // Write the statistics of the input mesh
     if (options->writeDistributions)
-        mesh->writeDistributions(INPUT_STRING, &options->statisticsPrefix);
+        mesh->writeDistributions(INPUT_STRING, &options->distributionsPrefix);
 
     return mesh;
 }
 
 void generateReconstructedMeshArtifacts(Mesh* mesh, const AppOptions* options)
 {
-    // MC mesh output
-    if (options->writeMarchingCubeMesh)
+    // Write the mesh reconstructed from the marching cubes algorithm
+    if (!options->ignoreMarchingCubesMesh)
         generateMarchingCubesMeshArtifacts(mesh, options);
 
-    // Laplacian smoorhing
-    if (!options->ignoreLaplacianSmoothing || options->laplacianIterations > 0)
+    // Apply laplacian smoothing
+    if (options->laplacianIterations > 0)
         applyLaplacianOperator(mesh, options);
 
-
-    // Optimize the mesh and create a watertight mesh
+    // Create an optimized version of the mesh
     if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)
         generateOptimizedMesh(mesh, options);
+
+    // Create the final watertight mesh
+    createWatertightMesh(mesh, options);
 }
 
 void generateVolumeArtifacts(const Volume* volume, const AppOptions* options)
@@ -551,10 +574,9 @@ void generateVolumeArtifacts(const Volume* volume, const AppOptions* options)
                                        options->exportOBJ, options->exportPLY,
                                        options->exportOFF, options->exportSTL);
 
-
     // Print the volume statistics
     if (options->writeStatistics)
-        volume->printStats(options->prefix, &options->statisticsPrefix);
+        volume->printStats(VOLUME_STRING, &options->statisticsPrefix);
 }
 
 }

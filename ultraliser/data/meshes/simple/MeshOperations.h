@@ -25,6 +25,9 @@
 #include <common/Common.h>
 #include <data/common/CommonData.h>
 #include <data/meshes/simple/primitives/Primitives.h>
+#ifdef ULTRALISER_USE_H5
+#include "H5Cpp.h"
+#endif
 
 namespace Ultraliser
 {
@@ -111,6 +114,33 @@ void importSTL(const std::string &filePath, Vertices& vertices, Triangles& trian
  */
 void importOFF(const std::string &filePath, Vertices& vertices, Triangles& triangles,
                const bool &verbose = true);
+
+#ifdef ULTRALISER_USE_H5
+/**
+ * @brief extractVertexList
+ * @param h5File
+ * @return
+ */
+Vertices extractVertexList(H5::H5File* h5File);
+
+/**
+ * @brief extractTriangleList
+ * @param h5File
+ * @return
+ */
+Triangles extractTriangleList(H5::H5File* h5File);
+#endif
+
+/**
+ * @brief importH5
+ * @param filePath
+ * @param vertices
+ * @param triangles
+ * @param verbose
+ */
+void importH5(const std::string &filePath, Vertices& vertices, Triangles& triangles,
+              const bool &verbose = true);
+
 
 /**
  * @brief exportToOBJ

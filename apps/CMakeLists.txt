@@ -45,11 +45,21 @@ add_subdirectory(ultraMesh2Volume)
 # ultraCleanMesh
 add_subdirectory(ultraCleanMesh)
 
+# ultraScaleMesh
+add_subdirectory(ultraScaleMesh)
+
 # ultraSplitPartitions
 add_subdirectory(ultraSplitPartitions)
 
 # ultraMeshQualityChecker
 add_subdirectory(ultraMeshQualityChecker)
+
+# ultraH5MeshConverter
+if(${ULTRALISER_USE_H5})
+add_subdirectory(ultraH5MeshConverter)
+else(${ULTRALISER_USE_H5})
+    message(STATUS "ultraH5MeshConverter will not be compiled. Missing H5!")
+endif(${ULTRALISER_USE_H5})
 
 # ultraVasculatureMorphology2Mesh
 if(${ULTRALISER_USE_H5})

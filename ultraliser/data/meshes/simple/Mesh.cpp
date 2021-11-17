@@ -243,6 +243,7 @@ void Mesh::transform(const Matrix4f& matrix)
 
 void Mesh::translate(const Vector3f& to)
 {
+    OMP_PARALLEL_FOR
     for (uint64_t i = 0; i < _numberVertices; ++i)
     {
         _vertices[i] += to;
@@ -251,6 +252,7 @@ void Mesh::translate(const Vector3f& to)
 
 void Mesh::uniformScale(const float factor)
 {
+    OMP_PARALLEL_FOR
     for (uint64_t i = 0; i < _numberVertices; ++i)
     {
         _vertices[i] *= factor;
@@ -259,6 +261,7 @@ void Mesh::uniformScale(const float factor)
 
 void Mesh::scale(const float x, const float y, const float z)
 {
+    OMP_PARALLEL_FOR
     for (uint64_t i = 0; i < _numberVertices; ++i)
     {
         _vertices[i].x() *= x;
@@ -378,6 +381,12 @@ void Mesh::import(const std::string &fileName, const bool &verbose)
     case 'F':
     {
         importOFF(fileName, loadedVertices, loadedTriangles, verbose);
+        break;
+    }
+    case 'h':
+    case 'H':
+    {
+        importH5(fileName, loadedVertices, loadedTriangles, verbose);
         break;
     }
     default:

@@ -859,6 +859,80 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
     if (verbose) LOG_STATS(GET_TIME_SECONDS);
 }
 
+#ifdef ULTRALISER_USE_H5
+Vertices extractVertexList(H5::H5File* h5File)
+{
+    // Read the vertices data set
+    H5::DataSet dataset = h5File->openDataSet("vertices");
+
+    // Get its data-space to be able to access its dimensionality
+    H5::DataSpace dataSpace = dataset.getSpace();
+
+    // Dataset dimenions
+    hsize_t dimensions[2];
+    dataSpace.getSimpleExtentDims(dimensions, nullptr);
+
+    // Resize the vector to contain the data
+    Vertices vertices;
+    vertices.resize(dimensions[0]);
+
+    // Read the data
+    dataset.read(vertices.data(), H5::PredType::NATIVE_FLOAT);
+
+    // Close the dataset
+    dataset.close();
+
+    // Return the result
+    return vertices;
+}
+
+Triangles extractTriangleList(H5::H5File* h5File)
+{
+    // Read the faces data set
+    H5::DataSet dataset = h5File->openDataSet("faces");
+
+    // Get its data-space to be able to access its dimensionality
+    H5::DataSpace dataSpace = dataset.getSpace();
+
+    // Dataset dimenions
+    hsize_t dimensions[2];
+    dataSpace.getSimpleExtentDims(dimensions, nullptr);
+
+    // Resize the vector to contain the data
+    Triangles triangles;
+    triangles.resize(dimensions[0]);
+
+    // Read the data
+    dataset.read(triangles.data(), H5::PredType::NATIVE_INT64);
+
+    // Close the dataset
+    dataset.close();
+
+    // Return the result
+    return triangles;
+}
+#endif
+
+
+void importH5(const std::string &filePath, Vertices& vertices, Triangles& triangles,
+              const bool &verbose)
+{
+#ifdef ULTRALISER_USE_H5
+
+    H5::H5File* h5File = new H5::H5File(filePath, H5F_ACC_RDONLY);
+
+    // Get the vertex list
+    vertices = extractVertexList(h5File);
+
+    // Get the triangle list
+    triangles = extractTriangleList(h5File);
+
+#else
+    LOG_ERROR("Cannot load the file %s, HDF5 library is missing!", filePath.c_str());
+#endif
+}
+
+
 void exportOBJ(const std::string &prefix,
                const Vertex *vertices,
                const uint64_t &numberVertices,

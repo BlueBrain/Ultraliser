@@ -22,24 +22,22 @@
 #include <Ultraliser.h>
 #include <AppCommon.h>
 #include <AppArguments.h>
+#include <data/meshes/simple/MeshOperations.h>
 
 namespace Ultraliser
 {
 
 AppOptions* parseArguments(const int& argc , const char** argv)
 {
+    // Arguments
     std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This tool reconstructs a watertight polygonal mesh from an input "
-              "non-watertight mesh. The generated mesh can be also optimized to "
-              "reduce the number of triangles while preserving the volume. "
-              "The output mesh is guaranteed in all cases to be two-manifold");
+              "This tools converts meshes stored in H5 format into regular mesh objects that can "
+              "be read with ordinary rendering applications like Blender or MeshLab! "
+              "Note that the input mesh must bet a .H5 file.");
 
     args->addInputMeshArguments();
     args->addOutputArguments();
-    args->addVolumeArguments();
-    args->addMeshArguments();
-    args->addSuppressionArguments();
-    args->addDataArguments();
+    args-> addMeshExportArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -49,12 +47,10 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     // Verify the arguments after parsing them and extracting the application options.
     options->verifyInputMeshArgument();
     options->verifyOutputDirectoryArgument();
-    options->verifyBoudsFileArgument();
     options->verifyMeshExportArguments();
     options->verifyMeshPrefixArgument();
-    options->verifyIsoSurfaceExtractionArgument();
 
-    // Initialize context, once everything is in place and all the options are verified
+    // Initialize context
     options->initializeContext();
 
     // Return the executable options
@@ -63,33 +59,31 @@ AppOptions* parseArguments(const int& argc , const char** argv)
 
 void run(int argc , const char** argv)
 {
-    // Parse the arguments and get the tool options
+    // Parse the arguments and get the values
     auto options = parseArguments(argc, argv);
 
-    // Load the input mesh
-    auto inputMesh = loadInputMesh(options);
+    // Read the file
+    TIMER_SET;
+    LOG_TITLE("Importing Mesh");
+    H5::H5File* h5File = new H5::H5File(options->inputMeshPath, H5F_ACC_RDONLY);
 
-    // Creates the volume grid to start processing the mesh
-    /// NOTE: The input mesh is release within this operation
-    auto volume = reconstructVolumeFromMesh(inputMesh, options);
+    // Get the vertex list
+    Vertices vertices = extractVertexList(h5File);
 
-    // Generate the volume artifacts based on the given options
-    generateVolumeArtifacts(volume, options);
+    // Get the triangle list
+    Triangles triangles = extractTriangleList(h5File);
 
-    // Extract the mesh from the volume again
-    auto reconstructedMesh = reconstructMeshFromVolume(volume, options);
+    // Construct the mesh
+    std::unique_ptr< Mesh > mesh = std::make_unique< Mesh >(vertices, triangles);
 
-    // Free the volume, it is not needed any further
-    delete volume;
+    LOG_STATUS_IMPORTANT("Importing Mesh Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
 
-    // Generate the reconstructed mesh artifacts
-    generateReconstructedMeshArtifacts(reconstructedMesh, options);
-
-    // Free
-    delete reconstructedMesh;
-    delete options;
+    // Export the mesh in one of the common formats
+    mesh->exportMesh(options->meshPrefix,
+                     options->exportOBJ, options->exportPLY,
+                     options->exportOFF, options->exportSTL);
 }
-
 }
 
 int main(int argc , const char** argv)

@@ -56,7 +56,8 @@ Volume* createVolumeGrid(Mesh *mesh, const AppOptions* options);
 void computeBoundingBoxForMeshes(const std::string& boundsFile,
                                  const std::string& inputMeshesDirectory,
                                  std::vector< std::string > meshFiles,
-                                 Vector3f& pMax, Vector3f& pMin);
+                                 Vector3f& pMax, Vector3f& pMin,
+                                 const float& xScale,const float& yScale,const float& zScale);
 
 /**
  * @brief loadInputMesh

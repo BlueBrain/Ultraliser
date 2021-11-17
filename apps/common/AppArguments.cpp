@@ -33,12 +33,15 @@ AppArguments::AppArguments(const int& argc , const char** argv, const std::strin
     _options = new AppOptions();
 }
 
+
+
 void AppArguments::addInputMeshArguments()
 {
     Argument inputMesh(
                 "--mesh",
                 ARGUMENT_TYPE::STRING,
-                "The absolute path to the input mesh.",
+                "The absolute path to the input mesh. "
+                "Supported mesh types: .OBJ, .PLY, .STL, .OFF, .H5",
                 ARGUMENT_PRESENCE::MANDATORY);
     _args->addArgument(&inputMesh);
     _options->inputMeshPath = _args->getStringValue(&inputMesh);
@@ -463,13 +466,6 @@ void AppArguments::addMeshOptimizationArguments()
 
 void AppArguments::addLaplacianOperatorArguments()
 {
-    Argument ignoreLaplacianSmoothing(
-                "--ignore-laplacian-filter",
-                ARGUMENT_TYPE::BOOL,
-                "Ignore Laplacian smoothing.");
-    _args->addArgument(&ignoreLaplacianSmoothing);
-    _options->ignoreLaplacianSmoothing = _args->getBoolValue(&ignoreLaplacianSmoothing);
-
     Argument laplacianIterations(
                 "--laplacian-iterations",
                 ARGUMENT_TYPE::INTEGER,
@@ -590,41 +586,35 @@ void AppArguments::addPackingAlgorithmArguments()
 
 void AppArguments::addSuppressionArguments()
 {
-    Argument watertight(
-                "--watertight",
+    Argument ignoreMarchingCubesMesh(
+                "--ignore-marching-cubes-mesh",
                 ARGUMENT_TYPE::BOOL,
-                "Guarantee that the resulting mesh is watertight. "
-                "If this flag is set, and by default, the exported mesh will be ONLY the "
-                "watertight one, and those created from the marching cubes algorithm, or the "
-                "laplacian operation and optimization will NOT be exported, unless specified.");
-    _args->addArgument(&watertight);
-    _options->watertight = _args->getBoolValue(&watertight);
+                "If this flag is set, the mesh reconstructed with the marching cubes algorithm "
+                "will not be written to disk.");
+    _args->addArgument(&ignoreMarchingCubesMesh);
+    _options->ignoreMarchingCubesMesh = _args->getBoolValue(&ignoreMarchingCubesMesh);
 
-    Argument ignoreSelfIntersections(
-                "--ignore-self-intersections",
+    Argument ignoreLaplacianMesh(
+                "--ignore-laplacian-mesh",
                 ARGUMENT_TYPE::BOOL,
-                "Ignore, and take no action if the mesh has self intersecting faces. This process "
-                "will speed up the generation of the final mesh, but the output mesh has no "
-                "guarntees to be perfectly watertight.");
-    _args->addArgument(&ignoreSelfIntersections);
-    _options->ignoreSelfIntersections = _args->getBoolValue(&ignoreSelfIntersections);
+                "If this flag is set, the mesh resulting from the application of the Laplacian "
+                "operator will be ignored and will not be written to disk.");
+    _args->addArgument(&ignoreLaplacianMesh);
+    _options->ignoreLaplacianMesh = _args->getBoolValue(&ignoreLaplacianMesh);
 
-    Argument writeMarchingCubeMesh(
-                "--write-marching-cubes-mesh",
+    Argument ignoreOptimizedMesh(
+                "--ignore-optimized-mesh",
                 ARGUMENT_TYPE::BOOL,
-                "Write the resulting mesh (and its artifacts) from the marching cubes operation to "
-                "debug it.");
-    _args->addArgument(&writeMarchingCubeMesh);
-    _options->writeMarchingCubeMesh = _args->getBoolValue(&writeMarchingCubeMesh);
+                "If this flag is set, the optimized mesh will not be written to disk.");
+    _args->addArgument(&ignoreOptimizedMesh);
+    _options->ignoreOptimizedMesh = _args->getBoolValue(&ignoreOptimizedMesh);
 
-    Argument ignoreOptimizedNonWatertightMesh(
-                "--ignore-optimized-non-watertight-mesh",
+    Argument ignoreWatertightMesh(
+                "--ignore-optimized-mesh",
                 ARGUMENT_TYPE::BOOL,
-                "Ignore the resulting mesh from the optimization process without removing self "
-                "intersections.");
-    _args->addArgument(&ignoreOptimizedNonWatertightMesh);
-    _options->ignoreOptimizedNonWatertightMesh =
-            _args->getBoolValue(&ignoreOptimizedNonWatertightMesh);
+                "If this flag is set, the watertight mesh will not be written to disk.");
+    _args->addArgument(&ignoreWatertightMesh);
+    _options->ignoreWatertightMesh = _args->getBoolValue(&ignoreWatertightMesh);
 }
 
 AppOptions* AppArguments::getOptions()

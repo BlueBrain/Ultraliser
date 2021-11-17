@@ -399,12 +399,6 @@ public:
     bool exportVolumeGridMesh = false;
 
     /**
-     * @brief ignoreLaplacianSmoothing
-     * Ignore Laplacian smoothing to smooth the reconstructed mesh.
-     */
-    bool ignoreLaplacianSmoothing = false;
-
-    /**
      * @brief laplacianIterations
      * Number of iterations of the Laplacian smoothing filter.
      */
@@ -531,28 +525,30 @@ public:
     std::string outputPrefix;
 
     /**
-     * @brief writeMarchingCubeMesh
-     * By default the reconstructed mesh with the marching cubes algorithm is not written. But for
-     * debugging purposes, we might need to write it.
+     * @brief ignoreMarchingCubesMesh
+     * If this flag is set, the mesh reconstructed with the marching cubes algorithm will not
+     * be written to disk.
      */
-    bool writeMarchingCubeMesh = false;
+    bool ignoreMarchingCubesMesh = false;
 
     /**
-     * @brief ignoreSelfIntersections
-     * Ignore if the mesh has self intersections, and do NOT repair them.
+     * @brief ignoreLaplacianMesh
+     * If this flag is set, the mesh resulting from the application of the Laplacian operator will
+     * be ignored and will not be written to disk.
      */
-    bool ignoreSelfIntersections = false;
+    bool ignoreLaplacianMesh = false;
 
     /**
-     * @brief ensureWatertight
+     * @brief ignoreOptimizedMesh
+     * If this flag is set, the optimized mesh will not be written to disk.
      */
-    bool watertight = false;
+    bool ignoreOptimizedMesh = false;
 
     /**
-     * @brief ignoreOptimizedNonWatertightMesh
-     * Ignores writing the optimized mesh that is not watertight.
+     * @brief ignoreWatertightMesh
+     * If this flag is set, the watertight mesh will not be written to disk.
      */
-    bool ignoreOptimizedNonWatertightMesh = false;
+    bool ignoreWatertightMesh = false;
 
     /**
      * @brief xScaleFactor

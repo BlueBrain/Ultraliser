@@ -108,7 +108,8 @@ void reconstructMeshWithVolumeReconstruction(const std::vector< std::string >& m
     // Compute the bounding box
     Vector3f pMaxInput, pMinInput;
     computeBoundingBoxForMeshes(options->boundsFile, options->inputMeshesDirectory,
-                                meshFiles, pMaxInput, pMinInput);
+                                meshFiles, pMaxInput, pMinInput,
+                                options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
 
     // Keep thr original values of the bounding box
     Vector3f inputBB = pMaxInput - pMinInput;

@@ -30,6 +30,20 @@ void AppOptions::verifyInputMeshArgument()
     {
         LOG_ERROR("The file [ %s ] does NOT exist! ", inputMeshPath.c_str());
     }
+
+    if (!(String::subStringFound(inputMeshPath, ".OBJ") ||
+          String::subStringFound(inputMeshPath, ".obj") ||
+          String::subStringFound(inputMeshPath, ".PLY") ||
+          String::subStringFound(inputMeshPath, ".ply") ||
+          String::subStringFound(inputMeshPath, ".STL") ||
+          String::subStringFound(inputMeshPath, ".stl") ||
+          String::subStringFound(inputMeshPath, ".OFF") ||
+          String::subStringFound(inputMeshPath, ".off") ||
+          String::subStringFound(inputMeshPath, ".H5")  ||
+          String::subStringFound(inputMeshPath, ".h5")))
+    {
+        LOG_ERROR("Unsupported mesh type [%s]!", inputMeshPath.c_str());
+    }
 }
 
 void AppOptions::verifyInputMeshesDirectoryArgument()
