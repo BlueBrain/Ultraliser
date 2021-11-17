@@ -28,12 +28,35 @@
 namespace Ultraliser
 {
 
+/**
+ * @brief The SECTION_TYPE enum
+ */
+enum SECTION_TYPE
+{
+    NEURON_AXON,
+    NEURON_APICAL_DENDRITE,
+    NEURON_BASAL_DENDRITE,
+    VASCULATURE,
+    UNKNOWN
+};
+
 class Section
 {
 public:
+
+    /**
+     * @brief Section
+     * @param index
+     */
     Section(const uint64_t &index);
 
 public:
+
+    /**
+     * @brief getType
+     * @return
+     */
+    SECTION_TYPE getType() const;
 
     /**
      * @brief getIndex
@@ -169,6 +192,11 @@ public:
     float computeAverageRadius() const;
 
 private:
+
+    /**
+     * @brief _type
+     */
+    SECTION_TYPE _type;
 
     /**
      * @brief _index
