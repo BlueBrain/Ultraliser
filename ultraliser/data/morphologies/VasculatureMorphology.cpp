@@ -24,8 +24,8 @@
 #include <common/Common.h>
 #include <utilities/Utilities.h>
 #include <utilities/TypeConversion.h>
-#include <data/morphologies/VasculatureH5Reader.h>
-#include <data/morphologies/VasculatureVMVReader.h>
+#include <data/morphologies/h5/VasculatureH5Reader.h>
+#include <data/morphologies/vmv/VasculatureVMVReader.h>
 
 namespace Ultraliser
 {

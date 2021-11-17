@@ -19,24 +19,12 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_DATA_H
-#define ULTRALISER_DATA_MORPHOLOGIES_DATA_H
+#ifndef ULTRALISER_DATA_MORPHOLOGIES_VMV_DATA_H
+#define ULTRALISER_DATA_MORPHOLOGIES_VMV_DATA_H
 
-#include <data/morphologies/Sample.h>
-#include <data/morphologies/Section.h>
-#include <data/morphologies/Morphologies.h>
-#include <data/morphologies/Morphology.h>
-#include <data/morphologies/swc/NeuronSWCReader.h>
-#include <data/morphologies/swc/NeuronSWCSample.hh>
-#include <data/morphologies/NeuronMorphology.h>
-#include <data/morphologies/h5/VasculatureH5Reader.h>
-#include <data/morphologies/h5/VasculatureH5Sample.hh>
-#include <data/morphologies/h5/VasculatureH5Section.hh>
-#include <data/morphologies/h5/VasculatureH5Connectivity.hh>
-#include <data/morphologies/VasculatureMorphology.h>
 #include <data/morphologies/vmv/VasculatureVMVReader.h>
 
-#endif // ULTRALISER_DATA_MORPHOLOGIES_DATA_H
+#endif // ULTRALISER_DATA_MORPHOLOGIES_VMV_DATA_H
 
 
 

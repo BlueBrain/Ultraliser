@@ -4,6 +4,7 @@
  *
  * Author(s)
  *      Marwan Abdellah < marwan.abdellah@epfl.ch >
+ *      Juan Jose Garcia Cantero < juanjose.garcia@epfl.ch>
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -19,25 +20,57 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_DATA_H
-#define ULTRALISER_DATA_MORPHOLOGIES_DATA_H
+#ifndef ULTRALISER_DATA_MORPHOLOGIES_NEURON_SWC_READER_H
+#define ULTRALISER_DATA_MORPHOLOGIES_NEURON_SWC_READER_H
 
-#include <data/morphologies/Sample.h>
-#include <data/morphologies/Section.h>
-#include <data/morphologies/Morphologies.h>
-#include <data/morphologies/Morphology.h>
-#include <data/morphologies/swc/NeuronSWCReader.h>
+#include <string>
+#include <vector>
 #include <data/morphologies/swc/NeuronSWCSample.hh>
 #include <data/morphologies/NeuronMorphology.h>
-#include <data/morphologies/h5/VasculatureH5Reader.h>
-#include <data/morphologies/h5/VasculatureH5Sample.hh>
-#include <data/morphologies/h5/VasculatureH5Section.hh>
-#include <data/morphologies/h5/VasculatureH5Connectivity.hh>
-#include <data/morphologies/VasculatureMorphology.h>
-#include <data/morphologies/vmv/VasculatureVMVReader.h>
-
-#endif // ULTRALISER_DATA_MORPHOLOGIES_DATA_H
 
 
+namespace Ultraliser
+{
 
+class NeuronSWCReader
+{
+public:
 
+    /**
+     * @brief NeuronSWCReader
+     * Constructor
+     * @param swcMorphologyFilePath
+     * The path to the morphology file.
+     */
+    NeuronSWCReader(const std::string &swcMorphologyFilePath);
+    
+    ~NeuronSWCReader();
+    
+public:
+
+    /**
+     * @brief getMorphology
+     * Return a pointer to the neuron morphology.
+     * @return Return a pointer to the morphology.
+     */
+    NeuronMorphology* getMorphology();
+
+private:
+
+    /**
+     * @brief _readSamples
+     * Reads the samples from the morphology file.
+     */
+    void _readSamples(const std::string &swcMorphologyFilePath);
+
+private:
+
+    /**
+     * @brief _samples
+     * Neuron samples.
+     */
+    NeuronSWCSamples _samples;
+};
+
+}
+#endif // ULTRALISER_DATA_MORPHOLOGIES_NEURON_SWC_READER_H

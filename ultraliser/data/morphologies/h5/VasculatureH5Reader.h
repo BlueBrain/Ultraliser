@@ -25,9 +25,9 @@
 
 #include <string>
 #include <vector>
-#include <data/morphologies/VasculatureH5Sample.hh>
-#include <data/morphologies/VasculatureH5Section.hh>
-#include <data/morphologies/VasculatureH5Connectivity.hh>
+#include <data/morphologies/h5/VasculatureH5Sample.hh>
+#include <data/morphologies/h5/VasculatureH5Section.hh>
+#include <data/morphologies/h5/VasculatureH5Connectivity.hh>
 #include <data/morphologies/VasculatureMorphology.h>
 
 #include <hdf5.h>

@@ -24,10 +24,6 @@
 #include <geometry/Intersection.h>
 #include <math/Vector3f.h>
 
-#define X 0
-#define Y 1
-#define Z 2
-
 namespace Ultraliser
 {
 
@@ -38,25 +34,12 @@ namespace Ultraliser
 #define Y 1
 #define Z 2
 
-#define CROSS(dest,v1,v2) \
-          dest[0]=v1[1]*v2[2]-v1[2]*v2[1]; \
-          dest[1]=v1[2]*v2[0]-v1[0]*v2[2]; \
-          dest[2]=v1[0]*v2[1]-v1[1]*v2[0];
-
-#define DOT(v1,v2) (v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2])
-
-#define SUB(dest,v1,v2) \
-          dest[0]=v1[0]-v2[0]; \
-          dest[1]=v1[1]-v2[1]; \
-          dest[2]=v1[2]-v2[2];
-
-#define FINDMINMAX(x0,x1,x2,min,max) \
-  min = max = x0;   \
-  if(x1<min) min=x1;\
-  if(x1>max) max=x1;\
-  if(x2<min) min=x2;\
-  if(x2>max) max=x2;
-
+#define FINDMINMAX(x0, x1, x2, min, max)                                                            \
+  min = max = x0;                                                                                   \
+  if(x1 < min) min = x1;                                                                            \
+  if(x1 > max) max = x1;                                                                            \
+  if(x2 < min) min = x2;                                                                            \
+  if(x2 > max) max = x2;
 
 int planeBoxOverlap(Vector3f normal, float d, Vector3f maxBox)
 {
@@ -173,9 +156,8 @@ int planeBoxOverlap(double normal[3],double d, double maxbox[3])
     rad = fa * boxhalfsize[X] + fb * boxhalfsize[Y];   \
     if(min>rad || max<-rad) return 0;
 
-int checkTriangleBoxIntersection(double boxcenter[3],double boxhalfsize[3],double triverts[3][3])
+int checkTriangleBoxIntersection(double boxcenter[3], double boxhalfsize[3], double triverts[3][3])
 {
-
   /*    use separating axis theorem to test overlap between triangle and box */
   /*    need to test for overlap in these directions: */
   /*    1) the {x,y,z}-directions (actually, since we use the AABB of the triangle */
@@ -183,7 +165,7 @@ int checkTriangleBoxIntersection(double boxcenter[3],double boxhalfsize[3],doubl
   /*    2) normal of the triangle */
   /*    3) crossproduct(edge from tri, {x,y,z}-directin) */
   /*       this gives 3x3=9 more tests */
-   double v0[3],v1[3],v2[3];
+   double v0[3], v1[3], v2[3];
    double axis[3];
    double min,max,d,p0,p1,p2,rad,fex,fey,fez;
    double normal[3],e0[3],e1[3],e2[3];
@@ -272,18 +254,6 @@ int checkTriangleBoxIntersection(double boxcenter[3],double boxhalfsize[3],doubl
 
    return 1;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
 namespace tri_tri_isct

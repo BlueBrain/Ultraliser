@@ -24,9 +24,9 @@
 #define ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_MORPHOLOGY_H
 
 #include <data/morphologies/Morphology.h>
-#include <data/morphologies/VasculatureH5Sample.hh>
-#include <data/morphologies/VasculatureH5Section.hh>
-#include <data/morphologies/VasculatureH5Connectivity.hh>
+#include <data/morphologies/h5/VasculatureH5Sample.hh>
+#include <data/morphologies/h5/VasculatureH5Section.hh>
+#include <data/morphologies/h5/VasculatureH5Connectivity.hh>
 #include <utilities/Utilities.h>
 
 namespace Ultraliser
