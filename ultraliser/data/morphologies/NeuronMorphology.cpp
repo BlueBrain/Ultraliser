@@ -23,6 +23,7 @@
 #include "NeuronMorphology.h"
 #include <data/morphologies/swc/NeuronSWCReader.h>
 #include <utilities/String.h>
+#include <stack>
 
 namespace Ultraliser
 {
@@ -66,165 +67,165 @@ float NeuronMorphology::getSomaMaxRadius() const
 void NeuronMorphology::_constructMorphology(const NeuronSWCSamples& swcSamples)
 {
     // The _pMin and _pMax will be used to compute the bounding box of the neuron morphology
-//    _pMin = Vector3f(std::numeric_limits<float>::max());
-//    _pMax = Vector3f(std::numeric_limits<float>::lowest());
+    _pMin = Vector3f(std::numeric_limits<float>::max());
+    _pMax = Vector3f(std::numeric_limits<float>::lowest());
 
-//    // Construct the samples and the sections list from the tree structure
-//    std::stack< NeuronSWCSample* > samplesStack;
-//    std::stack< Section* > sectionStack;
-//    uint64_t sectionId = 0;
+    // Construct the samples and the sections list from the tree structure
+    std::stack< NeuronSWCSample* > samplesStack;
+    std::stack< Section* > sectionStack;
+    uint64_t sectionId = 0;
 
-//    // The first sample is always the SOMA
-//    samplesStack.push(swcSamples[0]);
+    // The first sample is always the SOMA
+    samplesStack.push(swcSamples[0]);
 
-//    // Initially, nothing is in the section stack
-//    sectionStack.push(nullptr);
+    // Initially, nothing is in the section stack
+    sectionStack.push(nullptr);
 
-//    // Process the samples stack until empty where by then the sections are constructed
-//    while (!samplesStack.empty())
-//    {
-//        // Gets the first element in the samples stack, and then removes it
-//        auto swcSample = samplesStack.top();
-//        samplesStack.pop();
+    // Process the samples stack until empty where by then the sections are constructed
+    while (!samplesStack.empty())
+    {
+        // Gets the first element in the samples stack, and then removes it
+        auto swcSample = samplesStack.top();
+        samplesStack.pop();
 
-//        // ?
-//        auto section = sectionStack.top();
-//        sectionStack.pop();
+        // ?
+        auto section = sectionStack.top();
+        sectionStack.pop();
 
-//        Ultraliser::Vector3f position(swcSample->x, swcSample->y, swcSample->z);
-//        float radius = swcSample->r;
+        Ultraliser::Vector3f position(swcSample->x, swcSample->y, swcSample->z);
+        float radius = swcSample->r;
 
-//        Vector3f pMaxSample = position + Vector3f(radius);
-//        Vector3f pMinSample = position - Vector3f(radius);
+        Vector3f pMaxSample = position + Vector3f(radius);
+        Vector3f pMinSample = position - Vector3f(radius);
 
-//        if (pMaxSample.x() > _pMax.x()) _pMax.x() = pMaxSample.x();
-//        if (pMaxSample.y() > _pMax.y()) _pMax.y() = pMaxSample.y();
-//        if (pMaxSample.z() > _pMax.z()) _pMax.z() = pMaxSample.z();
+        if (pMaxSample.x() > _pMax.x()) _pMax.x() = pMaxSample.x();
+        if (pMaxSample.y() > _pMax.y()) _pMax.y() = pMaxSample.y();
+        if (pMaxSample.z() > _pMax.z()) _pMax.z() = pMaxSample.z();
 
-//        if (pMinSample.x() < _pMin.x()) _pMin.x() = pMinSample.x();
-//        if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
-//        if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
+        if (pMinSample.x() < _pMin.x()) _pMin.x() = pMinSample.x();
+        if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
+        if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
 
-//        // Construct a new sample
-//        Sample* sample = new Sample(position, radius, swcSample->id);
+        // Construct a new sample
+        Sample* sample = new Sample(position, radius, swcSample->id);
 
-//        // If this sample is somatic, either the soma average sample or a profile point
-//        if (swcSample->type == SWCSampleType::SOMA)
-//        {
-//            _somaSamples.push_back(sample);
-//            for (auto child : swcSample->childrenSamples)
-//            {
-//                samplesStack.push(child);
-//                if (child->type == SWCSampleType::SOMA)
-//                {
-//                    sectionStack.push(nullptr);
-//                }
-//                else
-//                {
-//                    auto newSection = new Section(sectionId);
-//                    _sections.push_back(newSection);
-//                    _firstSections.push_back(newSection);
-//                    ++sectionId;
-//                    sectionStack.push(newSection);
-//                }
-//            }
-//        }
+        // If this sample is somatic, either the soma average sample or a profile point
+        if (swcSample->type == SWCSampleType::SOMA)
+        {
+            _somaSamples.push_back(sample);
+            for (auto child : swcSample->childrenSamples)
+            {
+                samplesStack.push(child);
+                if (child->type == SWCSampleType::SOMA)
+                {
+                    sectionStack.push(nullptr);
+                }
+                else
+                {
+                    auto newSection = new Section(sectionId);
+                    _sections.push_back(newSection);
+                    _firstSections.push_back(newSection);
+                    ++sectionId;
+                    sectionStack.push(newSection);
+                }
+            }
+        }
 
-//        // Skeleton samples
-//        else
-//        {
-//            // Add the sample to the skeleton samples
-//            _samples.push_back(sample);
+        // Skeleton samples
+        else
+        {
+            // Add the sample to the skeleton samples
+            _samples.push_back(sample);
 
-//            // Add the sample to the section
-//            section->addSample(sample);
+            // Add the sample to the section
+            section->addSample(sample);
 
-//            // Get the children samples
-//            auto children = swcSample->childrenSamples;
+            // Get the children samples
+            auto children = swcSample->childrenSamples;
 
-//            // If there is only a single child
-//            if (children.size() == 1)
-//            {
-//                samplesStack.push(children[0]);
-//                sectionStack.push(section);
-//            }
+            // If there is only a single child
+            if (children.size() == 1)
+            {
+                samplesStack.push(children[0]);
+                sectionStack.push(section);
+            }
 
-//            // Multiple children
-//            else
-//            {
-//                for (auto child : children)
-//                {
-//                    samplesStack.push(child);
-//                    section->addChildIndex(sectionId);
+            // Multiple children
+            else
+            {
+                for (auto child : children)
+                {
+                    samplesStack.push(child);
+                    section->addChildIndex(sectionId);
 
-//                    // Construct a new section corresponding to the child
-//                    auto newSection = new Section(sectionId);
+                    // Construct a new section corresponding to the child
+                    auto newSection = new Section(sectionId);
 
-//                    // Add it to the list of sections
-//                    _sections.push_back(newSection);
+                    // Add it to the list of sections
+                    _sections.push_back(newSection);
 
-//                    // Update the counters to keep track
-//                    ++sectionId;
+                    // Update the counters to keep track
+                    ++sectionId;
 
-//                    // Parent-child link
-//                    newSection->addParentIndex(section->getIndex());
+                    // Parent-child link
+                    newSection->addParentIndex(section->getIndex());
 
-//                    // Add the sample to the new section
-//                    newSection->addSample(sample);
+                    // Add the sample to the new section
+                    newSection->addSample(sample);
 
-//                    // Add the new section to the stack
-//                    sectionStack.push(newSection);
-//                }
-//            }
-//        }
-//    }
+                    // Add the new section to the stack
+                    sectionStack.push(newSection);
+                }
+            }
+        }
+    }
 
-//    // Get the somatic samples from the initial sections of all the neurites
-//    for (const auto& section: _firstSections)
-//    {
-//        const auto sample = section->getFirstSample();
-//        _somaSamples.push_back(sample);
-//    }
+    // Get the somatic samples from the initial sections of all the neurites
+    for (const auto& section: _firstSections)
+    {
+        const auto sample = section->getFirstSample();
+        _somaSamples.push_back(sample);
+    }
 
-//    // Initially, the soma center is set to Zero.
-//    _somaCenter = Vector3f(0.0f);
-//    _somaMeanRadius = 0.0f;
-//    _somaMinRadius = 1e10;
-//    _somaMaxRadius = -1e10;
+    // Initially, the soma center is set to Zero.
+    _somaCenter = Vector3f(0.0f);
+    _somaMeanRadius = 0.0f;
+    _somaMinRadius = 1e10;
+    _somaMaxRadius = -1e10;
 
-//    if (_somaSamples.size() > 1)
-//    {
-//        // Compute the soma center
-//        for (auto sample : _somaSamples)
-//        {
-//            _somaCenter += sample->getPosition();
-//        }
-//        _somaCenter /= _somaSamples.size();
+    if (_somaSamples.size() > 1)
+    {
+        // Compute the soma center
+        for (auto sample : _somaSamples)
+        {
+            _somaCenter += sample->getPosition();
+        }
+        _somaCenter /= _somaSamples.size();
 
-//        // Compute the minimum, average and maximum radii
-//        for (auto sample : _somaSamples)
-//        {
-//            const auto radius = (sample->getPosition() - _somaCenter).abs();
+        // Compute the minimum, average and maximum radii
+        for (auto sample : _somaSamples)
+        {
+            const auto radius = (sample->getPosition() - _somaCenter).abs();
 
-//            if (radius < _somaMinRadius)
-//                _somaMinRadius = radius;
+            if (radius < _somaMinRadius)
+                _somaMinRadius = radius;
 
-//            if (radius > _somaMaxRadius)
-//                _somaMaxRadius = radius;
+            if (radius > _somaMaxRadius)
+                _somaMaxRadius = radius;
 
-//            _somaMeanRadius += radius;
-//        }
+            _somaMeanRadius += radius;
+        }
 
-//        // Compute the minimum, average and maximum radii
-//        _somaMeanRadius /= _somaSamples.size();
-//    }
-//    else
-//    {
-//        _somaCenter = _somaSamples[0]->getPosition();
-//        _somaMeanRadius = _somaSamples[0]->getRadius();
-//        _somaMinRadius = _somaMeanRadius;
-//        _somaMaxRadius = _somaMeanRadius;
-//    }
+        // Compute the minimum, average and maximum radii
+        _somaMeanRadius /= _somaSamples.size();
+    }
+    else
+    {
+        _somaCenter = _somaSamples[0]->getPosition();
+        _somaMeanRadius = _somaSamples[0]->getRadius();
+        _somaMinRadius = _somaMeanRadius;
+        _somaMaxRadius = _somaMeanRadius;
+    }
 }
 
 NeuronMorphology* readNeuronMorphology(std::string& morphologyPath)
