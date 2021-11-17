@@ -25,8 +25,11 @@
 #include "TriangleOperations.h"
 #include <utilities/Utilities.h>
 #include <math/Math.h>
-#include <geometry/Intersection.h>
 #include <algorithms/SectionGeometry.h>
+#include <algorithms/SomaGeometry.h>
+#include <geometry/Intersection.h>
+#include <math/Math.h>
+#include <utilities/Utilities.h>
 
 #define ANGLE_ERROR 0.123456789f
 
@@ -119,6 +122,19 @@ Mesh::Mesh(const std::string &fileName, const bool& verbose)
     _neighbors = nullptr;
     _neighborList = nullptr;
 }
+
+
+Mesh::Mesh(NeuronMorphology* morphology)
+{
+    // Construct the somatic mesh from the neuron morphology
+    SomaGeometry somaGeometry(morphology, 1.0f, 0.01f, 6000);
+
+    _numberVertices = somaGeometry.numVertices;
+    _vertices = somaGeometry.vertices;
+    _numberTriangles = somaGeometry.numTriangles;
+    _triangles = somaGeometry.triangles;
+}
+
 
 const Vertex* Mesh::getVertices() const
 {

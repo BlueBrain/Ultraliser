@@ -24,11 +24,13 @@
 
 #include <common/Common.h>
 #include <math/Math.h>
-#include <data/meshes/simple/primitives/Primitives.h>
 #include <data/meshes/simple/NeighbourTriangle.h>
-#include <data/structures/Neighbors.h>
+#include <data/meshes/simple/primitives/Primitives.h>
+#include <data/morphologies/NeuronMorphology.h>
 #include <data/morphologies/Section.h>
 #include <data/common/ROI.h>
+#include <data/structures/Neighbors.h>
+#include <math/Math.h>
 
 namespace Ultraliser
 {
@@ -72,6 +74,12 @@ public:
      * @param bevelSides
      */
     Mesh(const Samples& samples, const uint64_t &bevelSides = 16);
+
+    /**
+     * @brief Mesh
+     * @param morphology
+     */
+    Mesh(NeuronMorphology* morphology);
 
     /**
      * @brief append

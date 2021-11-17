@@ -228,6 +228,67 @@ void Volume::surfaceVoxelization(Mesh* mesh,
     }
 }
 
+void Volume::surfaceVoxelizeNeuronMorphologyParallel(
+    NeuronMorphology* neuronMorphology)
+{
+    LOG_TITLE("Neuron Surface Voxelization (Parallel)");
+
+    // Start the timer
+    TIMER_SET;
+
+    // Get all the sections of the vascular morphology
+    Sections sections = neuronMorphology->getSections();
+
+    LOG_STATUS("Creating Volume Shell from Sections");
+    LOOP_STARTS("Rasterization");
+    PROGRESS_SET;
+
+    // Construct the soma geometry
+    auto mesh = new Mesh(neuronMorphology);
+    _rasterize(mesh, _grid);
+
+    auto firstSections = neuronMorphology->getFirstSections();
+    // Construct the geometry between soma and neurites
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < firstSections.size(); i++)
+    {
+        auto section = firstSections[i];
+        Samples samples = section->getSamples();
+        Vector3f newSamplePos = neuronMorphology->getSomaCenter();
+        samples.insert(samples.begin(),
+                       new Sample(newSamplePos, samples[0]->getRadius(), i));
+        auto mesh = new Mesh(samples);
+        _rasterize(mesh, _grid);
+        LOOP_PROGRESS(PROGRESS, firstSections.size() + sections.size());
+        PROGRESS_UPDATE;
+    }
+
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < sections.size(); i++)
+    {
+        // Construct the paths
+        Paths paths = neuronMorphology->getConnectedPathsFromParentsToChildren(
+            sections[i]);
+        for (uint64_t j = 0; j < paths.size(); ++j)
+        {
+            auto mesh = new Mesh(paths[j]);
+            _rasterize(mesh, _grid);
+        }
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, firstSections.size() + sections.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+
+    _surfaceVoxelizationTime = GET_TIME_SECONDS;
+
+    // Statistics
+    LOG_STATUS_IMPORTANT("Rasterization Stats.");
+    LOG_STATS(_surfaceVoxelizationTime);
+}
+
+
 void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
         VasculatureMorphology* vasculatureMorphology,
         const std::string &packingAlgorithm)
@@ -446,7 +507,7 @@ void Volume::_rasterize(Sample* sample0, Sample* sample1, VolumeGrid* grid, floa
     {
         // Compute the interpolated sample
         Sample sample(position0 + positionIncrement * i,
-                        radius0 + radiusIncrement * i);
+                      radius0 + radiusIncrement * i, 0);
         _rasterize(&sample, grid);
     }
 }

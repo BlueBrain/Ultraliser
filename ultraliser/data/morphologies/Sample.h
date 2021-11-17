@@ -40,7 +40,7 @@ public:
      * @param radius
      * The radius of the sample.
      */
-    Sample(const Vector3f &position, const float &radius);
+    Sample(const Vector3f &position, const float &radius, const uint64_t& index);
 
 public:
 
@@ -48,7 +48,7 @@ public:
      * @brief getPosition
      * @return
      */
-    Ultraliser::Vector3f getPosition() const;
+    Vector3f getPosition() const;
 
     /**
      * @brief getRadius
@@ -56,13 +56,13 @@ public:
      */
     float getRadius() const;
 
-private:
-
     /**
-     * @brief _index
-     * The unique index of the sample.
+     * @brief getIndex
+     * @return
      */
-    uint64_t _index;
+    uint64_t getIndex() const;
+
+private:
 
     /**
      * @brief _position
@@ -75,6 +75,12 @@ private:
      * The radius of the sample.
      */
     float _radius;
+
+    /**
+     * @brief _index
+     * The unique index of the sample.
+     */
+    uint64_t _index;
 };
 
 /**

@@ -150,7 +150,7 @@ void VasculatureVMVReader::_readSamples()
              std::back_inserter(tokens));
 
         // Vertex index is ignored
-        // const uint64_t vertexIndex = S2UI(tokens[0]);
+        const uint64_t vertexIndex = S2UI(tokens[0]);
 
         // Sample attributes
         const float x = S2F(tokens[1]);
@@ -161,7 +161,7 @@ void VasculatureVMVReader::_readSamples()
             r = 0.1;
 
         // Construct the sample
-        Sample* sample = new Sample(Vector3f(x, y, z), r);
+        Sample* sample = new Sample(Vector3f(x, y, z), r, vertexIndex);
         _samples.push_back(sample);
     }
 }

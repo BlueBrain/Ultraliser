@@ -57,7 +57,7 @@ void VasculatureMorphology::_constructSections()
     {
         Ultraliser::Vector3f position(h5Sample.x, h5Sample.y, h5Sample.z);
         Sample* sample = new Sample(Ultraliser::Vector3f(h5Sample.x, h5Sample.y, h5Sample.z),
-                                    h5Sample.r * 0.5f);
+                                    h5Sample.r * 0.5f, 0);
         _samples.push_back(sample);
 
         Vector3f pMaxSample = position + Vector3f(h5Sample.r * 0.5f);

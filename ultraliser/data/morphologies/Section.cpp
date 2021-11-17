@@ -57,6 +57,16 @@ Samples Section::getSamples() const
     return _samples;
 }
 
+Sample* Section::getFirstSample() const
+{
+    return _samples.front();
+}
+
+Sample* Section::getLastSample() const
+{
+    return _samples.back();
+}
+
 std::vector< uint64_t > Section::getParentIndices() const
 {
     return _parentsIndices;
@@ -188,7 +198,7 @@ void Section::resampleUniformly(const float& step)
                         (newSamples[index - 1]->getRadius() + _samples[1]->getRadius());
 
                 // Add the new sample to the list of new sample
-                Sample* sample = new Sample(position, radius);
+                Sample* sample = new Sample(position, radius, index);
                 newSamples.push_back(sample);
 
                 // Increase the sample index
@@ -250,7 +260,7 @@ void Section::resampleUniformly(const float& step)
                         (newSamples[index - 1]->getRadius() + sample1->getRadius());
 
                 // Add the new sample to the list of new sample
-                Sample* sample = new Sample(position, radius);
+                Sample* sample = new Sample(position, radius, index);
                 newSamples.push_back(sample);
 
                 // Increase the sample index
@@ -335,7 +345,7 @@ void Section::resampleAdaptively(const bool& relaxed)
                     break;
 
                 // Add the new sample to the list of new sample
-                auto sample = new Sample(position, newSampleRadius);
+                auto sample = new Sample(position, newSampleRadius, index);
                 newSamples.push_back(sample);
 
                 // Increase the sample index
@@ -406,7 +416,7 @@ void Section::resampleAdaptively(const bool& relaxed)
                 }
 
                 // Add the new sample to the list of new sample
-                auto sample = new Sample(position, newSampleRadius);
+                auto sample = new Sample(position, newSampleRadius, index);
                 newSamples.push_back(sample);
 
                 // Increase the sample index

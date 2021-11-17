@@ -194,6 +194,13 @@ public:
     void surfaceVoxelizeVasculatureMorphologyParallel(
             VasculatureMorphology* vasculatureMorphology,
             const std::string& packingAlgorithm = POLYLINE_PACKING);
+	
+    /**
+     * @brief surfaceVoxelizeNeuronMorphology
+     * @param morphology
+     */
+    void surfaceVoxelizeNeuronMorphologyParallel(
+        NeuronMorphology* neuronMorphology);
 
     /**
      * @brief solidVoxelization

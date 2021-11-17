@@ -32,6 +32,7 @@ set(ULTRALISER_HEADER_FILES "")
 
 # A list of the directories that will be scaned
 set(DIRECTORIES "algorithms"
+                "algorithms/simulation"
                 "arguments"
                 "common"
                 "data"

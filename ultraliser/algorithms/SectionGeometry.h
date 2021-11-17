@@ -40,7 +40,8 @@ public:
 
     /**
      * @brief CrossSectionGeometry
-     * Constructor.
+     * Constructor
+     *
      * @param samples
      * Polyline samples to generate mesh from.
      * @param numberOfSides

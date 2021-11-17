@@ -26,6 +26,7 @@
 #include <algorithms/DualMarchingCubes.h>
 #include <algorithms/FloodFiller.h>
 #include <algorithms/SectionGeometry.h>
+#include <algorithms/SomaGeometry.h>
 #include <algorithms/Sorting.h>
 
 #endif // ULTRALISER_ALGORITHMS_ALGORITHMS_H

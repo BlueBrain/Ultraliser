@@ -71,6 +71,8 @@
 #define OFF_EXTENSION                           STRING(".off")
 #define PLY_EXTENSION                           STRING(".ply")
 #define STL_EXTENSION                           STRING(".stl")
+#define VMV_EXTENSION                           STRING(".vmv")
+#define H5_EXTENSION                            STRING(".h5")
 
 // Artifacts strings
 #define INPUT_STRING                            STRING("input")
@@ -101,6 +103,7 @@
 #define XYZ_SUFFIX                              STRING("-xyz")
 
 // Directories where the artifacts will be generated
+#define MORPHOLOGIES_DIRECTORY                  STRING("morphologies")
 #define MESHES_DIRECTORY                        STRING("meshes")
 #define VOLUMES_DIRECTORY                       STRING("volumes")
 #define PROJECTIONS_DIRECTORY                   STRING("projections")
