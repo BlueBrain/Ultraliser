@@ -68,7 +68,7 @@ void run(int argc , const char** argv)
     inputMesh->scale(options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
 
     // Export the repaired mesh
-    inputMesh->exportMesh(options->prefix,
+    inputMesh->exportMesh(options->meshPrefix,
                           options->exportOBJ, options->exportPLY,
                           options->exportOFF, options->exportSTL);
 }
