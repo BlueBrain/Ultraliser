@@ -34,6 +34,109 @@ NeuronMorphology::NeuronMorphology(const NeuronSWCSamples& swcSamples)
     _constructMorphology(swcSamples);
 }
 
+void NeuronMorphology::trim(uint64_t axonBranchOrder, uint64_t basalBranchOrder, 
+    uint64_t apicalBranchOrder)
+{
+    Sections newSections;
+    Sections newFirstSections;
+    _samples.clear();
+    _pMin = Vector3f(std::numeric_limits<float>::max());
+    _pMax = Vector3f(std::numeric_limits<float>::lowest());
+ 
+    for (uint8_t i = 0; i < _firstSections.size(); ++i)
+    {
+        uint64_t maxDepth = 0;
+        switch (_firstSections[i]->getType())
+        {
+        case NEURON_AXON:
+            maxDepth = axonBranchOrder;
+            break;
+        case NEURON_BASAL_DENDRITE:
+            maxDepth = basalBranchOrder;
+            break;
+        case NEURON_APICAL_DENDRITE:
+            maxDepth = apicalBranchOrder;
+            break;
+        }
+        
+        std::stack<std::pair<Section*, uint64_t>> sectionStack;
+        if (maxDepth > 0)
+        {        
+            sectionStack.push(std::make_pair(_firstSections[i], 0));
+            newFirstSections.push_back(_firstSections[i]);
+        }
+
+        while(!sectionStack.empty())
+        {
+            auto section = sectionStack.top().first;
+            auto depth = sectionStack.top().second;
+            sectionStack.pop();
+            
+            auto childrenIndices = section->getChildrenIndices(); 
+            auto parentsIndices = section->getParentIndices();
+
+            for (auto index: childrenIndices)
+                sectionStack.push(std::make_pair(_sections[index], depth + 1));
+
+            if (depth < maxDepth)
+            {
+                uint64_t index = newSections.size();
+                section->setIndex(index);
+                section->clearChildrenIndices();
+                newSections.push_back(section);
+                for (auto childIndex: childrenIndices)
+                {
+                    auto childSection = _sections[childIndex];
+                    childSection->clearParentsIndices();
+                    childSection->addParentIndex(index);
+                }   
+                for (auto parentIndex: parentsIndices)
+                {
+                    auto parentSection = newSections[parentIndex];
+                    parentSection->addChildIndex(index);
+                }
+               
+                auto sectionSamples = section->getSamples();
+                _samples.insert(_samples.end(), sectionSamples.begin(), sectionSamples.end());
+                for (auto sample: sectionSamples)
+                {
+                    Vector3f pMaxSample = sample->getPosition() + Vector3f(sample->getRadius());
+                    Vector3f pMinSample = sample->getPosition() - Vector3f(sample->getRadius());
+
+                    if (pMaxSample.x() > _pMax.x()) _pMax.x() = pMaxSample.x();
+                    if (pMaxSample.y() > _pMax.y()) _pMax.y() = pMaxSample.y();
+                    if (pMaxSample.z() > _pMax.z()) _pMax.z() = pMaxSample.z();
+
+                    if (pMinSample.x() < _pMin.x()) _pMin.x() = pMinSample.x();
+                    if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
+                    if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
+                }
+            }
+            else
+                delete section;
+        }
+    }
+
+    for (auto sample: _somaSamples)
+    {
+        Vector3f pMaxSample = sample->getPosition() + Vector3f(sample->getRadius());
+        Vector3f pMinSample = sample->getPosition() - Vector3f(sample->getRadius());
+
+        if (pMaxSample.x() > _pMax.x()) _pMax.x() = pMaxSample.x();
+        if (pMaxSample.y() > _pMax.y()) _pMax.y() = pMaxSample.y();
+        if (pMaxSample.z() > _pMax.z()) _pMax.z() = pMaxSample.z();
+
+        if (pMinSample.x() < _pMin.x()) _pMin.x() = pMinSample.x();
+        if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
+        if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
+    }
+
+    _sections.clear();
+    _sections = newSections;
+    _firstSections.clear();
+    _firstSections = newFirstSections;
+}
+
 Samples NeuronMorphology::getSomaSamples() const
 {
     return _somaSamples;
@@ -112,7 +215,7 @@ void NeuronMorphology::_constructMorphology(const NeuronSWCSamples& swcSamples)
         // If this sample is somatic, either the soma average sample or a profile point
         if (swcSample->type == SWCSampleType::SOMA)
         {
-            _somaSamples.push_back(sample);
+            // _somaSamples.push_back(sample);
             for (auto child : swcSample->childrenSamples)
             {
                 samplesStack.push(child);
@@ -123,6 +226,18 @@ void NeuronMorphology::_constructMorphology(const NeuronSWCSamples& swcSamples)
                 else
                 {
                     auto newSection = new Section(sectionId);
+                    switch (child->type)
+                    {
+                    case AXON:
+                        newSection->setType(NEURON_AXON);
+                        break;
+                    case BASAL:
+                        newSection->setType(NEURON_BASAL_DENDRITE);
+                        break;
+                    case APICAL:
+                        newSection->setType(NEURON_APICAL_DENDRITE);
+                        break;
+                    }
                     _sections.push_back(newSection);
                     _firstSections.push_back(newSection);
                     ++sectionId;

@@ -32,7 +32,11 @@ namespace Ultraliser
 typedef enum SWCSampleType
 {
     SOMA,
-    NEURITE
+    AXON,
+    BASAL,
+    APICAL,
+    UNKNOWN_SAMPLE
+
 } SWCSampleType;
 
 /**

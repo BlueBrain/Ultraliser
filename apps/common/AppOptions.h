@@ -567,6 +567,25 @@ public:
      * A scale factor along the Z-axis.
      */
     float zScaleFactor = 1.f;
+
+    /** 
+     * @brief axonBranchOrder
+     * Maximum branch order applies in the neuron morphology axon reconstruction 
+     */
+    uint64_t axonBranchOrder = INT_MAX;
+
+    /** 
+     * @brief basalBranchOrder
+     * Maximum branch order applies in the neuron morphology basal dendrites reconstruction 
+     */
+    uint64_t basalBranchOrder = INT_MAX;
+
+    /** 
+     * @brief apicalBranchOrder
+     * Maximum branch order applies in the neuron morphology apical dendrites reconstruction 
+     */
+    uint64_t apicalBranchOrder = INT_MAX;
+
 };
 
 }

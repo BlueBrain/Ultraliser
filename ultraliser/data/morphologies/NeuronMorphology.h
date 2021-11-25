@@ -46,6 +46,17 @@ public:
 public:
 
     /**
+     * @brief trim the neuron morphology
+     * @param axonBrachOrder
+     * Depth of the sections to keep in morphology axon
+     * @param basalBrachOrder
+     * Depth of the sections to keep in morphology basal dendrites
+     * @param apicalBrachOrder
+     * Depth of the sections to keep in morphology apical dendrites
+     */
+    void trim(uint64_t axonBranchOrder, uint64_t basalBranchOrder, uint64_t apicalBranchOrder);
+
+    /**
      * @brief getSomaSamples
      * @return Returns a reference to the list of soma samples.
      */

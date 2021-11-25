@@ -78,11 +78,25 @@ void NeuronSWCReader::_readSamples(const std::string &swcMorphologyFilePath)
             sstr >> sample->id >> type >>
                     sample->x >> sample->y >> sample->z >> sample->r >> parentId;
 
-            if (type == 1)
+            switch(type)
+            {
+            case 1:
                 sample->type = SWCSampleType::SOMA;
-            else
-                sample->type = SWCSampleType::NEURITE;
-
+                break; 
+            case 2:
+                sample->type = SWCSampleType::AXON;
+                break; 
+            case 3:
+                sample->type = SWCSampleType::BASAL;
+                break; 
+            case 4:
+                sample->type = SWCSampleType::APICAL;
+                break; 
+            default:
+                sample->type = UNKNOWN_SAMPLE;
+                break;
+            } 
+            
             _samples.push_back(sample);
 
             samplesMap[sample->id] = sample;

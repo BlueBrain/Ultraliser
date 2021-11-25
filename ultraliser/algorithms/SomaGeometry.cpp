@@ -48,7 +48,7 @@ SomaGeometry::SomaGeometry(NeuronMorphology* morphology, float stiffness, float 
         float pullStiffness = 0.0f;
 
         auto icoSprings = _generateIcosphereSprings(mesh, springStiffness);
-        auto pullSprings = _generatePullSprings(mesh, 0.0f, morphology->getFirstSections(), 0.01f);
+        auto pullSprings = _generatePullSprings(mesh, 0.0f, morphology->getSomaSamples(), 0.01f);
 
         Simulation::AnimSystem animSystem(dt);
 
@@ -160,14 +160,14 @@ Simulation::Springs SomaGeometry::_generateIcosphereSprings(Simulation::MeshPtr 
 
 Simulation::Springs SomaGeometry::_generatePullSprings(Simulation::MeshPtr mesh,
                                                        float stiffness,
-                                                       const Sections& firstSections,
+                                                       const Samples& somaSamples,
                                                        float restLengthThreshold)
 {
     Simulation::Springs springs;
-    for (auto section : firstSections)
+    for (auto sample: somaSamples)
     {
-        Vector3f startPos = section->getSamples()[0]->getPosition();
-        float startRadius = section->getSamples()[0]->getRadius();
+        Vector3f startPos = sample->getPosition();
+        float startRadius = sample->getRadius();
 
         // Compute icosphere surface position nearer to the neurite start
         Vector3f direction = (startPos - _somaCenter).normalized();

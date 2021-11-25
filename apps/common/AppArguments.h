@@ -163,9 +163,14 @@ public:
     void addDataArguments();
 
     /**
-     * @brief addRasterizationAlgorithm
+     * @brief addPackingAlgorithmArguments
      */
     void addPackingAlgorithmArguments();
+
+    /**
+     * @brief addMorphologyBranchOrderArguments
+     */
+    void addMorphologyBranchOrderArguments();
 
     /**
      * @brief getOptions

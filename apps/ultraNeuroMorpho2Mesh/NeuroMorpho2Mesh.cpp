@@ -46,6 +46,7 @@ AppOptions* parseArguments(const int& argc, const char** argv)
     args->addMeshArguments();
     args->addSuppressionArguments();
     args->addDataArguments();
+    args->addMorphologyBranchOrderArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -72,6 +73,12 @@ void run(int argc, const char** argv)
 
     // Read the file into a morphology structure
     auto neuronMorphology = readNeuronMorphology(options->inputMorphologyPath);
+
+    // Trim the neuron morphology following the branch order options
+    if (options->axonBranchOrder < INT_MAX | options->basalBranchOrder < INT_MAX |
+        options->apicalBranchOrder < INT_MAX)
+        neuronMorphology->trim(options->axonBranchOrder, options->basalBranchOrder,
+            options->apicalBranchOrder);
 
     if (options->writeStatistics)
         neuronMorphology->printStats(options->prefix, &options->statisticsPrefix);

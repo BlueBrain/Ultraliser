@@ -58,11 +58,26 @@ public:
      */
     SECTION_TYPE getType() const;
 
+
+    /**
+     * @brief setType
+     * Set the section type
+     * @param sectionType
+     */
+    void setType(SECTION_TYPE type);
+
     /**
      * @brief getIndex
      * @return The unique index of the section.
      */
     uint64_t getIndex() const;
+
+    /**
+     * @brief setIndex
+     * Set the section index
+     * @param index 
+     */
+    void setIndex(const uint64_t &index);
 
     /**
      * @brief addSample
@@ -80,12 +95,24 @@ public:
     void addParentIndex(const uint64_t index);
 
     /**
+     * @brief clearParentIndices
+     * Clear the indices of the parent sections.
+     */
+    void clearParentsIndices();
+
+    /**
      * @brief addChildIndex
      * Adds the index of a child section.
      * @param index
      * The index of the child section.
      */
     void addChildIndex(const uint64_t index);
+
+    /**
+     * @brief clearChildrenIndices
+     * Clear the indices of the child sections.
+     */
+    void clearChildrenIndices();
 
     /**
      * @brief getSamples

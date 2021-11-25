@@ -247,9 +247,17 @@ void Volume::surfaceVoxelizeNeuronMorphologyParallel(
     auto mesh = new Mesh(neuronMorphology);
     _rasterize(mesh, _grid);
 
+    Paths paths;
+    for (uint64_t i = 0; i < sections.size(); i++)
+    {
+        // Construct the paths
+        Paths sectionPaths = neuronMorphology->getConnectedPathsFromParentsToChildren(
+            sections[i]);
+        paths.insert(paths.end(), sectionPaths.begin(), sectionPaths.end());
+    }
+
     auto firstSections = neuronMorphology->getFirstSections();
-    // Construct the geometry between soma and neurites
-    OMP_PARALLEL_FOR
+    // Add the paths between the soma and neurites
     for (uint64_t i = 0; i < firstSections.size(); i++)
     {
         auto section = firstSections[i];
@@ -257,26 +265,18 @@ void Volume::surfaceVoxelizeNeuronMorphologyParallel(
         Vector3f newSamplePos = neuronMorphology->getSomaCenter();
         samples.insert(samples.begin(),
                        new Sample(newSamplePos, samples[0]->getRadius(), i));
-        auto mesh = new Mesh(samples);
-        _rasterize(mesh, _grid);
-        LOOP_PROGRESS(PROGRESS, firstSections.size() + sections.size());
-        PROGRESS_UPDATE;
-    }
+        paths.push_back(samples);
+     }
 
+    // Construct the neurites geometry
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < sections.size(); i++)
+    for (uint64_t i = 0; i < paths.size(); i++)
     {
-        // Construct the paths
-        Paths paths = neuronMorphology->getConnectedPathsFromParentsToChildren(
-            sections[i]);
-        for (uint64_t j = 0; j < paths.size(); ++j)
-        {
-            auto mesh = new Mesh(paths[j]);
-            _rasterize(mesh, _grid);
-        }
+        auto mesh = new Mesh(paths[i]);
+        _rasterize(mesh, _grid);
 
         // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, firstSections.size() + sections.size());
+        LOOP_PROGRESS(PROGRESS, paths.size());
         PROGRESS_UPDATE;
     }
     LOOP_DONE;
@@ -444,6 +444,7 @@ void Volume::_rasterize(Mesh* mesh, VolumeGrid* grid, const bool& verbose)
 {
     if (verbose) LOOP_STARTS("Rasterization");
     size_t progress = 0;
+    
     for (size_t triangleIdx = 0; triangleIdx < mesh->getNumberTriangles(); ++triangleIdx)
     {
         ++progress;

@@ -617,6 +617,45 @@ void AppArguments::addSuppressionArguments()
     _options->ignoreWatertightMesh = _args->getBoolValue(&ignoreWatertightMesh);
 }
 
+void AppArguments::addMorphologyBranchOrderArguments()
+{
+    Argument axonBranchOrder(
+                "--axon-branch-order",
+                ARGUMENT_TYPE::INTEGER,
+                "The maximum branch order applied in the neuron morphology axon mesh reconstruction.",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "-1");
+    _args->addArgument(&axonBranchOrder);
+    int branchOrder = _args->getIntegrValue(&axonBranchOrder);
+    if (branchOrder < 0)
+        branchOrder = INT_MAX;
+    _options->axonBranchOrder = branchOrder;
+
+    Argument basalBranchOrder(
+                "--basal-branch-order",
+                ARGUMENT_TYPE::INTEGER,
+                "The maximum branch order applied in the neuron morphology basal dendrites mesh reconstruction.",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "-1");
+    _args->addArgument(&basalBranchOrder);
+    branchOrder = _args->getIntegrValue(&basalBranchOrder);
+    if (branchOrder < 0)
+        branchOrder = INT_MAX;
+    _options->basalBranchOrder = branchOrder;
+    
+    Argument apicalBranchOrder(
+                "--apical-branch-order",
+                ARGUMENT_TYPE::INTEGER,
+                "The maximum branch order applied in the neuron morphology apical dendrites mesh reconstruction.",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "-1");
+    _args->addArgument(&apicalBranchOrder);
+    branchOrder = _args->getIntegrValue(&apicalBranchOrder);
+    if (branchOrder < 0)
+        branchOrder = INT_MAX;
+    _options->apicalBranchOrder = branchOrder;
+}
+
 AppOptions* AppArguments::getOptions()
 {
     // Parse the arguments

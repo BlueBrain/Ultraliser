@@ -28,8 +28,19 @@ namespace Ultraliser
 
 Section::Section(const uint64_t &index)
     : _index(index)
+    , _type(UNKNOWN)
 {
     /// EMPTY CONSTRUCTOR
+}
+
+SECTION_TYPE Section::getType() const
+{
+    return _type;
+}
+
+void Section::setType(SECTION_TYPE type)
+{
+    _type = type;
 }
 
 uint64_t Section::getIndex() const
@@ -37,14 +48,29 @@ uint64_t Section::getIndex() const
     return _index;
 }
 
+void Section::setIndex(const uint64_t &index)
+{
+    _index = index;
+}
+
 void Section::addParentIndex(const uint64_t index)
 {
     _parentsIndices.push_back(index);
 }
 
+void Section::clearParentsIndices()
+{
+    _parentsIndices.clear();
+}
+
 void Section::addChildIndex(const uint64_t index)
 {
     _childrenIndices.push_back(index);
+}
+
+void Section::clearChildrenIndices()
+{
+    _childrenIndices.clear();
 }
 
 void Section::addSample(Sample* sample)

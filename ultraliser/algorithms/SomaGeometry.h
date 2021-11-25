@@ -104,8 +104,8 @@ private:
      * Simulation mesh.
      * @param stiffness
      * Simulation stiffness.
-     * @param firstSecions
-     * A list of the first sections of the neuronal mophology.
+     * @param somaSamples
+     * A list of the soma samples.
      * @param restLengthThreshold
      * The threshold length of the springs at the resting state.
      * @return 
@@ -113,7 +113,7 @@ private:
      */
     Simulation::Springs _generatePullSprings(Simulation::MeshPtr mesh,
                                              float stiffness,
-                                             const Sections& firstSections,
+                                             const Samples& somaSamples,
                                              float restLengthThreshold = 0.2);
 
     /**
