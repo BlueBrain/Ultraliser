@@ -86,7 +86,7 @@ void VolumeMesh::computeBoundingBox(Vector3f& pMinIn, Vector3f& pMaxIn)
     // Create new variables to avoid any mess if the inputs are already
     // initialized with some values
     Vector3f pMin(std::numeric_limits<float>::max());
-    Vector3f pMax(std::numeric_limits<float>::min());
+    Vector3f pMax(std::numeric_limits<float>::lowest());
 
     for (uint64_t i = 0; i < vertices.size(); ++i)
     {

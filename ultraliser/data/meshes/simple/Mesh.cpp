@@ -150,7 +150,7 @@ void Mesh::getTriangleBoundingBox(const uint64_t& triangleIndex,
                                   Vector3f& pMin, Vector3f& pMax) const
 {
     pMin = Vector3f(std::numeric_limits<float>::max());
-    pMax = Vector3f(std::numeric_limits<float>::min());
+    pMax = Vector3f(std::numeric_limits<float>::lowest());
 
     Triangle triangle = getTriangles()[triangleIndex];
     for (uint64_t vertexIndex = 0; vertexIndex < 3; ++vertexIndex)
@@ -172,7 +172,7 @@ void Mesh::computeBoundingBox(Vector3f& pMinIn, Vector3f& pMaxIn)
     // Create new variables to avoid any mess if the inputs are already
     // initialized with some values
     Vector3f pMin(std::numeric_limits<float>::max());
-    Vector3f pMax(std::numeric_limits<float>::min());
+    Vector3f pMax(std::numeric_limits<float>::lowest());
 
     for (uint64_t i = 0; i < _numberVertices; ++i)
     {
@@ -199,7 +199,7 @@ void Mesh::computeRelaxedBoundingBox(Vector3f& pMinIn,
     // Create new variables to avoid any mess if the inputs are already
     // initialized with some values
     Vector3f pMin(std::numeric_limits<float>::max());
-    Vector3f pMax(std::numeric_limits<float>::min());
+    Vector3f pMax(std::numeric_limits<float>::lowest());
 
     // Compute the actual bounding box
     computeBoundingBox(pMin, pMax);

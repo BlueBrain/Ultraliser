@@ -246,7 +246,7 @@ void Morphology::computeMinMaxAvgSampleRadius(float& minSampleRadius,
                                               float& avgSampleRadius) const
 {
     float minValue = std::numeric_limits<float>::max();
-    float maxValue = std::numeric_limits<float>::min();
+    float maxValue = std::numeric_limits<float>::lowest();
     float avgValue = 0.f;
 
     for (const Sample* sample: _samples)
@@ -285,7 +285,7 @@ void Morphology::computeMinMaxAvgSegmentLength(float& minSegmentLength,
                                                const uint64_t& numberMorphologySegments) const
 {
     float minValue = std::numeric_limits<float>::max();
-    float maxValue = std::numeric_limits<float>::min();
+    float maxValue = std::numeric_limits<float>::lowest();
     float avgValue = 0.f;
 
     for (const Section* section : _sections)
@@ -315,7 +315,7 @@ void Morphology::computeMinMaxAvgSectionLength(float& minSectionLength,
                                                float& avgSectionLength) const
 {
     float minValue = std::numeric_limits<float>::max();
-    float maxValue = std::numeric_limits<float>::min();
+    float maxValue = std::numeric_limits<float>::lowest();
     float avgValue = 0.f;
 
     for (const Section* section : _sections)
@@ -343,7 +343,7 @@ void Morphology::computeMinMaxAvgSegmentSurfaceArea(float& minSegmentSurfaceArea
                                                     const uint64_t& numberMorphologySegments) const
 {
     float minValue = std::numeric_limits<float>::max();
-    float maxValue = std::numeric_limits<float>::min();
+    float maxValue = std::numeric_limits<float>::lowest();
     float avgValue = 0.f;
 
     for (const Section* section : _sections)
@@ -373,7 +373,7 @@ void Morphology::computeMinMaxAvgSectionSurfaceArea(float& minSectionSurfaceArea
                                                     float& avgSectionSurfaceArea) const
 {
     float minValue = std::numeric_limits<float>::max();
-    float maxValue = std::numeric_limits<float>::min();
+    float maxValue = std::numeric_limits<float>::lowest();
     float avgValue = 0.f;
 
     for (const Section* section : _sections)
@@ -402,7 +402,7 @@ void Morphology::computeMinMaxAvgSegmentVolume(float& minSegmentVolume,
                                                const uint64_t& numberMorphologySegments) const
 {
     float minValue = std::numeric_limits<float>::max();
-    float maxValue = std::numeric_limits<float>::min();
+    float maxValue = std::numeric_limits<float>::lowest();
     float avgValue = 0.f;
 
     for (const Section* section : _sections)
@@ -432,7 +432,7 @@ void Morphology::computeMinMaxAvgSectionVolume(float& minSectionVolume,
                                                float& avgSectionVolume) const
 {
     float minValue = std::numeric_limits<float>::max();
-    float maxValue = std::numeric_limits<float>::min();
+    float maxValue = std::numeric_limits<float>::lowest();
     float avgValue = 0.f;
 
     for (const Section* section : _sections)

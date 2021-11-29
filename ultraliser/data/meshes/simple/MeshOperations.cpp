@@ -41,9 +41,9 @@ void computeMeshBoundingBox(const Vertex* vertices,
     pMin.y() = std::numeric_limits<float>::max();
     pMin.z() = std::numeric_limits<float>::max();
 
-    pMax.x() = std::numeric_limits<float>::min();
-    pMax.y() = std::numeric_limits<float>::min();
-    pMax.z() = std::numeric_limits<float>::min();
+    pMax.x() = std::numeric_limits<float>::lowest();
+    pMax.y() = std::numeric_limits<float>::lowest();
+    pMax.z() = std::numeric_limits<float>::lowest();
 
     if (verbose) LOOP_STARTS("Computing Bounding Box");
     for (int64_t i = 0; i < numberVertices; ++i)
