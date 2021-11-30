@@ -65,7 +65,7 @@ SectionGeometry::SectionGeometry(const Samples& samples, uint64_t numberOfSides,
 
     // Tangent computation
     Vector3f tangents[numSamples];
-    for (uint64_t i = 0; i < numSamples-1; ++i)
+    for (uint64_t i = 0; i < numSamples - 1; ++i)
     {
         totalSamples += pSamplesPerSegment[i] - 1;
     }

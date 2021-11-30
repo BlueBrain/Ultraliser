@@ -540,13 +540,6 @@ void TaggedVolume::projectXY(const std::string &prefix, const bool &projectColor
     std::stringstream stream;
     stream << prefix << "_projection.xy";
 
-#ifdef ULTRALISER_USE_OPENEXR
-    // Save EXR image
-    Utilities::saveEXRLuminanceImage(stream.str(), normalizedProjection,
-                                     UI2I64(getWidth()),
-                                     UI2I64(getHeight()));
-#endif
-
     // Save PPM image
     Utilities::savePPMLuminanceImage(stream.str(), normalizedProjection,
                             UI2I64(getWidth()), UI2I64(getHeight()));
@@ -635,13 +628,6 @@ void TaggedVolume::projectZY(const std::string &prefix, const bool &projectColor
     // Save the projection
     std::stringstream stream;
     stream << prefix << "_projection.zy";
-
-#ifdef ULTRALISER_USE_OPENEXR
-    // Write an EXR image
-    Utilities::saveEXRLuminanceImage(stream.str(), normalizedProjection,
-                                     UI2I64(getDepth()),
-                                     UI2I64(getHeight()));
-#endif
 
     // Write a PPM image
     Utilities::savePPMLuminanceImage(stream.str(), normalizedProjection,
@@ -840,11 +826,7 @@ void TaggedVolume::composeBrainbowXY(const std::string &prefix,
     // Save the projection
     std::stringstream stream;
     stream << prefix << ".xy_tagged";
-#ifdef ULTRALISER_USE_OPENEXR
-    Utilities::saveBrainbowImage(stream.str(),
-                                 projection,
-                                 UI2I64(getWidth()), UI2I64(getHeight()));
-#endif
+
     // Write a PPM image
     Utilities::savePPMColoredImage(stream.str(), projection,
                                    UI2I64(getWidth()), UI2I64(getHeight()));
@@ -908,11 +890,6 @@ void TaggedVolume::composeBrainbowZY(const std::string &prefix,
     // Save the projection
     std::stringstream stream;
     stream << prefix << ".zy_tagged";
-#ifdef ULTRALISER_USE_OPENEXR
-    Utilities::saveBrainbowImage(stream.str(),
-                                 projection,
-                                 UI2I64(getDepth()), UI2I64(getHeight()));
-#endif
 
     Utilities::savePPMColoredImage(stream.str(), projection,
                                    UI2I64(getDepth()), UI2I64(getHeight()));
@@ -1016,11 +993,6 @@ void TaggedVolume::composeLabeledImageXY(const std::string &prefix,
     // Save the projection
     std::stringstream stream;
     stream << prefix << ".xy_labeled";
-#ifdef ULTRALISER_USE_OPENEXR
-    Utilities::saveBrainbowImage(stream.str(),
-                                 projection,
-                                 UI2I64(getWidth()), UI2I64(getHeight()));
-#endif
 
     // Write a PPM image
     Utilities::savePPMColoredImage(stream.str(), projection,
@@ -1103,11 +1075,6 @@ void TaggedVolume::composeLabeledImageZY(const std::string &prefix,
      // Save the projection
     std::stringstream stream;
     stream << prefix << ".zy_labeled";
-#ifdef ULTRALISER_USE_OPENEXR
-    Utilities::saveBrainbowImage(stream.str(),
-                                 projection,
-                                 UI2I64(getDepth()), UI2I64(getHeight()));
-#endif
 
     Utilities::savePPMColoredImage(stream.str(), projection,
                                    UI2I64(getDepth()), UI2I64(getHeight()));

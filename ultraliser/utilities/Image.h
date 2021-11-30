@@ -42,6 +42,13 @@ void savePPMLuminanceImage(const std::string &imageName,
                   const int64_t &width,
                   const int64_t &height);
 
+/**
+ * @brief savePPMColoredImage
+ * @param imageName
+ * @param imageData
+ * @param width
+ * @param height
+ */
 void savePPMColoredImage(const std::string &imageName,
                          const Vector3f* imageData,
                          const int64_t &width,
@@ -58,49 +65,6 @@ void savePPMColoredImage(const std::string &imageName,
                          const Vector4f* imageData,
                          const int64_t &width,
                          const int64_t &height);
-
-void saveEXRImage(const std::string &imageName,
-                  float* imageData,
-                  float* imageAlpha,
-                  const int64_t &width, const int64_t &height,
-                  const int32_t &x, const int32_t &y,
-                  const int32_t &xOffset, const int32_t &yOffset);
-
-/**
- * @brief saveEXRLuminanceImage
- * @param imageName
- * @param imageData
- * @param width
- * @param height
- */
-void saveEXRLuminanceImage(const std::string &imageName,
-                           const float* imageData,
-                           const int64_t &width,
-                           const int64_t &height);
-
-/**
- * @brief saveEXRLuminanceImage
- * @param imageName
- * @param imageData
- * @param width
- * @param height
- */
-void saveEXRLuminanceImage(const std::string &imageName,
-                           const uint8_t* imageData,
-                           const int64_t &width,
-                           const int64_t &height);
-
-/**
- * @brief saveEXRRGBImage
- * @param imageName
- * @param imageData
- * @param width
- * @param height
- */
-void saveEXRRGBImage(const std::string &imageName,
-                     const uint8_t* imageData,
-                     const int64_t &width,
-                     const int64_t &height);
 
 /**
  * @brief saveBrainbowImage

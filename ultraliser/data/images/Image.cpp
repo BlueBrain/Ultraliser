@@ -70,38 +70,6 @@ int64_t Image::dimension(const int& i) const
     return 0;
 }
 
-void Image::writeEXR(const std::string &prefix)
-{
-    uint8_t* image = new uint8_t[_numberPixels];
-
-    int offset = 0;
-    for (int64_t i = 0; i < getWidth(); i++)
-    {
-        for (int64_t j = 0; j < getHeight(); j++)
-        {
-            uint64_t index = mapToIndex(i, j);
-            uint8_t value;
-            if (_data[index] == WHITE || _data[index] == GRAY)
-                value = 255;
-            else
-                value = 0;
-
-            image[offset] = value;
-            ++offset;
-        }
-    }
-
-    std::stringstream imageStream;
-    imageStream << prefix << EXR_EXTENSION;
-
-    // Write RGB image
-    Utilities::saveEXRLuminanceImage(imageStream.str().c_str(), image,
-                                     getWidth(), getHeight());
-
-    // Release temporary image memory
-    delete[] image;
-}
-
 void Image::writePPM(const std::string &prefix) const
 {
     std::stringstream stream;

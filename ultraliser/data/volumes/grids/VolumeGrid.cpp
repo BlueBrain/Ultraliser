@@ -497,12 +497,6 @@ void VolumeGrid::writeProjection(const std::string &prefix,
     Utilities::savePPMLuminanceImage(prefixStream.str(), normalizedProjectionImage.data(),
                                      projectionWidth, projectionHeight);
 
-    // Save EXR image if possible
-#ifdef ULTRALISER_USE_OPENEXR
-    Utilities::saveEXRLuminanceImage(prefixStream.str(), normalizedProjectionImage.data(),
-                                     projectionWidth, projectionHeight);
-#endif
-
     // Statistics
     LOG_STATS(GET_TIME_SECONDS);
 

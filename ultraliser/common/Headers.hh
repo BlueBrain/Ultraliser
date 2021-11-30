@@ -30,6 +30,7 @@
 #include <limits>
 #include <vector>
 #include <climits>
+#include <cfloat>
 #include <fstream>
 #include <ostream>
 #include <stdio.h>
@@ -59,16 +60,6 @@
 #include <iomanip>
 #include <unordered_map>
 #include <unordered_set>
-
-#ifdef ULTRALISER_USE_OPENEXR
-#include <ImfRgba.h>
-#include <ImathBox.h>
-#include <ImfRgbaFile.h>
-#include <ImfOutputFile.h>
-#include <ImfInputFile.h>
-#include <ImfChannelList.h>
-#endif
-
 #include <common/OpenMP.hh>
 
 #endif // ULTRALISER_COMMON_HEADERS_HH

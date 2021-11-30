@@ -31,7 +31,6 @@ project (Ultraliser)
 
 #Add CMake customized modules
 set(CMAKE_MODULE_PATH  ${CMAKE_SOURCE_DIR}/cmake)
-include(OpenEXR)
 include(OpenMP)
 include(TIFF)
 include(HDF5)
