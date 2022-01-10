@@ -67,6 +67,12 @@ void locateMeshFiles(const std::string &directory,
 
     // List all the .ply files
     list(directory, meshFiles, ".ply");
+
+    // List all the .ply files
+    list(directory, meshFiles, ".stl");
+
+    // List all the .ply files
+    list(directory, meshFiles, ".off");
 }
 
 bool exists(std::string path)

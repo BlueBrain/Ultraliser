@@ -79,8 +79,11 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
 
             if (Ultraliser::File::exists(meshFile))
             {
+                // One more mesh is readable
+                loadedMeshCount++;
+
                 // Load the mesh
-                auto mesh = new Ultraliser::Mesh(meshFile, false);
+                auto mesh = std::make_unique< Ultraliser::Mesh >(meshFile, false);
 
                 // Scale the mesh
                 mesh->scale(xScale, yScale, zScale);
@@ -90,7 +93,6 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
                 mesh->computeBoundingBox(pMinMesh, pMaxMesh);
                 pMinVector[iMesh] = pMinMesh;
                 pMaxVector[iMesh] = pMaxMesh;
-                mesh->~Mesh();
             }
             else
             {
