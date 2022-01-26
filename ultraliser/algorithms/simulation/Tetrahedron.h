@@ -22,86 +22,97 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ALGORITHMS_SIMULATION_MESH_H
-#define ULTRALISER_ALGORITHMS_SIMULATION_MESH_H
+#ifndef ULTRALISER_ALGORITHMS_SIMULATION_TETRAHEDRON_H
+#define ULTRALISER_ALGORITHMS_SIMULATION_TETRAHEDRON_H
 
-#include "StiffnessMatrix.h"
+#include "Node.h"
 
 namespace Ultraliser
 {
 namespace Simulation
 {
+
 /**
- * @brief The Mesh class
+ * @brief The Tetrahedron class
  */
-class Mesh
+class Tetrahedron
 {
 public:
 
     /**
-     * @brief Mesh
-     * Constructor
-     */ 
-    Mesh();
-
-    /**
-     * @brief Mesh
+     * @brief Tetrahedron
      * Constructor
      *
-     * @param nodes
-     * Mesh nodes
-     * @param springs
-     * Mesh springs
-     * @param tetrahedra
-     * Mesh tetrahedra
+     * @param node0
+     * The first node of the tetrahedron.
+     * @param node1
+     * The second node of the tetrahedron.
+     * @param node2
+     * The third node of the tetrahedron.
+     * @param node3
+     * The fourth node of the tetrahedron.
      */
-    Mesh(Nodes nodes, Springs springs, Tetrahedra tetrahedra);
+    Tetrahedron(NodePtr node0, NodePtr node1, NodePtr node2, NodePtr node3);
 
     /**
-     * @brief ~Mesh
-     * Destructor
+     * @brief volume
+     * Gets the actual volume of the tetrahedron.
      */
-    ~Mesh();
-    
+    float volume() const;
 
-    void computeStiffnessMatrix( float stiffness = 10000.0,
-                                 float poissonRatio = 0.3,
-                                 float dt = 0.01);
+    /**
+     * @brief initVolume
+     * Gets the initial volume of the tetrahedron.
+     */
+    float initVolume() const;
 
 public:
-    /**
-     * @brief nodes
-     */
-    Nodes nodes;
 
     /**
-     * @brief springs
+     * @brief node0
+     * The first node of the tetrahedron.
      */
-    Springs springs;
+    NodePtr node0;
 
     /**
-     * @brief tetrahedra
+     * @brief node1
+     * The second node of the tetrahedron.
      */
-    Tetrahedra tetrahedra;
+    NodePtr node1;
 
     /**
-     * @brief stiffnessMatrix
+     * @brief node2
+     * The third node of the tetrahedron.
      */
-    StiffnessMatrixPtr stiffnessMatrix;
+    NodePtr node2;
 
+    /**
+     * @brief node3
+     * The fourth node of the tetrahedron.
+     */
+    NodePtr node3;
+
+private:
+
+    /**
+     * @brief _initVolume
+     * The initial volume of the Tetrahedron.
+     */
+    float _initVolume;
 };
 
 /**
- * @brief MeshPtr
+ * @brief TetrahedronPtr
  */
-typedef Mesh* MeshPtr;
+typedef Tetrahedron* TetrahedronPtr;
 
 /**
- * @brief Meshes
+ * @brief Tetrahedra
  */
-typedef std::vector<MeshPtr> Meshes;
+typedef std::vector<TetrahedronPtr> Tetrahedra;
+
 
 }
 }
 
-#endif  // ULTRALISER_ALGORITHMS_SIMULATION_MESH_H
+#endif  // ULTRALISER_ALGORITHMS_SIMULATION_TETRAHEDRON_H

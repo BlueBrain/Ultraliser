@@ -256,24 +256,17 @@ void Volume::surfaceVoxelizeNeuronMorphologyParallel(
         paths.insert(paths.end(), sectionPaths.begin(), sectionPaths.end());
     }
 
-    auto firstSections = neuronMorphology->getFirstSections();
-    // Add the paths between the soma and neurites
-    for (uint64_t i = 0; i < firstSections.size(); i++)
-    {
-        auto section = firstSections[i];
-        Samples samples = section->getSamples();
-        Vector3f newSamplePos = neuronMorphology->getSomaCenter();
-        samples.insert(samples.begin(),
-                       new Sample(newSamplePos, samples[0]->getRadius(), i));
-        paths.push_back(samples);
-     }
-
     // Construct the neurites geometry
     OMP_PARALLEL_FOR
     for (uint64_t i = 0; i < paths.size(); i++)
     {
-        auto mesh = new Mesh(paths[i]);
+        auto samples = paths[i];
+        auto mesh = new Mesh(samples);
         _rasterize(mesh, _grid);
+
+        // Rasterize the first and last samples as spheres to fill any gaps
+        _rasterize(samples.front(), _grid);
+        _rasterize(samples.back(), _grid);
 
         // Update the progress bar
         LOOP_PROGRESS(PROGRESS, paths.size());

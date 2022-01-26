@@ -22,86 +22,37 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ALGORITHMS_SIMULATION_MESH_H
-#define ULTRALISER_ALGORITHMS_SIMULATION_MESH_H
-
-#include "StiffnessMatrix.h"
+#include "Tetrahedron.h"
 
 namespace Ultraliser
 {
 namespace Simulation
 {
-/**
- * @brief The Mesh class
- */
-class Mesh
+
+Tetrahedron::Tetrahedron(NodePtr n0, NodePtr n1, NodePtr n2, NodePtr n3)
+    : node0(n0)
+    , node1(n1)
+    , node2(n2)
+    , node3(n3)
 {
-public:
+    _initVolume = volume();
+}
 
-    /**
-     * @brief Mesh
-     * Constructor
-     */ 
-    Mesh();
+float Tetrahedron::volume() const
+{
+    auto x0 = node0->position;
+    auto x1 = node1->position;
+    auto x2 = node2->position;
+    auto x3 = node3->position;
+    Matrix3f basis (x1 - x0, x2 - x0, x3 - x0, true);
 
-    /**
-     * @brief Mesh
-     * Constructor
-     *
-     * @param nodes
-     * Mesh nodes
-     * @param springs
-     * Mesh springs
-     * @param tetrahedra
-     * Mesh tetrahedra
-     */
-    Mesh(Nodes nodes, Springs springs, Tetrahedra tetrahedra);
+    return std::abs(basis.determinant() / 6.0);
+}
 
-    /**
-     * @brief ~Mesh
-     * Destructor
-     */
-    ~Mesh();
-    
-
-    void computeStiffnessMatrix( float stiffness = 10000.0,
-                                 float poissonRatio = 0.3,
-                                 float dt = 0.01);
-
-public:
-    /**
-     * @brief nodes
-     */
-    Nodes nodes;
-
-    /**
-     * @brief springs
-     */
-    Springs springs;
-
-    /**
-     * @brief tetrahedra
-     */
-    Tetrahedra tetrahedra;
-
-    /**
-     * @brief stiffnessMatrix
-     */
-    StiffnessMatrixPtr stiffnessMatrix;
-
-};
-
-/**
- * @brief MeshPtr
- */
-typedef Mesh* MeshPtr;
-
-/**
- * @brief Meshes
- */
-typedef std::vector<MeshPtr> Meshes;
+float Tetrahedron::initVolume() const
+{
+    return _initVolume;
+}
 
 }
 }
-
-#endif  // ULTRALISER_ALGORITHMS_SIMULATION_MESH_H

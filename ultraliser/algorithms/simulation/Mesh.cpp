@@ -22,86 +22,34 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ALGORITHMS_SIMULATION_MESH_H
-#define ULTRALISER_ALGORITHMS_SIMULATION_MESH_H
-
-#include "StiffnessMatrix.h"
+#include "Mesh.h"
 
 namespace Ultraliser
 {
 namespace Simulation
 {
-/**
- * @brief The Mesh class
- */
-class Mesh
+
+Mesh::Mesh(){}
+
+Mesh::Mesh(Nodes nodes, Springs springs, Tetrahedra tetrahedra)
+    : nodes(nodes)
+    , springs(springs)
+    , tetrahedra(tetrahedra){}
+
+Mesh::~Mesh()
 {
-public:
+    for (auto node : nodes)
+        delete node;
+    for (auto spring : springs)
+        delete spring;
+    for (auto tetrahedron : tetrahedra)
+        delete tetrahedron;
+}
 
-    /**
-     * @brief Mesh
-     * Constructor
-     */ 
-    Mesh();
-
-    /**
-     * @brief Mesh
-     * Constructor
-     *
-     * @param nodes
-     * Mesh nodes
-     * @param springs
-     * Mesh springs
-     * @param tetrahedra
-     * Mesh tetrahedra
-     */
-    Mesh(Nodes nodes, Springs springs, Tetrahedra tetrahedra);
-
-    /**
-     * @brief ~Mesh
-     * Destructor
-     */
-    ~Mesh();
-    
-
-    void computeStiffnessMatrix( float stiffness = 10000.0,
-                                 float poissonRatio = 0.3,
-                                 float dt = 0.01);
-
-public:
-    /**
-     * @brief nodes
-     */
-    Nodes nodes;
-
-    /**
-     * @brief springs
-     */
-    Springs springs;
-
-    /**
-     * @brief tetrahedra
-     */
-    Tetrahedra tetrahedra;
-
-    /**
-     * @brief stiffnessMatrix
-     */
-    StiffnessMatrixPtr stiffnessMatrix;
-
-};
-
-/**
- * @brief MeshPtr
- */
-typedef Mesh* MeshPtr;
-
-/**
- * @brief Meshes
- */
-typedef std::vector<MeshPtr> Meshes;
+void Mesh::computeStiffnessMatrix(float stiffness, float poissonRatio, float dt)
+{
+    stiffnessMatrix = new StiffnessMatrix(nodes, tetrahedra, stiffness, poissonRatio, dt);
+}
 
 }
 }
-
-#endif  // ULTRALISER_ALGORITHMS_SIMULATION_MESH_H

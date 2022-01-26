@@ -39,22 +39,22 @@ void AnimSystem::animate(MeshPtr mesh, uint64_t iterations)
 {
     for (uint64_t it = 0; it < iterations; it++)
     {
-        // Reset node forces to zero value
-        setZeroForce(mesh);
-
-        // Parallel compute of per spring force
-        OMP_PARALLEL_FOR
-        for (uint64_t i = 0; i < mesh->springs.size(); ++i)
+        // Solve finite element method system with implicit approach
+        uint64_t size = mesh->nodes.size() * 3;
+        Eigen::VectorXf u(size);
+        Eigen::VectorXf mv(size);
+        Eigen::VectorXf v_1(size);
+        Eigen::VectorXf b(size);    
+        for (uint64_t i = 0; i < size / 3; ++i)
         {
-            mesh->springs[i]->computeForce();
+            auto node = mesh->nodes[i];
+            Vector3f uVec = node->position - node->initPosition();
+            StiffnessMatrix::addVec3ToVec(i, uVec, u);
+            Vector3f mvVec = node->velocity * node->mass;
+            StiffnessMatrix::addVec3ToVec(i, mvVec, mv);
         }
-
-        // Add spring force to nodes out of the parallel loop to avoid concurrency problems
-        for (auto spring : mesh->springs)
-        {
-            spring->node0->force += spring->force;
-            spring->node1->force -= spring->force;
-        }
+        b = mv - _dt * (mesh->stiffnessMatrix->stiffnessMatrix * u);
+        v_1 = mesh->stiffnessMatrix->matrixSolver.solve(b);
 
         // Update nodes velocity and position applying an symplectic integration scheme
         OMP_PARALLEL_FOR
@@ -63,8 +63,7 @@ void AnimSystem::animate(MeshPtr mesh, uint64_t iterations)
             auto node = mesh->nodes[i];
             if (!node->fixed)
             {
-                node->velocity = node->velocity + node->force * _dt;
-                node->position = node->position + node->velocity * _dt;
+                node->velocity = Vector3f(v_1[i * 3], v_1[i * 3 + 1], v_1[i * 3 + 2]);node->position += node->velocity * _dt;
             }
         }
     }
