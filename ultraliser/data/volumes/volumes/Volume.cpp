@@ -247,12 +247,29 @@ void Volume::surfaceVoxelizeNeuronMorphologyParallel(
     auto mesh = new Mesh(neuronMorphology);
     _rasterize(mesh, _grid);
 
+    // Fill a set with the morphology first sections to be able to distinguish them
+    auto fSections = neuronMorphology->getFirstSections();
+    std::set<Section*> firstSections(fSections.begin(), fSections.end());
+
     Paths paths;
     for (uint64_t i = 0; i < sections.size(); i++)
     {
         // Construct the paths
-        Paths sectionPaths = neuronMorphology->getConnectedPathsFromParentsToChildren(
-            sections[i]);
+        auto section = sections[i];
+        Paths sectionPaths = neuronMorphology->getConnectedPathsFromParentsToChildren(section);
+        
+        // Add sample to fill the gap between the soma and the first sections in the soma direction
+        if (firstSections.find(section) != firstSections.end())
+        {
+            auto firstSample = section->getSamples()[0];
+            Vector3f position = neuronMorphology->getSomaCenter() * 0.001f + 
+                    firstSample->getPosition() * 0.999f;
+           
+            auto somaSample = new Sample(position, firstSample->getRadius(), 0);
+            for (uint64_t i = 0; i < sectionPaths.size(); ++i)
+                sectionPaths[i].insert(sectionPaths[i].begin(), somaSample);
+        }
+
         paths.insert(paths.end(), sectionPaths.begin(), sectionPaths.end());
     }
 
@@ -263,10 +280,6 @@ void Volume::surfaceVoxelizeNeuronMorphologyParallel(
         auto samples = paths[i];
         auto mesh = new Mesh(samples);
         _rasterize(mesh, _grid);
-
-        // Rasterize the first and last samples as spheres to fill any gaps
-        _rasterize(samples.front(), _grid);
-        _rasterize(samples.back(), _grid);
 
         // Update the progress bar
         LOOP_PROGRESS(PROGRESS, paths.size());

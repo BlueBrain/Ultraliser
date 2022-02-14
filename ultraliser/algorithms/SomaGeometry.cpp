@@ -28,8 +28,8 @@
 
 namespace Ultraliser
 {
-SomaGeometry::SomaGeometry(NeuronMorphology* morphology, float stiffness, float poissonRatio,
-                           float dt, uint32_t numIterations)
+SomaGeometry::SomaGeometry(NeuronMorphology* morphology, float alphaRadius, float stiffness, 
+                           float poissonRatio, float dt, uint32_t numIterations)
     : numVertices(0)
     , numTriangles(0)
 {
@@ -39,7 +39,7 @@ SomaGeometry::SomaGeometry(NeuronMorphology* morphology, float stiffness, float 
 
         // For the moment, use the min soma radius to see the effect of the pulling forces on
         // the ico-sphere till further notice
-        _somaRadius = morphology->getSomaMinRadius();
+        _somaRadius = morphology->getSomaMinRadius() * alphaRadius;
 
         auto mesh = _loadIcosphereGeometry();
         mesh->computeStiffnessMatrix(stiffness, poissonRatio, dt);

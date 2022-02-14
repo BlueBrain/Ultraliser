@@ -45,6 +45,8 @@ public:
      *
      * @param morphology
      * The given neuron moprhology to generate the somatic mesh from.
+     * @param alphaRadius
+     * Multiplier of the soma radius.
      * @param stiffness
      * Simulation stiffness factor. Takes values over 0.
      * @param poissonRatio
@@ -54,8 +56,9 @@ public:
      * @param numIterations
      * Nunber of simulation iterations.
      */
-    SomaGeometry(NeuronMorphology* morphology, float stiffness = 10000.0f, 
-                 float poissonRatio = 0.2f, float dt = 0.01f, uint32_t numIterations = 500);
+    SomaGeometry(NeuronMorphology* morphology, float alphaRadius = 0.75f, 
+                 float stiffness = 10000.0f, float poissonRatio = 0.2f, float dt = 0.01f,
+                 uint32_t numIterations = 200);
 
 private:
 
