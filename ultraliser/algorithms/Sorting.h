@@ -1,7 +1,7 @@
 /***************************************************************************************************
  * Copyright (c) 2013 - 2021
  * Consiglio Nazionale delle Ricerche, Sezione di Genova, IMATI-GE / CNR
- * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
+ * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
  *      Marco Attene < IMATI-GE / CNR >

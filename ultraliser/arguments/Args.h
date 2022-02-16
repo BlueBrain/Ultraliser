@@ -1,7 +1,7 @@
 #ifndef ULTRALISER_ARGUMENTS_ARGS_H
 /***************************************************************************************************
  * Copyright (c) 2016 - 2021
- * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
+ * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
  *      Marwan Abdellah < marwan.abdellah@epfl.ch >

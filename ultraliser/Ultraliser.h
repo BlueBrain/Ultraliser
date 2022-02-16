@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright (c) 2016 - 2019
- * Blue Brain Project (BBP) / Ecole Polytechniqe Federale de Lausanne (EPFL)
+ * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  * Author(s): Marwan Abdellah <marwan.abdellah@epfl.ch>
  *
  * This file is part of Ultraliser <https://github.com/BlueBrain/Ultraliser>
