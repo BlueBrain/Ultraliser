@@ -55,6 +55,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyMeshExportArguments();
     options->verifyMaskDimensionsArguments();
     options->verifyMaskPrefixArgument();
+    options->verifyIsoSurfaceExtractionArgument();
 
     // Initialize context
     options->initializeContext();
@@ -84,14 +85,13 @@ void run(int argc , const char** argv)
     // Free the volume, it is not needed any further
     delete volume;
 
-//    // If a scale factor is given, not 1.0, scale the mesh
-//    if (!(Ultraliser::isEqual(options->xScaleFactor, 1.f) &&
-//          Ultraliser::isEqual(options->xScaleFactor, 1.f) &&
-//          Ultraliser::isEqual(options->xScaleFactor, 1.f)))
-//    {
-//        // Scale the mesh
-//        reconstructedMesh->scale(options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
-//    }
+    // If a scale factor is given, not 1.0, scale the mesh
+    if ((options->xScaleFactor > 1.f || options->yScaleFactor > 1.f || options->zScaleFactor > 1.f)
+     || (options->xScaleFactor < 1.f || options->yScaleFactor < 1.f || options->zScaleFactor < 1.f))
+    {
+        // Scale the mesh
+        reconstructedMesh->scale(options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
+    }
 
     // Generate the reconstructed mesh artifacts
     generateReconstructedMeshArtifacts(reconstructedMesh, options);
