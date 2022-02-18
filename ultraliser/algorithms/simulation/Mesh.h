@@ -50,12 +50,14 @@ public:
      *
      * @param nodes
      * Mesh nodes
+     * @param surfaceNodes
+     * Mesh surface nodes
      * @param springs
      * Mesh springs
      * @param tetrahedra
      * Mesh tetrahedra
      */
-    Mesh(Nodes nodes, Springs springs, Tetrahedra tetrahedra);
+    Mesh(Nodes nodes, Nodes surfaceNodes, Springs springs, Tetrahedra tetrahedra);
 
     /**
      * @brief ~Mesh
@@ -73,6 +75,11 @@ public:
      * @brief nodes
      */
     Nodes nodes;
+
+    /**
+     * @brief surface nodes
+     */
+    Nodes surfaceNodes;
 
     /**
      * @brief springs

@@ -31,14 +31,17 @@ namespace Simulation
 
 Mesh::Mesh(){}
 
-Mesh::Mesh(Nodes nodes, Springs springs, Tetrahedra tetrahedra)
+Mesh::Mesh(Nodes nodes, Nodes surfaceNodes, Springs springs, Tetrahedra tetrahedra)
     : nodes(nodes)
+    , surfaceNodes(surfaceNodes)
     , springs(springs)
     , tetrahedra(tetrahedra){}
 
 Mesh::~Mesh()
 {
     for (auto node : nodes)
+        delete node;
+    for (auto node : surfaceNodes)
         delete node;
     for (auto spring : springs)
         delete spring;

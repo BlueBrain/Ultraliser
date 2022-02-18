@@ -98,6 +98,23 @@ Simulation::MeshPtr SomaGeometry::_loadIcosphereGeometry()
         tetrahedra[i] = new Simulation::Tetrahedron(node0, node1, node2, node3);
     }
 
+    std::set<uint64_t> uniqueIndices;
+    for (uint64_t i = 0; i < IcosphereTrianglesIndicesSize; ++i)
+    {
+        uniqueIndices.insert(IcosphereTrianglesIndices[i*3]);
+        uniqueIndices.insert(IcosphereTrianglesIndices[i*3+1]);
+        uniqueIndices.insert(IcosphereTrianglesIndices[i*3+2]);
+    }
+    std::vector<uint64_t> indices(uniqueIndices.begin(), uniqueIndices.end());
+
+    Simulation::Nodes& surfaceNodes = mesh->surfaceNodes;
+    surfaceNodes.resize(indices.size());
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < surfaceNodes.size(); ++i)
+    {
+        surfaceNodes[i] = nodes[indices[i]];
+    }
+
     return mesh;
 }
 
@@ -145,6 +162,9 @@ void SomaGeometry::_computeNeuritesNodes(Simulation::MeshPtr mesh,
     neuritesNodes.resize(somaSamples.size());
     surfacePositions.resize(somaSamples.size());
 
+    std::vector<bool> nodeAssigned(mesh->surfaceNodes.size());
+    for (auto assigned: nodeAssigned) assigned = false;  
+
     for (uint32_t i = 0; i < somaSamples.size(); ++i)
     {
         auto sample = somaSamples[i];
@@ -157,13 +177,37 @@ void SomaGeometry::_computeNeuritesNodes(Simulation::MeshPtr mesh,
         surfacePositions[i] = surfacePos;
 
         // Check nodes within the neurite radius and add the nodes to neurite nodes
-        for (auto node: mesh->nodes)
+        float minDistance = std::numeric_limits<float>::max();
+        uint64_t minDistanceId = 0;
+        for (uint64_t j = 0; j < mesh->surfaceNodes.size(); ++j)
         {
-            if ((node->position - surfacePos).abs() <= startRadius)
+            if (nodeAssigned[j]) continue;
+            auto node = mesh->surfaceNodes[j];
+            float distance = (node->position - surfacePos).abs();
+
+            // Check the node with minimum distance
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                minDistanceId = j;
+            }
+
+            if ( distance <= startRadius)
             {
                 neuritesNodes[i].push_back(node);
                 node->fixed = true;
+                nodeAssigned[j] = true;
             }
+        }
+
+        // If no nodes have been assigned to a the neurite the closest node is assigned
+        if (neuritesNodes[i].empty())
+        {
+            auto node = mesh->surfaceNodes[minDistanceId];
+            neuritesNodes[i].push_back(node);
+            surfacePositions[i] = node->position;
+            node->fixed = true;
+            nodeAssigned[minDistanceId] = true;
         }
     }
 }
