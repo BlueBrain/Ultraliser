@@ -18,6 +18,27 @@ Ultraliser has been tested on Unix-based operating systems including:
 * RedHat 
 * macOS 10.12 Sierra, 10.13 High Sierra,  10.14 Mojave, 10.15 Catalina
 
+### Installation instructions
+
+First you need to install the dependencies (here shown for a Linux system)
+
+```
+sudo apt-get install libomp-dev
+sudo apt-get install hdf5-devel
+```
+
+Next, you can install Ultraliser with the following commands
+
+```
+git clone https://github.com/BlueBrain/Ultraliser.git
+cd Ultraliser
+mkdir build
+cd build
+cmake ..
+make -j
+```
+
+
 # Interfaces
 
 # Gallery 
