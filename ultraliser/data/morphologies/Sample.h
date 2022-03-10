@@ -83,11 +83,55 @@ private:
     uint64_t _index;
 };
 
+class SampleTriangle
+{
+public:
+
+    /**
+     * @brief SampleTriangle
+     * Constructor
+     * @param sample0
+     * First sample of the triangle.
+     * @param sample1
+     * Second sample of the triangle.
+     * @param sample2
+     * Third sample of the triangle.
+     */
+    SampleTriangle(Sample* sample0, Sample* sample1, Sample* sample2)
+      : sample0(sample0), sample1(sample1), sample2(sample2) {};
+
+public:
+
+    /**
+     * @brief sample0
+     * First sample of the triangle.
+     */
+    Sample* sample0;
+
+        /**
+     * @brief sample1
+     * Second sample of the triangle.
+     */
+    Sample* sample1;
+
+    /**
+     * @brief sample2
+     * Third sample of the triangle.
+     */
+    Sample* sample2;
+};
+
+/**
+ * @brief SampleTriangles
+ * A list of sample triangles.
+ */
+typedef std::vector<SampleTriangle*> SampleTriangles;
+
 /**
  * @brief Samples
  * A list of samples.
  */
-typedef std::vector< Sample* > Samples;
+typedef std::vector<Sample*> Samples;
 
 /**
  * @brief Paths

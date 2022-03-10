@@ -154,7 +154,7 @@ private:
  * @brief readNeuronMorphology
  * Reads the neuronal morphology from a given file.
  * @param morphologyPath
- * The path to the morpholog.
+ * The path to the morphology.
  * @return
  * NeuronMorphology object.
  */

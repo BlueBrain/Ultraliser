@@ -379,6 +379,85 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
 
 }
 
+void Volume::surfaceVoxelizeEndfeetMorphologyParallel(
+    EndfeetMorphology* endfeetMorphology, float threshold)
+{
+    LOG_TITLE("Endfeet Surface Voxelization (Parallel)");
+
+    // Start the timer
+    TIMER_SET;
+
+    LOG_STATUS("Creating Volume Shell from Samples");
+    LOOP_STARTS("Rasterization");
+    PROGRESS_SET;
+
+    auto sampleTriangles = endfeetMorphology->getSampleTriangles();
+
+    // Rasterize sample triangles
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < sampleTriangles.size(); ++i)
+    {
+        Sample* sample0 = sampleTriangles[i]->sample0;
+        Sample* sample1 = sampleTriangles[i]->sample1;
+        Sample* sample2 = sampleTriangles[i]->sample2; 
+        Vector3f pos0 = sample0->getPosition();
+        Vector3f pos1 = sample1->getPosition();
+        Vector3f pos2 = sample2->getPosition();
+        float radius0 = sample0->getRadius();
+        float radius1 = sample1->getRadius();
+        float radius2 = sample2->getRadius();
+
+        // Compute maximum separation distance based on minimum radius and a threshold
+        float minRadius = radius0;
+        minRadius = std::min<float>(minRadius, radius1);
+        minRadius = std::min<float>(minRadius, radius2);
+        float maxSeparation = minRadius * threshold;
+
+        // Compute number of divisions for opposite edge to the sample0
+        float edgeDistance = (pos2 - pos1).abs();
+        uint32_t edgeNumDivisions = std::ceil(edgeDistance / maxSeparation);
+        float edgeAlphaIncrement = 1.0f / edgeNumDivisions;
+
+        OMP_PARALLEL_FOR
+        for (uint32_t j = 0; j < edgeNumDivisions + 1; ++j)
+        {
+            // Compute opposite edge samples
+            float edgeAlpha = j * edgeAlphaIncrement;
+            Vector3f edgePos = (1.0f - edgeAlpha) * pos1 + edgeAlpha * pos2;
+            float edgeRadius = (1.0f - edgeAlpha) * radius1 + edgeAlpha * radius2;
+            
+            // Compute interpolated samples for the edges betweem the sample0 and the opposite edge
+            // samples computed
+            float distance = (edgePos - pos0).abs();
+            uint32_t numDivisions = std::ceil(distance / maxSeparation);
+            float alphaIncrement = 1.0f / numDivisions;
+
+            // Rasterize sample
+            OMP_PARALLEL_FOR
+            for (uint32_t k = 0; k < numDivisions + 1; ++k)
+            {
+                float alpha = k * alphaIncrement;
+                Vector3f position = (1.0f - alpha) * pos0 + alpha * edgePos;
+                float radius = (1.0f - alpha) * radius0 + alpha * edgeRadius;
+                Sample sample(position, radius, 0);
+                _rasterize(&sample, _grid);
+            }   
+        }
+       
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, sampleTriangles.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+
+    _surfaceVoxelizationTime = GET_TIME_SECONDS;
+
+    // Statistics
+    LOG_STATUS_IMPORTANT("Rasterization Stats.");
+    LOG_STATS(_surfaceVoxelizationTime);
+}
+
 void Volume::surfaceVoxelization(AdvancedMesh *mesh)
 {
     LOG_TITLE("Surface Voxelization");

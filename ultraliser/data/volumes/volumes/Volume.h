@@ -203,6 +203,13 @@ public:
         NeuronMorphology* neuronMorphology);
 
     /**
+     * @brief surfaceVoxelizeEndfeetMorphology
+     * @param morphology
+     */
+    void surfaceVoxelizeEndfeetMorphologyParallel(
+        EndfeetMorphology* endfeetMorphology, float threshold = 0.5);
+
+    /**
      * @brief solidVoxelization
      * lood fill the exterior to figure out the interior.
      * @param algorithm

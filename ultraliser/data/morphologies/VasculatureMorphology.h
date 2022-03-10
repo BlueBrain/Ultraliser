@@ -100,6 +100,14 @@ private:
     const VasculatureH5ConnectivityList _h5Connectivity;
 };
 
+/**
+ * @brief readVascularMorphology
+ * Reads the vascular morphology from a given file.
+ * @param morphologyPath
+ * The path to the morphology.
+ * @return
+ * VasculatureMorphology object.
+ */
 VasculatureMorphology* readVascularMorphology(std::string& morphologyPath);
 
 }
