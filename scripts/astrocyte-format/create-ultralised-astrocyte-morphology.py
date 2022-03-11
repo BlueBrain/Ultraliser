@@ -125,7 +125,6 @@ def create_full_astrocyte_structure(astrocyte_h5_file,
     # Collect the vertices from the endfeet data
     for eid, endfoot in enumerate(endfeet):
 
-
         triangle_start_index = triangle_last_index + 1
         triangle_last_index = triangle_start_index + len(endfoot.triangles)
         triangle_indices.append([triangle_start_index, triangle_last_index])
@@ -133,7 +132,6 @@ def create_full_astrocyte_structure(astrocyte_h5_file,
         vertex_start_index = vertex_last_index + 1
         vertex_last_index = vertex_start_index + len(endfoot.vertices)
         vertex_indices.append([vertex_start_index, vertex_last_index])
-
 
         # Compose the lists
         for tid, triangle in enumerate(endfoot.triangles):
@@ -147,11 +145,6 @@ def create_full_astrocyte_structure(astrocyte_h5_file,
 
         # Update the vertex offset
         vertex_offset += len(endfoot.vertices)
-
-
-
-
-
 
     full_astrocyte_h5_file.create_dataset(name="endfeet_vertex_indices",
                                           shape=(len(vertex_indices), 2),

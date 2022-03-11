@@ -87,48 +87,19 @@ EndfeetPatches AstrocyteMorphology::getEndfeetPatches() const
 
 AstrocyteMorphology* readAstrocyteMorphology(std::string& morphologyPath)
 {
-    // Read the file
-    auto reader = std::make_unique< AstrocyteH5Reader >(morphologyPath);
+     if (String::subStringFound(morphologyPath, std::string(".h5")) ||
+         String::subStringFound(morphologyPath, std::string(".H5")))
+     {
+         // Read the file
+         auto reader = std::make_unique< AstrocyteH5Reader >(morphologyPath);
 
-    // Get a pointer to the morphology to start using it
-    return reader->getMorphology();
-
-
-
-
-//    Samples samples;
-//    EndfeetPatches EndfeetPatches;
-
-//    samples.push_back(new Sample(Vector3f(0.0f, 1.0f, 0.5f), 0.01f, 0));
-
-//    samples.push_back(new Sample(Vector3f(-0.577f, 0.0f, 0.0f), 0.05f, 0));
-
-//    samples.push_back(new Sample(Vector3f(0.577f, 0.0f, 0.0f), 0.1f, 0));
-
-//    samples.push_back(new Sample(Vector3f(0.0f, -1.0f, 0.5f), 0.01f, 0));
-
-
-//    EndfeetPatches.push_back(new EndfootPatch(samples[0], samples[1], samples[2]));
-//    EndfeetPatches.push_back(new EndfootPatch(samples[1], samples[3], samples[2]));
-
-
-//    auto morphology = new AstrocyteMorphology(samples, EndfeetPatches);
-//    return morphology;
-
-
-
-    // if (String::subStringFound(morphologyPath, std::string(".swc")))
-    // {
-    //     // Read the file
-    //     // auto reader = std::make_unique< NeuronSWCReader >(morphologyPath);
-
-    //     // Get a pointer to the morphology to start using it
-    //     // return reader->getMorphology();
-    // }
-    // else
-    // {
-    //     LOG_ERROR("Unrecognized morphology file format [ %s ]", morphologyPath.c_str());
-    // }
+         // Get a pointer to the morphology to start using it
+         return reader->getMorphology();
+     }
+     else
+     {
+         LOG_ERROR("Unrecognized morphology file format [ %s ]", morphologyPath.c_str());
+     }
 
     // To avoid any warning issues.
     return nullptr;

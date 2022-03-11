@@ -66,7 +66,6 @@ AstrocyteMorphology* AstrocyteH5Reader::getMorphology()
     return astrocyteMorphology;
 }
 
-
 void AstrocyteH5Reader::_readSamples()
 {
     // Read the points data set
