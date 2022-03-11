@@ -240,7 +240,7 @@ void AstrocyteH5Reader::_constructEndfeetData()
         EndfootPatches endfootPatches;
 
         // Create the triangles
-        for (uint64_t j = 0; j < _endfeetTriangles.size(); ++j)
+        for (uint64_t j = 0; j < _endfeetTriangles.size() -1 ; ++j)
         {
             // Get the incides of the vertices of the triangle
             uint64_t v0 = _endfeetTriangles[j].x();
@@ -253,7 +253,7 @@ void AstrocyteH5Reader::_constructEndfeetData()
             H5Sample &s2 = _endfeetSamples.at(v2);
 
             // Convert it into a default sample, indicies values are not important in this context
-            Sample* sample0 = new Sample(Vector3f(s0.x, s0.y, s0.z)  -_coordinates, s0.r, 0);
+            Sample* sample0 = new Sample(Vector3f(s0.x, s0.y, s0.z) - _coordinates, s0.r, 0);
             Sample* sample1 = new Sample(Vector3f(s1.x, s1.y, s1.z) - _coordinates, s1.r, 1);
             Sample* sample2 = new Sample(Vector3f(s2.x, s2.y, s2.z) - _coordinates, s2.r, 2);
 

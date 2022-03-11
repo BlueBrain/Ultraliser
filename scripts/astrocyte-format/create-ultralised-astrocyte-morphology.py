@@ -5,8 +5,6 @@ from pathlib import Path
 from archngv import NGVCircuit
 import pandas as pd
 
-
-
 ####################################################################################################
 # CONSTANTS
 ####################################################################################################
@@ -111,32 +109,49 @@ def create_full_astrocyte_structure(astrocyte_h5_file,
     vertex_start_index = 0
     vertex_last_index = -1
     vertex_indices = list()
-    vertices_data = list()
 
     # Triangles
     triangle_start_index = 0
     triangle_last_index = -1
     triangle_indices = list()
-    triangle_data = list()
+
+    # Endfeet data
+    vertices_array = list()
+    triangle_array = list()
+
+    # A variable used to keep track on the offset between the different arrays
+    vertex_offset = 0
 
     # Collect the vertices from the endfeet data
     for eid, endfoot in enumerate(endfeet):
 
-        vertex_start_index = vertex_last_index + 1
-        vertex_last_index = vertex_start_index + len(endfoot.vertices)
-        vertex_indices.append([vertex_start_index, vertex_last_index])
 
         triangle_start_index = triangle_last_index + 1
         triangle_last_index = triangle_start_index + len(endfoot.triangles)
         triangle_indices.append([triangle_start_index, triangle_last_index])
 
-        # Compose the lists
-        for vid, vertex in enumerate(endfoot.vertices):
-            vertices_data.append([vertex[0], vertex[1], vertex[2], endfoot.thickness])
+        vertex_start_index = vertex_last_index + 1
+        vertex_last_index = vertex_start_index + len(endfoot.vertices)
+        vertex_indices.append([vertex_start_index, vertex_last_index])
+
 
         # Compose the lists
         for tid, triangle in enumerate(endfoot.triangles):
-            triangle_data.append([triangle[0], triangle[1], triangle[2]])
+            triangle_array.append([triangle[0] + vertex_offset,
+                                   triangle[1] + vertex_offset,
+                                   triangle[2] + vertex_offset])
+
+        # Compose the lists
+        for vid, vertex in enumerate(endfoot.vertices):
+            vertices_array.append([vertex[0], vertex[1], vertex[2], endfoot.thickness])
+
+        # Update the vertex offset
+        vertex_offset += len(endfoot.vertices)
+
+
+
+
+
 
     full_astrocyte_h5_file.create_dataset(name="endfeet_vertex_indices",
                                           shape=(len(vertex_indices), 2),
@@ -144,19 +159,19 @@ def create_full_astrocyte_structure(astrocyte_h5_file,
                                           data=vertex_indices)
 
     full_astrocyte_h5_file.create_dataset(name="endfeet_vertex_data",
-                                          shape=(len(vertices_data), 4),
+                                          shape=(len(vertices_array), 4),
                                           dtype='float64',
-                                          data=vertices_data)
+                                          data=vertices_array)
 
     full_astrocyte_h5_file.create_dataset(name="endfeet_triangle_indices",
                                           shape=(len(triangle_indices), 2),
-                                          dtype='int32',
+                                          dtype='int64',
                                           data=triangle_indices)
 
     full_astrocyte_h5_file.create_dataset(name="endfeet_triangle_data",
-                                          shape=(len(triangle_data), 3),
+                                          shape=(len(triangle_array), 3),
                                           dtype='int64',
-                                          data=triangle_data)
+                                          data=triangle_array)
 
 
 ####################################################################################################

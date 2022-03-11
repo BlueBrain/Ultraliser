@@ -207,7 +207,7 @@ public:
      * @param morphology
      */
     void surfaceVoxelizeEndfeetMorphologyParallel(
-        AstrocyteMorphology* astrocyteMorphology, float threshold = 0.5);
+        AstrocyteMorphology* astrocyteMorphology, float threshold = 0.75);
 
     /**
      * @brief solidVoxelization

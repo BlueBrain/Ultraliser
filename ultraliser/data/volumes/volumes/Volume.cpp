@@ -393,7 +393,7 @@ void Volume::surfaceVoxelizeEndfeetMorphologyParallel(
 
     EndfeetPatches patches = astrocyteMorphology->getEndfeetPatches();
 
-    for (uint64_t j = 0; j < patches.size(); ++j)
+    for (uint64_t j = 0; j < 1; ++j)
     {
         EndfootPatches efPatches = patches[j];
 
@@ -403,9 +403,11 @@ void Volume::surfaceVoxelizeEndfeetMorphologyParallel(
             Sample* sample0 = efPatches[i]->sample0;
             Sample* sample1 = efPatches[i]->sample1;
             Sample* sample2 = efPatches[i]->sample2;
+
             Vector3f pos0 = sample0->getPosition();
             Vector3f pos1 = sample1->getPosition();
             Vector3f pos2 = sample2->getPosition();
+
             float radius0 = sample0->getRadius();
             float radius1 = sample1->getRadius();
             float radius2 = sample2->getRadius();
