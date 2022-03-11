@@ -181,10 +181,6 @@ def create_ultralised_astrocytes(circuit_path,
     # Get the surface meshes
     surface_meshes = gv_conn.surface_meshes
 
-    from joblib import Parallel, delayed
-    Parallel(n_jobs=args.number_cores)(delayed(run_command)(i) for i in commands)
-
-
     # For the astrocytes in range
     for i in range(gid_0, gid_n + 1):
 
