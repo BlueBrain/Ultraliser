@@ -31,7 +31,7 @@ namespace Ultraliser
 {
 
 VasculatureMorphology::VasculatureMorphology
-(const VasculatureH5Samples& h5Samples, const VasculatureH5Sections& h5Sections,
+(const H5Samples& h5Samples, const VasculatureH5Sections &h5Sections,
  const VasculatureH5ConnectivityList& h5Connectivity)
     : _h5Samples(h5Samples)
     , _h5Sections(h5Sections)

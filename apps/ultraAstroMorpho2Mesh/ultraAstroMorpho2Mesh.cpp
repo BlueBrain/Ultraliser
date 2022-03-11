@@ -71,17 +71,17 @@ void run(int argc, const char** argv)
     auto options = parseArguments(argc, argv);
 
     // Read the file into a morphology structure
-    auto endfeetMorphology = readEndfeetMorphology(options->inputMorphologyPath);
+    auto astrocyteMorphology = readAstrocyteMorphology(options->inputMorphologyPath);
 
     if (options->writeStatistics)
-        endfeetMorphology->printStats(options->prefix, &options->statisticsPrefix);
+        astrocyteMorphology->printStats(options->prefix, &options->statisticsPrefix);
 
     if (options->writeDistributions)
-        endfeetMorphology->printDistributions(&options->distributionsPrefix);
+        astrocyteMorphology->printDistributions(&options->distributionsPrefix);
 
     // Get relaxed bounding box to build the volume
     Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
-    endfeetMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
+    astrocyteMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
 
     // Get the largest dimension
     float largestDimension = inputBB.getLargestDimension();
@@ -101,7 +101,7 @@ void run(int argc, const char** argv)
                    VolumeGrid::getType(options->volumeType));
 
     // Voxelize morphology
-    volume->surfaceVoxelizeEndfeetMorphologyParallel(endfeetMorphology);
+    volume->surfaceVoxelizeEndfeetMorphologyParallel(astrocyteMorphology);
 
     // Enable solid voxelization
     if (options->useSolidVoxelization)

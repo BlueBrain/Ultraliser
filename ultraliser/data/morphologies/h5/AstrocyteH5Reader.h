@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2022
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -25,10 +25,11 @@
 
 #include <string>
 #include <vector>
+#include <data/morphologies/h5/EndfeetIndices.h>
 #include <data/morphologies/h5/VasculatureH5Sample.hh>
-#include <data/morphologies/h5/VasculatureH5Section.hh>
+#include <data/morphologies/h5/H5Section.hh>
 #include <data/morphologies/h5/VasculatureH5Connectivity.hh>
-#include <data/morphologies/VasculatureMorphology.h>
+#include <data/morphologies/AstrocyteMorphology.h>
 
 #include <hdf5.h>
 #include "H5Cpp.h"
@@ -36,10 +37,10 @@
 namespace Ultraliser
 {
 
-class VasculatureH5Reader
+class AstrocyteH5Reader
 {
 public:
-    VasculatureH5Reader(const std::string &h5MorphologyFilePath);
+    AstrocyteH5Reader(const std::string &h5MorphologyFilePath);
 
 public:
 
@@ -48,7 +49,7 @@ public:
      * Return a pointer to the vasculature morphology.
      * @return Return a pointer to the morphology.
      */
-    VasculatureMorphology* getMorphology();
+    AstrocyteMorphology* getMorphology();
 
 private:
 
@@ -64,11 +65,18 @@ private:
      */
     void _readStructure();
 
-    /**
-     * @brief _readConnectivity
-     * Reads the connectivity information form the morphology file.
-     */
-    void _readConnectivity();
+    void _readCoordinates();
+
+    void _readEndfeetPointsIndices();
+
+    void _readEndfeetPoints();
+
+    void _readEndfeetPatchesIndices();
+
+    void _readEndfeetPatches();
+
+
+    void _constructEndfeetData();
 
 private:
 
@@ -88,19 +96,39 @@ private:
      * @brief _samples
      * Vasculature samples.
      */
-    H5Samples _samples;
+    H5Samples _skeletonSamples;
+
+
+    H5Samples _endfeetSamples;
+
+    Triangles _endfeetTriangles;
+
+
+    // Endfeet patches
+    EndfeetPatches _patches;
+
 
     /**
      * @brief _structure
      * Vasculature structure.
      */
-    VasculatureH5Sections _structure;
+    H5Sections _structure;
 
     /**
      * @brief _connectivity
      * Vasculature connectivity.
      */
     VasculatureH5ConnectivityList _connectivity;
+
+    /**
+     * @brief _coordinates
+     * Astrocyte XYZ coordinates
+     */
+    Vector3f _coordinates;
+
+    EndfeetIndicesList _endfeetPointsIndices;
+    EndfeetIndicesList _endfeetTrianglesIndices;
+
 };
 
 }

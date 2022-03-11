@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2022
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -20,51 +20,68 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_SAMPLE_HH
-#define ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_SAMPLE_HH
+#ifndef ULTRALISER_DATA_MORPHOLOGIES_ENDFOOTPATCH_HH
+#define ULTRALISER_DATA_MORPHOLOGIES_ENDFOOTPATCH_HH
 
-#include <vector>
-#include <common/Headers.hh>
+#include <geometry/Geometry.h>
+#include <data/morphologies/Sample.h>
 
 namespace Ultraliser
 {
 
 /**
- * @brief The VasculatureH5Sample struct
- * A morphological sample as stored in an .h5 file.
+ * @brief The EndfootPatch class
  */
-struct H5Sample
+class EndfootPatch
 {
-    /**
-     * @brief x
-     * X-coordinate of the point.
-     */
-    float x;
+public:
 
     /**
-     * @brief y
-     * Y-coordinate of the point.
+     * @brief EndfootPatch
+     * Constructor
+     * @param sample0
+     * First vertex of the triangle, a point including a radius.
+     * @param sample1
+     * Second vertex of the triangle.
+     * @param sample2
+     * Third vertex of the triangle.
      */
-    float y;
+    EndfootPatch(Sample* sample0, Sample* sample1, Sample* sample2)
+      : sample0(sample0), sample1(sample1), sample2(sample2)
+    {
+        /// EMPTY CONSTRUCTOR
+    };
+
+public:
 
     /**
-     * @brief z
-     * Z-coordinate of the point.
+     * @brief sample0
+     * First sample of the triangle.
      */
-    float z;
+    Sample* sample0;
+
+        /**
+     * @brief sample1
+     * Second sample of the triangle.
+     */
+    Sample* sample1;
 
     /**
-     * @brief r
-     * Sample radius.
+     * @brief sample2
+     * Third sample of the triangle.
      */
-    float r;
+    Sample* sample2;
 };
 
 /**
- * @brief H5Samples
- * A list of H5Samples.
+ * @brief EndfeetPatches
+ * A list of endfeet patches.
  */
-typedef std::vector< H5Sample > H5Samples;
+typedef std::vector<EndfootPatch*> EndfootPatches;
+
+typedef std::vector<EndfootPatches> EndfeetPatches;
+
 
 }
-#endif // ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_SAMPLE_HH
+
+#endif // ULTRALISER_DATA_MORPHOLOGIES_ENDFOOTPATCH_HH

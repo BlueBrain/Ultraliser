@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2022
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -20,8 +20,8 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_SAMPLE_HH
-#define ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_SAMPLE_HH
+#ifndef ULTRALISER_DATA_MORPHOLOGIES_ENDFEETINDICES_H
+#define ULTRALISER_DATA_MORPHOLOGIES_ENDFEETINDICES_H
 
 #include <vector>
 #include <common/Headers.hh>
@@ -30,41 +30,26 @@ namespace Ultraliser
 {
 
 /**
- * @brief The VasculatureH5Sample struct
- * A morphological sample as stored in an .h5 file.
+ * @brief The EndfeetIndices struct
  */
-struct H5Sample
+struct EndfeetIndices
 {
     /**
-     * @brief x
-     * X-coordinate of the point.
+     * @brief firstIndex
      */
-    float x;
+    int64_t firstIndex;
 
     /**
-     * @brief y
-     * Y-coordinate of the point.
+     * @brief lastIndex
      */
-    float y;
-
-    /**
-     * @brief z
-     * Z-coordinate of the point.
-     */
-    float z;
-
-    /**
-     * @brief r
-     * Sample radius.
-     */
-    float r;
+    int64_t lastIndex;
 };
 
 /**
- * @brief H5Samples
- * A list of H5Samples.
+ * @brief EndfeetIndicesList
  */
-typedef std::vector< H5Sample > H5Samples;
+typedef std::vector< EndfeetIndices > EndfeetIndicesList;
 
 }
-#endif // ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_SAMPLE_HH
+
+#endif // ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_ENDFEETINDICES_H

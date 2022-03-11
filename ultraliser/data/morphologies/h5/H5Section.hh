@@ -20,58 +20,43 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_ENDFEET_MORPHOLOGY_H
-#define ULTRALISER_DATA_MORPHOLOGIES_ENDFEET_MORPHOLOGY_H
+#ifndef ULTRALISER_DATA_MORPHOLOGIES_H5_SECTION_HH
+#define ULTRALISER_DATA_MORPHOLOGIES_H5_SECTION_HH
 
-#include <data/morphologies/Morphology.h>
-#include <utilities/Utilities.h>
+#include <vector>
+#include <common/Headers.hh>
 
 namespace Ultraliser
 {
 
-class EndfeetMorphology : public Morphology
+/**
+ * @brief The H5Section struct
+ * Generic H5 section structure for neurons and astrocytes.
+ */
+struct H5Section
 {
-public:
+    /**
+     * @brief offsetIndex
+     * Offset index, except for the soma, it is just the soma sample index.
+     */
+    int64_t offsetIndex;
 
     /**
-     * @brief EndfeetMorphology
-     * Constructor
-     *
-     * @param samples
-     * A list of samples.
-     * @param sampleTriangles
-     * A list of sample triangles.
+     * @brief sectionType
      */
-    EndfeetMorphology(Samples& samples, SampleTriangles& sampleTriangles);
-
-public:
-
+    uint64_t sectionType;
 
     /**
-     * @brief getSampleTriangles
-     * @return Returns a reference to the list of sample triangles.
+     * @brief parentIndex
      */
-    SampleTriangles getSampleTriangles() const;
-
-private:
-
-    /**
-     * @brief _samplesTriangles
-     * A list of the actual sample triangles of the morphology.
-     */
-    SampleTriangles _sampleTriangles;
+    int64_t parentIndex;
 };
 
 /**
- * @brief readEndfeetMorphology
- * Reads the endfeet morphology from a given file.
- * @param morphologyPath
- * The path to the morphology.
- * @return
- * EndfeetMorphology object.
+ * @brief VasculatureH5Section
+ * A list of morphological sections.
  */
-EndfeetMorphology* readEndfeetMorphology(std::string& morphologyPath);
+typedef std::vector< H5Section > H5Sections;
 
 }
-
-#endif // ULTRALISER_DATA_MORPHOLOGIES_NEURON_MORPHOLOGY_H
+#endif // ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_SECTION_HH

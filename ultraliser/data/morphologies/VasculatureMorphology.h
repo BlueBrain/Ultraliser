@@ -50,7 +50,7 @@ public:
      * @param h5Connectivity
      * Connectivity list
      */
-    VasculatureMorphology(const VasculatureH5Samples& h5Samples,
+    VasculatureMorphology(const H5Samples& h5Samples,
                           const VasculatureH5Sections& h5Sections,
                           const VasculatureH5ConnectivityList& h5Connectivity);
 
@@ -85,7 +85,7 @@ private:
      * @brief _h5Samples
      * Morphology samples as loaded from the .h5 morphology file.
      */
-    const VasculatureH5Samples _h5Samples;
+    const H5Samples _h5Samples;
 
     /**
      * @brief _h5Sections

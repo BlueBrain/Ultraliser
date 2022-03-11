@@ -28,6 +28,7 @@
 #include <data/morphologies/Morphology.h>
 #include <data/morphologies/swc/NeuronSWCReader.h>
 #include <data/morphologies/swc/NeuronSWCSample.hh>
+#include <data/morphologies/AstrocyteMorphology.h>
 #include <data/morphologies/NeuronMorphology.h>
 #include <data/morphologies/h5/VasculatureH5Reader.h>
 #include <data/morphologies/h5/VasculatureH5Sample.hh>
@@ -35,7 +36,6 @@
 #include <data/morphologies/h5/VasculatureH5Connectivity.hh>
 #include <data/morphologies/VasculatureMorphology.h>
 #include <data/morphologies/vmv/VasculatureVMVReader.h>
-#include <data/morphologies/EndfeetMorphology.h>
 
 #endif // ULTRALISER_DATA_MORPHOLOGIES_DATA_H
 

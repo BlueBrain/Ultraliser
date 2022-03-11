@@ -64,14 +64,12 @@ endif(${ULTRALISER_USE_H5})
 # ultraVasculatureMorphology2Mesh
 if(${ULTRALISER_USE_H5})
     add_subdirectory(ultraVasculatureMorphology2Mesh)
+    add_subdirectory(ultraAstroMorpho2Mesh)
 else(${ULTRALISER_USE_H5})
     message(STATUS "ultraVasculatureMorphology2Mesh will not be compiled. Missing H5!")
 endif(${ULTRALISER_USE_H5})
 
 # ultraNeuroMorpho2Mesh
 add_subdirectory(ultraNeuroMorpho2Mesh)
-
-# ultraEndfeetMorpho2Mesh
-add_subdirectory(ultraEndfeetMorpho2Mesh)
 
 

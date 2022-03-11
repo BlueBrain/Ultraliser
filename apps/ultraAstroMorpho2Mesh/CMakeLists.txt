@@ -25,7 +25,7 @@
 ####################################################################################################
 
 # Application name
-set(APP_NAME ultraEndfeetMorpho2Mesh)
+set(APP_NAME ultraAstroMorpho2Mesh)
 
 # Add the current directory to include directories
 include_directories(${CMAKE_BINARY_DIR}/include)
