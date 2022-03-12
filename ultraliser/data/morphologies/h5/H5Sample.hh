@@ -20,8 +20,8 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_SAMPLE_HH
-#define ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_SAMPLE_HH
+#ifndef ULTRALISER_DATA_MORPHOLOGIES_H5_SAMPLE_HH
+#define ULTRALISER_DATA_MORPHOLOGIES_H5_SAMPLE_HH
 
 #include <vector>
 #include <common/Headers.hh>
@@ -30,7 +30,7 @@ namespace Ultraliser
 {
 
 /**
- * @brief The VasculatureH5Sample struct
+ * @brief The H5Sample struct
  * A morphological sample as stored in an .h5 file.
  */
 struct H5Sample
@@ -67,4 +67,4 @@ struct H5Sample
 typedef std::vector< H5Sample > H5Samples;
 
 }
-#endif // ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_SAMPLE_HH
+#endif // ULTRALISER_DATA_MORPHOLOGIES_H5_SAMPLE_HH

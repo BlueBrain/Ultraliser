@@ -22,6 +22,7 @@
 
 #include "NeuronMorphology.h"
 #include <data/morphologies/swc/NeuronSWCReader.h>
+#include <data/morphologies/h5/NeuronH5Reader.h>
 #include <utilities/String.h>
 #include <stack>
 
@@ -30,12 +31,19 @@ namespace Ultraliser
 
 NeuronMorphology::NeuronMorphology(const NeuronSWCSamples& swcSamples)
 {
-    // Construct the sections
-    _constructMorphology(swcSamples);
+    // Construct the morphology from the loaded data
+    _constructMorphologyFromSWC(swcSamples);
 }
 
-void NeuronMorphology::trim(uint64_t axonBranchOrder, uint64_t basalBranchOrder, 
-    uint64_t apicalBranchOrder)
+NeuronMorphology::NeuronMorphology(const H5Samples& h5Samples, const H5Sections& h5Sections)
+{
+    // Construct the morphology from the loaded data
+    _constructMorphologyFromH5(h5Samples, h5Sections);
+}
+
+void NeuronMorphology::trim(uint64_t axonBranchOrder,
+                            uint64_t basalBranchOrder,
+                            uint64_t apicalBranchOrder)
 {
     Sections newSections;
     Sections newFirstSections;
@@ -167,7 +175,7 @@ float NeuronMorphology::getSomaMaxRadius() const
     return _somaMaxRadius;
 }
 
-void NeuronMorphology::_constructMorphology(const NeuronSWCSamples& swcSamples)
+void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSamples)
 {
     // The _pMin and _pMax will be used to compute the bounding box of the neuron morphology
     _pMin = Vector3f(std::numeric_limits<float>::max());
@@ -343,6 +351,170 @@ void NeuronMorphology::_constructMorphology(const NeuronSWCSamples& swcSamples)
     }
 }
 
+void NeuronMorphology::_constructMorphologyFromH5(const H5Samples& h5Samples,
+                                                  const H5Sections& h5Sections)
+{
+    // The _pMin and _pMax will be used to compute the bounding box of the neuron morphology
+    _pMin = Vector3f(std::numeric_limits<float>::max());
+    _pMax = Vector3f(std::numeric_limits<float>::lowest());
+
+
+    // Construct the samples list that will be used later to build the sections
+    for (auto h5Sample : h5Samples)
+    {
+        Ultraliser::Vector3f position(h5Sample.x, h5Sample.y, h5Sample.z);
+        Sample* sample = new Sample(Ultraliser::Vector3f(h5Sample.x, h5Sample.y, h5Sample.z),
+                                    h5Sample.r * 0.5f, 0);
+        _samples.push_back(sample);
+
+        Vector3f pMaxSample = position + Vector3f(h5Sample.r * 0.5f);
+        Vector3f pMinSample = position - Vector3f(h5Sample.r * 0.5f);
+
+        if (pMaxSample.x() > _pMax.x()) _pMax.x() = pMaxSample.x();
+        if (pMaxSample.y() > _pMax.y()) _pMax.y() = pMaxSample.y();
+        if (pMaxSample.z() > _pMax.z()) _pMax.z() = pMaxSample.z();
+
+        if (pMinSample.x() < _pMin.x()) _pMin.x() = pMinSample.x();
+        if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
+        if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
+    }
+
+    // Create the soma section, for indexing only
+    Section* somaSection = new Section(0);
+    _sections.push_back(somaSection);
+
+    // The soma is located at index 0, but we will consider it a section for indexing!
+    for (uint64_t i = 1; i < h5Sections.size() - 1; ++i)
+    {
+        // Current section index
+        const auto sectionIndex = i;
+
+        // First point index
+        const auto firstPointIdx = h5Sections[i].offsetIndex;
+
+        // Last point index
+        const auto lastPointIdx = h5Sections[i + 1].offsetIndex - 1;
+
+        // Create a new morphology section
+        Section* section = new Section(sectionIndex);
+
+        // Construct a list of samples
+        Samples samples;
+        for (uint64_t s = firstPointIdx; s <= lastPointIdx; s++)
+        {
+            // Create the sample
+            Sample* sample =
+                    new Sample(Ultraliser::Vector3f(h5Samples[s].x, h5Samples[s].y, h5Samples[s].z),
+                               h5Samples[s].r * 0.5f, 0);
+
+            // Update the samples list
+            section->addSample(sample);
+        }
+
+        // Update the section parent
+        section->addParentIndex(h5Sections[i].parentIndex);
+
+        // Section type
+        const auto sectionType = h5Sections[i].sectionType;
+
+        // Update the section type
+        if (h5Sections[i].sectionType == 2)
+            section->setType(NEURON_AXON);
+        if (h5Sections[i].sectionType == 3)
+            section->setType(NEURON_BASAL_DENDRITE);
+        if (h5Sections[i].sectionType == 4)
+            section->setType(NEURON_APICAL_DENDRITE);
+        else
+            section->setType(UNKNOWN);
+
+        // Add the section to the list
+        _sections.push_back(section);
+
+        // Determine if this is a first section or not!
+        if (h5Sections[i].parentIndex == 0)
+        {
+            _firstSections.push_back(section);
+        }
+    }
+
+    // Build the tree (add the children indices) from the linear list
+    for (uint64_t i = 1; i < _sections.size(); ++i)
+    {
+        // Get parent index
+        uint64_t parentSectionIndex = _sections[i]->getParentIndices()[0];
+        if (parentSectionIndex == 0) std::cout << "0" << std::endl;
+
+        // Update the choldren list
+        _sections[parentSectionIndex]->addChildIndex(_sections[i]->getIndex());
+    }
+
+    // Build the tree (add the children indices) from the linear list
+//    for (uint64_t i = 1; i < _sections.size(); ++i)
+//    {
+//        std::vector< uint64_t > childrenIndices = _sections[i]->getChildrenIndices();
+
+//        for (uint64_t j = 0; j < childrenIndices.size(); ++j)
+//        {
+//            uint64_t childIndex = childrenIndices[j];
+
+//            for (uint64_t k = 1; k < _sections.size(); ++k)
+//            {
+//                if (childIndex == _sections[k]->getIndex())
+//                {
+//                    _sections[i]->addChildIndex(_sections[k]->getIndex());
+//                }
+//            }
+//        }
+//    }
+
+    // Get the somatic samples from the initial sections of all the neurites
+    for (const auto& section: _firstSections)
+    {
+        const auto sample = section->getFirstSample();
+        _somaSamples.push_back(sample);
+    }
+
+    // Initially, the soma center is set to Zero.
+    _somaCenter = Vector3f(0.0f);
+    _somaMeanRadius = 0.0f;
+    _somaMinRadius = 1e10;
+    _somaMaxRadius = -1e10;
+
+    if (_somaSamples.size() > 1)
+    {
+        // Compute the soma center
+        for (auto sample : _somaSamples)
+        {
+            _somaCenter += sample->getPosition();
+        }
+        _somaCenter /= _somaSamples.size();
+
+        // Compute the minimum, average and maximum radii
+        for (auto sample : _somaSamples)
+        {
+            const auto radius = (sample->getPosition() - _somaCenter).abs();
+
+            if (radius < _somaMinRadius)
+                _somaMinRadius = radius;
+
+            if (radius > _somaMaxRadius)
+                _somaMaxRadius = radius;
+
+            _somaMeanRadius += radius;
+        }
+
+        // Compute the minimum, average and maximum radii
+        _somaMeanRadius /= _somaSamples.size();
+    }
+    else
+    {
+        _somaCenter = _somaSamples[0]->getPosition();
+        _somaMeanRadius = _somaSamples[0]->getRadius();
+        _somaMinRadius = _somaMeanRadius;
+        _somaMaxRadius = _somaMeanRadius;
+    }
+}
+
 NeuronMorphology* readNeuronMorphology(std::string& morphologyPath)
 {
     if (String::subStringFound(morphologyPath, std::string(".swc")) ||
@@ -351,6 +523,15 @@ NeuronMorphology* readNeuronMorphology(std::string& morphologyPath)
     {
         // Read the file
         auto reader = std::make_unique< NeuronSWCReader >(morphologyPath);
+
+        // Get a pointer to the morphology to start using it
+        return reader->getMorphology();
+    }
+    else if (String::subStringFound(morphologyPath, std::string(".h5")) ||
+             String::subStringFound(morphologyPath, std::string(".H5")))
+    {
+        // Read the file
+        auto reader = std::make_unique< NeuronH5Reader >(morphologyPath);
 
         // Get a pointer to the morphology to start using it
         return reader->getMorphology();

@@ -135,6 +135,18 @@ Mesh::Mesh(NeuronMorphology* morphology)
     _triangles = somaGeometry.triangles;
 }
 
+Mesh::Mesh(AstrocyteMorphology* morphology)
+{
+    // Construct the somatic mesh from the neuron morphology
+    //SomaGeometry somaGeometry(morphology, 1.0f, 0.01f, 6000);
+
+    //_numberVertices = somaGeometry.numVertices;
+    //_vertices = somaGeometry.vertices;
+    //_numberTriangles = somaGeometry.numTriangles;
+    //_triangles = somaGeometry.triangles;
+}
+
+
 
 const Vertex* Mesh::getVertices() const
 {

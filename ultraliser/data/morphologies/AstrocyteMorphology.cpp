@@ -78,6 +78,65 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
         if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
         if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
     }
+
+    // The soma is located at index 0, so we will start from index 1
+    for (uint64_t i = 1; i < h5Sections.size() - 1; ++i)
+    {
+        // First point index
+        const auto firstPointIdx = h5Sections[i].offsetIndex;
+
+        // Last point index
+        const auto lastPointIdx = h5Sections[i + 1].offsetIndex - 1;
+
+        // Current section index
+        const auto sectionIndex = i;
+
+        // Section type
+        const auto sectionType = h5Sections[i].sectionType;
+
+        // Section parent index
+        const auto sectionParentIndex = h5Sections[i].parentIndex;
+
+        // Create a new morphology section
+        Section* section = new Section(sectionIndex);
+
+        // Construct a list of samples
+        Samples samples;
+        for (uint64_t s = firstPointIdx; s <= lastPointIdx; s++)
+        {
+            // Create the sample
+            Sample* sample = new Sample(
+                        Ultraliser::Vector3f(h5Samples[s].x, h5Samples[s].y, h5Samples[s].z),
+                                             h5Samples[s].r * 0.5f, 0);
+
+            // Update the samples list
+            section->addSample(sample);
+        }
+
+        // Update the section type
+        section->setType(UNKNOWN);
+
+        // Update the section parent
+        section->addParentIndex(sectionParentIndex);
+
+        // Add the section to the list
+        _sections.push_back(section);
+    }
+
+//    for (uint64_t i = 0; i < _sections.size(); ++i)
+//    {
+//        for (uint64_t j = 0; j < _sections[i]->getChildrenIndices(); j++)
+//        {
+
+//        }
+//    }
+
+}
+
+
+void AstrocyteMorphology::_constructSkeleton()
+{
+
 }
 
 EndfeetPatches AstrocyteMorphology::getEndfeetPatches() const

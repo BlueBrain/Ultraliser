@@ -1,10 +1,9 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2022
+ * Copyright (c) 2016 - 2021
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
  *      Marwan Abdellah < marwan.abdellah@epfl.ch >
- *      Juan Jose Garcia Cantero < juanjose.garcia@epfl.ch>
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -20,16 +19,14 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_READER_H
-#define ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_READER_H
+#ifndef ULTRALISER_DATA_MORPHOLOGIES_NEURON_H5_READER_H
+#define ULTRALISER_DATA_MORPHOLOGIES_NEURON_H5_READER_H
 
 #include <string>
 #include <vector>
-#include <data/morphologies/h5/EndfeetIndices.h>
 #include <data/morphologies/h5/H5Sample.hh>
 #include <data/morphologies/h5/H5Section.hh>
-#include <data/morphologies/h5/VasculatureH5Connectivity.hh>
-#include <data/morphologies/AstrocyteMorphology.h>
+#include <data/morphologies/NeuronMorphology.h>
 
 #include <hdf5.h>
 #include "H5Cpp.h"
@@ -37,10 +34,10 @@
 namespace Ultraliser
 {
 
-class AstrocyteH5Reader
+class NeuronH5Reader
 {
 public:
-    AstrocyteH5Reader(const std::string &h5MorphologyFilePath);
+    NeuronH5Reader(const std::string &h5MorphologyFilePath);
 
 public:
 
@@ -49,7 +46,7 @@ public:
      * Return a pointer to the vasculature morphology.
      * @return Return a pointer to the morphology.
      */
-    AstrocyteMorphology* getMorphology();
+    NeuronMorphology* getMorphology();
 
 private:
 
@@ -64,19 +61,6 @@ private:
      * Reads the structure, or the sections, from the morphology file.
      */
     void _readStructure();
-
-    void _readCoordinates();
-
-    void _readEndfeetPointsIndices();
-
-    void _readEndfeetPoints();
-
-    void _readEndfeetPatchesIndices();
-
-    void _readEndfeetPatches();
-
-
-    void _constructEndfeetData();
 
 private:
 
@@ -96,40 +80,14 @@ private:
      * @brief _samples
      * Vasculature samples.
      */
-    H5Samples _skeletonSamples;
-
-
-    H5Samples _endfeetSamples;
-
-    Triangles _endfeetTriangles;
-
-
-    // Endfeet patches
-    EndfeetPatches _patches;
-
+    H5Samples _samples;
 
     /**
      * @brief _structure
      * Vasculature structure.
      */
     H5Sections _structure;
-
-    /**
-     * @brief _connectivity
-     * Vasculature connectivity.
-     */
-    VasculatureH5ConnectivityList _connectivity;
-
-    /**
-     * @brief _coordinates
-     * Astrocyte XYZ coordinates
-     */
-    Vector3f _coordinates;
-
-    EndfeetIndicesList _endfeetPointsIndices;
-    EndfeetIndicesList _endfeetTrianglesIndices;
-
 };
 
 }
-#endif // ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_READER_H
+#endif // ULTRALISER_DATA_MORPHOLOGIES_NEURON_H5_READER_H

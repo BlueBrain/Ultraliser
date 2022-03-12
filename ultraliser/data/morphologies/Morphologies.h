@@ -31,8 +31,8 @@
 #include <data/morphologies/AstrocyteMorphology.h>
 #include <data/morphologies/NeuronMorphology.h>
 #include <data/morphologies/h5/VasculatureH5Reader.h>
-#include <data/morphologies/h5/VasculatureH5Sample.hh>
-#include <data/morphologies/h5/VasculatureH5Section.hh>
+#include <data/morphologies/h5/H5Sample.hh>
+#include <data/morphologies/h5/H5Section.hh>
 #include <data/morphologies/h5/VasculatureH5Connectivity.hh>
 #include <data/morphologies/VasculatureMorphology.h>
 #include <data/morphologies/vmv/VasculatureVMVReader.h>

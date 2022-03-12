@@ -25,6 +25,8 @@
 
 #include <data/morphologies/Morphology.h>
 #include <data/morphologies/swc/NeuronSWCSample.hh>
+#include <data/morphologies/h5/H5Sample.hh>
+#include <data/morphologies/h5/H5Section.hh>
 #include <utilities/Utilities.h>
 
 namespace Ultraliser
@@ -42,6 +44,16 @@ public:
      * A list of SWC samples.
      */
     NeuronMorphology(const NeuronSWCSamples& swcSamples);
+
+    /**
+     * @brief NeuronMorphology
+     * Constructor.
+     * @param h5Samples
+     * A list of samples read from an H5 file.
+     * @param h5Sections
+     * A list of sections read from an H5 file.
+     */
+    NeuronMorphology(const H5Samples& h5Samples, const H5Sections& h5Sections);
 
 public:
 
@@ -104,12 +116,19 @@ public:
 private:
 
     /**
-     * @brief _constructMorphology
+     * @brief _constructMorphologyFromSWC
      * Loads the morphology data from the param swcSamples.
      * @param swcSamples
      * Samples list
      */
-    void _constructMorphology(const NeuronSWCSamples& swcSamples);
+    void _constructMorphologyFromSWC(const NeuronSWCSamples& swcSamples);
+
+    /**
+     * @brief _constructMorphologyFromH5
+     * @param h5Samples
+     * @param h5Sections
+     */
+    void _constructMorphologyFromH5(const H5Samples& h5Samples, const H5Sections& h5Sections);
 
 private:
 

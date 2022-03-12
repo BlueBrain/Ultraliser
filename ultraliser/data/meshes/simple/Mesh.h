@@ -27,6 +27,8 @@
 #include <data/meshes/simple/NeighbourTriangle.h>
 #include <data/meshes/simple/primitives/Primitives.h>
 #include <data/morphologies/NeuronMorphology.h>
+#include <data/morphologies/AstrocyteMorphology.h>
+
 #include <data/morphologies/Section.h>
 #include <data/common/ROI.h>
 #include <data/structures/Neighbors.h>
@@ -80,6 +82,8 @@ public:
      * @param morphology
      */
     Mesh(NeuronMorphology* morphology);
+
+    Mesh(AstrocyteMorphology* morphology);
 
     /**
      * @brief append

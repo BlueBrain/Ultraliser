@@ -26,7 +26,7 @@
 #include <data/morphologies/Morphology.h>
 #include <data/morphologies/EndfootPatch.hh>
 #include <data/morphologies/h5/H5Section.hh>
-#include <data/morphologies/h5/VasculatureH5Sample.hh>
+#include <data/morphologies/h5/H5Sample.hh>
 #include <utilities/Utilities.h>
 
 namespace Ultraliser
@@ -69,6 +69,10 @@ public:
      * @return Returns a reference to the list of sample triangles.
      */
     EndfeetPatches getEndfeetPatches() const;
+
+private:
+
+    void _constructSkeleton();
 
 private:
 

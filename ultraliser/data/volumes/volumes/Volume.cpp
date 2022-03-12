@@ -257,6 +257,7 @@ void Volume::surfaceVoxelizeNeuronMorphologyParallel(
     }
 
     auto firstSections = neuronMorphology->getFirstSections();
+
     // Add the paths between the soma and neurites
     for (uint64_t i = 0; i < firstSections.size(); i++)
     {
@@ -453,6 +454,51 @@ void Volume::surfaceVoxelizeEndfeetMorphologyParallel(
         }
         LOOP_DONE;
     }
+
+    // Get all the sections of the vascular morphology
+    Sections sections = astrocyteMorphology->getSections();
+
+    LOG_STATUS("Creating Volume Shell from Sections");
+    LOOP_STARTS("Rasterization");
+    PROGRESS_RESET;
+
+    // Construct the soma geometry
+    auto mesh = new Mesh(astrocyteMorphology);
+    _rasterize(mesh, _grid);
+
+    Paths paths;
+    for (uint64_t i = 0; i < sections.size(); i++)
+    {
+        // Construct the paths
+        Paths sectionPaths = astrocyteMorphology->getConnectedPathsFromParentsToChildren(
+            sections[i]);
+        paths.insert(paths.end(), sectionPaths.begin(), sectionPaths.end());
+    }
+
+//    auto firstSections = astrocyteMorphology->getFirstSections();
+//    // Add the paths between the soma and neurites
+//    for (uint64_t i = 0; i < firstSections.size(); i++)
+//    {
+//        auto section = firstSections[i];
+//        Samples samples = section->getSamples();
+//        Vector3f newSamplePos = astrocyteMorphology->getSomaCenter();
+//        samples.insert(samples.begin(),
+//                       new Sample(newSamplePos, samples[0]->getRadius(), i));
+//        paths.push_back(samples);
+//     }
+
+    // Construct the neurites geometry
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < paths.size(); i++)
+    {
+        auto mesh = new Mesh(paths[i]);
+        _rasterize(mesh, _grid);
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, paths.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
 
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
 
