@@ -81,9 +81,13 @@ public:
      * @brief Mesh
      * @param morphology
      */
-    Mesh(NeuronMorphology* morphology);
+    Mesh(const NeuronMorphology* morphology);
 
-    Mesh(AstrocyteMorphology* morphology);
+    /**
+     * @brief Mesh
+     * @param morphology
+     */
+    Mesh(const AstrocyteMorphology* morphology);
 
     /**
      * @brief append

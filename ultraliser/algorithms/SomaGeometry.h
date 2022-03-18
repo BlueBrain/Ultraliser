@@ -53,12 +53,14 @@ public:
      * @param numIterations
      * Nunber of simulation iterations.
      */
-    SomaGeometry(NeuronMorphology* morphology, float stiffness = 1.0f, float dt = 0.01f, 
-                 uint32_t numIterations = 8000);
+    SomaGeometry(const NeuronMorphology* morphology, const float& stiffness = 1.0f,
+                 const float& dt = 0.01f,
+                 const uint32_t& numIterations = 8000);
 
 
-    SomaGeometry(AstrocyteMorphology* morphology, float stiffness = 1.0f, float dt = 0.01f,
-                 uint32_t numIterations = 8000);
+    SomaGeometry(const AstrocyteMorphology* morphology, const float& stiffness = 1.0f,
+                 const float& dt = 0.01f,
+                 const uint32_t& numIterations = 8000);
 
 private:
 

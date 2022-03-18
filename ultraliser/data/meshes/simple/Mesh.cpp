@@ -123,30 +123,29 @@ Mesh::Mesh(const std::string &fileName, const bool& verbose)
     _neighborList = nullptr;
 }
 
-
-Mesh::Mesh(NeuronMorphology* morphology)
+Mesh::Mesh(const NeuronMorphology* morphology)
 {
     // Construct the somatic mesh from the neuron morphology
     SomaGeometry somaGeometry(morphology, 1.0f, 0.01f, 6000);
 
+    // Propagate the reconstructed data
     _numberVertices = somaGeometry.numVertices;
     _vertices = somaGeometry.vertices;
     _numberTriangles = somaGeometry.numTriangles;
     _triangles = somaGeometry.triangles;
 }
 
-Mesh::Mesh(AstrocyteMorphology* morphology)
+Mesh::Mesh(const AstrocyteMorphology *morphology)
 {
-    // Construct the somatic mesh from the neuron morphology
+    // Construct the somatic mesh from the astrocyte morphology
     SomaGeometry somaGeometry(morphology, 1.0f, 0.01f, 6000);
 
+    // Propagate the reconstructed data
     _numberVertices = somaGeometry.numVertices;
     _vertices = somaGeometry.vertices;
     _numberTriangles = somaGeometry.numTriangles;
     _triangles = somaGeometry.triangles;
 }
-
-
 
 const Vertex* Mesh::getVertices() const
 {
@@ -450,7 +449,6 @@ Mesh* Mesh::instanciate(const uint64_t &numVertices,
     // Return a pointer to the created mesh
     return instance;
 }
-
 
 double Mesh::getDefaultOptimizationTime() const
 {

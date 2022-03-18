@@ -205,7 +205,7 @@ public:
      * @brief surfaceVoxelizeEndfeetMorphology
      * @param morphology
      */
-    void surfaceVoxelizeAstrocyteMorphologyParallel(AstrocyteMorphology* astrocyteMorphology,
+    void surfaceVoxelizeAstrocyteMorphologyParallel(const AstrocyteMorphology *astrocyteMorphology,
                                                     float threshold = 0.75);
 
     /**

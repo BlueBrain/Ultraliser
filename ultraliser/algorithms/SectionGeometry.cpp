@@ -116,7 +116,7 @@ SectionGeometry::SectionGeometry(const Samples& samples, uint64_t numberOfSides,
         float r2 = samples[i+1]->getRadius();
         float dt = 1.0f / samplesPerSeg;
 
-        // Spline interpolation and vertices generation 
+        // Spline interpolation and vertices generation
         if (i == numSamples - 2 )
         {
             ++samplesPerSeg;
@@ -133,7 +133,7 @@ SectionGeometry::SectionGeometry(const Samples& samples, uint64_t numberOfSides,
             Vector3f tangent =  (6 * t2 - 6 * t) * pos1 +
                     (3 * t2 - 4 * t + 1) * m1 +
                     (-6 * t2 + 6 * t) * pos2 +
-                    (3 * t2 - 2* t) * m2;; 
+                    (3 * t2 - 2* t) * m2;;
             float radius = (2 * t3 - 3 * t2 + 1) * r1 +
                     (-2 * t3 + 3 * t2) * r2;
 

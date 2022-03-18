@@ -264,10 +264,13 @@ void Volume::surfaceVoxelizeNeuronMorphologyParallel(
     {
         auto section = firstSections[i];
         Samples samples = section->getSamples();
+
+        Path path;
         Vector3f newSamplePos = neuronMorphology->getSomaCenter();
-        samples.insert(samples.begin(),
-                       new Sample(newSamplePos, samples[0]->getRadius(), i));
-        paths.push_back(samples);
+        Sample* newSample = new Sample(newSamplePos, samples[0]->getRadius(), i);
+        path.push_back(newSample);
+        path.push_back(samples[0]);
+        paths.push_back(path);
      }
 
     // Construct the neurites geometry
@@ -381,8 +384,8 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
 
 }
 
-void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(
-    AstrocyteMorphology* astrocyteMorphology, float threshold)
+void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(const AstrocyteMorphology* astrocyteMorphology,
+                                                        float threshold)
 {
     LOG_TITLE("Astrocyte Surface Voxelization (Parallel)");
 
@@ -396,39 +399,52 @@ void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(
     LOOP_STARTS("Rasterization");
     PROGRESS_SET;
 
-    // Construct the soma geometry
-    auto mesh = new Mesh(astrocyteMorphology);
-    _rasterize(mesh, _grid);
+    // Use the morphology skeleton to construct a somatic mesh for the astrocyte
+    Mesh* somaMesh = new Mesh(astrocyteMorphology);
 
+    // Rasterize the somatic mesh into the volume grid
+    _rasterize(somaMesh, _grid);
+
+    // Construct the paths representing the astrocytic processes
     Paths paths;
     for (uint64_t i = 0; i < sections.size(); i++)
     {
-        // Construct the paths
-        Paths sectionPaths = astrocyteMorphology->getConnectedPathsFromParentsToChildren(
-            sections[i]);
+        // For every section, construct a list of paths connecting its parents and children
+        Paths sectionPaths =
+                astrocyteMorphology->getConnectedPathsFromParentsToChildren(sections[i]);
+
+        // Add all the paths to the list that will be rasterized
         paths.insert(paths.end(), sectionPaths.begin(), sectionPaths.end());
     }
 
-
+    // Get reference to the first sections, to handle the connectivity with the soma.
     auto firstSections = astrocyteMorphology->getFirstSections();
 
-    // Add the paths between the soma and neurites
+    // Construct a straight sections between the somatic center and the neurites
     for (uint64_t i = 0; i < firstSections.size(); i++)
     {
-        auto section = firstSections[i];
-        Samples samples = section->getSamples();
+        // Get the samples of the section
+        Samples samples = firstSections[i]->getSamples();
+
+        // Construct a new sample at the center of the soma
         Vector3f newSamplePos = astrocyteMorphology->getSomaCenter();
-        samples.insert(samples.begin(),
-                       new Sample(newSamplePos, samples[0]->getRadius(), i));
+
+        // Append the path
+        samples.insert(samples.begin(), new Sample(newSamplePos, samples[0]->getRadius(), i));
+
+        // Add the new section to the paths
         paths.push_back(samples);
      }
 
-    // Construct the neurites geometry
+    // Rasterize all the paths
     OMP_PARALLEL_FOR
     for (uint64_t i = 0; i < paths.size(); i++)
     {
-        auto mesh = new Mesh(paths[i]);
-        _rasterize(mesh, _grid);
+        // Create a proxy-mesh representing the path
+        auto pathProxyMesh = new Mesh(paths[i]);
+
+        // Rasterize the proxy-mesh in the volume grid
+        _rasterize(pathProxyMesh, _grid);
 
         // Update the progress bar
         LOOP_PROGRESS(PROGRESS, paths.size());
@@ -436,6 +452,7 @@ void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(
     }
     LOOP_DONE;
 
+    // Rasterize the endfeet
     PROGRESS_RESET;
     EndfeetPatches endfeetPatches = astrocyteMorphology->getEndfeetPatches();
     for (uint64_t j = 0; j < endfeetPatches.size(); ++j)
@@ -497,6 +514,7 @@ void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(
         }
     }
 
+    // Timer
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
 
     // Statistics

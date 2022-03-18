@@ -121,7 +121,6 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section)
         return paths;
     }
 
-
     // If the section is a leaf (has no children) node but has parents
     else if (numberParents > 0 && numberChildren == 0)
     {

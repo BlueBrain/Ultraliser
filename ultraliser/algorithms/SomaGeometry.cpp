@@ -28,8 +28,9 @@
 
 namespace Ultraliser
 {
-SomaGeometry::SomaGeometry(NeuronMorphology* morphology, float stiffness, float dt, 
-    uint32_t numIterations)
+SomaGeometry::SomaGeometry(const NeuronMorphology* morphology,
+                           const float& stiffness, const float& dt,
+                           const uint32_t& numIterations)
     : numVertices(0)
     , numTriangles(0)
 {
@@ -73,7 +74,10 @@ SomaGeometry::SomaGeometry(NeuronMorphology* morphology, float stiffness, float 
     }
 }
 
-SomaGeometry::SomaGeometry(AstrocyteMorphology* morphology, float stiffness, float dt, uint32_t numIterations)
+SomaGeometry::SomaGeometry(const AstrocyteMorphology *morphology,
+                           const float &stiffness,
+                           const float &dt,
+                           const uint32_t &numIterations)
     : numVertices(0)
     , numTriangles(0)
 {
