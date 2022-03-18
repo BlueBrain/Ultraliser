@@ -21,6 +21,7 @@
  **************************************************************************************************/
 
 #include "AstrocyteH5Reader.h"
+#include <common/Common.h>
 #include <data/morphologies/EndfootPatch.hh>
 
 namespace Ultraliser
@@ -29,8 +30,16 @@ namespace Ultraliser
 AstrocyteH5Reader::AstrocyteH5Reader(const std::string &h5MorphologyFilePath)
     : _h5MorphologyFilePath(h5MorphologyFilePath)
 {
+    LOG_TITLE("Reading Astrocyte Morphology");
+
+    // Start the timer
+    TIMER_SET;
+
     // Read the file
     _h5MorphologyFile = new H5::H5File(_h5MorphologyFilePath, H5F_ACC_RDONLY);
+
+    // Path
+    LOG_SUCCESS("Morphology Path [ %s ]", _h5MorphologyFilePath.c_str());
 
     // Read the astrocyte coordinates, or center
     _readCoordinates();
@@ -55,14 +64,17 @@ AstrocyteH5Reader::AstrocyteH5Reader(const std::string &h5MorphologyFilePath)
 
     // Construct the endfeet data
     _constructEndfeetData();
+
+    // Statistics
+    LOG_STATUS_IMPORTANT("Reading Astrocyte Morphology Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 AstrocyteMorphology* AstrocyteH5Reader::getMorphology()
 {
-    AstrocyteMorphology* astrocyteMorphology = new AstrocyteMorphology(_skeletonSamples,
-                                                                       _structure,
-                                                                       _endfeetPatches,
-                                                                       _coordinates);
+    // Create the astrocyte morphology and return a pointer to it
+    AstrocyteMorphology* astrocyteMorphology =
+            new AstrocyteMorphology(_skeletonSamples, _structure, _endfeetPatches, _coordinates);
 
     // Return the pointer to the vasculature morphology
     return astrocyteMorphology;
@@ -90,13 +102,13 @@ void AstrocyteH5Reader::_readSamples()
     pointsDataSet.close();
 
     // Translate the samples to the global coordinates
+    OMP_PARALLEL_FOR
     for (uint64_t i = 0; i < _skeletonSamples.size(); ++i)
     {
         _skeletonSamples[i].x += _coordinates.x();
         _skeletonSamples[i].y += _coordinates.y();
         _skeletonSamples[i].z += _coordinates.z();
     }
-
 }
 
 void AstrocyteH5Reader::_readStructure()
@@ -140,6 +152,7 @@ void AstrocyteH5Reader::_readCoordinates()
     // Read the data
     coordinatesDataset.read(coordinates.data(), H5::PredType::NATIVE_FLOAT);
 
+    // Update the coordinates
     _coordinates.x() = coordinates[0];
     _coordinates.y() = coordinates[1];
     _coordinates.z() = coordinates[2];
@@ -210,7 +223,8 @@ void AstrocyteH5Reader::_readEndfeetPatchesIndices()
     _endfeetTrianglesIndices.resize(dimenions[0]);
 
     // Read the data
-    endfeetTrianglesIndicesDataSet.read(_endfeetTrianglesIndices.data(), H5::PredType::NATIVE_INT64);
+    endfeetTrianglesIndicesDataSet.read(_endfeetTrianglesIndices.data(),
+                                        H5::PredType::NATIVE_INT64);
 
     // Close the dataset
     endfeetTrianglesIndicesDataSet.close();
@@ -246,6 +260,7 @@ void AstrocyteH5Reader::_constructEndfeetData()
         const auto firstTriangleIndex = _endfeetTrianglesIndices[i].firstIndex;
         const auto lastTriangleIndex = _endfeetTrianglesIndices[i].lastIndex;
 
+        // Create a list to append all the read patches to it
         EndfootPatches endfootPatches;
 
         // Create the triangles
@@ -261,7 +276,7 @@ void AstrocyteH5Reader::_constructEndfeetData()
             H5Sample &s1 = _endfeetSamples.at(v1);
             H5Sample &s2 = _endfeetSamples.at(v2);
 
-            // Convert it into a default sample, indicies values are not important in this context
+            // Convert the H5Samples into Samples, indicies values are not important in this context
             Sample* sample0 = new Sample(Vector3f(s0.x, s0.y, s0.z), s0.r * 0.5, 0);
             Sample* sample1 = new Sample(Vector3f(s1.x, s1.y, s1.z), s1.r * 0.5, 1);
             Sample* sample2 = new Sample(Vector3f(s2.x, s2.y, s2.z), s2.r * 0.5, 2);
@@ -273,6 +288,7 @@ void AstrocyteH5Reader::_constructEndfeetData()
             endfootPatches.push_back(patch);
         }
 
+        // Append the endfoot patche to the list
         _endfeetPatches.push_back(endfootPatches);
     }
 }

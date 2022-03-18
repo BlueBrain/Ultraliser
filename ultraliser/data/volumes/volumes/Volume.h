@@ -199,15 +199,14 @@ public:
      * @brief surfaceVoxelizeNeuronMorphology
      * @param morphology
      */
-    void surfaceVoxelizeNeuronMorphologyParallel(
-        NeuronMorphology* neuronMorphology);
+    void surfaceVoxelizeNeuronMorphologyParallel(NeuronMorphology* neuronMorphology);
 
     /**
      * @brief surfaceVoxelizeEndfeetMorphology
      * @param morphology
      */
-    void surfaceVoxelizeEndfeetMorphologyParallel(
-        AstrocyteMorphology* astrocyteMorphology, float threshold = 0.75);
+    void surfaceVoxelizeAstrocyteMorphologyParallel(AstrocyteMorphology* astrocyteMorphology,
+                                                    float threshold = 0.75);
 
     /**
      * @brief solidVoxelization

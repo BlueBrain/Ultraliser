@@ -73,6 +73,54 @@ SomaGeometry::SomaGeometry(NeuronMorphology* morphology, float stiffness, float 
     }
 }
 
+SomaGeometry::SomaGeometry(AstrocyteMorphology* morphology, float stiffness, float dt, uint32_t numIterations)
+    : numVertices(0)
+    , numTriangles(0)
+{
+    if (morphology != nullptr)
+    {
+        _somaCenter = morphology->getSomaCenter();
+
+        // For the moment, use the min soma radius to see the effect of the pulling forces on
+        // the ico-sphere till further notice
+        _somaRadius = morphology->getSomaMinRadius();
+
+        // Update the soma radius with 0.75 to see the pulling effect
+        _somaRadius *= 0.75;
+
+        auto mesh = _loadIcosphereGeometry();
+
+        // Compute maximum stiffness to preserve the simulation stability
+        float springStiffness = (1.0f / (dt / (2 * M_PI))) * 0.01f * clamp(stiffness, 0.0f, 1.0f);
+        float pullStiffness = 0.0f;
+
+        auto icoSprings = _generateIcosphereSprings(mesh, springStiffness);
+        auto pullSprings = _generatePullSprings(mesh, 0.0f, morphology->getSomaSamples(), 0.01f);
+
+        Simulation::AnimSystem animSystem(dt);
+
+        // Perform the icosphere animation adapting the stiffness of the pull springs
+        Simulation::Springs& springs = mesh->springs;
+        float stiffnessIncrement = springStiffness / numIterations;
+        for (uint32_t i = 0; i < numIterations; ++i)
+        {
+            pullStiffness += stiffnessIncrement;
+            for(auto spring : pullSprings)
+                spring->stiffness = pullStiffness;
+            springs = icoSprings;
+            springs.insert(springs.begin(), pullSprings.begin(), pullSprings.end());
+            animSystem.animate(mesh);
+        }
+
+        _nodesToVertices(mesh->nodes);
+    }
+    else
+    {
+        LOG_ERROR("The input morphology is EMPTY!");
+    }
+
+}
+
 void SomaGeometry::_insert(Simulation::SpringPtr spring, Simulation::UniqueSprings& springs)
 {
     std::pair<Simulation::UniqueSprings::iterator, bool> insertion = springs.insert(spring);

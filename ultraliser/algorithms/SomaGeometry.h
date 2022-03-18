@@ -27,6 +27,7 @@
 
 #include <data/meshes/simple/primitives/Primitives.h>
 #include <data/morphologies/NeuronMorphology.h>
+#include <data/morphologies/AstrocyteMorphology.h>
 #include <algorithms/simulation/AnimSystem.h>
 
 namespace Ultraliser
@@ -53,6 +54,10 @@ public:
      * Nunber of simulation iterations.
      */
     SomaGeometry(NeuronMorphology* morphology, float stiffness = 1.0f, float dt = 0.01f, 
+                 uint32_t numIterations = 8000);
+
+
+    SomaGeometry(AstrocyteMorphology* morphology, float stiffness = 1.0f, float dt = 0.01f,
                  uint32_t numIterations = 8000);
 
 private:

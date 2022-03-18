@@ -101,7 +101,7 @@ void run(int argc, const char** argv)
                    VolumeGrid::getType(options->volumeType));
 
     // Voxelize morphology
-    volume->surfaceVoxelizeEndfeetMorphologyParallel(astrocyteMorphology);
+    volume->surfaceVoxelizeAstrocyteMorphologyParallel(astrocyteMorphology);
 
     // Enable solid voxelization
     if (options->useSolidVoxelization)

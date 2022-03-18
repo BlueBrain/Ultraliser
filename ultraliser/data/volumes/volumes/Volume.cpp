@@ -381,93 +381,24 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
 
 }
 
-void Volume::surfaceVoxelizeEndfeetMorphologyParallel(
+void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(
     AstrocyteMorphology* astrocyteMorphology, float threshold)
 {
-    LOG_TITLE("Endfeet Surface Voxelization (Parallel)");
+    LOG_TITLE("Astrocyte Surface Voxelization (Parallel)");
 
     // Start the timer
     TIMER_SET;
-
-    LOG_STATUS("Creating Volume Shell from Samples");
-    LOOP_STARTS("Rasterization");
-    PROGRESS_SET;
-
-
-    EndfeetPatches patches = astrocyteMorphology->getEndfeetPatches();
-
-    for (uint64_t j = 0; j < 1; ++j)
-    {
-        EndfootPatches efPatches = patches[j];
-
-        // Rasterize sample triangles
-        for (uint64_t i = 0; i < efPatches.size(); ++i)
-        {
-            Sample* sample0 = efPatches[i]->sample0;
-            Sample* sample1 = efPatches[i]->sample1;
-            Sample* sample2 = efPatches[i]->sample2;
-
-            Vector3f pos0 = sample0->getPosition();
-            Vector3f pos1 = sample1->getPosition();
-            Vector3f pos2 = sample2->getPosition();
-
-            float radius0 = sample0->getRadius();
-            float radius1 = sample1->getRadius();
-            float radius2 = sample2->getRadius();
-
-            // Compute maximum separation distance based on minimum radius and a threshold
-            float minRadius = radius0;
-            minRadius = std::min<float>(minRadius, radius1);
-            minRadius = std::min<float>(minRadius, radius2);
-            float maxSeparation = minRadius * threshold;
-
-            // Compute number of divisions for opposite edge to the sample0
-            float edgeDistance = (pos2 - pos1).abs();
-            uint32_t edgeNumDivisions = std::ceil(edgeDistance / maxSeparation);
-            float edgeAlphaIncrement = 1.0f / edgeNumDivisions;
-
-            for (uint32_t j = 0; j < edgeNumDivisions + 1; ++j)
-            {
-                // Compute opposite edge samples
-                float edgeAlpha = j * edgeAlphaIncrement;
-                Vector3f edgePos = (1.0f - edgeAlpha) * pos1 + edgeAlpha * pos2;
-                float edgeRadius = (1.0f - edgeAlpha) * radius1 + edgeAlpha * radius2;
-
-                // Compute interpolated samples for the edges betweem the sample0 and the opposite edge
-                // samples computed
-                float distance = (edgePos - pos0).abs();
-                uint32_t numDivisions = std::ceil(distance / maxSeparation);
-                float alphaIncrement = 1.0f / numDivisions;
-
-                // Rasterize sample
-                for (uint32_t k = 0; k < numDivisions + 1; ++k)
-                {
-                    float alpha = k * alphaIncrement;
-                    Vector3f position = (1.0f - alpha) * pos0 + alpha * edgePos;
-                    float radius = (1.0f - alpha) * radius0 + alpha * edgeRadius;
-                    Sample sample(position, radius, 0);
-                    _rasterize(&sample, _grid);
-                }
-            }
-
-            // Update the progress bar
-            LOOP_PROGRESS(PROGRESS, efPatches.size());
-            PROGRESS_UPDATE;
-        }
-        LOOP_DONE;
-    }
-
 
     // Get all the sections of the vascular morphology
     Sections sections = astrocyteMorphology->getSections();
 
     LOG_STATUS("Creating Volume Shell from Sections");
     LOOP_STARTS("Rasterization");
-    PROGRESS_RESET;
+    PROGRESS_SET;
 
     // Construct the soma geometry
-    //auto mesh = new Mesh(astrocyteMorphology);
-    //_rasterize(mesh, _grid);
+    auto mesh = new Mesh(astrocyteMorphology);
+    _rasterize(mesh, _grid);
 
     Paths paths;
     for (uint64_t i = 0; i < sections.size(); i++)
@@ -478,19 +409,19 @@ void Volume::surfaceVoxelizeEndfeetMorphologyParallel(
         paths.insert(paths.end(), sectionPaths.begin(), sectionPaths.end());
     }
 
-    // exit(0);
-//    auto firstSections = astrocyteMorphology->getFirstSections();
 
-//    // Add the paths between the soma and neurites
-//    for (uint64_t i = 0; i < firstSections.size(); i++)
-//    {
-//        auto section = firstSections[i];
-//        Samples samples = section->getSamples();
-//        Vector3f newSamplePos = astrocyteMorphology->getSomaCenter();
-//        samples.insert(samples.begin(),
-//                       new Sample(newSamplePos, samples[0]->getRadius(), i));
-//        paths.push_back(samples);
-//     }
+    auto firstSections = astrocyteMorphology->getFirstSections();
+
+    // Add the paths between the soma and neurites
+    for (uint64_t i = 0; i < firstSections.size(); i++)
+    {
+        auto section = firstSections[i];
+        Samples samples = section->getSamples();
+        Vector3f newSamplePos = astrocyteMorphology->getSomaCenter();
+        samples.insert(samples.begin(),
+                       new Sample(newSamplePos, samples[0]->getRadius(), i));
+        paths.push_back(samples);
+     }
 
     // Construct the neurites geometry
     OMP_PARALLEL_FOR
@@ -504,6 +435,67 @@ void Volume::surfaceVoxelizeEndfeetMorphologyParallel(
         PROGRESS_UPDATE;
     }
     LOOP_DONE;
+
+    PROGRESS_RESET;
+    EndfeetPatches endfeetPatches = astrocyteMorphology->getEndfeetPatches();
+    for (uint64_t j = 0; j < endfeetPatches.size(); ++j)
+    {
+        EndfootPatches efPatches = endfeetPatches[j];
+
+        // Rasterize sample triangles
+        for (uint64_t i = 0; i < efPatches.size(); ++i)
+        {
+            // Get the triangle samples
+            const Sample* sample0 = efPatches[i]->sample0;
+            const Sample* sample1 = efPatches[i]->sample1;
+            const Sample* sample2 = efPatches[i]->sample2;
+
+            // Get the vertices positions
+            const Vector3f pos0 = sample0->getPosition();
+            const Vector3f pos1 = sample1->getPosition();
+            const Vector3f pos2 = sample2->getPosition();
+
+            // Get the vertices radii
+            const float radius0 = sample0->getRadius();
+            const float radius1 = sample1->getRadius();
+            const float radius2 = sample2->getRadius();
+
+            // Compute maximum distance based on minimum radius and a threshold
+            float minRadius = radius0;
+            minRadius = std::min< float >(minRadius, radius1);
+            minRadius = std::min< float >(minRadius, radius2);
+            float maxSeparation = minRadius * threshold;
+
+            // Compute number of divisions for opposite edge to the sample0
+            float edgeDistance = (pos2 - pos1).abs();
+            uint64_t edgeNumDivisions = std::ceil(edgeDistance / maxSeparation);
+            float edgeAlphaIncrement = 1.0f / edgeNumDivisions;
+
+            for (uint64_t j = 0; j < edgeNumDivisions + 1; ++j)
+            {
+                // Compute opposite edge samples
+                float edgeAlpha = j * edgeAlphaIncrement;
+                Vector3f edgePos = (1.f - edgeAlpha) * pos1 + edgeAlpha * pos2;
+                float edgeRadius = (1.f - edgeAlpha) * radius1 + edgeAlpha * radius2;
+
+                // Compute interpolated samples for the edges betweem the sample0 and the
+                // opposite edge samples computed
+                float distance = (edgePos - pos0).abs();
+                uint64_t numDivisions = std::ceil(distance / maxSeparation);
+                float alphaIncrement = 1.0f / numDivisions;
+
+                // Rasterize sample
+                for (uint64_t k = 0; k < numDivisions + 1; ++k)
+                {
+                    float alpha = k * alphaIncrement;
+                    Vector3f position = (1.0f - alpha) * pos0 + alpha * edgePos;
+                    float radius = (1.0f - alpha) * radius0 + alpha * edgeRadius;
+                    Sample sample(position, radius, 0);
+                    _rasterize(&sample, _grid);
+                }
+            }
+        }
+    }
 
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
 

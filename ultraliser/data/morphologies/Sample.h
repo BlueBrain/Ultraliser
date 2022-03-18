@@ -87,7 +87,13 @@ private:
  * @brief Samples
  * A list of samples.
  */
-typedef std::vector<Sample*> Samples;
+typedef std::vector< Sample* > Samples;
+
+/**
+ * @brief Path
+ * The path is composed of a list of samples.
+ */
+typedef Samples Path;
 
 /**
  * @brief Paths
@@ -98,7 +104,7 @@ typedef std::vector<Sample*> Samples;
  *
  * Each path in the list is a list of connected samples with type Samples or std::vector<Sample>.
  */
-typedef std::vector<Samples> Paths;
+typedef std::vector< Path > Paths;
 
 }
 #endif // ULTRALISER_DATA_MORPHOLOGIES_SAMPLE_H

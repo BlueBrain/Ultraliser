@@ -207,12 +207,6 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
     }
 }
 
-
-void AstrocyteMorphology::_constructSkeleton()
-{
-
-}
-
 Samples AstrocyteMorphology::getSomaSamples() const
 {
     return _somaSamples;
