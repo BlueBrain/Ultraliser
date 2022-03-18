@@ -547,6 +547,17 @@ void AppArguments::addMeshArguments()
     addMeshExportArguments();
 }
 
+
+void AppArguments::addAstrocyteSpecificArguments()
+{
+    Argument exportAstrocyteAtOrigin(
+                "--export-at-origin",
+                ARGUMENT_TYPE::BOOL,
+                "Export the astrocyte mesh at the origin.");
+    _args->addArgument(&exportAstrocyteAtOrigin);
+    _options->exportAstrocyteAtOrigin = _args->getBoolValue(&exportAstrocyteAtOrigin);
+}
+
 void AppArguments::addDataArguments()
 {
     Argument writeStatistics(

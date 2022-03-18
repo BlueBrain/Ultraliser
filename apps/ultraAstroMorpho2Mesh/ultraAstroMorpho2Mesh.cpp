@@ -46,6 +46,7 @@ AppOptions* parseArguments(const int& argc, const char** argv)
     args->addMeshArguments();
     args->addSuppressionArguments();
     args->addDataArguments();
+    args->addAstrocyteSpecificArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -71,7 +72,7 @@ void run(int argc, const char** argv)
     auto options = parseArguments(argc, argv);
 
     // Read the file into a morphology structure
-    auto astrocyteMorphology = readAstrocyteMorphology(options->inputMorphologyPath);
+    AstrocyteMorphology* astrocyteMorphology = readAstrocyteMorphology(options->inputMorphologyPath);
 
     if (options->writeStatistics)
         astrocyteMorphology->printStats(options->prefix, &options->statisticsPrefix);
@@ -110,12 +111,15 @@ void run(int argc, const char** argv)
     // Generate the volume artifacts based on the given options
     generateVolumeArtifacts(volume, options);
 
-    // Generate the reconstructde mesh, scaled and translated to the original
-    // location
-    auto mesh = DualMarchingCubes::generateMeshFromVolume(volume);
+    // Extract the mesh from the volume
+    auto mesh = reconstructMeshFromVolume(volume, options);
 
     // Free the volume, we do not need it anymore
     delete volume;
+
+    // If the astrocyte is exported to the center, translate it back
+    if (options->exportAstrocyteAtOrigin)
+        mesh->translate(-1 * astrocyteMorphology->getSomaCenter());
 
     // Generate the mesh artifacts
     generateReconstructedMeshArtifacts(mesh, options);

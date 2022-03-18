@@ -163,6 +163,11 @@ public:
     void addDataArguments();
 
     /**
+     * @brief addAstrocyteSpecificArguments
+     */
+    void addAstrocyteSpecificArguments();
+
+    /**
      * @brief addPackingAlgorithmArguments
      */
     void addPackingAlgorithmArguments();

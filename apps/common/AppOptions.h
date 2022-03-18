@@ -586,6 +586,11 @@ public:
      */
     uint64_t apicalBranchOrder = INT_MAX;
 
+    /**
+     * @brief exportAstrocyteAtOrigin
+     * Exports the astrocyte mesh at the origin, where the soma is located.
+     */
+    bool exportAstrocyteAtOrigin = false;
 };
 
 }

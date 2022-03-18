@@ -74,17 +74,21 @@ void run(int argc, const char** argv)
     // Read the file into a morphology structure
     auto neuronMorphology = readNeuronMorphology(options->inputMorphologyPath);
 
-    // Trim the neuron morphology following the branch order options
-    if (options->axonBranchOrder < INT_MAX | options->basalBranchOrder < INT_MAX |
-        options->apicalBranchOrder < INT_MAX)
-        neuronMorphology->trim(options->axonBranchOrder, options->basalBranchOrder,
-            options->apicalBranchOrder);
-
     if (options->writeStatistics)
         neuronMorphology->printStats(options->prefix, &options->statisticsPrefix);
 
     if (options->writeDistributions)
         neuronMorphology->printDistributions(&options->distributionsPrefix);
+
+    // Trim the neuron morphology following the branch order options
+    if (options->axonBranchOrder < INT_MAX |
+        options->basalBranchOrder < INT_MAX |
+        options->apicalBranchOrder < INT_MAX)
+    {
+        neuronMorphology->trim(options->axonBranchOrder,
+                               options->basalBranchOrder,
+                               options->apicalBranchOrder);
+    }
 
     // Get relaxed bounding box to build the volume
     Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
@@ -103,9 +107,8 @@ void run(int argc, const char** argv)
     LOG_WARNING("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);
 
     // Construct the volume
-    Volume* volume =
-        new Volume(pMinInput, pMaxInput, resolution, options->edgeGap,
-                   VolumeGrid::getType(options->volumeType));
+    Volume* volume = new Volume(pMinInput, pMaxInput, resolution, options->edgeGap,
+                                VolumeGrid::getType(options->volumeType));
 
     // Voxelize morphology
     volume->surfaceVoxelizeNeuronMorphologyParallel(neuronMorphology);

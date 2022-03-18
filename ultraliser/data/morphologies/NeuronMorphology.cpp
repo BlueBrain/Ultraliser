@@ -65,6 +65,10 @@ void NeuronMorphology::trim(uint64_t axonBranchOrder,
         case NEURON_APICAL_DENDRITE:
             maxDepth = apicalBranchOrder;
             break;
+        case VASCULATURE:
+        case UNKNOWN:
+        default:
+            break;
         }
         
         std::stack<std::pair<Section*, uint64_t>> sectionStack;

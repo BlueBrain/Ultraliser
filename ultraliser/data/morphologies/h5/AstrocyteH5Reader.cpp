@@ -101,6 +101,12 @@ void AstrocyteH5Reader::_readSamples()
     // Close the dataset
     pointsDataSet.close();
 
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < _skeletonSamples.size(); ++i)
+    {
+        _skeletonSamples[i].r *= 0.925;
+    }
+
     // Translate the samples to the global coordinates
     OMP_PARALLEL_FOR
     for (uint64_t i = 0; i < _skeletonSamples.size(); ++i)
