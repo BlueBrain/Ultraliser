@@ -617,7 +617,7 @@ void AppArguments::addSuppressionArguments()
     _options->ignoreWatertightMesh = _args->getBoolValue(&ignoreWatertightMesh);
 }
 
-void AppArguments::addMorphologyBranchOrderArguments()
+void AppArguments::addNeuronMorphologyBranchOrderArguments()
 {
     Argument axonBranchOrder(
                 "--axon-branch-order",

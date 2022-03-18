@@ -32,14 +32,14 @@ AstrocyteH5Reader::AstrocyteH5Reader(const std::string &h5MorphologyFilePath)
     // Read the file
     _h5MorphologyFile = new H5::H5File(_h5MorphologyFilePath, H5F_ACC_RDONLY);
 
-    // Read the samples
+    // Read the astrocyte coordinates, or center
+    _readCoordinates();
+
+    // Read the samples, and DO NOT FORGET TO TRANSLATE THEM
     _readSamples();
 
     // Read the structure
     _readStructure();
-
-    // Read the astrocyte coordinates
-    _readCoordinates();
 
     // Read the indices of the endfeet points
     _readEndfeetPointsIndices();
@@ -59,8 +59,10 @@ AstrocyteH5Reader::AstrocyteH5Reader(const std::string &h5MorphologyFilePath)
 
 AstrocyteMorphology* AstrocyteH5Reader::getMorphology()
 {
-    AstrocyteMorphology* astrocyteMorphology =
-            new AstrocyteMorphology(_skeletonSamples, _structure, _patches);
+    AstrocyteMorphology* astrocyteMorphology = new AstrocyteMorphology(_skeletonSamples,
+                                                                       _structure,
+                                                                       _endfeetPatches,
+                                                                       _coordinates);
 
     // Return the pointer to the vasculature morphology
     return astrocyteMorphology;
@@ -86,6 +88,15 @@ void AstrocyteH5Reader::_readSamples()
 
     // Close the dataset
     pointsDataSet.close();
+
+    // Translate the samples to the global coordinates
+    for (uint64_t i = 0; i < _skeletonSamples.size(); ++i)
+    {
+        _skeletonSamples[i].x += _coordinates.x();
+        _skeletonSamples[i].y += _coordinates.y();
+        _skeletonSamples[i].z += _coordinates.z();
+    }
+
 }
 
 void AstrocyteH5Reader::_readStructure()
@@ -136,7 +147,6 @@ void AstrocyteH5Reader::_readCoordinates()
     // Close the dataset
     coordinatesDataset.close();
 }
-
 
 void AstrocyteH5Reader::_readEndfeetPointsIndices()
 {
@@ -252,9 +262,9 @@ void AstrocyteH5Reader::_constructEndfeetData()
             H5Sample &s2 = _endfeetSamples.at(v2);
 
             // Convert it into a default sample, indicies values are not important in this context
-            Sample* sample0 = new Sample(Vector3f(s0.x, s0.y, s0.z) - _coordinates, s0.r, 0);
-            Sample* sample1 = new Sample(Vector3f(s1.x, s1.y, s1.z) - _coordinates, s1.r, 1);
-            Sample* sample2 = new Sample(Vector3f(s2.x, s2.y, s2.z) - _coordinates, s2.r, 2);
+            Sample* sample0 = new Sample(Vector3f(s0.x, s0.y, s0.z), s0.r * 0.5, 0);
+            Sample* sample1 = new Sample(Vector3f(s1.x, s1.y, s1.z), s1.r * 0.5, 1);
+            Sample* sample2 = new Sample(Vector3f(s2.x, s2.y, s2.z), s2.r * 0.5, 2);
 
             // Construct the endfeet patches
             EndfootPatch* patch = new EndfootPatch(sample0, sample1, sample2);
@@ -263,7 +273,7 @@ void AstrocyteH5Reader::_constructEndfeetData()
             endfootPatches.push_back(patch);
         }
 
-        _patches.push_back(endfootPatches);
+        _endfeetPatches.push_back(endfootPatches);
     }
 }
 

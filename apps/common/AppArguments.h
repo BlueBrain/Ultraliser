@@ -168,9 +168,9 @@ public:
     void addPackingAlgorithmArguments();
 
     /**
-     * @brief addMorphologyBranchOrderArguments
+     * @brief addNeuronMorphologyBranchOrderArguments
      */
-    void addMorphologyBranchOrderArguments();
+    void addNeuronMorphologyBranchOrderArguments();
 
     /**
      * @brief getOptions

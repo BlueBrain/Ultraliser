@@ -156,8 +156,9 @@ void Volume::_createGrid(void)
     _gridDimensions.v[1] = F2UI64(std::round(boundingBoxSize[1] / _voxelSize));
     _gridDimensions.v[2] = F2UI64(std::round(boundingBoxSize[2] / _voxelSize));
 
-    LOG_SUCCESS("Volume Dimenions [ %d x %d x %d ]",
-                _gridDimensions.v[0] , _gridDimensions.v[1] , _gridDimensions.v[2]);
+    LOG_SUCCESS("Volume Dimenions [ %d x %d x %d ] : [ %f x %f x %f ]",
+                _gridDimensions.v[0] , _gridDimensions.v[1] , _gridDimensions.v[2],
+                boundingBoxSize[0], boundingBoxSize[1], boundingBoxSize[2]);
 
     // Allocating the grid
     _allocateGrid();
@@ -392,6 +393,7 @@ void Volume::surfaceVoxelizeEndfeetMorphologyParallel(
     LOOP_STARTS("Rasterization");
     PROGRESS_SET;
 
+
     EndfeetPatches patches = astrocyteMorphology->getEndfeetPatches();
 
     for (uint64_t j = 0; j < 1; ++j)
@@ -455,6 +457,7 @@ void Volume::surfaceVoxelizeEndfeetMorphologyParallel(
         LOOP_DONE;
     }
 
+
     // Get all the sections of the vascular morphology
     Sections sections = astrocyteMorphology->getSections();
 
@@ -463,8 +466,8 @@ void Volume::surfaceVoxelizeEndfeetMorphologyParallel(
     PROGRESS_RESET;
 
     // Construct the soma geometry
-    auto mesh = new Mesh(astrocyteMorphology);
-    _rasterize(mesh, _grid);
+    //auto mesh = new Mesh(astrocyteMorphology);
+    //_rasterize(mesh, _grid);
 
     Paths paths;
     for (uint64_t i = 0; i < sections.size(); i++)
@@ -475,7 +478,9 @@ void Volume::surfaceVoxelizeEndfeetMorphologyParallel(
         paths.insert(paths.end(), sectionPaths.begin(), sectionPaths.end());
     }
 
+    // exit(0);
 //    auto firstSections = astrocyteMorphology->getFirstSections();
+
 //    // Add the paths between the soma and neurites
 //    for (uint64_t i = 0; i < firstSections.size(); i++)
 //    {

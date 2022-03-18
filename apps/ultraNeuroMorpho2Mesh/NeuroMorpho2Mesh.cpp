@@ -46,7 +46,7 @@ AppOptions* parseArguments(const int& argc, const char** argv)
     args->addMeshArguments();
     args->addSuppressionArguments();
     args->addDataArguments();
-    args->addMorphologyBranchOrderArguments();
+    args->addNeuronMorphologyBranchOrderArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();

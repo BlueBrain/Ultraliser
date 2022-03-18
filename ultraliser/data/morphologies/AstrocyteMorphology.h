@@ -56,19 +56,65 @@ public:
      * @param h5Samples
      * @param h5Sections
      * @param endfeetPatches
+     * @param center
      */
     AstrocyteMorphology(const H5Samples& h5Samples,
                         const H5Sections& h5Sections,
-                        EndfeetPatches& endfeetPatches);
+                        const EndfeetPatches& endfeetPatches,
+                        const Vector3f& center);
 
 public:
-
 
     /**
      * @brief getEndfeetPatches
      * @return Returns a reference to the list of sample triangles.
      */
     EndfeetPatches getEndfeetPatches() const;
+
+    /**
+     * @brief getSomaSamples
+     * @return Returns a reference to the list of soma samples.
+     */
+    Samples getSomaSamples() const;
+
+    /**
+     * @brief getFirstSections
+     * @return Returns a reference to the list of first neurites sections in the morphology.
+     */
+    Sections getFirstSections() const;
+
+    /**
+     * @brief getSomaCenter
+     * Gets the center of the soma.
+     *
+     * @return
+     * The Cartesian center of the soma.
+     */
+    Vector3f getSomaCenter() const;
+
+    /**
+     * @brief getSomaMeanRadius
+     * Gets the average radius of the soma.
+     * @return
+     * The average radius of the soma.
+     */
+    float getSomaMeanRadius() const;
+
+    /**
+     * @brief getSomaMinRadius
+     * Gets the minimum radius of the soma.
+     * @return
+     * The minimum radius of the soma.
+     */
+    float getSomaMinRadius() const;
+
+    /**
+     * @brief getSomaMaxRadius
+     * Gets the maximum radius of the soma.
+     * @return
+     * The maximum radius of the soma.
+     */
+    float getSomaMaxRadius() const;
 
 private:
 
@@ -81,6 +127,44 @@ private:
      * A list of the actual sample triangles of the morphology.
      */
     EndfeetPatches _endfeetPatches;
+
+private:
+
+    /**
+     * @brief _somaSamples
+     * A list of the actual samples of the morphology soma.
+     */
+    Samples _somaSamples;
+
+    /**
+     * @brief _firstSecion
+     * A list of the first neurites secitions of the morphology.
+     */
+    Sections _firstSections;
+
+    /**
+     * @brief _somaCenter
+     * The center of the soma.
+     */
+    Vector3f _somaCenter;
+
+    /**
+     * @brief _somaMeanRadius
+     * The mean radius of the soma.
+     */
+    float _somaMeanRadius;
+
+    /**
+     * @brief _somaMinRadius
+     * The minimum radius of the soma.
+     */
+    float _somaMinRadius;
+
+    /**
+     * @brief _somaMaxRadius
+     * The maximum radius of the soma.
+     */
+    float _somaMaxRadius;
 };
 
 /**

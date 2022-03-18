@@ -52,7 +52,8 @@ AstrocyteMorphology::AstrocyteMorphology(Samples& samples, EndfeetPatches& endfe
 
 AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
                                          const H5Sections& h5Sections,
-                                         EndfeetPatches& endfeetPatches)
+                                         const EndfeetPatches &endfeetPatches,
+                                         const Vector3f &center)
 {
     _endfeetPatches = endfeetPatches;
 
@@ -63,7 +64,8 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
     for (auto h5Sample : h5Samples)
     {
         Ultraliser::Vector3f position(h5Sample.x, h5Sample.y, h5Sample.z);
-        Sample* sample = new Sample(Ultraliser::Vector3f(h5Sample.x, h5Sample.y, h5Sample.z),
+        Sample* sample = new Sample(
+            Ultraliser::Vector3f(h5Sample.x, h5Sample.y, h5Sample.z),
                                     h5Sample.r * 0.5f, 0);
         _samples.push_back(sample);
 
@@ -79,23 +81,21 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
         if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
     }
 
-    // The soma is located at index 0, so we will start from index 1
+    // Create the soma section, for indexing only
+    Section* somaSection = new Section(0);
+    _sections.push_back(somaSection);
+
+    // The soma is located at index 0, but we will consider it a section for indexing!
     for (uint64_t i = 1; i < h5Sections.size() - 1; ++i)
     {
+        // Current section index
+        const auto sectionIndex = i;
+
         // First point index
         const auto firstPointIdx = h5Sections[i].offsetIndex;
 
         // Last point index
         const auto lastPointIdx = h5Sections[i + 1].offsetIndex - 1;
-
-        // Current section index
-        const auto sectionIndex = i;
-
-        // Section type
-        const auto sectionType = h5Sections[i].sectionType;
-
-        // Section parent index
-        const auto sectionParentIndex = h5Sections[i].parentIndex;
 
         // Create a new morphology section
         Section* section = new Section(sectionIndex);
@@ -105,38 +105,142 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
         for (uint64_t s = firstPointIdx; s <= lastPointIdx; s++)
         {
             // Create the sample
-            Sample* sample = new Sample(
-                        Ultraliser::Vector3f(h5Samples[s].x, h5Samples[s].y, h5Samples[s].z),
-                                             h5Samples[s].r * 0.5f, 0);
+            Sample* sample =
+                    new Sample(Ultraliser::Vector3f(h5Samples[s].x, h5Samples[s].y, h5Samples[s].z),
+                               h5Samples[s].r * 0.5f, 0);
 
             // Update the samples list
             section->addSample(sample);
         }
 
-        // Update the section type
-        section->setType(UNKNOWN);
-
         // Update the section parent
-        section->addParentIndex(sectionParentIndex);
+        section->addParentIndex(h5Sections[i].parentIndex);
+
+        // Section type
+        const auto sectionType = h5Sections[i].sectionType;
+
+        switch (h5Sections[i].sectionType)
+        {
+        case 2:
+        {
+            section->setType(NEURON_AXON);
+        }
+        case 3:
+        {
+            section->setType(NEURON_BASAL_DENDRITE);
+        }
+        case 4:
+        {
+            section->setType(NEURON_APICAL_DENDRITE);
+        }
+        default:
+        {
+            section->setType(NEURON_BASAL_DENDRITE);
+        }
+        }
 
         // Add the section to the list
         _sections.push_back(section);
+
+        // Determine if this is a first section or not!
+        if (h5Sections[i].parentIndex == 0)
+        {
+            _firstSections.push_back(section);
+        }
     }
 
-//    for (uint64_t i = 0; i < _sections.size(); ++i)
-//    {
-//        for (uint64_t j = 0; j < _sections[i]->getChildrenIndices(); j++)
-//        {
+    // Build the tree (add the children indices) from the linear list
+    for (uint64_t i = 1; i < _sections.size(); ++i)
+    {
+        // Get parent index
+        uint64_t parentSectionIndex = _sections[i]->getParentIndices()[0];
 
-//        }
-//    }
+        // Update the choldren list
+        _sections[parentSectionIndex]->addChildIndex(_sections[i]->getIndex());
+    }
 
+    // Get the somatic samples from the initial sections of all the neurites
+    for (const auto& section: _firstSections)
+    {
+        const auto sample = section->getFirstSample();
+        _somaSamples.push_back(sample);
+    }
+
+    // Initially, the soma center is set to Zero.
+    _somaCenter = Vector3f(0.0f);
+    _somaMeanRadius = 0.0f;
+    _somaMinRadius = 1e10;
+    _somaMaxRadius = -1e10;
+
+    if (_somaSamples.size() > 1)
+    {
+        // Compute the soma center
+        for (auto sample : _somaSamples)
+        {
+            _somaCenter += sample->getPosition();
+        }
+        _somaCenter /= _somaSamples.size();
+
+        // Compute the minimum, average and maximum radii
+        for (auto sample : _somaSamples)
+        {
+            const auto radius = (sample->getPosition() - _somaCenter).abs();
+
+            if (radius < _somaMinRadius)
+                _somaMinRadius = radius;
+
+            if (radius > _somaMaxRadius)
+                _somaMaxRadius = radius;
+
+            _somaMeanRadius += radius;
+        }
+
+        // Compute the minimum, average and maximum radii
+        _somaMeanRadius /= _somaSamples.size();
+    }
+    else
+    {
+        _somaCenter = _somaSamples[0]->getPosition();
+        _somaMeanRadius = _somaSamples[0]->getRadius();
+        _somaMinRadius = _somaMeanRadius;
+        _somaMaxRadius = _somaMeanRadius;
+    }
 }
 
 
 void AstrocyteMorphology::_constructSkeleton()
 {
 
+}
+
+Samples AstrocyteMorphology::getSomaSamples() const
+{
+    return _somaSamples;
+}
+
+Sections AstrocyteMorphology::getFirstSections() const
+{
+    return _firstSections;
+}
+
+Vector3f AstrocyteMorphology::getSomaCenter() const
+{
+    return _somaCenter;
+}
+
+float AstrocyteMorphology::getSomaMeanRadius() const
+{
+    return _somaMeanRadius;
+}
+
+float AstrocyteMorphology::getSomaMinRadius() const
+{
+    return _somaMinRadius;
+}
+
+float AstrocyteMorphology::getSomaMaxRadius() const
+{
+    return _somaMaxRadius;
 }
 
 EndfeetPatches AstrocyteMorphology::getEndfeetPatches() const

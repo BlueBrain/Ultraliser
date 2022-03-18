@@ -105,7 +105,7 @@ private:
 
 
     // Endfeet patches
-    EndfeetPatches _patches;
+    EndfeetPatches _endfeetPatches;
 
 
     /**
