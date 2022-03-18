@@ -358,7 +358,6 @@ void NeuronMorphology::_constructMorphologyFromH5(const H5Samples& h5Samples,
     _pMin = Vector3f(std::numeric_limits<float>::max());
     _pMax = Vector3f(std::numeric_limits<float>::lowest());
 
-
     // Construct the samples list that will be used later to build the sections
     for (auto h5Sample : h5Samples)
     {
@@ -417,15 +416,25 @@ void NeuronMorphology::_constructMorphologyFromH5(const H5Samples& h5Samples,
         // Section type
         const auto sectionType = h5Sections[i].sectionType;
 
-        // Update the section type
-        if (h5Sections[i].sectionType == 2)
+        switch (h5Sections[i].sectionType)
+        {
+        case 2:
+        {
             section->setType(NEURON_AXON);
-        if (h5Sections[i].sectionType == 3)
+        }
+        case 3:
+        {
             section->setType(NEURON_BASAL_DENDRITE);
-        if (h5Sections[i].sectionType == 4)
+        }
+        case 4:
+        {
             section->setType(NEURON_APICAL_DENDRITE);
-        else
-            section->setType(UNKNOWN);
+        }
+        default:
+        {
+            section->setType(NEURON_BASAL_DENDRITE);
+        }
+        }
 
         // Add the section to the list
         _sections.push_back(section);
@@ -442,30 +451,10 @@ void NeuronMorphology::_constructMorphologyFromH5(const H5Samples& h5Samples,
     {
         // Get parent index
         uint64_t parentSectionIndex = _sections[i]->getParentIndices()[0];
-        if (parentSectionIndex == 0) std::cout << "0" << std::endl;
 
         // Update the choldren list
         _sections[parentSectionIndex]->addChildIndex(_sections[i]->getIndex());
     }
-
-    // Build the tree (add the children indices) from the linear list
-//    for (uint64_t i = 1; i < _sections.size(); ++i)
-//    {
-//        std::vector< uint64_t > childrenIndices = _sections[i]->getChildrenIndices();
-
-//        for (uint64_t j = 0; j < childrenIndices.size(); ++j)
-//        {
-//            uint64_t childIndex = childrenIndices[j];
-
-//            for (uint64_t k = 1; k < _sections.size(); ++k)
-//            {
-//                if (childIndex == _sections[k]->getIndex())
-//                {
-//                    _sections[i]->addChildIndex(_sections[k]->getIndex());
-//                }
-//            }
-//        }
-//    }
 
     // Get the somatic samples from the initial sections of all the neurites
     for (const auto& section: _firstSections)

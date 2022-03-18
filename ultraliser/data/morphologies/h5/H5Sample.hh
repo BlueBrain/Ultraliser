@@ -66,5 +66,7 @@ struct H5Sample
  */
 typedef std::vector< H5Sample > H5Samples;
 
+
+
 }
 #endif // ULTRALISER_DATA_MORPHOLOGIES_H5_SAMPLE_HH
