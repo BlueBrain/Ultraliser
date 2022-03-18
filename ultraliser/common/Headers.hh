@@ -62,4 +62,10 @@
 #include <unordered_set>
 #include <common/OpenMP.hh>
 
+#ifdef ULTRALISER_USE_H5
+#include <hdf5.h>
+#include "H5Cpp.h"
+#endif
+
+
 #endif // ULTRALISER_COMMON_HEADERS_HH

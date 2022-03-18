@@ -21,7 +21,6 @@
  **************************************************************************************************/
 
 #include "NeuronH5Reader.h"
-#include <iostream>
 
 namespace Ultraliser
 {
@@ -41,9 +40,10 @@ NeuronH5Reader::NeuronH5Reader(const std::string &h5MorphologyFilePath)
 
 NeuronMorphology *NeuronH5Reader::getMorphology()
 {
+    // COnstruct the neuron morphology from the H5 samples and sections
     NeuronMorphology* neuronMorphology =new NeuronMorphology(_samples, _structure);
 
-    // Return the pointer to the vasculature morphology
+    // Return a pointer to the neuron morphology
     return neuronMorphology;
 }
 

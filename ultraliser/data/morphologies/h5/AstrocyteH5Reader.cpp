@@ -63,7 +63,7 @@ AstrocyteH5Reader::AstrocyteH5Reader(const std::string &h5MorphologyFilePath)
     _readEndfeetPatches();
 
     // Construct the endfeet data
-    _constructEndfeetData();
+    _constructEndfeet();
 
     // Statistics
     LOG_STATUS_IMPORTANT("Reading Astrocyte Morphology Stats.");
@@ -100,12 +100,6 @@ void AstrocyteH5Reader::_readSamples()
 
     // Close the dataset
     pointsDataSet.close();
-
-    OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < _skeletonSamples.size(); ++i)
-    {
-        _skeletonSamples[i].r *= 0.925;
-    }
 
     // Translate the samples to the global coordinates
     OMP_PARALLEL_FOR
@@ -258,7 +252,7 @@ void AstrocyteH5Reader::_readEndfeetPatches()
     endfeetTrianglesDataSet.close();
 }
 
-void AstrocyteH5Reader::_constructEndfeetData()
+void AstrocyteH5Reader::_constructEndfeet()
 {
     for (uint64_t i = 0; i < _endfeetTrianglesIndices.size(); ++i)
     {

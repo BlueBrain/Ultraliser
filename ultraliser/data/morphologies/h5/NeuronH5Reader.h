@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2022
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -22,21 +22,24 @@
 #ifndef ULTRALISER_DATA_MORPHOLOGIES_NEURON_H5_READER_H
 #define ULTRALISER_DATA_MORPHOLOGIES_NEURON_H5_READER_H
 
-#include <string>
-#include <vector>
 #include <data/morphologies/h5/H5Sample.hh>
 #include <data/morphologies/h5/H5Section.hh>
 #include <data/morphologies/NeuronMorphology.h>
 
-#include <hdf5.h>
-#include "H5Cpp.h"
-
 namespace Ultraliser
 {
 
+/**
+ * @brief The NeuronH5Reader class
+ */
 class NeuronH5Reader
 {
 public:
+
+    /**
+     * @brief NeuronH5Reader
+     * @param h5MorphologyFilePath
+     */
     NeuronH5Reader(const std::string &h5MorphologyFilePath);
 
 public:

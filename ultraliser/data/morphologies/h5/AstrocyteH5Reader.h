@@ -20,26 +20,31 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_READER_H
-#define ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_READER_H
+#ifndef ULTRALISER_DATA_MORPHOLOGIES_ASTROCYTE_H5_READER_H
+#define ULTRALISER_DATA_MORPHOLOGIES_ASTROCYTE_H5_READER_H
 
-#include <string>
-#include <vector>
-#include <data/morphologies/h5/EndfeetIndices.h>
 #include <data/morphologies/h5/H5Sample.hh>
 #include <data/morphologies/h5/H5Section.hh>
-#include <data/morphologies/h5/VasculatureH5Connectivity.hh>
+#include <data/morphologies/h5/EndfeetIndices.h>
 #include <data/morphologies/AstrocyteMorphology.h>
-
-#include <hdf5.h>
-#include "H5Cpp.h"
 
 namespace Ultraliser
 {
 
+/**
+ * @brief The AstrocyteH5Reader class
+ */
 class AstrocyteH5Reader
 {
 public:
+
+    /**
+     * @brief AstrocyteH5Reader
+     * Constructor.
+     *
+     * @param h5MorphologyFilePath
+     * The path to the H5 morphology file.
+     */
     AstrocyteH5Reader(const std::string &h5MorphologyFilePath);
 
 public:
@@ -65,18 +70,41 @@ private:
      */
     void _readStructure();
 
+    /**
+     * @brief _readCoordinates
+     * Read the center of the morphology.
+     */
     void _readCoordinates();
 
+    /**
+     * @brief _readEndfeetPointsIndices
+     * Read the indices of the points of the endfeet.
+     */
     void _readEndfeetPointsIndices();
 
+    /**
+     * @brief _readEndfeetPoints
+     * Read the samples of the endfeet.
+     */
     void _readEndfeetPoints();
 
+    /**
+     * @brief _readEndfeetPatchesIndices
+     * Read the indices of the patches or triangles of the endfeet.
+     */
     void _readEndfeetPatchesIndices();
 
+    /**
+     * @brief _readEndfeetPatches
+     * Read the patches or the triangles of the endfeet.
+     */
     void _readEndfeetPatches();
 
-
-    void _constructEndfeetData();
+    /**
+     * @brief _constructEndfeet
+     * Construct the geometry of the endfeet from the patch data.
+     */
+    void _constructEndfeet();
 
 private:
 
@@ -98,38 +126,48 @@ private:
      */
     H5Samples _skeletonSamples;
 
-
+    /**
+     * @brief _endfeetSamples
+     * A list of the endfeet H5 samples.
+     */
     H5Samples _endfeetSamples;
 
+    /**
+     * @brief _endfeetTriangles
+     * A list of the endfeet triangles.
+     */
     Triangles _endfeetTriangles;
 
-
-    // Endfeet patches
+    /**
+     * @brief _endfeetPatches
+     * A list of all the endfeet patches in the morphology.
+     */
     EndfeetPatches _endfeetPatches;
-
 
     /**
      * @brief _structure
-     * Vasculature structure.
+     * Endfeet structure, or sections.
      */
     H5Sections _structure;
 
     /**
-     * @brief _connectivity
-     * Vasculature connectivity.
-     */
-    VasculatureH5ConnectivityList _connectivity;
-
-    /**
      * @brief _coordinates
-     * Astrocyte XYZ coordinates
+     * Astrocyte XYZ coordinates, or center.
      */
     Vector3f _coordinates;
 
+    /**
+     * @brief _endfeetPointsIndices
+     * A list of the indices of the endfeet points.
+     */
     EndfeetIndicesList _endfeetPointsIndices;
-    EndfeetIndicesList _endfeetTrianglesIndices;
 
+    /**
+     * @brief _endfeetTrianglesIndices
+     * A list of the indices of the endfeet triangles.
+     */
+    EndfeetIndicesList _endfeetTrianglesIndices;
 };
 
 }
-#endif // ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_READER_H
+#endif // ULTRALISER_DATA_MORPHOLOGIES_ASTROCYTE_H5_READER_H

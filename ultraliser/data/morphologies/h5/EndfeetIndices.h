@@ -52,4 +52,4 @@ typedef std::vector< EndfeetIndices > EndfeetIndicesList;
 
 }
 
-#endif // ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_ENDFEETINDICES_H
+#endif // ULTRALISER_DATA_MORPHOLOGIES_ENDFEETINDICES_H
