@@ -28,8 +28,9 @@
 
 namespace Ultraliser
 {
-SomaGeometry::SomaGeometry(const NeuronMorphology* morphology,
-                           const float& stiffness, const float& dt,
+
+SomaGeometry::SomaGeometry(const NeuronMorphology* morphology, const float& alphaRadius,
+                           const float& stiffness, const float& poissonRatio, const float& dt, 
                            const uint32_t& numIterations)
     : numVertices(0)
     , numTriangles(0)
@@ -37,105 +38,63 @@ SomaGeometry::SomaGeometry(const NeuronMorphology* morphology,
     if (morphology != nullptr)
     {
         _somaCenter = morphology->getSomaCenter();
-
         // For the moment, use the min soma radius to see the effect of the pulling forces on
         // the ico-sphere till further notice
-        _somaRadius = morphology->getSomaMinRadius();
-
-        auto mesh = _loadIcosphereGeometry();
-
-        // Compute maximum stiffness to preserve the simulation stability
-        float springStiffness = (1.0f / (dt / (2 * M_PI))) * 0.01f * clamp(stiffness, 0.0f, 1.0f);
-        float pullStiffness = 0.0f;
-
-        auto icoSprings = _generateIcosphereSprings(mesh, springStiffness);
-        auto pullSprings = _generatePullSprings(mesh, 0.0f, morphology->getSomaSamples(), 0.01f);
-
-        Simulation::AnimSystem animSystem(dt);
-
-        // Perform the icosphere animation adapting the stiffness of the pull springs
-        Simulation::Springs& springs = mesh->springs;
-        float stiffnessIncrement = springStiffness / numIterations;
-        for (uint32_t i = 0; i < numIterations; ++i)
-        {
-            pullStiffness += stiffnessIncrement;
-            for(auto spring : pullSprings)
-                spring->stiffness = pullStiffness;
-            springs = icoSprings;
-            springs.insert(springs.begin(), pullSprings.begin(), pullSprings.end());
-            animSystem.animate(mesh);
-        }
-
-        _nodesToVertices(mesh->nodes);
+        _somaRadius = morphology->getSomaMinRadius() * alphaRadius;
+        _somaGeometryGeneration(morphology->getSomaSamples(), stiffness, poissonRatio, dt, 
+                                numIterations);
     }
     else
-    {
         LOG_ERROR("The input morphology is EMPTY!");
-    }
 }
 
-SomaGeometry::SomaGeometry(const AstrocyteMorphology *morphology,
-                           const float &stiffness,
-                           const float &dt,
-                           const uint32_t &numIterations)
+SomaGeometry::SomaGeometry(const AstrocyteMorphology* morphology, const float& alphaRadius,
+                           const float& stiffness, const float& poissonRatio, const float& dt, 
+                           const uint32_t& numIterations)
     : numVertices(0)
     , numTriangles(0)
 {
     if (morphology != nullptr)
     {
         _somaCenter = morphology->getSomaCenter();
-
         // For the moment, use the min soma radius to see the effect of the pulling forces on
         // the ico-sphere till further notice
-        _somaRadius = morphology->getSomaMinRadius();
-
-        // Update the soma radius with 0.75 to see the pulling effect
-        _somaRadius *= 0.75;
-
-        auto mesh = _loadIcosphereGeometry();
-
-        // Compute maximum stiffness to preserve the simulation stability
-        float springStiffness = (1.0f / (dt / (2 * M_PI))) * 0.01f * clamp(stiffness, 0.0f, 1.0f);
-        float pullStiffness = 0.0f;
-
-        auto icoSprings = _generateIcosphereSprings(mesh, springStiffness);
-        auto pullSprings = _generatePullSprings(mesh, 0.0f, morphology->getSomaSamples(), 0.01f);
-
-        Simulation::AnimSystem animSystem(dt);
-
-        // Perform the icosphere animation adapting the stiffness of the pull springs
-        Simulation::Springs& springs = mesh->springs;
-        float stiffnessIncrement = springStiffness / numIterations;
-        for (uint32_t i = 0; i < numIterations; ++i)
-        {
-            pullStiffness += stiffnessIncrement;
-            for(auto spring : pullSprings)
-                spring->stiffness = pullStiffness;
-            springs = icoSprings;
-            springs.insert(springs.begin(), pullSprings.begin(), pullSprings.end());
-            animSystem.animate(mesh);
-        }
-
-        _nodesToVertices(mesh->nodes);
+        _somaRadius = morphology->getSomaMinRadius() * alphaRadius;
+        _somaGeometryGeneration(morphology->getSomaSamples(), stiffness, poissonRatio, dt, 
+                                numIterations);
     }
     else
-    {
         LOG_ERROR("The input morphology is EMPTY!");
-    }
-
 }
 
-void SomaGeometry::_insert(Simulation::SpringPtr spring, Simulation::UniqueSprings& springs)
+void SomaGeometry::_somaGeometryGeneration(const Samples& somaSamples, const float& stiffness, 
+                                           const float& poissonRatio, const float& dt,
+                                           const uint32_t& numIterations)
 {
-    std::pair<Simulation::UniqueSprings::iterator, bool> insertion = springs.insert(spring);
+    auto mesh = _loadIcosphereGeometry();
+    mesh->computeStiffnessMatrix(stiffness, poissonRatio, dt);
 
-    if (!insertion.second)
-        delete spring;
+    // Compute the simulation nodes linked to neurites starts
+    std::vector<Simulation::Nodes> neuritesNodes;
+    std::vector<Vector3f> surfacePositions;
+    _computeNeuritesNodes(mesh, neuritesNodes, surfacePositions, somaSamples);
+    
+    Simulation::AnimSystem animSystem(dt);
+
+    // Perform the icosphere animation adapting the stiffness of the pull springs
+    for (uint32_t i = 1; i <= numIterations; ++i)
+    {
+        float alpha = (float)i/ numIterations;
+        _pullNeuritesNodes(neuritesNodes, surfacePositions, somaSamples, alpha);
+        animSystem.animate(mesh);
+    }
+
+    _nodesToVertices(mesh->nodes);
 }
 
 Simulation::MeshPtr SomaGeometry::_loadIcosphereGeometry()
 {
-    auto mesh = new Simulation::Mesh(1000.f, 0.2f);
+    auto mesh = new Simulation::Mesh();
     Simulation::Nodes& nodes = mesh->nodes;
     nodes.resize(IcosphereVerticesSize);
 
@@ -147,6 +106,36 @@ Simulation::MeshPtr SomaGeometry::_loadIcosphereGeometry()
                           IcosphereVertices[i * 3 + 2]);
         nodes[i] = new Simulation::Node(position * _somaRadius + _somaCenter);
         nodes[i]->index = i;
+    }
+
+    Simulation::Tetrahedra& tetrahedra = mesh->tetrahedra;
+    tetrahedra.resize(IcosphereTetsIndicesSize);
+
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < tetrahedra.size(); ++i)
+    {
+        auto node0 = nodes[IcosphereTetsIndices[i * 4 + 0]];
+        auto node1 = nodes[IcosphereTetsIndices[i * 4 + 1]];
+        auto node2 = nodes[IcosphereTetsIndices[i * 4 + 2]];
+        auto node3 = nodes[IcosphereTetsIndices[i * 4 + 3]];
+        tetrahedra[i] = new Simulation::Tetrahedron(node0, node1, node2, node3);
+    }
+
+    std::set<uint64_t> uniqueIndices;
+    for (uint64_t i = 0; i < IcosphereTrianglesIndicesSize; ++i)
+    {
+        uniqueIndices.insert(IcosphereTrianglesIndices[i*3]);
+        uniqueIndices.insert(IcosphereTrianglesIndices[i*3+1]);
+        uniqueIndices.insert(IcosphereTrianglesIndices[i*3+2]);
+    }
+    std::vector<uint64_t> indices(uniqueIndices.begin(), uniqueIndices.end());
+
+    Simulation::Nodes& surfaceNodes = mesh->surfaceNodes;
+    surfaceNodes.resize(indices.size());
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < surfaceNodes.size(); ++i)
+    {
+        surfaceNodes[i] = nodes[indices[i]];
     }
 
     return mesh;
@@ -188,78 +177,74 @@ void SomaGeometry::_nodesToVertices(Simulation::Nodes& nodes)
     }
 }
 
-Simulation::Springs SomaGeometry::_generateIcosphereSprings(Simulation::MeshPtr mesh, 
-                                                            float stiffness)
+void SomaGeometry::_computeNeuritesNodes(Simulation::MeshPtr mesh,
+                                         std::vector<Simulation::Nodes>& neuritesNodes,
+                                         std::vector<Vector3f>& surfacePositions,
+                                         const Samples& somaSamples)
 {
-    Simulation::UniqueSprings uSprings;
-    for (uint64_t i = 0; i < IcosphereTetsIndicesSize; ++i)
-    {
-        Simulation::NodePtr node0 = mesh->nodes[IcosphereTetsIndices[i * 4 + 0]];
-        Simulation::NodePtr node1 = mesh->nodes[IcosphereTetsIndices[i * 4 + 1]];
-        Simulation::NodePtr node2 = mesh->nodes[IcosphereTetsIndices[i * 4 + 2]];
-        Simulation::NodePtr node3 = mesh->nodes[IcosphereTetsIndices[i * 4 + 3]];
+    neuritesNodes.resize(somaSamples.size());
+    surfacePositions.resize(somaSamples.size());
 
-        _insert(new Simulation::Spring(node0, node1, stiffness), uSprings);
-        _insert(new Simulation::Spring(node0, node2, stiffness), uSprings);
-        _insert(new Simulation::Spring(node0, node3, stiffness), uSprings);
-        _insert(new Simulation::Spring(node1, node2, stiffness), uSprings);
-        _insert(new Simulation::Spring(node1, node3, stiffness), uSprings);
-        _insert(new Simulation::Spring(node2, node3, stiffness), uSprings);
-    }
-    Simulation::Springs springs(uSprings.begin(), uSprings.end());
-    return springs;
-}
+    std::vector<bool> nodeAssigned(mesh->surfaceNodes.size());
+    for (auto assigned: nodeAssigned) assigned = false;  
 
-Simulation::Springs SomaGeometry::_generatePullSprings(Simulation::MeshPtr mesh,
-                                                       float stiffness,
-                                                       const Samples& somaSamples,
-                                                       float restLengthThreshold)
-{
-    Simulation::Springs springs;
-    for (auto sample: somaSamples)
+    for (uint32_t i = 0; i < somaSamples.size(); ++i)
     {
+        auto sample = somaSamples[i];
         Vector3f startPos = sample->getPosition();
         float startRadius = sample->getRadius();
 
         // Compute icosphere surface position nearer to the neurite start
         Vector3f direction = (startPos - _somaCenter).normalized();
         Vector3f surfacePos = direction * _somaRadius + _somaCenter;
+        surfacePositions[i] = surfacePos;
 
-        // Compute displacement from icosphere surface to neurite start
-        float diff = (startPos - surfacePos).abs();
-        if (diff < 0.1f)
+        // Check nodes within the neurite radius and add the nodes to neurite nodes
+        float minDistance = std::numeric_limits<float>::max();
+        uint64_t minDistanceId = 0;
+        for (uint64_t j = 0; j < mesh->surfaceNodes.size(); ++j)
         {
-            diff = 0.1f;
-        }
-        direction *= diff;
+            if (nodeAssigned[j]) continue;
+            auto node = mesh->surfaceNodes[j];
+            float distance = (node->position - surfacePos).abs();
 
-        // Check nodes within the neurite radius and create a spring connecting
-        // them to the neurite start
-        size_t nodesSize = mesh->nodes.size();
-        for (uint64_t i = 0; i < nodesSize; ++i)
-        {
-            auto node = mesh->nodes[i];
-            if ((node->position - surfacePos).abs() < startRadius)
+            // Check the node with minimum distance
+            if (distance < minDistance)
             {
-                Vector3f linkPosition = node->position + direction;
-                auto linkNode = new Simulation::Node(linkPosition, true);
-                mesh->nodes.push_back(linkNode);
-                springs.push_back(new Simulation::Spring(
-                    node, linkNode, stiffness, diff * restLengthThreshold));
+                minDistance = distance;
+                minDistanceId = j;
+            }
+
+            if ( distance <= startRadius)
+            {
+                neuritesNodes[i].push_back(node);
+                node->fixed = true;
+                nodeAssigned[j] = true;
             }
         }
+
+        // If no nodes have been assigned to a the neurite the closest node is assigned
+        if (neuritesNodes[i].empty())
+        {
+            auto node = mesh->surfaceNodes[minDistanceId];
+            neuritesNodes[i].push_back(node);
+            surfacePositions[i] = node->position;
+            node->fixed = true;
+            nodeAssigned[minDistanceId] = true;
+        }
     }
-    return springs;
 }
 
-void SomaGeometry::_fixCenterNodes(Simulation::Nodes& nodes, float threshold)
+void SomaGeometry::_pullNeuritesNodes(std::vector<Simulation::Nodes>& neuritesNodes,
+                                      std::vector<Vector3f>& surfacePositions,
+                                      const Samples& somaSamples, float alpha)
 {
-    for (auto node : nodes)
+    // Reposition nodes in the direction of the neurites starts
+    for (uint32_t i = 0; i < somaSamples.size(); ++i)
     {
-        if ((node->position - _somaCenter).abs() < _somaRadius * threshold)
-        {
-            node->fixed = true;
-        }
+        Vector3f increment = (somaSamples[i]->getPosition() - surfacePositions[i]) * alpha;
+        for (auto node: neuritesNodes[i])
+            node->position = node->initPosition() + increment; 
     }
 }
 

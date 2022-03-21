@@ -45,12 +45,23 @@ public:
      * @param position
      * @param fixed
      */
-    Node(Vector3f pos, bool fix = false)
-        : position(pos)
+    Node(Vector3f pos, float mass = 1.f, bool fix = false)
+        : _initPosition(pos)
+        , position(pos)
+        , mass(mass)
         , fixed(fix)
         , index(0)
     {
         /// EMPTY CONSTRUCTOR
+    }
+
+    /**
+     * @brief initPosition
+     * Gets node initial position
+     */
+    Vector3f initPosition() const
+    {
+        return _initPosition;
     }
 
 public:
@@ -71,6 +82,11 @@ public:
     Vector3f force;
 
     /**
+     * @brief mass
+     */
+    float mass;
+
+    /**
      * @brief position fixed
      */
     bool fixed;
@@ -79,6 +95,15 @@ public:
      * @brief index
      */
     uint32_t index;
+
+private:
+
+    /**
+     * @brief _initPosition
+     * Node initial position
+     */
+    Vector3f _initPosition;
+
 };
 
 /**

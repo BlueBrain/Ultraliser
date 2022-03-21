@@ -34,6 +34,7 @@ set(CMAKE_MODULE_PATH  ${CMAKE_SOURCE_DIR}/cmake)
 include(OpenMP)
 include(TIFF)
 include(HDF5)
+include(Eigen3)
 #include(Doxygen)
 
 include_directories("/usr/include")

@@ -129,19 +129,15 @@ void NeuronMorphology::trim(uint64_t axonBranchOrder,
         }
     }
 
-    for (auto sample: _somaSamples)
-    {
-        Vector3f pMaxSample = sample->getPosition() + Vector3f(sample->getRadius());
-        Vector3f pMinSample = sample->getPosition() - Vector3f(sample->getRadius());
+    Vector3f pMaxSoma = _somaCenter + Vector3f(_somaMaxRadius);
+    Vector3f pMinSoma = _somaCenter - Vector3f(_somaMaxRadius);
 
-        if (pMaxSample.x() > _pMax.x()) _pMax.x() = pMaxSample.x();
-        if (pMaxSample.y() > _pMax.y()) _pMax.y() = pMaxSample.y();
-        if (pMaxSample.z() > _pMax.z()) _pMax.z() = pMaxSample.z();
-
-        if (pMinSample.x() < _pMin.x()) _pMin.x() = pMinSample.x();
-        if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
-        if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
-    }
+    if (pMaxSoma.x() > _pMax.x()) _pMax.x() = pMaxSoma.x();
+    if (pMaxSoma.y() > _pMax.y()) _pMax.y() = pMaxSoma.y();
+    if (pMaxSoma.z() > _pMax.z()) _pMax.z() = pMaxSoma.z();
+    if (pMinSoma.x() < _pMin.x()) _pMin.x() = pMinSoma.x();
+    if (pMinSoma.y() < _pMin.y()) _pMin.y() = pMinSoma.y();
+    if (pMinSoma.z() < _pMin.z()) _pMin.z() = pMinSoma.z();
 
     _sections.clear();
     _sections = newSections;
@@ -353,6 +349,16 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
         _somaMinRadius = _somaMeanRadius;
         _somaMaxRadius = _somaMeanRadius;
     }
+
+    Vector3f pMaxSoma = _somaCenter + Vector3f(_somaMaxRadius);
+    Vector3f pMinSoma = _somaCenter - Vector3f(_somaMaxRadius);
+
+    if (pMaxSoma.x() > _pMax.x()) _pMax.x() = pMaxSoma.x();
+    if (pMaxSoma.y() > _pMax.y()) _pMax.y() = pMaxSoma.y();
+    if (pMaxSoma.z() > _pMax.z()) _pMax.z() = pMaxSoma.z();
+    if (pMinSoma.x() < _pMin.x()) _pMin.x() = pMinSoma.x();
+    if (pMinSoma.y() < _pMin.y()) _pMin.y() = pMinSoma.y();
+    if (pMinSoma.z() < _pMin.z()) _pMin.z() = pMinSoma.z();
 }
 
 void NeuronMorphology::_constructMorphologyFromH5(const H5Samples& h5Samples,

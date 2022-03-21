@@ -46,34 +46,48 @@ public:
      *
      * @param morphology
      * The given neuron moprhology to generate the somatic mesh from.
+     * @param alphaRadius
+     * Multiplier of the soma radius.
      * @param stiffness
-     * Simulation stiffness factor. Takes values between 0 and 1.
+     * Simulation stiffness factor. Takes values over 0.
+     * @param poissonRatio
+     * Simulation poisson ratio. Takes values between (0, 0.5].
      * @param dt
      * Simulation time increment.
      * @param numIterations
      * Nunber of simulation iterations.
      */
-    SomaGeometry(const NeuronMorphology* morphology, const float& stiffness = 1.0f,
-                 const float& dt = 0.01f,
-                 const uint32_t& numIterations = 8000);
+    SomaGeometry(const NeuronMorphology* morphology, const float& alphaRadius = 0.75f, 
+                 const float& stiffness = 10000.0f, const float& poissonRatio = 0.2f, 
+                 const float& dt = 0.01f, const uint32_t& numIterations = 200);
 
 
-    SomaGeometry(const AstrocyteMorphology* morphology, const float& stiffness = 1.0f,
-                 const float& dt = 0.01f,
-                 const uint32_t& numIterations = 8000);
+    SomaGeometry(const AstrocyteMorphology* morphology, const float& alphaRadius = 0.75f, 
+                 const float& stiffness = 10000.0f, const float& poissonRatio = 0.2f, 
+                 const float& dt = 0.01f, const uint32_t& numIterations = 200);
 
 private:
 
     /**
-     * @brief _insert
-     * Insert spring in the unique springs set.
-     *
-     * @param spring
-     * The given spring to be added.
-     * @param springs
-     * A set of springs where the given spring will be added.
+     * @brief _somaGeometryGeneration
+     * Generates the soma geoemtry.
+     * 
+     * @param somaSamples
+     * Soma samples.
+     * @param alphaRadius
+     * Multiplier of the soma radius.
+     * @param stiffness
+     * Simulation stiffness factor. Takes values over 0.
+     * @param poissonRatio
+     * Simulation poisson ratio. Takes values between (0, 0.5].
+     * @param dt
+     * Simulation time increment.
+     * @param numIterations
+     * Nunber of simulation iterations.
      */
-    void _insert(Simulation::SpringPtr spring, Simulation::UniqueSprings& springs);
+    void _somaGeometryGeneration(const Samples& somaSamples, const float& stiffness,
+                                 const float& poissonRatio, const float& dt,
+                                 const uint32_t& numIterations);
 
     /**
      * @brief _loadIcosphereGeometry
@@ -91,48 +105,39 @@ private:
     void _nodesToVertices(Simulation::Nodes& nodes);
 
     /**
-     * @brief _generateIcosphereSprings
-     * Add springs based in the coarse icospehere geometry.
+     * @brief _computeNeuritesNodes
+     * Compute the icosphere nodes linkd to the neurites starts 
      *
      * @param mesh
      * Simulation mesh.
-     * @param stiffness
-     * Simulation stiffness
-     * @return 
-     * Icosphere springs.
-     */
-     Simulation::Springs _generateIcosphereSprings(Simulation::MeshPtr mesh, float stiffness);
-
-    /**
-     * @brief _generatePullSprings
-     * Adds springs incharge to pull in the fisrSections directions.
-     *
-     * @param mesh
-     * Simulation mesh.
-     * @param stiffness
-     * Simulation stiffness.
+     * @param neuritesNodes
+     * Vector of nodes linked to each neurite start.
+     * @param surfacePositions
+     * Position of the surfce linked to each neurite start
      * @param somaSamples
      * A list of the soma samples.
-     * @param restLengthThreshold
-     * The threshold length of the springs at the resting state.
-     * @return 
-     * Pull springs.
      */
-    Simulation::Springs _generatePullSprings(Simulation::MeshPtr mesh,
-                                             float stiffness,
-                                             const Samples& somaSamples,
-                                             float restLengthThreshold = 0.2);
+    void _computeNeuritesNodes(Simulation::MeshPtr mesh,
+                               std::vector<Simulation::Nodes>& neuritesNodes,
+                               std::vector<Vector3f>& surfacePositions,
+                               const Samples& somaSamples);
 
     /**
-     * @brief _fixCenterNode
-     * Fixes the center nodes of the initial icosphere based on the threshold.
+     * @brief _pullNeuritesNodes
+     * Reposition the nodes linked to the neurites starts in their direction multiplied by alpha
      *
-     * @param nodes
-     * Ico-sphere nodes list.
-     * @param threshold
-     * A given threshold to fix the nodes at.
+     * @param neuritesNodes
+     * Vector of nodes linked to each neurite start.
+     * @param surfacePositions
+     * Position of the surfce linked to each neurite start
+     * @param somaSamples
+     * A list of the soma samples.
+     * @param alpha
+     * Direction multiplicator parameter
      */
-    void _fixCenterNodes(Simulation::Nodes& nodes, float threshold);
+    void _pullNeuritesNodes(std::vector<Simulation::Nodes>& neuritesNodes,
+                            std::vector<Vector3f>& surfacePositions,
+                            const Samples& somaSamples, float alpha = 0.01f);
 
 public:
 
