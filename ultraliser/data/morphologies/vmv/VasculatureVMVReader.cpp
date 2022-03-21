@@ -214,7 +214,6 @@ void VasculatureVMVReader::_readConnectivity()
         copy(std::istream_iterator< std::string >(iss),
              std::istream_iterator< std::string >(),
              std::back_inserter(tokens));
-        // LOG_INFO("%s", cleanLine.c_str());
 
         // Section index is at index 0 of the tokens
         uint64_t sectionIndex = S2UI(tokens[0]);
@@ -223,7 +222,6 @@ void VasculatureVMVReader::_readConnectivity()
         // Fill the section with its sampless
         for (uint64_t i = 1; i < tokens.size(); ++i)
         {
-            //LOG_INFO("%s", tokens[i].c_str());
             // Get the section sample and construct it
             const uint64_t sampleIndex = S2UI(tokens[i]);
             section->addSample(_samples[sampleIndex - 1]);

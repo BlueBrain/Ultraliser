@@ -358,7 +358,6 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
             LOOP_PROGRESS(PROGRESS, sections.size());
             PROGRESS_UPDATE;
         }
-        
     }
     else
     {
@@ -371,7 +370,6 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
     // Statistics
     LOG_STATUS_IMPORTANT("Rasterization Stats.");
     LOG_STATS(_surfaceVoxelizationTime);
-
 }
 
 void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(const AstrocyteMorphology* astrocyteMorphology,

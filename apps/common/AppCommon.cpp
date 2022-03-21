@@ -196,14 +196,13 @@ void ensureWatertightness(Mesh* mesh, const AppOptions* options)
     watertightMesh->toSimpleMesh(mesh);
 }
 
-void applyLaplacianOperator(Mesh *mesh, const AppOptions* options)
+void applySmoothingOperator(Mesh *mesh, const AppOptions* options)
 {   
-    // Apply the Laplacian filter
-    mesh->smoothLaplacian(options->laplacianIterations);
+    // Apply the smoothing filter
+    mesh->smoothSurface(options->laplacianIterations);
 
-    // NOTE: Depending on the marching cubes algorithm, the laplacian operator might introduce some
-    // self intersections, this must be fixed
-    ensureWatertightness(mesh, options);
+    // TODO: We don't realy need it
+    // ensureWatertightness(mesh, options);
 
     if (!options->ignoreLaplacianMesh)
     {
@@ -411,7 +410,7 @@ void optimizeMeshWithPartitions(AdvancedMesh* mesh, const AppOptions* options)
 
         // Laplacian smoorhing on a per-partition-basis
         if (options->laplacianIterations > 0)
-            simpleMesh->smoothLaplacian(options->laplacianIterations);
+            simpleMesh->smoothSurface(options->laplacianIterations);
 
         // Optimize the simple mesh
         optimizeMesh(simpleMesh, options);
@@ -445,7 +444,7 @@ void optimizeMeshWithPartitions(AdvancedMesh* mesh, const AppOptions* options)
 
         // Laplacian smoorhing on a per-partition-basis
         if (options->laplacianIterations > 0)
-            simpleMesh->smoothLaplacian(options->laplacianIterations);
+            simpleMesh->smoothSurface(options->laplacianIterations);
 
         // Optimize the simple mesh
         try {
@@ -528,7 +527,7 @@ void generateReconstructedMeshArtifacts(Mesh* mesh, const AppOptions* options)
 
     // Apply laplacian smoothing
     if (options->laplacianIterations > 0)
-        applyLaplacianOperator(mesh, options);
+        applySmoothingOperator(mesh, options);
 
     // Create an optimized version of the mesh
     if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)

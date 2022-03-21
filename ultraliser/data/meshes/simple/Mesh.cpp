@@ -668,54 +668,34 @@ void Mesh::applyLaplacianSmooth(const uint32_t& numIterations,
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Mesh::smoothLaplacian(uint64_t numIterations)
+void Mesh::shrinkOrInflateSurface(const Neighborhood& vertexNeighbours,
+                                  const Neighborhood faceNeighbors,
+                                  const bool& shrink,
+                                  const float& lambda,
+                                  const float& mu)
 {
-    // If no iterations, return
-    if (numIterations < 1)
-        return;
-
-    LOG_TITLE("Laplacian Smoothing");
-    TIMER_SET;
-
-    Neighborhood vertexN, faceN;
-    _computeNeighborhoods(*this, vertexN, faceN);
-
     // A new list of vertices
     auto newVertices = std::make_unique< Vertex[] >(_numberVertices);
 
-    LOOP_STARTS("Smoothing")
-    for (uint64_t i = 0; i < numIterations; ++i)
+    // For every vertex in the vertex list
+    for (uint64_t i = 0; i < _numberVertices; i++)
     {
-        #pragma omp parallel for
-        for (uint64_t iVertex = 0; iVertex < _numberVertices; ++iVertex)
+        // Operate on a vertex
+        Vector3f vertex;
+        for (auto elem = vertexNeighbours[i].begin(); elem != vertexNeighbours[i].end(); ++elem)
         {
-            // New vertex
-            Vector3f newVertex = _vertices[iVertex];
-
-            // Neighbours weights
-            auto neighbours = vertexN[iVertex];
-            for (auto neighbour : neighbours)
-            {
-                newVertex += _vertices[neighbour];
-            }
-
-            // Update the new vertex
-            newVertices[iVertex] = newVertex / (neighbours.size() + 1);
+            vertex = vertex + _vertices[*elem];
         }
 
-        for (size_t iVertex = 0; iVertex < _numberVertices; ++iVertex)
-        {
-            Vertex tmpVertex;
-            tmpVertex = newVertices[iVertex];
+        // Update the vertex position
+        vertex = vertex / vertexNeighbours[i].size() - _vertices[i];
 
-            newVertices[iVertex] = _vertices[iVertex];
-            _vertices[iVertex] = tmpVertex;
-        }
-
-        LOOP_PROGRESS(i, numIterations);
+        // Finally apply a vertex shrinking or inflation operation ...
+        if(shrink)
+            newVertices[i] = vertex * lambda + _vertices[i];
+        else
+            newVertices[i] = vertex * mu + _vertices[i];
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
 
     // Update vertices
     #pragma omp parallel for
@@ -723,14 +703,40 @@ void Mesh::smoothLaplacian(uint64_t numIterations)
     {
         _vertices[iVertex] = newVertices[iVertex];
     }
+}
+
+void Mesh::smoothSurface(uint64_t numIterations)
+{
+    // If no iterations, return
+    if (numIterations < 1)
+        return;
+
+    LOG_TITLE("Smoothing");
+    TIMER_SET;
+
+    // Compute the vertex and face neighbours
+    Neighborhood vertexNeighbours, faceNeighbours;
+    _computeNeighborhoods(*this, vertexNeighbours, faceNeighbours);
+
+    // Shrink/Inflate the surface using a tic-toe approach
+    LOOP_STARTS("Smoothing")
+    for (uint64_t i = 0; i < numIterations; ++i)
+    {
+        shrinkOrInflateSurface(vertexNeighbours, faceNeighbours, true);
+        shrinkOrInflateSurface(vertexNeighbours, faceNeighbours, false);
+
+        LOOP_PROGRESS(i, numIterations);
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     // Clean
-    vertexN.clear();
-    vertexN.shrink_to_fit();
-    faceN.clear();
-    faceN.shrink_to_fit();
+    vertexNeighbours.clear();
+    vertexNeighbours.shrink_to_fit();
+    faceNeighbours.clear();
+    faceNeighbours.shrink_to_fit();
 
-    LOG_STATUS_IMPORTANT("Laplacian Operator Stats.");
+    LOG_STATUS_IMPORTANT("Smoothing Operator Stats.");
     LOG_STATS(GET_TIME_SECONDS);
 }
 

@@ -2788,7 +2788,7 @@ void Mesh::coarseFlat(const float& flatnessRate,
     TIMER_SET;
 
     for (int64_t i = 0; i < iterations; ++i)
-        coarse(flatnessRate, 1, 0, -1, i);
+        if (!coarse(flatnessRate, 1, 0, -1, i)) break;
 
     // Statistics
     LOG_STATUS("Flat Coarsing (Decimation) Stats.");

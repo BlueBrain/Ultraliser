@@ -520,12 +520,26 @@ public:
                               const float& inflateMu = 0.1);
 
     /**
-     * @brief smoothLaplacian
+     * @brief shrinkSurface
+     * @param numIterations
+     * @param lambda
+     * @param mu
+     */
+    void shrinkOrInflateSurface(const Neighborhood &vertexNeighbours,
+                                const Neighborhood faceNeighbors,
+                                const bool &shrink,
+                                const float& lambda = 0.5f,
+                                const float& mu = -0.4);
+
+    /**
+     * @brief smoothSurface
      * Another simple implementation to the Laplacian filter.
      * @param numIterations
      * Number of iterations.
      */
-    void smoothLaplacian(uint64_t numIterations);
+    void smoothSurface(uint64_t numIterations);
+
+
 
     /**
      * @brief scaleAndTranslateGeneratedMesh

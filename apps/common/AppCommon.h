@@ -99,7 +99,7 @@ void optimizeMeshWithPartitions(AdvancedMesh* mesh, const AppOptions* options);
  * @param options
  * User-defined options given to the executable.
  */
-void applyLaplacianOperator(Mesh *mesh, const AppOptions* options);
+void applySmoothingOperator(Mesh *mesh, const AppOptions* options);
 
 /**
  * @brief createMeshWithNoSelfIntersections

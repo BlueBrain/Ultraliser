@@ -295,6 +295,9 @@ void Section::resampleUniformly(const float& step)
             }
         }
 
+        // Add the last sample to ensure to completensee of the section
+        newSamples.push_back(_samples.at(_samples.size() - 1));
+
         // Clear the old samples list
         _samples.clear();
         _samples.shrink_to_fit();
