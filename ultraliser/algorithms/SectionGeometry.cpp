@@ -27,129 +27,42 @@ namespace Ultraliser
 
 SectionGeometry::SectionGeometry(const Samples& samples, uint64_t numberOfSides)
 {
-    uint64_t numSamplesPerSeg = samples.size() - 1;
-    uint64_t pSamplesPerSeg[numSamplesPerSeg];
-    for (uint64_t i = 0; i < numSamplesPerSeg; ++i)
-    {
-        float dist = (samples[i]->getRadius() + samples[i+1]->getRadius()) *
-                ULTRALISER_PIF / numberOfSides;
-        uint64_t samplesPerSeg = std::round((samples[i]->getPosition() -
-                                    samples[i + 1]->getPosition()).abs() /
-                                            dist) + 1;
-        if (samplesPerSeg < 2 )
-        {
-            samplesPerSeg = 2;
-        }
-        pSamplesPerSeg[i] = samplesPerSeg;
-    }
-    *this = SectionGeometry(samples, numberOfSides, pSamplesPerSeg);
-}
-
-SectionGeometry::SectionGeometry(const Samples& samples, uint64_t numberOfSides,
-                                 uint64_t samplesPerSegment)
-{
-    uint64_t numSamplesPerSeg = samples.size() - 1;
-    uint64_t pSamplesPerSeg[numSamplesPerSeg];
-    for (uint64_t i = 0; i < numSamplesPerSeg; ++i)
-    {
-        pSamplesPerSeg[i] = samplesPerSegment;
-    }
-    *this = SectionGeometry(samples, numberOfSides, pSamplesPerSeg);
-}
-
-SectionGeometry::SectionGeometry(const Samples& samples, uint64_t numberOfSides,
-                                 uint64_t* pSamplesPerSegment)
-{
     uint64_t numSamples = samples.size();
-    uint64_t totalSamples = 1;
+
+    if (numSamples > 1)
+    {
 
     // Tangent computation
     Vector3f tangents[numSamples];
-    for (uint64_t i = 0; i < numSamples - 1; ++i)
+    for (uint64_t i = 0; i < numSamples; ++i)
     {
-        totalSamples += pSamplesPerSegment[i] - 1;
+        Vector3f tangent;
+        if (i == 0)
+            tangent = samples[1]->getPosition() - samples[0]->getPosition();
+        else if (i == numSamples - 1)
+            tangent = samples[i]->getPosition() - samples[i - 1]->getPosition();
+        else 
+            tangent = samples[i + 1]->getPosition() - samples[i - 1]->getPosition();
+        tangents[i] = tangent.normalized();
     }
 
-    // Per segment geometry generation
-    numVertices = numberOfSides * totalSamples + 2;
+    // Per sample geometry generation
+    numVertices = numberOfSides * numSamples + 2;
     vertices = new Vertex[numVertices];
     CrossSectionGeometry csg(numberOfSides);
-    totalSamples = 0;
-    for (uint64_t i = 0; i < numSamples - 1; ++i)
+    for (uint64_t i = 0; i < numSamples; ++i)
     {
-        // Per segment tangents compute 
-        Vector3f pos0;
-        Vector3f pos1 = samples[i]->getPosition();
-        Vector3f pos2 = samples[i+1]->getPosition();
-        Vector3f pos3;
-        if (i == 0)
-        {
-            pos0 = 2.0f * pos1 - pos2;
-        }
-        else
-        {
-            pos0 = samples[i - 1]->getPosition();
-        }
-        if (i == numSamples - 2)
-        {
-            pos3 = 2.0f * pos2 - pos1;
-        }
-        else
-        {
-            pos3 = samples[i + 2]->getPosition();
-        }
-        Vector3f p10 = pos1 - pos0;
-        Vector3f p20 = pos2 - pos0;
-        Vector3f p21 = pos2 - pos1;
-        Vector3f p31 = pos3 - pos1;
-        Vector3f p32 = pos3 - pos2;
-        float t_1 = sqrt((p10).abs());
-        float t_2 = t_1 + sqrt(p21.abs());
-        float t_3 = t_2 + sqrt(p32.abs());
-        float t_21 = t_2 - t_1;
-        float t_31 = t_3 - t_1;
-        float t_32 = t_3 - t_2;
-        Vector3f m1 = (t_2 - t_1) * (p10 / t_1 - p20 / t_2 + p21 / t_21);
-        Vector3f m2 = (t_2 - t_1) * (p21 / t_21 - p31 / t_31 + p32 / t_32);
-        uint64_t samplesPerSeg = pSamplesPerSegment[i] - 1;
-        float r1 = samples[i]->getRadius();
-        float r2 = samples[i+1]->getRadius();
-        float dt = 1.0f / samplesPerSeg;
-
-        // Spline interpolation and vertices generation
-        if (i == numSamples - 2 )
-        {
-            ++samplesPerSeg;
-        }
-        for (uint64_t j = 0; j < samplesPerSeg; ++j)
-        {
-            float t = dt * j;
-            float t2 = t * t;
-            float t3 = t2 * t;
-            Vector3f pos = (2 * t3 - 3 * t2 + 1) * pos1 +
-                    (t3 - 2 * t2 + t) * m1 +
-                    (-2 * t3 + 3 * t2) * pos2 +
-                    (t3 - t2) * m2;
-            Vector3f tangent =  (6 * t2 - 6 * t) * pos1 +
-                    (3 * t2 - 4 * t + 1) * m1 +
-                    (-6 * t2 + 6 * t) * pos2 +
-                    (3 * t2 - 2* t) * m2;;
-            float radius = (2 * t3 - 3 * t2 + 1) * r1 +
-                    (-2 * t3 + 3 * t2) * r2;
-
-            csg.setPositionOrientationRadius(pos, tangent, radius);
-            std::memcpy(vertices[(totalSamples + j) * numberOfSides],
-                        csg.vertices, numberOfSides*sizeof(Vertex));
-        }
-        totalSamples += samplesPerSeg;
+        auto sample = samples[i];
+        csg.setPositionOrientationRadius(sample->getPosition(), tangents[i], sample->getRadius());
+        std::memcpy(vertices[i * numberOfSides], csg.vertices, numberOfSides*sizeof(Vertex));
     }
     vertices[numVertices-2] = samples[0]->getPosition();
     vertices[numVertices-1] = samples[numSamples-1]->getPosition();
 
     // Primitives assembly 
-    numTriangles = numberOfSides * (totalSamples) * 2;
+    numTriangles = numberOfSides * numSamples * 2;
     triangles = new Triangle[numTriangles];
-    for (uint64_t i = 0; i < totalSamples - 1; ++i)
+    for (uint64_t i = 0; i < numSamples - 1; ++i)
     {
         for (uint64_t j = 0; j < numberOfSides; ++j)
         {
@@ -170,17 +83,17 @@ SectionGeometry::SectionGeometry(const Samples& samples, uint64_t numberOfSides,
     {
         uint64_t index2 = i;
         uint64_t index1 = (i+1)%numberOfSides;
-        triangles[numberOfSides*(totalSamples-1)*2+i] =
+        triangles[numberOfSides*(numSamples-1)*2+i] =
                 Vec3i_64(index0, index1, index2);
     }
     index0 = numVertices - 1;
     for (unsigned int i = 0; i < numberOfSides; ++i)
     {
-        uint64_t index1 = ((totalSamples-1)*numberOfSides) + i;
-        uint64_t index2 = ((totalSamples-1)*numberOfSides) + (i+1)%numberOfSides;
-        triangles[numberOfSides*((totalSamples-1)*2+1)+i] =
+        uint64_t index1 = ((numSamples-1)*numberOfSides) + i;
+        uint64_t index2 = ((numSamples-1)*numberOfSides) + (i+1)%numberOfSides;
+        triangles[numberOfSides*((numSamples-1)*2+1)+i] =
                 Vec3i_64(index0, index1, index2);
-    }
+    }}
 }
 
 CrossSectionGeometry::CrossSectionGeometry(uint64_t numVertices)
