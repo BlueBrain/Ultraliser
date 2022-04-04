@@ -50,10 +50,12 @@ SectionGeometry::SectionGeometry(const Samples& samples, uint64_t numberOfSides)
     numVertices = numberOfSides * numSamples + 2;
     vertices = new Vertex[numVertices];
     CrossSectionGeometry csg(numberOfSides);
+    const float rollOffset = M_PI / numberOfSides;
     for (uint64_t i = 0; i < numSamples; ++i)
     {
         auto sample = samples[i];
         csg.setPositionOrientationRadius(sample->getPosition(), tangents[i], sample->getRadius());
+        csg.setRoll(rollOffset*i);
         std::memcpy(vertices[i * numberOfSides], csg.vertices, numberOfSides*sizeof(Vertex));
     }
     vertices[numVertices-2] = samples[0]->getPosition();
@@ -100,7 +102,8 @@ CrossSectionGeometry::CrossSectionGeometry(uint64_t numVertices)
     : numVertices(numVertices)
     , _position(Vector3f(0.0f, 0.0f, 0.0f))
     , _orientation(Vector3f(0.0f, 0.0f, 1.0f))
-    , _radius(1.0)
+    , _radius(1.0f)
+    , _roll(0.0f)
 {
     // Construct the vertices list
     vertices = new Vertex[numVertices];
@@ -164,6 +167,20 @@ void CrossSectionGeometry::setRadius(const float& radius)
         vertices[i] = (vertices[i] - _position) * radiusRatio + _position;
     }
     _radius = radius;
+}
+
+void CrossSectionGeometry::setRoll(const float& roll)
+{
+    const float rollDiff = roll - _roll;
+    Quat4f q;
+    q.setAxisAngle(rollDiff, _orientation);
+    
+    for (uint64_t i = 0; i < numVertices; ++i)
+    {
+        vertices[i] = q.rotate(vertices[i] - _position) + _position;
+    }
+
+    _roll = roll;
 }
 
 void CrossSectionGeometry::setPositionOrientationRadius(const Vector3f& position,

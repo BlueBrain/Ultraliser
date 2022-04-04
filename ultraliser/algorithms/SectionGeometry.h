@@ -125,7 +125,7 @@ public:
      * Constructor.
      * @param numVertices
      * Number of the vertices of the cross section geometry.
-     * @Param position
+     * @param position
      * The position of the cross section geometry.
      * @param orientation
      * The orientation of the cross section geometry.
@@ -168,6 +168,14 @@ public:
      * The new radius.
      */
     void setRadius(const float& radius);
+
+    /**
+     * @brief setRoll
+     * Updates the roll angle of the cross section geometry.
+     * @param roll
+     * The new roll angle.
+     */
+    void setRoll(const float& roll);
 
     /**
      * @brief setPosition
@@ -217,6 +225,12 @@ private:
      * The radius of the cross section geometry.
      */
     float _radius;
+
+    /**
+     * @brief _roll
+     * The roll angle of the cross section geometry.
+     */
+    float _roll;
 
 public:
     ~CrossSectionGeometry(void);
