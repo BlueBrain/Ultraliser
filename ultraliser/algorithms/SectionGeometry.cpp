@@ -47,35 +47,73 @@ SectionGeometry::SectionGeometry(const Samples& samples, uint64_t numberOfSides)
     }
 
     // Per sample geometry generation
-    numVertices = numberOfSides * numSamples + 2;
-    vertices = new Vertex[numVertices];
+    std::vector<Vertex> newVertices;
+    uint64_t numNewSamples = 0;
     CrossSectionGeometry csg(numberOfSides);
     const float rollOffset = M_PI / numberOfSides;
-    for (uint64_t i = 0; i < numSamples; ++i)
+    for (uint64_t i = 0; i < numSamples - 1; ++i) 
     {
-        auto sample = samples[i];
-        csg.setPositionOrientationRadius(sample->getPosition(), tangents[i], sample->getRadius());
-        csg.setRoll(rollOffset*i);
-        std::memcpy(vertices[i * numberOfSides], csg.vertices, numberOfSides*sizeof(Vertex));
+        // Linear interpolation per section
+        Vector3f pos0 = samples[i]->getPosition();
+        Vector3f pos1 = samples[i + 1]->getPosition();
+        float radius0 = samples[i]->getRadius();
+        float radius1 = samples[i + 1]->getRadius();
+        Quat4f q0(tangents[i]);
+        Quat4f q1(tangents[i + 1]);
+
+        float meanRadius = (radius0 + radius1) * 0.5f;
+        uint32_t numDivision = std::ceil((pos1 - pos0).abs() / (2.0f * M_PI * meanRadius /         
+                                                                numberOfSides));
+        float alphaIncr = 1.0f / numDivision;
+
+        for (uint32_t j = 0; j < numDivision; ++j) 
+        {
+            float alpha = alphaIncr * j;
+            Vector3f pos = Vector3f::lerp(pos0, pos1, alpha);
+            float radius = radius0 * (1.0f - alpha) + radius1 * alpha;
+            Vector3f tangent = (Quat4f::slerp(q0, q1, alpha)).xyz();
+            csg.setPositionOrientationRadius(pos, tangent, radius);
+            csg.setRoll(rollOffset * numNewSamples);
+            ++numNewSamples;
+            for (uint32_t vertexId = 0; vertexId < numberOfSides; ++vertexId)
+            {
+                newVertices.push_back(csg.vertices[vertexId]);
+            }
+        }
     }
-    vertices[numVertices-2] = samples[0]->getPosition();
-    vertices[numVertices-1] = samples[numSamples-1]->getPosition();
+    
+    // Add the last section sample geometry
+    auto sample = samples[numSamples - 1];
+    csg.setPositionOrientationRadius(sample->getPosition(), tangents[numSamples - 1],           
+                                     sample->getRadius());
+    csg.setRoll(rollOffset * numNewSamples);
+    ++numNewSamples;
+    for (uint32_t vertexId = 0; vertexId < numberOfSides; ++vertexId)
+      newVertices.push_back(csg.vertices[vertexId]);
+
+    // Add last two vertices to cap begin and end of the section
+    newVertices.push_back(samples[0]->getPosition());
+    newVertices.push_back(samples[numSamples - 1]->getPosition());
+
+    // Copy generated vertices to the final structure
+    numVertices = newVertices.size();
+    vertices = new Vertex[numVertices];
+    std::copy(newVertices.begin(), newVertices.end(), vertices);
+    newVertices.clear();
 
     // Primitives assembly 
-    numTriangles = numberOfSides * numSamples * 2;
+    numTriangles = numberOfSides * numNewSamples * 2;
     triangles = new Triangle[numTriangles];
-    for (uint64_t i = 0; i < numSamples - 1; ++i)
+    for (uint64_t i = 0; i < numNewSamples - 1; ++i) 
     {
-        for (uint64_t j = 0; j < numberOfSides; ++j)
+        for (uint64_t j = 0; j < numberOfSides; ++j) 
         {
             uint64_t index0 = i * numberOfSides + j;
             uint64_t index1 = i * numberOfSides + ((j + 1) % numberOfSides);
             uint64_t index2 = (i + 1) * numberOfSides + j;
             uint64_t index3 = (i + 1) * numberOfSides + ((j + 1) % numberOfSides);
-            triangles[(i * numberOfSides +j) * 2] =
-                    Vec3i_64(index0, index1, index2);
-            triangles[(i * numberOfSides + j)*2 + 1] =
-                    Vec3i_64(index1, index3, index2);
+            triangles[(i * numberOfSides + j) * 2] = Vec3i_64(index0, index1, index2);
+            triangles[(i * numberOfSides + j) * 2 + 1] = Vec3i_64(index1, index3, index2);
         }
     }
 
@@ -84,18 +122,18 @@ SectionGeometry::SectionGeometry(const Samples& samples, uint64_t numberOfSides)
     for (unsigned int i = 0; i < numberOfSides; ++i)
     {
         uint64_t index2 = i;
-        uint64_t index1 = (i+1)%numberOfSides;
-        triangles[numberOfSides*(numSamples-1)*2+i] =
-                Vec3i_64(index0, index1, index2);
+        uint64_t index1 = (i + 1) % numberOfSides;
+        triangles[numberOfSides * (numNewSamples - 1) * 2 + i] = Vec3i_64(index0, index1, index2);
     }
     index0 = numVertices - 1;
     for (unsigned int i = 0; i < numberOfSides; ++i)
     {
-        uint64_t index1 = ((numSamples-1)*numberOfSides) + i;
-        uint64_t index2 = ((numSamples-1)*numberOfSides) + (i+1)%numberOfSides;
-        triangles[numberOfSides*((numSamples-1)*2+1)+i] =
-                Vec3i_64(index0, index1, index2);
-    }}
+        uint64_t index1 = ((numNewSamples - 1)* numberOfSides) + i;
+        uint64_t index2 = ((numNewSamples - 1)* numberOfSides) + (i + 1) % numberOfSides;
+        triangles[numberOfSides*((numNewSamples - 1) * 2 + 1) + i] = 
+            Vec3i_64(index0, index1, index2);
+    }
+    }
 }
 
 CrossSectionGeometry::CrossSectionGeometry(uint64_t numVertices)
