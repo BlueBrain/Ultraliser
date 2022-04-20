@@ -59,6 +59,105 @@ Samples Morphology::getSamples() const
     return _samples;
 }
 
+Sections Morphology::getSubsectionsInBoundingBox(const Section* section,
+                                                 const Vector3f& center,
+                                                 const float& width,
+                                                 const float& height,
+                                                 const float& depth) const
+{
+    // Collecting the list of sections that are located within the bounding box
+    Sections internalSections;
+
+
+    Samples internalSamples;
+
+    uint64_t internalSectionIndex = 0;
+
+    // Get all the samples in the section
+    const Samples samples = section->getSamples();
+
+    uint64_t sampleIndex = 0;
+    while (1)
+    {
+        // If the samples is located within the bounding box
+        if (samples[sampleIndex]->isLocatedInBoundingBox(center, width, height, depth))
+        {
+            // Add the sample to the list, and proceed
+            internalSamples.push_back(samples[sampleIndex]);
+        }
+
+        // If the sample is not located within the bounding box
+        else
+        {
+            // If the internalSamples has some collected samples, construct it
+            if (internalSamples.size() > 1)
+            {
+                // Create a new internal section
+                Section* internalSection = new Section(internalSectionIndex);
+
+                internalSectionIndex++;
+
+                // Add the samples to the section
+                for (uint64_t i = 0; i < internalSamples.size(); ++i)
+                {
+                    std::cout << internalSamples[i]->getIndex() << " ";
+                    internalSection->addSample(internalSamples[i]);
+                }
+
+                // Append the section to the internal sections list
+                internalSections.push_back(internalSection);
+
+                std::cout << "" << std::endl;
+            }
+
+            // Clear the internalSamples to collect the rest of the section
+            internalSamples.clear();
+
+
+        }
+
+        // Increment the sample index
+        sampleIndex++;
+
+
+        if (sampleIndex >= samples.size())
+        {
+
+            // If the internalSamples has some collected samples, construct it
+            if (internalSamples.size() > 1)
+            {
+                // Create a new internal section
+                Section* internalSection = new Section(internalSectionIndex);
+
+                internalSectionIndex++;
+
+                // Add the samples to the section
+                for (uint64_t i = 0; i < internalSamples.size(); ++i)
+                {
+                    std::cout << internalSamples[i]->getIndex() << " ";
+                    internalSection->addSample(internalSamples[i]);
+                }
+
+                // Append the section to the internal sections list
+                internalSections.push_back(internalSection);
+
+                std::cout << "" << std::endl;
+            }
+
+            // Clear the internalSamples to collect the rest of the section
+            internalSamples.clear();
+
+            // Escape the loop
+            break;
+        }
+    }
+
+
+
+    // Return all the internal sections
+    return internalSections;
+}
+
 Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section) const
 {
     // All possible combination of paths along the section (from parents to children)

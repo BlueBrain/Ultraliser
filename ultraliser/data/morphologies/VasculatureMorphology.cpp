@@ -169,4 +169,110 @@ VasculatureMorphology* readVascularMorphology(std::string& morphologyPath)
     return nullptr;
 }
 
+VasculatureMorphology* VasculatureMorphology::extractRegion(const Vector3f& center,
+                                                            const float& width,
+                                                            const float& height,
+                                                            const float& depth) const
+{
+    // Construct a list to contain all the section that are located within the bounding box
+    Sections regionSections;
+
+    for (uint64_t i = 0; i < _sections.size(); ++i)
+    {
+        // This is valid either for partially or totally located sections
+        Sections subSections = getSubsectionsInBoundingBox(_sections.at(i),
+                                                           center, width, height, depth);
+
+        // The subSections list must at least have one element
+        if (subSections.size() > 0)
+        {
+            for (uint64_t j = 0; j < subSections.size(); ++j)
+            {
+                // If the subSection has less than two samples, ignore it
+                if (subSections[j]->getSamples().size() > 1)
+                {
+                    // Append the subsection to the region sections.
+                    regionSections.push_back(subSections[j]);
+                }
+            }
+        }
+    }
+
+    // Construct the new samples table from the strands directly
+    // Construct a list to contain all the samples that are located within the bounding box
+    Samples regionSamples;
+
+    uint64_t sampleIndex = 0;
+    for (uint64_t i = 0; i < regionSections.size(); ++i)
+    {
+        Samples samples = regionSections[i]->getSamples();
+
+        for (uint64_t j = 0; j < samples.size(); ++j)
+        {
+            samples[j]->setIndex(sampleIndex++);
+            regionSamples.push_back(samples[j]);
+        }
+    }
+
+    // Construct the morphology from the sections and samples, and return it
+    return new VasculatureMorphology(regionSamples, regionSections);
+}
+
+void VasculatureMorphology::exportVascularMorphologyVMV(const std::string &prefix)
+{
+    // Open the file
+    std::string fileName = prefix + VMV_EXTENSION;
+    std::ofstream stream(fileName.c_str());
+    if (!stream.good())
+    {
+        LOG_ERROR("Cannot write morphology file [ %s ]", fileName.c_str());
+    }
+
+    LOG_STATUS("Exporting VMV Morphology : [ %s ]", fileName.c_str());
+
+    // Start the time
+    TIMER_SET;
+
+
+
+    // Write the Header
+    stream  << "$PARAM_BEGIN" << NEW_LINE;
+    stream  << "$NUM_VERTS " << _samples.size() << NEW_LINE;
+    stream  << "$NUM_STRANDS " << _sections.size() << NEW_LINE;
+    stream  << "$NUM_ATTRIB_PER_VERT 4" << NEW_LINE;
+    stream  << "$PARAM_END" << NEW_LINE;
+
+    // Vertex list
+    stream << NEW_LINE;
+    stream  << "$VERT_LIST_BEGIN" << NEW_LINE;
+    for (uint64_t i = 0; i < _samples.size(); ++i)
+    {
+        auto pos = _samples[i]->getPosition();
+        stream << _samples[i]->getIndex() + 1 << SPACE
+               << pos.x() << SPACE << pos.y() << SPACE << pos.z() << SPACE
+               << _samples[i]->getRadius() << NEW_LINE;
+    }
+    stream  << "$VERT_LIST_END" << NEW_LINE;
+
+    // Strand list
+    stream << NEW_LINE;
+    stream  << "$STRANDS_LIST_BEGIN" << NEW_LINE;
+    for (uint64_t i = 0; i < _sections.size(); ++i)
+    {
+        stream << i + 1 << SPACE;
+        for (uint64_t j = 0; j < _sections[i]->getSamples().size(); ++j)
+        {
+            stream << _sections[i]->getSamples()[j]->getIndex() + 1 << SPACE;
+        }
+        stream << NEW_LINE;
+    }
+    stream  << "$STRANDS_LIST_END" << NEW_LINE;
+
+    // Statistics
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Close the file stream
+    stream.close();
+}
+
 }

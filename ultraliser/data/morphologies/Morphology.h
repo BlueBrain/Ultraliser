@@ -55,6 +55,28 @@ public:
     Sections getSections() const;
 
     /**
+     * @brief getSubsectionsInBoundingBox
+     * Gets a list of subsections that are located within a given bounding box.
+     * @param section
+     * The given section to search for.
+     * @param center
+     * The center of the bounding box.
+     * @param width
+     * The width of the bounding box.
+     * @param height
+     * The height of the bounding box.
+     * @param depth
+     * The depth of the bounding box.
+     * @return
+     * A list of all the sections located within the given bounding box.
+     */
+    Sections getSubsectionsInBoundingBox(const Section *section,
+                                         const Vector3f& center,
+                                         const float& width,
+                                         const float& height,
+                                         const float& depth) const;
+
+    /**
      * @brief getSamples
      * Return a reference to the list of samples in the morphology.
      * @return

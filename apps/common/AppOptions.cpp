@@ -242,6 +242,8 @@ void AppOptions::initializeContext()
     // Construct the prefixes once and for all
     outputPrefix =
             outputDirectory + "/" + prefix;
+    morphologyPrefix =
+            outputDirectory + "/" + MORPHOLOGIES_DIRECTORY +  "/" + prefix;
     meshPrefix =
             outputDirectory + "/" + MESHES_DIRECTORY +  "/" + prefix;
     volumePrefix =

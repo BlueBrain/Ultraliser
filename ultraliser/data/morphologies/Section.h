@@ -83,8 +83,17 @@ public:
      * @brief addSample
      * Adds a new sample to the samples list.
      * @param sample
+     * A given sample.
      */
     void addSample(Sample* sample);
+
+    /**
+     * @brief addSamples
+     * Adds a list of new samples to the current samples list.
+     * @param samples
+     * A list of samples.
+     */
+    void addSamples(const Samples& samples);
 
     /**
      * @brief addParentIndex

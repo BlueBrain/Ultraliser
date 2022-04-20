@@ -72,4 +72,4 @@ endif(${ULTRALISER_USE_H5})
 # ultraNeuroMorpho2Mesh
 add_subdirectory(ultraNeuroMorpho2Mesh)
 
-
+add_subdirectory(ultraSampleVascularMorphology)

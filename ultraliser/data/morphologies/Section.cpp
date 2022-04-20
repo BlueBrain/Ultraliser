@@ -78,6 +78,11 @@ void Section::addSample(Sample* sample)
     _samples.push_back(sample);
 }
 
+void Section::addSamples(const Samples& samples)
+{
+    _samples.insert(_samples.end(), samples.begin(), samples.end());
+}
+
 Samples Section::getSamples() const
 {
     return _samples;

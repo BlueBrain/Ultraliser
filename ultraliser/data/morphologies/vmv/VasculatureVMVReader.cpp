@@ -179,8 +179,10 @@ void VasculatureVMVReader::_readSamples()
         const float y = S2F(tokens[2]);
         const float z = S2F(tokens[3]);
         float r = S2F(tokens[4]);
-        if (r < 0.0001)
+        if (r < 0.1)
             r = 0.1;
+
+        r *= 0.8;
 
         // Construct the sample
         Sample* sample = new Sample(Vector3f(x, y, z), r, vertexIndex);

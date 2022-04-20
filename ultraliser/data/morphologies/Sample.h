@@ -62,6 +62,31 @@ public:
      */
     uint64_t getIndex() const;
 
+    /**
+     * @brief setIndex
+     * @param index
+     */
+    void setIndex(const uint64_t index);
+
+    /**
+     * @brief isLocatedInBoundingBox
+     * Verifies if the sample is located within a given bounding box.
+     * @param center
+     * The center of the given bounding box.
+     * @param width
+     * The width of the given bounding box.
+     * @param height
+     * The height of the given bounding box.
+     * @param depth
+     * The depth of the given bounding box.
+     * @return
+     * True if the sample is located in the bounding box, and false otherwise.
+     */
+    bool isLocatedInBoundingBox(const Vector3f& center,
+                                const float& width,
+                                const float& height,
+                                const float& depth) const;
+
 private:
 
     /**

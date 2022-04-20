@@ -69,6 +69,11 @@ public:
     void addMaskArguments();
 
     /**
+     * @brief addMorphologyExtractionArguments
+     */
+    void addMorphologyExtractionArguments();
+
+    /**
      * @brief addInputVolumeArguments
      */
     void addInputVolumeArguments();

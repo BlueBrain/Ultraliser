@@ -203,6 +203,11 @@ public:
     std::string projectionPrefix;
 
     /**
+     * @brief morphologyPrefix
+     */
+    std::string morphologyPrefix;
+
+    /**
      * @brief meshPrefix
      */
     std::string meshPrefix;
@@ -231,6 +236,36 @@ public:
      * @brief maskHeight
      */
     uint64_t maskHeight;
+
+    /**
+     * @brief bboxWidth
+     */
+    float bboxWidth;
+
+    /**
+     * @brief bboxHeight
+     */
+    float bboxHeight;
+
+    /**
+     * @brief bboxDepth
+     */
+    float bboxDepth;
+
+    /**
+     * @brief bboxCenterX
+     */
+    float bboxCenterX;
+
+    /**
+     * @brief bboxCenterY
+     */
+    float bboxCenterY;
+
+    /**
+     * @brief bboxCenterZ
+     */
+    float bboxCenterZ;
 
     /**
      * @brief boundsFile

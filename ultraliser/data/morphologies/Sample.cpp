@@ -48,4 +48,45 @@ uint64_t Sample::getIndex() const
     return _index;
 }
 
+void Sample::setIndex(const uint64_t index)
+{
+    _index = index;
+}
+
+bool Sample::isLocatedInBoundingBox(const Vector3f& center,
+                                    const float& width,
+                                    const float& height,
+                                    const float& depth) const
+{
+    const auto& xMax = center.x() + (width * 0.5);
+    const auto& xMin = center.x() - (width * 0.5);
+
+    const auto& yMax = center.y() + (height * 0.5);
+    const auto& yMin = center.y() - (height * 0.5);
+
+    const auto& zMax = center.z() + (depth * 0.5);
+    const auto& zMin = center.z() - (depth * 0.5);
+
+    // X verification
+    if (_position.x() > xMax || _position.x() < xMin)
+    {
+        return false;
+    }
+
+    // Y verification
+    if (_position.y() > yMax || _position.y() < yMin)
+    {
+        return false;
+    }
+
+    // Z verification
+    if (_position.z() > zMax || _position.z() < zMin)
+    {
+        return false;
+    }
+
+    // All fine, return True
+    return true;
+}
+
 }

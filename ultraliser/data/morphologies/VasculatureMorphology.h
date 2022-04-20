@@ -64,6 +64,30 @@ public:
      */
     VasculatureMorphology(Samples samples, Sections sections);
 
+public:
+
+    /**
+     * @brief extractRegion
+     * Extracts a region from the morphology and return a pointer to the extracted morphology
+     * skeleton.
+     * @param center
+     * The center of the bounding box that represents the region that will be extracted.
+     * @param width
+     * The width of the region.
+     * @param height
+     * The height of the region.
+     * @param depth
+     * The depth of the region.
+     * @return
+     * A pointer to the extracted morphology skeleton.
+     */
+    VasculatureMorphology* extractRegion(const Vector3f& center,
+                                         const float &width,
+                                         const float &height,
+                                         const float &depth) const;
+
+    void exportVascularMorphologyVMV(const std::string &prefix);
+
 private:
 
     /**
