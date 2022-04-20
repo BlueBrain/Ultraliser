@@ -111,6 +111,11 @@ public:
     void verifyMaskDimensionsArguments();
 
     /**
+     * @brief verifyMorphologyExtractionArguments
+     */
+    void verifyMorphologyExtractionArguments();
+
+    /**
      * @brief verifyPackingAlgorithmArgument
      * Verifies the option given to the packing algorithm
      */

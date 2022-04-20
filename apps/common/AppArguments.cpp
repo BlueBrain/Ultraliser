@@ -33,8 +33,6 @@ AppArguments::AppArguments(const int& argc , const char** argv, const std::strin
     _options = new AppOptions();
 }
 
-
-
 void AppArguments::addInputMeshArguments()
 {
     Argument inputMesh(
@@ -107,8 +105,7 @@ void AppArguments::addMorphologyExtractionArguments()
                 "--bbox-width",
                 ARGUMENT_TYPE::FLOAT,
                 "The width of bounding box of the region to be extracted from the morphology.",
-                ARGUMENT_PRESENCE::MANDATORY,
-                "50");
+                ARGUMENT_PRESENCE::MANDATORY);
     _args->addArgument(&bboxWidth);
     _options->bboxWidth = _args->getFloatValue(&bboxWidth);
 
@@ -116,27 +113,23 @@ void AppArguments::addMorphologyExtractionArguments()
                 "--bbox-height",
                 ARGUMENT_TYPE::FLOAT,
                 "The height of bounding box of the region to be extracted from the morphology.",
-                ARGUMENT_PRESENCE::MANDATORY,
-                "50");
-    _args->addArgument(&bboxWidth);
+                ARGUMENT_PRESENCE::MANDATORY);
+    _args->addArgument(&bboxHeight);
     _options->bboxHeight = _args->getFloatValue(&bboxHeight);
 
     Argument bboxDepth(
                 "--bbox-depth",
                 ARGUMENT_TYPE::FLOAT,
                 "The depth of bounding box of the region to be extracted from the morphology.",
-                ARGUMENT_PRESENCE::MANDATORY,
-                "50");
-    _args->addArgument(&bboxWidth);
+                ARGUMENT_PRESENCE::MANDATORY);
+    _args->addArgument(&bboxDepth);
     _options->bboxDepth = _args->getFloatValue(&bboxDepth);
-
 
     Argument bboxCenterX(
                 "--bbox-center-x",
                 ARGUMENT_TYPE::FLOAT,
                 "The X-center of the bounding box of the region to be extracted from the morphology.",
-                ARGUMENT_PRESENCE::MANDATORY,
-                "0");
+                ARGUMENT_PRESENCE::MANDATORY);
     _args->addArgument(&bboxCenterX);
     _options->bboxCenterX = _args->getFloatValue(&bboxCenterX);
 
@@ -144,8 +137,7 @@ void AppArguments::addMorphologyExtractionArguments()
                 "--bbox-center-y",
                 ARGUMENT_TYPE::FLOAT,
                 "The Y-center of the bounding box of the region to be extracted from the morphology.",
-                ARGUMENT_PRESENCE::MANDATORY,
-                "0");
+                ARGUMENT_PRESENCE::MANDATORY);
     _args->addArgument(&bboxCenterY);
     _options->bboxCenterY = _args->getFloatValue(&bboxCenterY);
 
@@ -153,8 +145,7 @@ void AppArguments::addMorphologyExtractionArguments()
                 "--bbox-center-z",
                 ARGUMENT_TYPE::FLOAT,
                 "The Y-center of the bounding box of the region to be extracted from the morphology.",
-                ARGUMENT_PRESENCE::MANDATORY,
-                "0");
+                ARGUMENT_PRESENCE::MANDATORY);
     _args->addArgument(&bboxCenterZ);
     _options->bboxCenterZ = _args->getFloatValue(&bboxCenterZ);
 }

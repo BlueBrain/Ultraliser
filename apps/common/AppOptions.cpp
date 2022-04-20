@@ -137,6 +137,15 @@ void AppOptions::verifyMaskDimensionsArguments()
     }
 }
 
+void AppOptions::verifyMorphologyExtractionArguments()
+{
+    if (bboxWidth == 0 || bboxHeight == 0 || bboxDepth == 0)
+    {
+        LOG_ERROR("Bounding box dimensions cannot be zero: [%f x %f x %f]",
+                  bboxWidth, bboxHeight, bboxDepth);
+    }
+}
+
 void AppOptions::verifyPackingAlgorithmArgument()
 {
     if (!(packingAlgorithm == POLYLINE_PACKING ||

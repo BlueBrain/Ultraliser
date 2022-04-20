@@ -67,10 +67,7 @@ Sections Morphology::getSubsectionsInBoundingBox(const Section* section,
 {
     // Collecting the list of sections that are located within the bounding box
     Sections internalSections;
-
-
     Samples internalSamples;
-
     uint64_t internalSectionIndex = 0;
 
     // Get all the samples in the section
@@ -94,20 +91,16 @@ Sections Morphology::getSubsectionsInBoundingBox(const Section* section,
             {
                 // Create a new internal section
                 Section* internalSection = new Section(internalSectionIndex);
-
                 internalSectionIndex++;
 
                 // Add the samples to the section
                 for (uint64_t i = 0; i < internalSamples.size(); ++i)
                 {
-                    std::cout << internalSamples[i]->getIndex() << " ";
                     internalSection->addSample(internalSamples[i]);
                 }
 
                 // Append the section to the internal sections list
                 internalSections.push_back(internalSection);
-
-                std::cout << "" << std::endl;
             }
 
             // Clear the internalSamples to collect the rest of the section
@@ -119,29 +112,23 @@ Sections Morphology::getSubsectionsInBoundingBox(const Section* section,
         // Increment the sample index
         sampleIndex++;
 
-
         if (sampleIndex >= samples.size())
         {
-
             // If the internalSamples has some collected samples, construct it
             if (internalSamples.size() > 1)
             {
                 // Create a new internal section
                 Section* internalSection = new Section(internalSectionIndex);
-
                 internalSectionIndex++;
 
                 // Add the samples to the section
                 for (uint64_t i = 0; i < internalSamples.size(); ++i)
                 {
-                    std::cout << internalSamples[i]->getIndex() << " ";
                     internalSection->addSample(internalSamples[i]);
                 }
 
                 // Append the section to the internal sections list
                 internalSections.push_back(internalSection);
-
-                std::cout << "" << std::endl;
             }
 
             // Clear the internalSamples to collect the rest of the section
@@ -151,8 +138,6 @@ Sections Morphology::getSubsectionsInBoundingBox(const Section* section,
             break;
         }
     }
-
-
 
     // Return all the internal sections
     return internalSections;

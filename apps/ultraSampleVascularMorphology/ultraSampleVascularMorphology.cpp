@@ -37,6 +37,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
 
     args->addInputMorphologyArguments();
     args->addOutputArguments();
+    args->addMorphologyExtractionArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -45,6 +46,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
 
     // Verify the arguments after parsing them and extracting the application options.
     options->verifyInputMorphologyArgument();
+    options->verifyMorphologyExtractionArguments();
     options->verifyOutputDirectoryArgument();
     options->verifyMorphologyPrefixArgument();
 
