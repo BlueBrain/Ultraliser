@@ -191,6 +191,7 @@ def create_ultralised_astrocytes(circuit_path,
 
     # For the astrocytes in range
     for i in range(gid_0, gid_n + 1):
+        print('%d / %d' % (i, gid_n + 1))
 
         # Get the IDs of the endfeet
         endfeet_ids = gv_conn.astrocyte_endfeet(i)

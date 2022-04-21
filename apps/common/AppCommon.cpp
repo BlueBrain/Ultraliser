@@ -221,6 +221,28 @@ void applySmoothingOperator(Mesh *mesh, const AppOptions* options)
     }
 }
 
+Mesh* removeUnwantedPartitions(Mesh* mesh, const AppOptions* options)
+{
+    // Create an advanced mesh to process the manifold mesh and make it watertight if it has any
+    // self intersections
+    std::unique_ptr< AdvancedMesh> watertightMesh = std::make_unique< AdvancedMesh >(
+                mesh->getVertices(), mesh->getNumberVertices(),
+                mesh->getTriangles(), mesh->getNumberTriangles());
+
+    // Deallocate the mesh
+    mesh->~Mesh();
+
+    // Split the mesh and return the partition with largest geometry
+    AdvancedMesh* partition = watertightMesh->split();
+
+            // Ensures that the mesh is truly two-advanced with no self intersections
+    partition->ensureWatertightness();
+
+    // Return a simple mesh with a single partition for optimization
+    return partition->toSimpleMesh();
+
+}
+
 void createWatertightMesh(const Mesh* mesh, const AppOptions* options)
 {
     // Create an advanced mesh to process the manifold mesh and make it watertight if it has any

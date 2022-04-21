@@ -121,8 +121,29 @@ void run(int argc, const char** argv)
     if (options->exportAstrocyteAtOrigin)
         mesh->translate(-1 * astrocyteMorphology->getSomaCenter());
 
-    // Generate the mesh artifacts
-    generateReconstructedMeshArtifacts(mesh, options);
+    /// NOTE: Astrocyte meshes will be created with no solid voxelization, therefore all the
+    /// overlapping partitions must be removed before the optimization, and this is why we avoid
+    /// using generateReconstructedMeshArtifacts() here.
+    /// generateReconstructedMeshArtifacts
+    ///
+    // Write the mesh reconstructed from the marching cubes algorithm
+    if (!options->ignoreMarchingCubesMesh)
+        generateMarchingCubesMeshArtifacts(mesh, options);
+
+    // Apply laplacian smoothing
+    if (options->laplacianIterations > 0)
+        applySmoothingOperator(mesh, options);
+
+    // Removes the unwanted partitions and ensures that the mesh is watertight before the optimization
+    mesh = removeUnwantedPartitions(mesh, options);
+
+    // Create an optimized version of the mesh
+    if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)
+        generateOptimizedMesh(mesh, options);
+
+    // Create the final watertight mesh
+    createWatertightMesh(mesh, options);
+
 
     // Free
     delete mesh;

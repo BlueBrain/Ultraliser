@@ -60,6 +60,14 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
                                  const float& xScale,const float& yScale,const float& zScale);
 
 /**
+ * @brief removeUnwantedPartitions
+ * @param mesh
+ * @param options
+ * @return
+ */
+Mesh* removeUnwantedPartitions(Mesh* mesh, const AppOptions* options);
+
+/**
  * @brief loadInputMesh
  * Loads an input mesh.
  * @param options
