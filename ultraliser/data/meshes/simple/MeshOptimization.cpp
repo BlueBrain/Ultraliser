@@ -2814,22 +2814,31 @@ void Mesh::optimizeAdaptively(const uint64_t &optimizationIterations,
     // Starting the timer
     TIMER_SET;
 
+    // Smooth normals
+    smoothNormals();
+
+    // Smooth
+    smooth(15, 150, smoothingIterations);
+
+    // Smooth normals
+    smoothNormals();
+
     // Refine the mesh
     refine();
 
-//    // Coarse dense
-     coarseDense(denseFactor, optimizationIterations);
+    // Coarse dense
+    coarseDense(denseFactor, optimizationIterations);
 
-//    // Coarse flat
-  coarseFlat(flatFactor, optimizationIterations);
+    // Coarse flat
+    coarseFlat(flatFactor, optimizationIterations);
 
-//    // Smooth normals
+    // Smooth normals
     smoothNormals();
 
-//    // Smooth
+    // Smooth
     smooth(15, 150, smoothingIterations);
 
-//    // Smooth normals
+    // Smooth normals
     smoothNormals();
 
     // Statistics
