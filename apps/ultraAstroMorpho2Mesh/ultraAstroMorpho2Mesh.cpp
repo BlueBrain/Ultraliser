@@ -121,6 +121,9 @@ void run(int argc, const char** argv)
     if (options->exportAstrocyteAtOrigin)
         mesh->translate(-1 * astrocyteMorphology->getSomaCenter());
 
+    // Removes the unwanted partitions and ensures that the mesh is watertight
+    mesh = removeUnwantedPartitions(mesh, options);
+
     /// NOTE: Astrocyte meshes will be created with no solid voxelization, therefore all the
     /// overlapping partitions must be removed before the optimization, and this is why we avoid
     /// using generateReconstructedMeshArtifacts() here.
@@ -133,9 +136,6 @@ void run(int argc, const char** argv)
     // Apply laplacian smoothing
     if (options->laplacianIterations > 0)
         applySmoothingOperator(mesh, options);
-
-    // Removes the unwanted partitions and ensures that the mesh
-    mesh = removeUnwantedPartitions(mesh, options);
 
     // Create an optimized version of the mesh
     if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)

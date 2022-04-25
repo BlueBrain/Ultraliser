@@ -40,8 +40,8 @@
 #include <algorithms/SectionGeometry.h>
 
 #define ANGLE_ERROR                         0.123456789f
-#define MAXIMUM_FLOAT_VALUE                 99999.f
-#define MINIMUM_FLOAT_VALUE                 -99999.f
+#define MAXIMUM_FLOAT_VALUE                 99999.0
+#define MINIMUM_FLOAT_VALUE                 -99999.0
 #define MAXIMUM_DOUBLE_VALUE                99999.0
 #define MINIMUM_DOUBLE_VALUE                -99999.0
 #define VERTEX_DELETION_VALUE               -998.3824223883588f
@@ -116,7 +116,7 @@ void Mesh::_createNeighbourList()
 
     LOOP_STARTS("Creating Neighbour List");
     PROGRESS_SET;
-    OMP_PARALLEL_FOR
+    // OMP_PARALLEL_FOR
     for (uint64_t i = 0; i < _numberTriangles; ++i)
     {
         PROGRESS_UPDATE;
@@ -346,7 +346,7 @@ float Mesh::getAngleSurfaceOnly(const int64_t &a, const int64_t &b, const int64_
     else
     {
         angle = 0.5f * (length1 + length2 - length3) / D2F(sqrt(length1 * length2));
-        angle = std::acos(angle) * 180.f / 3.14159265358979f;
+        angle = std::acos(angle) * 180.0 / 3.14159265358979f;
     }
 
     // Return the angle
@@ -364,7 +364,7 @@ float Mesh::computeDotProduct(const int64_t &a, const int64_t &b, const int64_t 
     float length = sqrt(bx * bx + by * by + bz * bz);
 
     // Normalize
-    if (length > 0.f)
+    if (length > 0.0)
     {
         bx /= length;
         by /= length;
@@ -380,7 +380,7 @@ float Mesh::computeDotProduct(const int64_t &a, const int64_t &b, const int64_t 
     length = sqrt(cx * cx + cy * cy + cz * cz);
 
     // Normalize
-    if (length > 0.f)
+    if (length > 0.0)
     {
         cx /= length;
         cy /= length;
@@ -399,7 +399,7 @@ Vector3f Mesh::computeCrossProduct(const int64_t &a, const int64_t &b, const int
 
     // Normalize
     float length = std::sqrt(bx * bx + by * by + bz * bz);
-    if (length > 0.f)
+    if (length > 0.0)
     {
         bx /= length;
         by /= length;
@@ -412,7 +412,7 @@ Vector3f Mesh::computeCrossProduct(const int64_t &a, const int64_t &b, const int
 
     // Normalize
     length = std::sqrt(cx * cx + cy * cy + cz * cz);
-    if (length > 0.f)
+    if (length > 0.0)
     {
         cx /= length;
         cy /= length;
@@ -425,7 +425,7 @@ Vector3f Mesh::computeCrossProduct(const int64_t &a, const int64_t &b, const int
 
     // Normalize
     length = sqrt(gx * gx + gy * gy + gz * gz);
-    if (length > 0.f)
+    if (length > 0.0)
     {
         gx /= length;
         gy /= length;
@@ -507,9 +507,9 @@ void Mesh::edgeFlipping(int64_t index)
         {
             if (number > 0)
             {
-                float ax = 0.f;
-                float ay = 0.f;
-                float az = 0.f;
+                float ax = 0.0;
+                float ay = 0.0;
+                float az = 0.0;
 
                 auxNGR = _neighborList[index];
                 while (auxNGR != nullptr)
@@ -521,9 +521,9 @@ void Mesh::edgeFlipping(int64_t index)
                     auxNGR = auxNGR->next;
                 }
 
-                _vertices[index].x()= ax / (1.f * number);
-                _vertices[index].y()= ay / (1.f * number);
-                _vertices[index].z()= az / (1.f * number);
+                _vertices[index].x()= ax / (1.0 * number);
+                _vertices[index].y()= ay / (1.0 * number);
+                _vertices[index].z()= az / (1.0 * number);
             }
             return;
         }
@@ -778,7 +778,7 @@ Vector3f Mesh::getPositionSurfaceOnly(const float &x, const float &y, const floa
     float distance = sqrt(bx * bx + by * by + bz * bz);
 
     // Normalize
-    if (distance > 0.f)
+    if (distance > 0.0)
     {
         bx /= distance;
         by /= distance;
@@ -792,7 +792,7 @@ Vector3f Mesh::getPositionSurfaceOnly(const float &x, const float &y, const floa
     distance = sqrt(cx*cx+cy*cy+cz*cz);
 
     // Normalize
-    if (distance > 0.f)
+    if (distance > 0.0)
     {
         cx /= distance;
         cy /= distance;
@@ -808,7 +808,7 @@ Vector3f Mesh::getPositionSurfaceOnly(const float &x, const float &y, const floa
     distance = sqrt(tx * tx + ty * ty + tz * tz);
 
     // Normalize
-    if (distance > 0.f)
+    if (distance > 0.0)
     {
         tx /= distance;
         ty /= distance;
@@ -879,7 +879,7 @@ Vector3f Mesh::getVertexNormal(const int64_t &index)
         float length = sqrt(ax * ax + ay * ay + az * az);
 
         // Normalize
-        if (length > 0.f)
+        if (length > 0.0)
         {
             ax /= length;
             ay /= length;
@@ -894,7 +894,7 @@ Vector3f Mesh::getVertexNormal(const int64_t &index)
         length = sqrt(bx * bx + by * by + bz * bz);
 
         // Normalize
-        if (length > 0.f)
+        if (length > 0.0)
         {
             bx /= length;
             by /= length;
@@ -909,7 +909,7 @@ Vector3f Mesh::getVertexNormal(const int64_t &index)
         length = sqrt(gx * gx + gy * gy + gz * gz);
 
         // Normalize
-        if (length > 0.f)
+        if (length > 0.0)
         {
             gx /= length;
             gy /= length;
@@ -920,7 +920,7 @@ Vector3f Mesh::getVertexNormal(const int64_t &index)
         length = normal.x()* gx + normal.y()* gy + normal.z()* gz;
 
         // Shift
-        if (length < 0.f)
+        if (length < 0.0)
         {
             gx = -gx;
             gy = -gy;
@@ -938,9 +938,9 @@ Vector3f Mesh::getVertexNormal(const int64_t &index)
 
     if (number > 0)
     {
-        normal.x()/= (1.f * number);
-        normal.y()/= (1.f * number);
-        normal.z()/= (1.f * number);
+        normal.x()/= (1.0 * number);
+        normal.y()/= (1.0 * number);
+        normal.z()/= (1.0 * number);
 
         // Compute the length
         float length = sqrt(normal.x()* normal.x()+
@@ -948,7 +948,7 @@ Vector3f Mesh::getVertexNormal(const int64_t &index)
                             normal.z()* normal.z());
 
         // Normalize
-        if (length > 0.f)
+        if (length > 0.0)
         {
             normal.x()/= length;
             normal.y()/= length;
@@ -1002,8 +1002,8 @@ EigenVector Mesh::computeEigenVector(const int64_t &index0,
         dist = distArray[startPointer];
         startPointer++;
 
-        // NOTE: The comparison against 2.f is not well understood.
-        if (dist < 2.f)
+        // NOTE: The comparison against 2.0 is not well understood.
+        if (dist < 2.0)
         {
             NeighborTriangle *firstNGR = _neighborList[index];
             while (firstNGR != nullptr)
@@ -1025,7 +1025,7 @@ EigenVector Mesh::computeEigenVector(const int64_t &index0,
                             normal0.y() * normal.y() +
                             normal0.z() * normal.z();
 
-                    if (angle < 0.f)
+                    if (angle < 0.0)
                         angle = -angle;
 
                     if (angle < maxAngle)
@@ -1266,7 +1266,7 @@ Vector3f Mesh::rotate(const float& sx, const float& sy, const float& sz,
     a[0][2] = -sin(0.5f * ULTRALISER_PIF - phi);
     a[1][0] = -sin(theta);
     a[1][1] =  cos(theta);
-    a[1][2] = 0.f;
+    a[1][2] = 0.0;
     a[2][0] = sin(0.5f * ULTRALISER_PIF - phi) * cos(theta);
     a[2][1] = sin(0.5f * ULTRALISER_PIF - phi) * sin(theta);
     a[2][2] = cos(0.5f * ULTRALISER_PIF - phi);
@@ -1278,7 +1278,7 @@ Vector3f Mesh::rotate(const float& sx, const float& sy, const float& sz,
     b[1][1] = cos(theta);
     b[1][2] = sin(0.5f * ULTRALISER_PIF - phi) * sin(theta);
     b[2][0] = -sin(0.5f * ULTRALISER_PIF - phi);
-    b[2][1] = 0.f;
+    b[2][1] = 0.0;
     b[2][2] = cos(0.5f * ULTRALISER_PIF - phi);
 
     const float x = a[0][0] * sx + a[0][1] * sy + a[0][2] * sz;
@@ -1439,9 +1439,9 @@ void Mesh::moveVertexAlongSurface(int64_t index)
     float z = _vertices[index].z();
 
     // New vertex position
-    float nx = 0.f;
-    float ny = 0.f;
-    float nz = 0.f;
+    float nx = 0.0;
+    float ny = 0.0;
+    float nz = 0.0;
 
     // Vertex weight, initially set to zero
     float weight = 0;
@@ -1473,7 +1473,7 @@ void Mesh::moveVertexAlongSurface(int64_t index)
         float angle = computeDotProduct(b, a, c);
 
         // TODO: Understand why do we have to increment by 1.0
-        angle += 1.f;
+        angle += 1.0;
 
         // Update the vertex position
         nx += angle * position.x();
@@ -1488,7 +1488,7 @@ void Mesh::moveVertexAlongSurface(int64_t index)
     }
 
     // If the weight is greater than zero
-    if (weight > 0.f)
+    if (weight > 0.0)
     {
         // Update the vertex position by the weight
         nx /= weight;
@@ -1521,10 +1521,10 @@ void Mesh::moveVertexAlongSurface(int64_t index)
                               nz * eigenVector.z1) / (1.0f + eigenValue.x());
             const float w2 = (nx * eigenVector.x2 +
                               ny * eigenVector.y2 +
-                              nz * eigenVector.z2) / (1.f + eigenValue.y());
+                              nz * eigenVector.z2) / (1.0 + eigenValue.y());
             const float w3 = (nx * eigenVector.x3 +
                               ny * eigenVector.y3 +
-                              nz * eigenVector.z3) / (1.f + eigenValue.z());
+                              nz * eigenVector.z3) / (1.0 + eigenValue.z());
 
             // Compute the new values
             nx = w1 * eigenVector.x1 + w2 * eigenVector.x2 + w3 * eigenVector.x3 + x;
@@ -1586,9 +1586,9 @@ void Mesh::smoothNormal(const int64_t n)
         // Store the initially computed normal
         Vector3f iNormal = normal;
 
-        float dx = 0.f;
-        float dy = 0.f;
-        float dz = 0.f;
+        float dx = 0.0;
+        float dy = 0.0;
+        float dz = 0.0;
 
         int64_t num = 0;
         normal = computeCrossProduct(n, a, b);
@@ -1596,7 +1596,7 @@ void Mesh::smoothNormal(const int64_t n)
         float length = normal.x() * iNormal.x() +
                 normal.y() * iNormal.y() +
                 normal.z() * iNormal.z();
-        if (length > 0.f)
+        if (length > 0.0)
         {
             num++;
             dx += length * normal.x();
@@ -1608,7 +1608,7 @@ void Mesh::smoothNormal(const int64_t n)
         length = normal.x() * iNormal.x() +
                 normal.y() * iNormal.y() +
                 normal.z() *  iNormal.z();
-        if (length > 0.f)
+        if (length > 0.0)
         {
             num++;
             dx += length * normal.x();
@@ -1620,7 +1620,7 @@ void Mesh::smoothNormal(const int64_t n)
         length = normal.x() * iNormal.x() +
                 normal.y() * iNormal.y() +
                 normal.z() * iNormal.z();
-        if (length > 0.f)
+        if (length > 0.0)
         {
             num++;
             dx += length * normal.x();
@@ -1629,7 +1629,7 @@ void Mesh::smoothNormal(const int64_t n)
         }
 
         length = sqrt(dx * dx + dy * dy + dz * dz);
-        if (length > 0.f)
+        if (length > 0.0)
         {
             dx /= length;
             dy /= length;
@@ -1711,8 +1711,8 @@ void Mesh::smoothNormals()
     int64_t numSmall, numLarge;
     computeAngles(&minAngle, &maxAngle, &numSmall, &numLarge, 15, 150);
 
-    LOG_DEBUG("Min Angle: [%f],  Max Angle : [%f], Smaller than 15: [%d], Larger than 150: [%d]",
-              F2D(minAngle), F2D(maxAngle), numSmall, numLarge);
+    LOG_WARNING("Min Angle: [%f],  Max Angle : [%f], Smaller than 15: [%d], Larger than 150: [%d]",
+                F2D(minAngle), F2D(maxAngle), numSmall, numLarge);
 
     // Statistics
     LOG_STATS(GET_TIME_SECONDS);
@@ -1799,6 +1799,10 @@ bool Mesh::smooth(const int64_t &maxMinAngle, const int64_t &minMaxAngle,
     }
     LOOP_DONE;
 
+    LOG_WARNING("Min. angle: %f, Max. angle: %f, "
+                "Smaler than %d: %d, Larger than %d: %d \n",
+                F2D(minAngle), F2D(maxAngle), maxMinAngle, numSmall, minMaxAngle, numLarge);
+
     // Statistics
     LOG_STATS(GET_TIME_SECONDS);
 
@@ -1818,7 +1822,7 @@ void Mesh::subdivideTriangleAtCentroid(const uint64_t& triangleIndex,
     const Vector3f& v2 = _vertices[t[2]];
 
     // Compute the centroid
-    const Vector3f centroid = (v0 + v1 + v2) / 3.f;
+    const Vector3f centroid = (v0 + v1 + v2) / 3.0;
 
     // Add the centroid to the vertex list
     vertexList.push_back(centroid);
@@ -2259,8 +2263,8 @@ bool Mesh::coarse(const float& coarseRate,
 
     LOG_STATUS("Coarsing Mesh [%d]", iteration + 1);
 
-    uint64_t initialNumberVertices = _numberVertices;
-    uint64_t initialNumberTriangles = _numberTriangles;
+    const uint64_t initialNumberVertices = _numberVertices;
+    const uint64_t initialNumberTriangles = _numberTriangles;
 
     // Check if neighborlist is created, otherwise create it
     if (_neighborList == nullptr)
@@ -2273,11 +2277,11 @@ bool Mesh::coarse(const float& coarseRate,
     int64_t* triangleIndex = new int64_t[_numberTriangles];
 
     // If using sparseness weight, calculate the average segment length of mesh
-    float averageEdgeLength = 0.f;
-    if (densenessWeight > 0.f)
+    float averageEdgeLength = 0.0;
+    if (densenessWeight > 0.0)
     {
         // Average edge length of the triangle
-        float averageLength = 0.f;
+        float averageLength = 0.0;
 
         LOOP_STARTS("Computing Edges");
         TIMER_RESET;
@@ -2306,7 +2310,7 @@ bool Mesh::coarse(const float& coarseRate,
                                   (_vertices[t[2]].z()- _vertices[t[1]].z()) *
                                   (_vertices[t[2]].z()- _vertices[t[1]].z()));
 
-            averageLength += (nx + ny + nz) / 3.0f;
+            averageLength += ((nx + ny + nz) * 0.33333333334);
         }
         LOOP_DONE;
 
@@ -2319,7 +2323,7 @@ bool Mesh::coarse(const float& coarseRate,
         }
         else
         {
-            averageEdgeLength = averageLength / (1.f * _numberTriangles);
+            averageEdgeLength = averageLength / (1.0 * _numberTriangles);
         }
     }
 
@@ -2393,7 +2397,7 @@ bool Mesh::coarse(const float& coarseRate,
             // If using sparseness as a criteria for coarsening
             // calculate the maximal segment length
             float ratio2 = 1.0;
-            if (densenessWeight > 0.f)
+            if (densenessWeight > 0.0)
             {
                 while (firstNGR != nullptr)
                 {
@@ -2432,9 +2436,9 @@ bool Mesh::coarse(const float& coarseRate,
 
             // If using curvatory as a coarsening criteria
             // calculate the local structure tensor
-            float ratio1 = 1.f;
-            float maxAngle = 0.f;
-            if (flatnessRate > 0.f)
+            float ratio1 = 1.0;
+            float maxAngle = 0.0;
+            if (flatnessRate > 0.0)
             {
                 Vector3f eigenValue;
                 EigenVector eigenVector = computeEigenVector(n, &eigenValue, &maxAngle);
@@ -2556,19 +2560,24 @@ bool Mesh::coarse(const float& coarseRate,
                 {
                     firstNGR = _neighborList[neighborAuxList[m]];
                     const int64_t c = firstNGR->a;
-                    while (firstNGR != nullptr) {
+                    while (firstNGR != nullptr)
+                    {
                         const int64_t a = firstNGR->a;
                         const int64_t b = firstNGR->b;
                         NeighborTriangle* secondNGR = firstNGR->next;
-                        while (secondNGR != nullptr) {
+                        while (secondNGR != nullptr)
+                        {
                             const int64_t a0 = secondNGR->a;
                             const int64_t b0 = secondNGR->b;
 
                             // Assume counter clockwise orientation
-                            if (a0==b && b0!=a) {
+                            if (a0==b && b0!=a)
+                            {
                                 NeighborTriangle* auxNGR  = firstNGR;
-                                while (auxNGR  != nullptr) {
-                                    if (auxNGR ->next == secondNGR) {
+                                while (auxNGR  != nullptr)
+                                {
+                                    if (auxNGR ->next == secondNGR)
+                                    {
                                         auxNGR ->next = secondNGR->next;
                                         break;
                                     }
@@ -2600,11 +2609,11 @@ bool Mesh::coarse(const float& coarseRate,
                     const float x = _vertices[someNumber].x();
                     const float y = _vertices[someNumber].y();
                     const float z = _vertices[someNumber].z();
-                    float nx = 0.f;
-                    float ny = 0.f;
-                    float nz = 0.f;
+                    float nx = 0.0;
+                    float ny = 0.0;
+                    float nz = 0.0;
 
-                    float weight = 0.f;
+                    float weight = 0.0;
                     firstNGR = _neighborList[someNumber];
                     while (firstNGR != nullptr)
                     {
@@ -2648,15 +2657,15 @@ bool Mesh::coarse(const float& coarseRate,
                             const float w1 = (nx * eigenVector.x1 +
                                               ny * eigenVector.y1 +
                                               nz * eigenVector.z1) /
-                                    (1.f  + eigenValue.x());
+                                    (1.0  + eigenValue.x());
                             const float w2 = (nx * eigenVector.x2 +
                                               ny * eigenVector.y2 +
                                               nz * eigenVector.z2) /
-                                    (1.f + eigenValue.y());
+                                    (1.0 + eigenValue.y());
                             const float w3 = (nx * eigenVector.x3 +
                                               ny * eigenVector.y3 +
                                               nz * eigenVector.z3) /
-                                    (1.f + eigenValue.z());
+                                    (1.0 + eigenValue.z());
 
                             _vertices[someNumber].x()= w1 * eigenVector.x1 +
                                     w2 * eigenVector.x2 +
@@ -2719,8 +2728,8 @@ bool Mesh::coarse(const float& coarseRate,
         const int64_t c = _triangles[n][2];
 
         if (a >= 0 && vertexIndex[a] >= 0 &&
-                b >= 0 && vertexIndex[b] >= 0 &&
-                c >= 0 && vertexIndex[c] >= 0)
+            b >= 0 && vertexIndex[b] >= 0 &&
+            c >= 0 && vertexIndex[c] >= 0)
         {
             _triangles[startIndex][0] = vertexIndex[a];
             _triangles[startIndex][1] = vertexIndex[b];
@@ -2808,19 +2817,19 @@ void Mesh::optimizeAdaptively(const uint64_t &optimizationIterations,
     // Refine the mesh
     refine();
 
-    // Coarse dense
-    coarseDense(denseFactor, optimizationIterations);
+//    // Coarse dense
+     coarseDense(denseFactor, optimizationIterations);
 
-    // Coarse flat
-    coarseFlat(flatFactor, optimizationIterations);
+//    // Coarse flat
+  coarseFlat(flatFactor, optimizationIterations);
 
-    // Smooth normals
+//    // Smooth normals
     smoothNormals();
 
-    // Smooth
+//    // Smooth
     smooth(15, 150, smoothingIterations);
 
-    // Smooth normals
+//    // Smooth normals
     smoothNormals();
 
     // Statistics
@@ -2923,7 +2932,7 @@ void Mesh::removeFloatingFaces()
         const float triangleArea = computeTriangleSurfaceArea(
                     _vertices[t[0]], _vertices[t[1]], _vertices[t[2]]);
 
-        if (triangleArea > 0.f)
+        if (triangleArea > 0.0)
             triangles.push_back(t);
         else
             vertexIndex.push_back(i);
