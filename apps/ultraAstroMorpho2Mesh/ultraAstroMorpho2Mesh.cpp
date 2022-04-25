@@ -134,7 +134,7 @@ void run(int argc, const char** argv)
     if (options->laplacianIterations > 0)
         applySmoothingOperator(mesh, options);
 
-    // Removes the unwanted partitions and ensures that the mesh is watertight before the optimization
+    // Removes the unwanted partitions and ensures that the mesh
     mesh = removeUnwantedPartitions(mesh, options);
 
     // Create an optimized version of the mesh

@@ -1420,7 +1420,7 @@ public:
      * @param innerLoops
      * @return
      */
-    bool cleanMesh(uint64_t maxIterations = 25, int innerLoops = 3);
+    bool cleanMesh(uint64_t maxIterations = 25, int innerLoops = 25);
 
     /**
      * @brief ensureWatertightness
