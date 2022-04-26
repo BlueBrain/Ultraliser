@@ -35,8 +35,18 @@ AstrocyteMorphology::AstrocyteMorphology(Samples& samples, EndfeetPatches& endfe
     _pMin = Vector3f(std::numeric_limits<float>::max());
     _pMax = Vector3f(std::numeric_limits<float>::lowest());
 
+    _smallestRadiusInMorphology = std::numeric_limits<float>::max();
+    _largestRadiusInMorphology = std::numeric_limits<float>::lowest();
+
     for (auto sample: _samples)
     {
+        const float radius = sample->getRadius();
+        if (radius  < _smallestRadiusInMorphology && radius > 0)
+            _smallestRadiusInMorphology = radius ;
+
+        if (radius  > _largestRadiusInMorphology)
+            _largestRadiusInMorphology = radius;
+
         Vector3f pMaxSample = sample->getPosition() + Vector3f(sample->getRadius());
         Vector3f pMinSample = sample->getPosition() - Vector3f(sample->getRadius());
 
@@ -48,40 +58,6 @@ AstrocyteMorphology::AstrocyteMorphology(Samples& samples, EndfeetPatches& endfe
         if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
         if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
     }    
-}
-
-
-AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
-                                         const H5Sections& h5Sections,
-                                         const EndfeetPatches &endfeetPatches,
-                                         const Vector3f &center)
-{
-    _endfeetPatches = endfeetPatches;
-
-    _pMin = Vector3f(std::numeric_limits<float>::max());
-    _pMax = Vector3f(std::numeric_limits<float>::lowest());
-
-    // Construct the samples list that will be used later to build the sections
-    // Compute the bounding box as well
-    for (auto h5Sample : h5Samples)
-    {
-        Ultraliser::Vector3f position(h5Sample.x, h5Sample.y, h5Sample.z);
-        Sample* sample = new Sample(
-            Ultraliser::Vector3f(h5Sample.x, h5Sample.y, h5Sample.z),
-                                    h5Sample.r * 0.5f, 0);
-        _samples.push_back(sample);
-
-        Vector3f pMaxSample = position + Vector3f(h5Sample.r * 0.5f);
-        Vector3f pMinSample = position - Vector3f(h5Sample.r * 0.5f);
-
-        if (pMaxSample.x() > _pMax.x()) _pMax.x() = pMaxSample.x();
-        if (pMaxSample.y() > _pMax.y()) _pMax.y() = pMaxSample.y();
-        if (pMaxSample.z() > _pMax.z()) _pMax.z() = pMaxSample.z();
-
-        if (pMinSample.x() < _pMin.x()) _pMin.x() = pMinSample.x();
-        if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
-        if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
-    }
 
     // Extend the bounding box based on endfeet patches as well
     for (uint64_t i = 0; i < _endfeetPatches.size(); ++i)
@@ -91,6 +67,12 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
         for (uint64_t j = 0; j < patches.size(); ++j)
         {
             const EndfootPatch* patch = patches[j];
+
+            if (patch->sample0->getRadius() < _smallestRadiusInMorphology)
+                _smallestRadiusInMorphology = patch->sample0->getRadius();
+
+            if (patch->sample0->getRadius() > _largestRadiusInMorphology)
+                _largestRadiusInMorphology = patch->sample0->getRadius();
 
             // First sample
             const Vector3f sample0Max =
@@ -135,7 +117,107 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
             if (sample2Min.z() < _pMin.z()) _pMin.z() = sample2Min.z();
         }
     }
+}
 
+AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
+                                         const H5Sections& h5Sections,
+                                         const EndfeetPatches &endfeetPatches,
+                                         const Vector3f &center)
+{
+    _endfeetPatches = endfeetPatches;
+
+    _pMin = Vector3f(std::numeric_limits<float>::max());
+    _pMax = Vector3f(std::numeric_limits<float>::lowest());
+
+    _smallestRadiusInMorphology = std::numeric_limits<float>::max();
+    _largestRadiusInMorphology = std::numeric_limits<float>::lowest();
+
+    // Construct the samples list that will be used later to build the sections
+    // Compute the bounding box as well
+    for (auto h5Sample : h5Samples)
+    {
+        Ultraliser::Vector3f position(h5Sample.x, h5Sample.y, h5Sample.z);
+        Sample* sample = new Sample(
+            Ultraliser::Vector3f(h5Sample.x, h5Sample.y, h5Sample.z),
+                                    h5Sample.r * 0.5f, 0);
+        _samples.push_back(sample);
+
+        if (h5Sample.r < _smallestRadiusInMorphology && h5Sample.r > 0)
+            _smallestRadiusInMorphology = h5Sample.r;
+
+        if (h5Sample.r > _largestRadiusInMorphology)
+            _largestRadiusInMorphology = h5Sample.r;
+
+        Vector3f pMaxSample = position + Vector3f(h5Sample.r * 0.5f);
+        Vector3f pMinSample = position - Vector3f(h5Sample.r * 0.5f);
+
+        if (pMaxSample.x() > _pMax.x()) _pMax.x() = pMaxSample.x();
+        if (pMaxSample.y() > _pMax.y()) _pMax.y() = pMaxSample.y();
+        if (pMaxSample.z() > _pMax.z()) _pMax.z() = pMaxSample.z();
+
+        if (pMinSample.x() < _pMin.x()) _pMin.x() = pMinSample.x();
+        if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
+        if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
+    }
+
+    // Extend the bounding box based on endfeet patches as well
+    for (uint64_t i = 0; i < _endfeetPatches.size(); ++i)
+    {
+        const EndfootPatches patches = _endfeetPatches[i];
+
+        for (uint64_t j = 0; j < patches.size(); ++j)
+        {
+            const EndfootPatch* patch = patches[j];
+
+            if (patch->sample0->getRadius() < _smallestRadiusInMorphology)
+                _smallestRadiusInMorphology = patch->sample0->getRadius();
+
+            if (patch->sample0->getRadius() > _largestRadiusInMorphology)
+                _largestRadiusInMorphology = patch->sample0->getRadius();
+
+            // First sample
+            const Vector3f sample0Max =
+                    patch->sample0->getPosition() + Vector3f(patch->sample0->getRadius()* 0.5f);
+            const Vector3f sample0Min =
+                    patch->sample0->getPosition() - Vector3f(patch->sample0->getRadius()* 0.5f);
+
+            if (sample0Max.x() > _pMax.x()) _pMax.x() = sample0Max.x();
+            if (sample0Max.y() > _pMax.y()) _pMax.y() = sample0Max.y();
+            if (sample0Max.z() > _pMax.z()) _pMax.z() = sample0Max.z();
+
+            if (sample0Min.x() < _pMin.x()) _pMin.x() = sample0Min.x();
+            if (sample0Min.y() < _pMin.y()) _pMin.y() = sample0Min.y();
+            if (sample0Min.z() < _pMin.z()) _pMin.z() = sample0Min.z();
+
+            // Second sample
+            const Vector3f sample1Max =
+                    patch->sample1->getPosition() + Vector3f(patch->sample1->getRadius()* 0.5f);
+            const Vector3f sample1Min =
+                    patch->sample1->getPosition() - Vector3f(patch->sample1->getRadius()* 0.5f);
+
+            if (sample1Max.x() > _pMax.x()) _pMax.x() = sample1Max.x();
+            if (sample1Max.y() > _pMax.y()) _pMax.y() = sample1Max.y();
+            if (sample1Max.z() > _pMax.z()) _pMax.z() = sample1Max.z();
+
+            if (sample1Min.x() < _pMin.x()) _pMin.x() = sample1Min.x();
+            if (sample1Min.y() < _pMin.y()) _pMin.y() = sample1Min.y();
+            if (sample1Min.z() < _pMin.z()) _pMin.z() = sample1Min.z();
+
+            // Third sample
+            const Vector3f sample2Max =
+                    patch->sample2->getPosition() + Vector3f(patch->sample2->getRadius()* 0.5f);
+            const Vector3f sample2Min =
+                    patch->sample2->getPosition() - Vector3f(patch->sample2->getRadius()* 0.5f);
+
+            if (sample2Max.x() > _pMax.x()) _pMax.x() = sample2Max.x();
+            if (sample2Max.y() > _pMax.y()) _pMax.y() = sample2Max.y();
+            if (sample2Max.z() > _pMax.z()) _pMax.z() = sample2Max.z();
+
+            if (sample2Min.x() < _pMin.x()) _pMin.x() = sample2Min.x();
+            if (sample2Min.y() < _pMin.y()) _pMin.y() = sample2Min.y();
+            if (sample2Min.z() < _pMin.z()) _pMin.z() = sample2Min.z();
+        }
+    }
 
     // Create the soma section, for indexing only
     Section* somaSection = new Section(0);
@@ -296,6 +378,16 @@ float AstrocyteMorphology::getSomaMaxRadius() const
 EndfeetPatches AstrocyteMorphology::getEndfeetPatches() const
 {
     return _endfeetPatches;
+}
+
+float AstrocyteMorphology::getSmallestRadiusInMorphology() const
+{
+    return _smallestRadiusInMorphology;
+}
+
+float AstrocyteMorphology::getLargestRadiusInMorphology() const
+{
+    return _largestRadiusInMorphology;
 }
 
 AstrocyteMorphology* readAstrocyteMorphology(std::string& morphologyPath)

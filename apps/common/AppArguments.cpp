@@ -284,9 +284,9 @@ void AppArguments::addVoxelizationArguments()
     Argument voxelsPerMicron(
                 "--voxels-per-micron",
                 ARGUMENT_TYPE::FLOAT,
-                "Number of voxels per micron in case --auto-resolution is used. Default 5.",
+                "Number of voxels per micron. If this flag is set, then resolution will be ignored.",
                 ARGUMENT_PRESENCE::OPTIONAL,
-                "5");
+                "0");
     _args->addArgument(&voxelsPerMicron);
     _options->voxelsPerMicron = _args->getFloatValue(&voxelsPerMicron);
 

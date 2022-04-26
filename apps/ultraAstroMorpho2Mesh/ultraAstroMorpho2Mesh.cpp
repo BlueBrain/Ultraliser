@@ -91,9 +91,22 @@ void run(int argc, const char** argv)
     // morphology
     uint64_t resolution;
     if (options->autoResolution)
-        resolution = uint64_t(options->voxelsPerMicron * largestDimension);
+    {
+        const float minRadius = astrocyteMorphology->getSmallestRadiusInMorphology();
+        resolution =  uint64_t((2.0 / minRadius) * largestDimension);
+        LOG_WARNING("Mininum Radius [%f], Resolution [%d]", minRadius, resolution);
+    }
     else
-        resolution = options->volumeResolution;
+    {
+        if (options->voxelsPerMicron > 0)
+        {
+            resolution = uint64_t(options->voxelsPerMicron * largestDimension);
+        }
+        else
+        {
+            resolution = options->volumeResolution;
+        }
+    }
     LOG_WARNING("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);
 
     // Construct the volume

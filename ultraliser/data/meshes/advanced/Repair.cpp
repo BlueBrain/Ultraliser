@@ -1509,14 +1509,14 @@ int AdvancedMesh::removeTrianglesWithDihedralAngles(const float& minDihedralAngl
     // Remove the boundary triangles
     removeSelectedTriangles();
 
-    LOG_STATUS_IMPORTANT("Cleaning Triangles with Wrong Dihedral Angles Stats.");
-    LOG_STATS(GET_TIME_SECONDS);
-
     if (numberTrianglesWithWrongAgles)
         LOG_WARNING("The mesh had [%d] triangles with problematic dihedral angles. "
                     "DIRTY MESH!", numberTrianglesWithWrongAgles);
     else
         LOG_SUCCESS("No Triangles with Wrong Dihedral Angles Detected");
+
+    LOG_STATUS_IMPORTANT("Cleaning Triangles with Wrong Dihedral Angles Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
 
     return numberTrianglesWithWrongAgles;
 }

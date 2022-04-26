@@ -116,6 +116,18 @@ public:
      */
     float getSomaMaxRadius() const;
 
+    /**
+     * @brief getSmallestRadiusInMorphology
+     * @return
+     */
+    float getSmallestRadiusInMorphology() const;
+
+    /**
+     * @brief getLargestRadiusInMorphology
+     * @return
+     */
+    float getLargestRadiusInMorphology() const;
+
 private:
 
     /**
@@ -161,6 +173,16 @@ private:
      * The maximum radius of the soma.
      */
     float _somaMaxRadius;
+
+    /**
+     * @brief _smallestRadiusInMorphology
+     */
+    float _smallestRadiusInMorphology;
+
+    /**
+     * @brief _largestRadiusInMorphology
+     */
+    float _largestRadiusInMorphology;
 };
 
 /**

@@ -279,12 +279,14 @@ void createWatertightMesh(const Mesh* mesh, const AppOptions* options)
     }
     else
     {
+        // Ensures that the mesh is truly two-advanced with no self intersections
+        watertightMesh->ensureWatertightness();
+
         if (!watertightMesh->checkMinDihedralAngle(options->minDihedralAngle))
         {
             watertightMesh->removeTrianglesWithDihedralAngles(options->minDihedralAngle);
         }
 
-        // Ensures that the mesh is truly two-advanced with no self intersections
         watertightMesh->ensureWatertightness();
     }
 
