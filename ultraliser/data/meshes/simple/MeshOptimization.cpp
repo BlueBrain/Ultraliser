@@ -78,7 +78,7 @@ void Mesh::_destroyNeighborlist()
     if (_neighborList != nullptr)
     {
         // Release the single neighbors
-        OMP_PARALLEL_FOR
+        // OMP_PARALLEL_FOR
         for (uint64_t i = 0; i < _numberVertices; ++i)
         {
             NeighborTriangle* firstNGR = nullptr;
@@ -2859,10 +2859,10 @@ void Mesh::optimize(const uint64_t &optimizationIterations,
     TIMER_SET;
 
     // Remove the unnecessary vertices in multiple iterations
-    // coarseDense(denseFactor, optimizationIterations);
+    coarseDense(denseFactor, optimizationIterations);
 
     // Smooth the normals
-    // smoothNormals();
+    smoothNormals();
 
     // Smoothing the surface
     smooth(15, 150, smoothingIterations);
