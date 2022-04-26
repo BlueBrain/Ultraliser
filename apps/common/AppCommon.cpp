@@ -260,6 +260,7 @@ void createWatertightMesh(const Mesh* mesh, const AppOptions* options)
         for (auto mesh : partitions)
         {
             try {
+
                 mesh->ensureWatertightness();
             }  catch (...) {
                 LOG_WARNING("Some partition in the mesh is invalid");
@@ -278,9 +279,17 @@ void createWatertightMesh(const Mesh* mesh, const AppOptions* options)
     }
     else
     {
+        if (!watertightMesh->checkMinDihedralAngle(options->minDihedralAngle))
+        {
+            watertightMesh->removeTrianglesWithDihedralAngles(options->minDihedralAngle);
+        }
+
         // Ensures that the mesh is truly two-advanced with no self intersections
         watertightMesh->ensureWatertightness();
     }
+
+    // Verification on the watertightness again
+    // watertightMesh->ensureWatertightness();
 
     // Print the mesh statistcs
     if (options->writeStatistics)

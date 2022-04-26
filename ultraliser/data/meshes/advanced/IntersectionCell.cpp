@@ -416,7 +416,7 @@ int AdvancedMesh::selectIntersectingTriangles(uint16_t trianglesPerCell,
     LOOP_STARTS("Selecting Intersections");
     FOR_EACH_NODE(cells, node)
     {
-        LOOP_PROGRESS_FRACTION(++COUNTER, cells.numberElements());
+        // LOOP_PROGRESS_FRACTION(++COUNTER, cells.numberElements());
 
         (((IntersectionCell *) node->data)->selectIntersections(justProper));
     }

@@ -1376,6 +1376,76 @@ uint64_t AdvancedMesh::getNumberBoundaryEdges()
     return numberBoundaryEdges;
 }
 
+int AdvancedMesh::selectTrianglesWithWrongDihedralAngles(const float& minDihedralAngles)
+{
+    Node* node;
+    AdvancedEdge* edge;
+    AdvancedVertex* vertex;
+    AdvancedVertex *vertex1, *vertex2, *vertex3;
+    AdvancedTriangle* triangle;
+
+    // Number of detected triangles
+    int numberTrignales = 0;
+
+    float angle = 0;
+    // Mark the boundary triangles only
+    TIMER_SET;
+    uint64_t counter = 0;
+    LOOP_STARTS("Selecting Boundary Edges");
+    FOR_EACH_EDGE(edge, node)
+    {
+        angle = edge->t1->getDAngle(edge->t2);
+        angle = ((M_PI - angle) * 360.0) / (2 * M_PI);
+
+        if (edge->t1 != nullptr && edge->t2 != nullptr && angle < 0.1)
+        {
+            MARK_VISIT(edge->v1);
+            MARK_VISIT(edge->v2);
+        }
+    }
+
+    counter = 0;
+    TIMER_RESET;
+    LOOP_STARTS("Selecting Boundary Triangles");
+    FOR_EACH_TRIANGLE(triangle, node)
+    {
+        LOOP_PROGRESS_FRACTION(++counter, _triangles.numberElements());
+
+        if (!IS_VISITED(triangle))
+        {
+            vertex1 = triangle->v1();
+            vertex2 = triangle->v2();
+            vertex3 = triangle->v3();
+
+            if (IS_VISITED(vertex1) || IS_VISITED(vertex2) || IS_VISITED(vertex3))
+            {
+                // Mark
+                MARK_VISIT(triangle);
+
+                // Increment
+                numberTrignales++;
+            }
+        }
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Unmark
+    TIMER_RESET;
+    counter = 0;
+    LOOP_STARTS("Unmarking Vertices");
+    FOR_EACH_VERTEX(vertex, node)
+    {
+        LOOP_PROGRESS_FRACTION(++counter, _vertices.numberElements());
+        UNMARK_VISIT(vertex);
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Return the number of triangles with lesses dihedral angles
+    return numberTrignales;
+}
+
 int AdvancedMesh::selectBoundaryTriangles()
 {
     Node* node;

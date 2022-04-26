@@ -462,6 +462,14 @@ bool AdvancedTriangle::intersects(const AdvancedTriangle *t2, bool justProper) c
         }
     }
 
+    /// NOTE: Computations for the dihedral angle to validate the selection
+    // float dihedralAngle = this->getDAngle(t2);
+    // dihedralAngle = ((M_PI - dihedralAngle) * 360.0) / (2 * M_PI);
+    // if (dihedralAngle < 0.1 )
+    // {
+    //    LOG_WARNING("Dihedral Angle %f\n", dihedralAngle);
+    // }
+
     // Fast reject by bounding box
     double minValue = MIN(v11->x, MIN(v13->x, v12->x));
     if (v21->x < minValue && v22->x < minValue && v23->x < minValue)

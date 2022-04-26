@@ -511,6 +511,15 @@ void AppArguments::addMeshOptimizationArguments()
                 "5.0");
     _args->addArgument(&denseFactor);
     _options->denseFactor = _args->getFloatValue(&denseFactor);
+
+    Argument minDihedralAngle(
+                "--min-dihedral-angle",
+                ARGUMENT_TYPE::FLOAT,
+                "The required minimum dihedral angle. Default 0.1",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "0.1");
+    _args->addArgument(&minDihedralAngle);
+    _options->minDihedralAngle = _args->getFloatValue(&minDihedralAngle);
 }
 
 void AppArguments::addLaplacianOperatorArguments()

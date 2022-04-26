@@ -273,7 +273,69 @@ int AdvancedMesh::duplicateNonManifoldVertices()
     return numberDuplicatedVertices;
 }
 
-AdvancedVertex *AdvancedMesh::checkGeometry()
+bool AdvancedMesh::checkMinDihedralAngle(const float& requiredMinDihedralAngle)
+{
+    // Generic
+    AdvancedTriangle *triangle;
+    AdvancedEdge *edge;
+    Node *node;
+
+    double angle, minDihedralAngle = 0;
+    FOR_EACH_TRIANGLE(triangle, node)
+    {
+        angle = triangle->getAngle(triangle->v1());
+        if (angle == 0 || angle == M_PI)
+        {
+            LOG_WARNING("Degenerate triangle detected.");
+            return triangle->v1();
+        }
+
+        angle = triangle->getAngle(triangle->v2());
+        if (angle == 0 || angle == M_PI)
+        {
+            LOG_WARNING("Degenerate triangle detected.");
+            return triangle->v2();
+        }
+
+        angle = triangle->getAngle(triangle->v3());
+        if (angle == 0 || angle == M_PI)
+        {
+            LOG_WARNING("Degenerate triangle detected.");
+            return triangle->v3();
+        }
+    }
+
+    angle = minDihedralAngle = 0;
+    FOR_EACH_EDGE(edge, node)
+    {
+        if (edge->t1 != nullptr && edge->t2 != nullptr &&
+           (angle = edge->t1->getDAngle(edge->t2)) == M_PI)
+        {
+            LOG_WARNING("checkGeometry: overlapping triangles detected.");
+            return edge->v1;
+        }
+        else
+        {
+            minDihedralAngle = MAX(minDihedralAngle, angle);
+        }
+    }
+
+    const float minDihedralAngleDegrees = ((M_PI - minDihedralAngle) * 360) / (2 * M_PI);
+    if (minDihedralAngleDegrees < requiredMinDihedralAngle)
+    {
+        LOG_WARNING("checkGeometry: Minimum Dihedral Angle = %f (%f DEGs)",
+                    M_PI - minDihedralAngle, minDihedralAngleDegrees);
+        return false;
+    }
+    else
+    {
+        LOG_SUCCESS("checkGeometry: Minimum Dihedral Angle = %f (%f DEGs)",
+                    M_PI - minDihedralAngle, minDihedralAngleDegrees);
+        return true;
+    }
+}
+
+AdvancedVertex *AdvancedMesh::checkGeometry(const float& requiredMinDihedralAngle)
 {
     // The closest vertex that will be returned when there is an issue during the geometry check
     AdvancedVertex *closestVertexToIssue = nullptr;
@@ -343,7 +405,7 @@ AdvancedVertex *AdvancedMesh::checkGeometry()
         free(edgeArray);
     }
 
-    double angle, minda = 0;
+    double angle, minDihedralAngle = 0;
     FOR_EACH_TRIANGLE(triangle, node)
     {
         angle = triangle->getAngle(triangle->v1());
@@ -368,7 +430,7 @@ AdvancedVertex *AdvancedMesh::checkGeometry()
         }
     }
 
-    angle = minda = 0;
+    angle = minDihedralAngle = 0;
     FOR_EACH_EDGE(edge, node)
     {
         if (edge->t1 != nullptr && edge->t2 != nullptr &&
@@ -379,12 +441,21 @@ AdvancedVertex *AdvancedMesh::checkGeometry()
         }
         else
         {
-            minda = MAX(minda, angle);
+            minDihedralAngle = MAX(minDihedralAngle, angle);
         }
     }
 
-    LOG_INFO("checkGeometry: minimum dihedral angle = %f (%f DEGs)",
-                    M_PI - minda, ((M_PI - minda) * 360) / (2 * M_PI));
+    const float minDihedralAngleDegrees = ((M_PI - minDihedralAngle) * 360) / (2 * M_PI);
+    if (minDihedralAngleDegrees < requiredMinDihedralAngle)
+    {
+        LOG_WARNING("checkGeometry: Minimum Dihedral Angle = %f (%f DEGs)",
+                    M_PI - minDihedralAngle, minDihedralAngleDegrees);
+    }
+    else
+    {
+        LOG_SUCCESS("checkGeometry: Minimum Dihedral Angle = %f (%f DEGs)",
+                    M_PI - minDihedralAngle, minDihedralAngleDegrees);
+    }
     return closestVertexToIssue;
 }
 
@@ -1422,6 +1493,32 @@ int AdvancedMesh::removeBoundaryTriangles()
         LOG_SUCCESS("No Boundary Edges Detected");
 
     return numberBoundaryTriangles;
+}
+
+int AdvancedMesh::removeTrianglesWithDihedralAngles(const float& minDihedralAngles)
+{
+    LOG_STATUS("Cleaning Triangles with Problematic Dihedral Angles");
+    TIMER_SET;
+
+    // Deselect all the triangles
+    deselectTriangles();
+
+    // Select the boundary triangles only
+    int numberTrianglesWithWrongAgles = selectTrianglesWithWrongDihedralAngles();
+
+    // Remove the boundary triangles
+    removeSelectedTriangles();
+
+    LOG_STATUS_IMPORTANT("Cleaning Triangles with Wrong Dihedral Angles Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
+
+    if (numberTrianglesWithWrongAgles)
+        LOG_WARNING("The mesh had [%d] triangles with problematic dihedral angles. "
+                    "DIRTY MESH!", numberTrianglesWithWrongAgles);
+    else
+        LOG_SUCCESS("No Triangles with Wrong Dihedral Angles Detected");
+
+    return numberTrianglesWithWrongAgles;
 }
 
 bool AdvancedMesh::ensureWatertightness()

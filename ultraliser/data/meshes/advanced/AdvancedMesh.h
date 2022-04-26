@@ -843,6 +843,15 @@ public:
      */
     int selectBoundaryTriangles();
 
+    /**
+     * @brief selectTrianglesWithWrongDihedralAngles
+     * Selects all the triangles with the wrong dihedral angles that have less values than the given
+     * @param minDihedralAngles
+     * The minimum dihedral angles allowed to exist in the mesh to be watertight.
+     * @return
+     */
+    int selectTrianglesWithWrongDihedralAngles(const float &minDihedralAngles = 0.1);
+
     uint64_t getNumberBoundaryEdges();
 
     /**
@@ -1440,6 +1449,15 @@ public:
     int removeBoundaryTriangles();
 
     /**
+     * @brief removeTrianglesWithDihedralAngles
+     * Removes all the triangles that have lower dihedral angles than the given value.
+     * @param minDihedralAngles
+     * The minimum value allowed.
+     * @return
+     */
+    int removeTrianglesWithDihedralAngles(const float& minDihedralAngles = 0.1);
+
+    /**
      * @brief removeOverlappingTriangles
      * Removes overlapping triangles and return their number.
      * If possible, swap edges to remove overlaps. When it is not enough, remove the
@@ -1459,7 +1477,17 @@ public:
      * @return
      * If something is wrong in the mesh, it returns the closest vertex where the issue happened.
      */
-    AdvancedVertex *checkGeometry();
+    AdvancedVertex *checkGeometry(const float &requiredMinDihedralAngle = 0.1);
+
+    /**
+     * @brief checkMinDihedralAngle
+     * Checks if the mesh has triangles with dihedral angles less than the given one.
+     * @param requiredMinDihedralAngle
+     * A given minimum angle.
+     * @return
+     * True if everything is okay, false otherwise.
+     */
+    bool checkMinDihedralAngle(const float& requiredMinDihedralAngle);
 
     /**
      * @brief selectIntersectingTriangles

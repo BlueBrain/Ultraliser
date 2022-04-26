@@ -144,7 +144,6 @@ void run(int argc, const char** argv)
     // Create the final watertight mesh
     createWatertightMesh(mesh, options);
 
-
     // Free
     delete mesh;
     delete options;

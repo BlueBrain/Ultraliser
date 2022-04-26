@@ -504,6 +504,13 @@ public:
     float denseFactor;
 
     /**
+     * @brief minDihedralAngle
+     * The minimum value of the dihedral angle, by default it should be 0.1 for the mesh to
+     * be watertight.
+     */
+    float minDihedralAngle;
+
+    /**
      * @brief exportOBJ
      * Export any reconstructed mesh to .OBJ file.
      */
