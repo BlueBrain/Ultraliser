@@ -35,12 +35,17 @@ include(OpenMP)
 include(TIFF)
 include(HDF5)
 include(Eigen3)
+include(GLM)
+include(ZLIB)
+include(BZip2)
+
 #include(Doxygen)
 
 include_directories("/usr/include")
 
 # C++ 14
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Installation directories
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
@@ -64,6 +69,9 @@ OPTION(ENABLE_PROGRESS_BAR "Disable the progress bar to gain performance" ON)
 if(ENABLE_PROGRESS_BAR)
   add_definitions(-DENABLE_PROGRESS_BAR)
 endif()
+
+# NRRD library, from Brayns
+add_subdirectory(externals)
 
 # Ultraliser library
 add_subdirectory(ultraliser)

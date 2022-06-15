@@ -72,10 +72,10 @@ public:
     void loadBinaryVolumeData(const std::string &prefix) override;
 
     /**
-     * @brief loadByteVolumeData
+     * @brief loadUnsignedVolumeData
      * @param prefix
      */
-    void loadByteVolumeData(const std::string &prefix) override;
+    void loadUnsignedVolumeData(const std::string &rawvolumepath) override;
 
     /**
      * @brief getNumberBytes
@@ -83,12 +83,12 @@ public:
      */
     uint64_t getNumberBytes() const override;
 
-    /**
-     * @brief value
-     * @param index
-     * @return
-     */
-    uint8_t getValue(const uint64_t &index) const override;
+//    /**
+//     * @brief value
+//     * @param index
+//     * @return
+//     */
+//    uint8_t getValue(const uint64_t &index) const override;
 
 
     /**
@@ -153,8 +153,6 @@ public:
      * The value of the voxel as a double-precision float.
      */
     double getValueF64(const uint64_t &index) const override;
-
-
 
     /**
      * @brief getByte

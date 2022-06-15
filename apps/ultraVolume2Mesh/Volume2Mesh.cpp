@@ -22,6 +22,7 @@
 #include <Ultraliser.h>
 #include <AppCommon.h>
 #include <AppArguments.h>
+#include <nrrdloader/NRRDLoader.h>
 
 namespace Ultraliser
 {
@@ -86,15 +87,8 @@ void run(int argc , const char** argv)
     // Parse the arguments and get the tool options
     auto options = parseArguments(argc, argv);
 
-    // Get the volume format from the header file
-    const auto volumeType = VolumeGrid::getVolumeTypeFromHdrFile(options->inputVolumePath);
-
-
-
-
     // Construct a volume from the file
-    Ultraliser::Volume* loadedVolume = new Ultraliser::Volume(
-                options->inputVolumePath, Ultraliser::VolumeGrid::TYPE::UI8);
+    Volume* loadedVolume = new Ultraliser::Volume(options->inputVolumePath);
 
     std::stringstream prefix;
     if (options->fullRangeIsoValue)
@@ -102,14 +96,15 @@ void run(int argc , const char** argv)
     else
         prefix << options->outputPrefix << "-" << options->isoValue;
 
-    if (options->writeHistogram)
+    if (1)//options->writeHistogram)
     {
-        // Create the histogram
-        std::vector<uint64_t> histogram = Ultraliser::Volume::createHistogram(loadedVolume);
+//        // Create the histogram
+//        std::vector<uint64_t> histogram = Ultraliser::Volume::createHistogram(loadedVolume,
+//                                                                              volumeType);
 
-        // Write the histogram to a file
-        const std::string path = prefix.str() + std::string(".histogram");
-        File::writeIntegerDistributionToFile(path, histogram);
+//        // Write the histogram to a file
+//        const std::string path = prefix.str() + std::string(".histogram");
+//        File::writeIntegerDistributionToFile(path, histogram);
     }
 
     // Construct a volume that will be used for the mesh reconstruction
@@ -117,14 +112,13 @@ void run(int argc , const char** argv)
     if (options->fullRangeIsoValue)
     {
         // Construct a bit volume with a specific iso value
-        volume = Ultraliser::Volume::constructFullRangeVolume(
-                    loadedVolume, options->zeroPaddingVoxels);
+        volume = Volume::constructFullRangeVolume(loadedVolume, options->zeroPaddingVoxels);
     }
     else
     {
         // Construct a bit volume with a specific iso value
         volume = Ultraliser::Volume::constructIsoValueVolume(
-                    loadedVolume, I2UI8(options->isoValue), options->zeroPaddingVoxels);
+                    loadedVolume, options->isoValue, options->zeroPaddingVoxels);
     }
 
     // Free the loaded volume

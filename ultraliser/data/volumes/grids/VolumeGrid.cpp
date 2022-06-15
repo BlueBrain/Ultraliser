@@ -404,7 +404,7 @@ void VolumeGrid::writeProjection(const std::string &prefix,
     }
 
     // Create a projection array (float)
-    std::vector< float > projectionImage(projectionSize);
+    std::vector< double > projectionImage(projectionSize);
 
     // Create normalized projection array (0 - 255)
     std::vector< uint8_t > normalizedProjectionImage(projectionSize);
@@ -414,7 +414,7 @@ void VolumeGrid::writeProjection(const std::string &prefix,
     OMP_PARALLEL_FOR
     for (int64_t index = 0; index < projectionSize; ++index)
     {
-        projectionImage[index] = 0.f;
+        projectionImage[index] = 0.0;
         normalizedProjectionImage[index] = 0;
     }
 
@@ -476,7 +476,7 @@ void VolumeGrid::writeProjection(const std::string &prefix,
     LOOP_DONE;
 
     // Get the maximum value
-    float maxValue = 0.f;
+    double maxValue = 0.0;
     for (int64_t index = 0; index < projectionSize; ++index)
     {
         if (projectionImage[index] > maxValue)
@@ -488,7 +488,7 @@ void VolumeGrid::writeProjection(const std::string &prefix,
     for (int64_t index = 0; index < projectionSize; ++index)
     {
         // Compute float pixel value
-        float pixelValue = float(255.0f) * projectionImage[index] / float(maxValue);
+        double pixelValue = 255.0 * projectionImage[index] / maxValue;
 
         // Convert to uint8_t to be able to write it to the image
         normalizedProjectionImage[index] = F2UI8(pixelValue);
@@ -626,21 +626,35 @@ VolumeGrid::TYPE VolumeGrid::getVolumeTypeFromHdrFile(const std::string& filePre
     hdrFileStream.close();
 
     if (type == "u8")
+    {
         return TYPE::UI8;
+    }
     else if (type == "u16")
+    {
         return TYPE::UI16;
+    }
     else if (type == "u32")
+    {
         return TYPE::UI32;
+    }
     else if (type == "u64")
+    {
         return TYPE::UI64;
+    }
     else if (type == "f32")
+    {
         return TYPE::F32;
+    }
     else if (type == "f64")
+    {
         return TYPE::F64;
+    }
     else
+    {
+        LOG_ERROR("Volume type is NOT defined!");
         return TYPE::UNDEFINED;
+    }
 }
-
 
 std::string VolumeGrid::getTypeString(const VolumeGrid::TYPE& type)
 {
@@ -663,5 +677,66 @@ std::string VolumeGrid::getTypeString(const VolumeGrid::TYPE& type)
     }
 }
 
+
+
+uint8_t VolumeGrid::getValueUI8(const int64_t &x, const int64_t &y, const int64_t &z) const
+{
+    bool outlier;
+    uint64_t index = mapToIndex(x, y, z, outlier);
+    if (outlier)
+        return 0;
+    else
+        return getValueUI8(index);
+}
+
+uint16_t VolumeGrid::getValueUI16(const int64_t &x, const int64_t &y, const int64_t &z) const
+{
+    bool outlier;
+    uint64_t index = mapToIndex(x, y, z, outlier);
+    if (outlier)
+        return 0;
+    else
+        return getValueUI16(index);
+}
+
+uint32_t VolumeGrid::getValueUI32(const int64_t &x, const int64_t &y, const int64_t &z) const
+{
+    bool outlier;
+    uint64_t index = mapToIndex(x, y, z, outlier);
+    if (outlier)
+        return 0;
+    else
+        return getValueUI32(index);
+}
+
+uint64_t VolumeGrid::getValueUI64(const int64_t &x, const int64_t &y, const int64_t &z) const
+{
+    bool outlier;
+    uint64_t index = mapToIndex(x, y, z, outlier);
+    if (outlier)
+        return 0;
+    else
+        return getValueUI64(index);
+}
+
+float VolumeGrid::getValueF32(const int64_t &x, const int64_t &y, const int64_t &z) const
+{
+    bool outlier;
+    uint64_t index = mapToIndex(x, y, z, outlier);
+    if (outlier)
+        return 0;
+    else
+        return getValueF32(index);
+}
+
+double VolumeGrid::getValueF64(const int64_t &x, const int64_t &y, const int64_t &z) const
+{
+    bool outlier;
+    uint64_t index = mapToIndex(x, y, z, outlier);
+    if (outlier)
+        return 0;
+    else
+        return getValueF64(index);
+}
 
 }

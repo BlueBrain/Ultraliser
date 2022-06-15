@@ -75,10 +75,10 @@ void BitVolumeGrid::loadBinaryVolumeData(const std::string &prefix)
     imgFileStream.close();
 }
 
-void BitVolumeGrid::loadByteVolumeData(const std::string &prefix)
+void BitVolumeGrid::loadUnsignedVolumeData(const std::string &rawvolumepath)
 {
     // Read the volume file from the input stream
-    std::string filePath = prefix + BINARY_EXTENSION;
+    std::string filePath = rawvolumepath + BINARY_EXTENSION;
     std::ifstream imgFileStream;
     imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
     if (imgFileStream.fail())
@@ -135,7 +135,7 @@ uint32_t BitVolumeGrid::getValueUI32(const uint64_t &index) const
 uint64_t BitVolumeGrid::getValueUI64(const uint64_t &index) const
 {
     if (_data->bit(index))
-        return uint64_t(1);
+        return uint64_t(255);
     return 0;
 }
 
@@ -153,17 +153,17 @@ double BitVolumeGrid::getValueF64(const uint64_t &index) const
     return 0.0;
 }
 
-uint8_t BitVolumeGrid::getValue(const uint64_t &index) const
-{
-    if (_data->bit(index))
-    {
-        return uint8_t(1);
-    }
-    else
-    {
-        return uint8_t(0);
-    }
-}
+//uint8_t BitVolumeGrid::getValue(const uint64_t &index) const
+//{
+//    if (_data->bit(index))
+//    {
+//        return uint8_t(1);
+//    }
+//    else
+//    {
+//        return uint8_t(0);
+//    }
+//}
 
 uint8_t BitVolumeGrid::getByte(uint64_t index) const
 {

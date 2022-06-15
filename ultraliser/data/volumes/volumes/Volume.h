@@ -54,6 +54,8 @@ public:
 
 public:
 
+    Volume(const std::string &filePath);
+
     /**
      * @brief Volume
      * Constructor
@@ -91,14 +93,14 @@ public:
            const VolumeGrid::TYPE& gridType = VolumeGrid::TYPE::BIT,
            const float expansionRatio = 0.0);
 
-    /**
-     * @brief Volume
-     * Constructor
-     * @param prefix
-     * @param type
-     */
-    Volume(const std::string &prefix,
-           const VolumeGrid::TYPE& gridType = VolumeGrid::TYPE::BIT);
+//    /**
+//     * @brief Volume
+//     * Constructor
+//     * @param prefix
+//     * @param type
+//     */
+//    Volume(const std::string &prefix,
+//           const VolumeGrid::TYPE& gridType);
     ~Volume();
 
     /**
@@ -108,26 +110,26 @@ public:
      */
     uint8_t getByte(const uint64_t index) const;
 
-    /**
-     * @brief getValue
-     * @param index
-     * @return
-     */
-    uint8_t getValue(const uint64_t index) const;
+//    /**
+//     * @brief getValue
+//     * @param index
+//     * @return
+//     */
+//    uint8_t getValue(const uint64_t index) const;
 
     uint8_t getConfirmedValue(const int64_t &x,
                                       const int64_t &y,
                                       const int64_t &z) const;
-    /**
-     * @brief getValue
-     * @param x
-     * @param y
-     * @param z
-     * @return
-     */
-    uint8_t getValue(const int64_t &x,
-                     const int64_t &y,
-                     const int64_t &z) const;
+//    /**
+//     * @brief getValue
+//     * @param x
+//     * @param y
+//     * @param z
+//     * @return
+//     */
+//    uint8_t getValue(const int64_t &x,
+//                     const int64_t &y,
+//                     const int64_t &z) const;
 
 
 
@@ -537,7 +539,7 @@ public:
      * A binary volume (1 bit per voxel) corresponding to the given iso value.
      */
     static Volume* constructIsoValueVolume(const Volume* volume,
-                                           const uint8_t &isoValue,
+                                           const uint64_t &isoValue,
                                            const int64_t &padding = 32);
 
     /**
@@ -564,7 +566,7 @@ public:
      * @return
      * Histogram array.
      */
-    static std::vector<uint64_t> createHistogram(const Volume* volume);
+    static std::vector<uint64_t> createHistogram(const Volume* volume, const VolumeGrid::TYPE type);
 
     /**
      * @brief getVoxelBoundingBox
@@ -610,16 +612,17 @@ private:
     void _loadHeaderData(const std::string &prefix);
 
     /**
-     * @brief _loadByteVolumeData
+     * @brief _load1BitRawData
      * @param prefix
      */
-    void _loadByteVolumeData(const std::string &prefix);
+    void _load1BitRawData(const std::string &prefix);
 
     /**
-     * @brief _loadBinaryVolumeData
+     * @brief _loadUnsignedVolumeData
      * @param prefix
      */
-    void _loadBinaryVolumeData(const std::string &prefix);
+    void _loadUnsignedRawData(const std::string &prefix);
+
 
     /**
      * @brief _allocateGrid
@@ -794,7 +797,7 @@ private:
     /**
      * @brief _gridType
      */
-    const VolumeGrid::TYPE _gridType;
+    VolumeGrid::TYPE _gridType;
 
     /**
      * @brief _pMin
@@ -817,6 +820,11 @@ private:
      * The dimensions of the volume grid.
      */
     Vec3i_64 _gridDimensions;
+
+    /**
+     * @brief rawFileName
+     */
+    std::string _rawFileName;
 
     /**
      * @brief _baseResolution

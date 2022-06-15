@@ -82,10 +82,10 @@ void VoxelGrid<T>::loadBinaryVolumeData(const std::string &prefix)
 }
 
 template <class T>
-void VoxelGrid<T>::loadByteVolumeData(const std::string &prefix)
+void VoxelGrid<T>::loadUnsignedVolumeData(const std::string &rawvolumepath)
 {
     // Read the volume file from the input stream
-    std::string filePath = prefix + BINARY_EXTENSION;
+    std::string filePath = rawvolumepath + BINARY_EXTENSION;
     std::ifstream imgFileStream;
     imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
     if (imgFileStream.fail())
@@ -94,14 +94,14 @@ void VoxelGrid<T>::loadByteVolumeData(const std::string &prefix)
     }
 
     // Read the file in a temporary array
-    uint8_t* fileData = new uint8_t[I2UI64(_numberVoxels)];
+    uint8_t* fileData = new uint8_t[_numberVoxels];
     imgFileStream.read((char*) fileData, _numberVoxels);
 
     // Close the stream
     imgFileStream.close();
 
     // Fill the actual data array
-    for (uint64_t i = 0; i < I2UI64(_numberVoxels); ++i)
+    for (uint64_t i = 0; i < _numberVoxels; ++i)
     {
         _data[i].value = fileData[i];
     }
@@ -116,11 +116,11 @@ uint64_t VoxelGrid<T>::getNumberBytes() const
     return I2UI64(_numberVoxels);
 }
 
-template <class T>
-uint8_t VoxelGrid<T>::getValue(const uint64_t &index) const
-{
-    return _data[index].value;
-}
+//template <class T>
+//uint8_t VoxelGrid<T>::getValue(const uint64_t &index) const
+//{
+//    return _data[index].value;
+//}
 
 template <class T>
 uint8_t VoxelGrid<T>::getByte(uint64_t index) const
@@ -374,13 +374,6 @@ void VoxelGrid<T>::orWithAnotherGrid(VolumeGrid *anotherGrid)
         // _data[voxel].value |= inputData[voxel].value;
     }
 }
-
-
-
-
-
-
-
 
 template <class T>
 void VoxelGrid<T>::_allocateMemory()

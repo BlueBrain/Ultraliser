@@ -43,7 +43,7 @@ public:
      * @param dimensions
      */
     UnsignedVolumeGrid(const Vec3ui_64 &dimensions,
-                   const bool& preAllocateMemory = true);
+                       const bool& preAllocateMemory = true);
 
     /**
      * @brief Grid
@@ -52,9 +52,14 @@ public:
      * @param depth
      */
     UnsignedVolumeGrid(const uint64_t &width,
-                   const uint64_t &height,
-                   const uint64_t &depth,
-                   const bool& preAllocateMemory = true);
+                       const uint64_t &height,
+                       const uint64_t &depth,
+                       const bool& preAllocateMemory = true);
+
+    UnsignedVolumeGrid(const uint64_t &width,
+                       const uint64_t &height,
+                       const uint64_t &depth,
+                       std::vector<T> &data);
 
     /**
      * @brief ByteVolumeGrid
@@ -73,10 +78,10 @@ public:
     void loadBinaryVolumeData(const std::string &prefix) override;
 
     /**
-     * @brief loadByteVolumeData
+     * @brief loadUnsignedVolumeData
      * @param prefix
      */
-    void loadByteVolumeData(const std::string &prefix) override;
+    void loadUnsignedVolumeData(const std::string &rawvolumepath) override;
 
     /**
      * @brief getNumberBytes
@@ -84,12 +89,12 @@ public:
      */
     uint64_t getNumberBytes() const override;
 
-    /**
-     * @brief value
-     * @param index
-     * @return
-     */
-    uint8_t getValue(const uint64_t &index) const override;
+//    /**
+//     * @brief value
+//     * @param index
+//     * @return
+//     */
+//    uint8_t getValue(const uint64_t &index) const override;
 
     /**
      * @brief getByte

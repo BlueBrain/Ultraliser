@@ -44,7 +44,7 @@ public:
      * @param isoValue
      */
     MarchingCubes(Volume* volume,
-                  const uint8_t isoValue = 127);
+                  const uint64_t isoValue = 127);
 
     /**
      * @brief generateMesh
@@ -124,7 +124,7 @@ private:
     /**
      * @brief _isoValue
      */
-    const uint8_t _isoValue;
+    const uint64_t _isoValue;
 
     /**
      * @brief _meshExtractionTime

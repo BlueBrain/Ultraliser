@@ -32,9 +32,9 @@ namespace Ultraliser
 
 template <class T>
 UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const uint64_t &width,
-                                  const uint64_t &height,
-                                  const uint64_t &depth,
-                                  const bool &preAllocateMemory)
+                                          const uint64_t &height,
+                                          const uint64_t &depth,
+                                          const bool &preAllocateMemory)
     : VolumeGrid(width, height, depth)
 {
     // Allocate the memory
@@ -46,7 +46,7 @@ UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const uint64_t &width,
 
 template <class T>
 UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const Vec3ui_64& dimensions,
-                                  const bool &preAllocateMemory)
+                                          const bool &preAllocateMemory)
     : VolumeGrid(dimensions)
 {
     // Allocate the memory
@@ -57,7 +57,23 @@ UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const Vec3ui_64& dimensions,
 }
 
 template <class T>
-UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const UnsignedVolumeGrid* inputGrid) : VolumeGrid(*inputGrid)
+UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const uint64_t &width,
+                                          const uint64_t &height,
+                                          const uint64_t &depth,
+                                          std::vector<T> &data)
+    : VolumeGrid(width, height, depth)
+{
+    _allocateMemory();
+
+    // Update the data
+    for (uint64_t i = 0; i < _numberVoxels; ++i)
+        _data[i] =  data[i];
+}
+
+
+template <class T>
+UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const UnsignedVolumeGrid* inputGrid)
+    : VolumeGrid(*inputGrid)
 {
     // Allocate the memory to be able to copy the data
     _allocateMemory();
@@ -81,85 +97,152 @@ void UnsignedVolumeGrid<T>::loadBinaryVolumeData(const std::string &prefix)
 }
 
 template <class T>
-void UnsignedVolumeGrid<T>::loadByteVolumeData(const std::string &prefix)
+void UnsignedVolumeGrid<T>::loadUnsignedVolumeData(const std::string &rawvolumepath)
 {
     // Read the volume file from the input stream
-    std::string filePath = prefix + RAW_EXTENSION;
-    std::ifstream imgFileStream;
-    imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
-    if (imgFileStream.fail())
+    std::string filePath = rawvolumepath + RAW_EXTENSION;
+
+    uint64_t volSizeBytes;
+
+
+
+
+//    std::ifstream imgFileStream;
+//    imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
+//    if (imgFileStream.fail())
+//    {
+//        LOG_ERROR("Could not open the volume file %s!", filePath.c_str());
+//    }
+
+    if (typeid (T) == typeid (uint8_t))
     {
-        LOG_ERROR("Could not open the volume file %s!", filePath.c_str());
+         FILE* ptrFile = std::fopen(filePath.c_str(), "rb");
+        // imgFileStream.read((char*) _data, _numberVoxels);
+
+        volSizeBytes = _numberVoxels;
+
+        // Read the volume raw file
+        size_t imageSize = fread((char*)_data,
+                                 1,
+                                 volSizeBytes,
+                                 ptrFile);
+
     }
 
-    imgFileStream.read((char*) _data, _numberVoxels);
+    if (typeid (T) == typeid (uint16_t))
+    {
+//        // imgFileStream.read((char*) _data, _numberVoxels);
+//        volSizeBytes = _numberVoxels;
+
+
+
+
+//        fread ((short*)_data, sizeof(uint16_t), _numberVoxels, ptrFile);
+
+        std::ifstream imgFileStream;
+        imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
+
+        //imgFileStream.read(reinterpret_cast<char *>(_data), _numberVoxels * 2);
+
+        uint64_t i = 0;
+        uint16_t iSample;
+        while(imgFileStream.read((char *)&iSample, sizeof(uint16_t)))
+        {
+            _data[i] = iSample;
+            i++;
+            // m_vectorSamples.push_back(iSample);
+        }
+
+//
+    }
+
+
+
 
     // Close the stream
-    imgFileStream.close();
+    // mgFileStream.close();
 }
 
 template <class T>
 uint64_t UnsignedVolumeGrid<T>::getNumberBytes() const
 {
     if (typeid (T) == typeid (uint8_t))
+    {
         return _numberVoxels;
+    }
     else if (typeid (T) == typeid (uint16_t))
+    {
         return _numberVoxels * 2;
+    }
     else if (typeid (T) == typeid (uint32_t))
+    {
         return _numberVoxels * 4;
+    }
     else if (typeid (T) == typeid (uint64_t))
+    {
         return _numberVoxels * 8;
-    else if (typeid (T) == typeid (float))
-        return _numberVoxels * 4;
-    else if (typeid (T) == typeid (double))
-        return _numberVoxels * 8;
+    }
     else
-        LOG_ERROR("Undefined type!");
+    {
+        LOG_ERROR("Undefined type in UnsignedVolumeGrid<T>::getNumberBytes()!");
         return 0;
+    }
 }
 
 template <class T>
 uint8_t UnsignedVolumeGrid<T>::getValueUI8(const uint64_t &index) const
 {
     if (typeid (T) == typeid (uint8_t))
+    {
         return _data[index];
+    }
     else
+    {
+        LOG_ERROR("Precision error in UnsignedVolumeGrid<T>::getValueUI8()!");
         return 0;
+    }
 }
 
 template <class T>
 uint16_t UnsignedVolumeGrid<T>::getValueUI16(const uint64_t &index) const
 {
     if (typeid (T) == typeid (uint8_t))
+    {
         return static_cast< uint16_t >(_data[index]);
+    }
     else if (typeid (T) == typeid (uint16_t))
+    {
         return _data[index];
+    }
     else
+    {
+        LOG_ERROR("Precision error in UnsignedVolumeGrid<T>::getValueUI16()!");
         return 0;
+    }
 }
 
 template <class T>
 uint32_t UnsignedVolumeGrid<T>::getValueUI32(const uint64_t &index) const
 {
     if (typeid (T) == typeid (uint8_t) || typeid (T) == typeid (uint16_t))
+    {
         return static_cast< uint32_t >(_data[index]);
+    }
     else if (typeid (T) == typeid (uint32_t))
+    {
         return _data[index];
+    }
     else
+    {
+        LOG_ERROR("Precision error in UnsignedVolumeGrid<T>::getValueUI32()!");
         return 0;
+    }
 }
 
 template <class T>
 uint64_t UnsignedVolumeGrid<T>::getValueUI64(const uint64_t &index) const
 {
-    if (typeid (T) == typeid (uint8_t) ||
-        typeid (T) == typeid (uint16_t) ||
-        typeid (T) == typeid (uint32_t))
-        return static_cast< uint64_t >(_data[index]);
-    else if (typeid (T) == typeid (uint64_t))
-        return _data[index];
-    else
-        return 0;
+    return static_cast< uint64_t >(_data[index]);
 }
 
 template <class T>
@@ -175,28 +258,37 @@ double UnsignedVolumeGrid<T>::getValueF64(const uint64_t &index) const
 }
 
 template <class T>
-uint8_t UnsignedVolumeGrid<T>::getValue(const uint64_t &index) const
-{
-    return _data[index];
-}
-
-template <class T>
 uint8_t UnsignedVolumeGrid<T>::getByte(uint64_t index) const
 {
-    return _data[index];
+    if (typeid (T) == typeid (uint8_t))
+    {
+        return _data[index];
+    }
+    else
+    {
+        LOG_ERROR("Unimplemented function UnsignedVolumeGrid<T>::getByte()!");
+        return 0;
+    }
 }
 template <class T>
 
 void UnsignedVolumeGrid<T>::addByte(const uint64_t &index, const uint8_t &byte)
 {
-    _data[index] = byte;
+    if (typeid (T) == typeid (uint8_t))
+    {
+        _data[index] = byte;
+    }
+    else
+    {
+        LOG_ERROR("Unimplemented function UnsignedVolumeGrid<T>::addByte()!");
+    }
 }
-template <class T>
 
+template <class T>
 void UnsignedVolumeGrid<T>::clear()
 {
     for (int64_t i = 0; i < _numberVoxels; ++i)
-        _data[i] = 0;
+        _data[i] = static_cast<T>(0);
 }
 
 template <class T>
@@ -418,8 +510,9 @@ UnsignedVolumeGrid<T>::~UnsignedVolumeGrid()
     _freeMemory();
 }
 
-template class ByteVolumeGrid<uint8_t>;
-template class ByteVolumeGrid<uint16_t>;
-template class ByteVolumeGrid<uint32_t>;
-template class ByteVolumeGrid<uint64_t>;
+template class UnsignedVolumeGrid<uint8_t>;
+template class UnsignedVolumeGrid<uint16_t>;
+template class UnsignedVolumeGrid<uint32_t>;
+template class UnsignedVolumeGrid<uint64_t>;
+
 }

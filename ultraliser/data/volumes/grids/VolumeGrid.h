@@ -41,25 +41,25 @@ public:
      */
     enum TYPE
     {
-        // Each voxel is stored in a single bit
+        // Each voxel is stored in a single bit (class 1)
         BIT,
 
-        // Each voxel is stored in a single byte (8 bits) as unsigned char
+        // Each voxel is stored in a single byte (8 bits) as unsigned char (class 2)
         UI8,
 
-        // Each voxel is stored in a single word (16 bits) as unsigned short
+        // Each voxel is stored in a single word (16 bits) as unsigned short (class 2)
         UI16,
 
-        // Each voxel is stored in a doubleword (32 bits) as unsigned int
+        // Each voxel is stored in a doubleword (32 bits) as unsigned int (class 2)
         UI32,
 
-        // Each voxel is stored in a quad-word (64 bits) as unsigned long
+        // Each voxel is stored in a quad-word (64 bits) as unsigned long (class 2)
         UI64,
 
-        // Each voxel is stored as a single-precision floating-point value
+        // Each voxel is stored as a single-precision floating-point value (class 3)
         F32,
 
-        // Each voxel is stored as a double-precision floating-point value
+        // Each voxel is stored as a double-precision floating-point value (class 3)
         F64,
 
         // Each voxel is stored in a Voxel structure with a 1 bit value
@@ -231,10 +231,12 @@ public:
     virtual void loadBinaryVolumeData(const std::string &prefix) = 0;
 
     /**
-     * @brief loadByteVolumeData
+     * @brief loadUnsignedVolumeData
      * @param prefix
      */
-    virtual void loadByteVolumeData(const std::string &prefix) = 0;
+    virtual void loadUnsignedVolumeData(const std::string &rawvolumepath) = 0;
+
+
 
     /**
      * @brief clear
@@ -311,7 +313,7 @@ public:
      * @param index
      * @return
      */
-    virtual uint8_t getValue(const uint64_t &index) const = 0;
+    // virtual uint8_t getValue(const uint64_t &index) const = 0;
 
     /**
      * @brief andWithAnotherGrid
@@ -324,8 +326,6 @@ public:
      * @param anotherGrid
      */
     virtual void orWithAnotherGrid(VolumeGrid *anotherGrid) = 0;
-
-
 
     /**
      * @brief getValueUI8
@@ -390,35 +390,89 @@ public:
      */
     virtual double getValueF64(const uint64_t &index) const = 0;
 
-
+    /**
+     * @brief getValueUI8
+     * Returns the value of a voxel specified by a given index as an 8-bit integer.
+     * @param x
+     * X-axis index.
+     * @param y
+     * Y-axis index.
+     * @param z
+     * Z-axis index.
+     * @return
+     * The value of the voxel as an 8-bit integer.
+     */
     uint8_t getValueUI8(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
+    /**
+     * @brief getValueUI16
+     * Returns the value of a voxel specified by a given index as a 16-bit integer.
+     * @param x
+     * X-axis index.
+     * @param y
+     * Y-axis index.
+     * @param z
+     * Z-axis index.
+     * @return
+     * The value of the voxel as a 16-bit integer.
+     */
     uint16_t getValueUI16(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
+    /**
+     * @brief getValueUI32
+     * Returns the value of a voxel specified by a given index as a 32-bit integer.
+     * @param x
+     * X-axis index.
+     * @param y
+     * Y-axis index.
+     * @param z
+     * Z-axis index.
+     * @return
+     * The value of the voxel as a 32-bit integer.
+     */
     uint32_t getValueUI32(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
+    /**
+     * @brief getValueUI64
+     * Returns the value of a voxel specified by a given index as a 64-bit integer.
+     * @param x
+     * X-axis index.
+     * @param y
+     * Y-axis index.
+     * @param z
+     * Z-axis index.
+     * @return
+     * The value of the voxel as a 64-bit integer.
+     */
     uint64_t getValueUI64(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
+    /**
+     * @brief getValueUI16
+     * Returns the value of a voxel specified by a given index as a single-precision float.
+     * @param x
+     * X-axis index.
+     * @param y
+     * Y-axis index.
+     * @param z
+     * Z-axis index.
+     * @return
+     * The value of the voxel as a single-precision float.
+     */
     float getValueF32(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
-    double getValueF64(const int64_t &x, const int64_t &y, const int64_t &z) const;
-
     /**
-     * @brief value
+     * @brief getValueF64
+     * Returns the value of a voxel specified by a given index as a double-precision float.
      * @param x
+     * X-axis index.
      * @param y
+     * Y-axis index.
      * @param z
+     * Z-axis index.
      * @return
+     * The value of the voxel as a double-precision float.
      */
-    uint8_t getValue(const int64_t &x, const int64_t &y, const int64_t &z) const
-    {
-        bool outlier;
-        uint64_t index = mapToIndex(x, y, z, outlier);
-        if (outlier)
-            return 0;
-        else
-            return getValue(index);
-    }
+    double getValueF64(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
     /**
      * @brief projectVolume
@@ -467,6 +521,9 @@ public:
      * @param padding
      */
     void floodFillSliceAlongAxis(const int64_t &x, const AXIS &axis, const uint64_t &padding = 0);
+
+
+
 
     /**
      * @brief getByte

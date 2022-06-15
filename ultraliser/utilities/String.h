@@ -97,6 +97,18 @@ bool sameString(std::string s1, std::string s2);
  */
 void removeExtraSpaces(std::string &inputString);
 
+/**
+ * @brief toLower
+ * @param inputString
+ */
+void toLower(std::string &inputString);
+
+/**
+ * @brief toUpper
+ * @param inputString
+ */
+void toUpper(std::string &inputString);
+
 }
 }
 

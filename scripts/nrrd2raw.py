@@ -27,6 +27,7 @@
 # System imports
 import argparse
 import nrrd
+import struct
 from pathlib import Path
 
 from pandas import wide_to_long
@@ -76,13 +77,39 @@ def write_raw_file(prefix, data, width, height, depth):
 
     # Open the data file 
     fhandle = open('%s.img' % prefix, 'wb')
-    
-    # Write the data 
+
+    # Write the data
     for i in range(0, width):
+        print(i, width)
         for j in range(0, height):
             for k in range(0, depth):
-                fhandle.write(data[i][j][k])
+                fhandle.write(struct.pack('>H', data[i][j][k]))
+                
     
+    # Close the file 
+    fhandle.close()
+
+def write_nrrd_file(prefix, data, width, height, depth):
+
+     # Open the data file 
+    fhandle = open('%s.nrrd' % prefix, 'w')
+    fhandle.write('dimension: 3\n')
+    fhandle.write('type: uint16\n')
+    fhandle.write('sizes: %s %s %s\n' % (str(width), str(height), str(depth)))
+    fhandle.write('endian: little\n')
+    fhandle.write('encoding: raw\n')
+    fhandle.close()
+
+    fhandle = open('%s.nrrd' % prefix, 'ab')
+    
+    # Write the data
+    for i in range(0, width):
+        print(i, width - 1)
+        for j in range(0, height):
+            for k in range(0, depth):
+                buffer = struct.pack('H', data[i][j][k])
+                fhandle.write(buffer)
+
     # Close the file 
     fhandle.close()
 
@@ -101,7 +128,6 @@ def convert_nrrd_to_raw(arguments):
     # Read the NRRD file 
     nrrd_data, nrrd_header = nrrd.read(arguments.input_file)
     
-
     # Get the NRRD type 
     nrrd_type = nrrd_header['type']
 
@@ -160,7 +186,10 @@ def convert_nrrd_to_raw(arguments):
         write_raw_header_file(prefix=prefix, file_type='u16', 
             width=volume_width, height=volume_height, depth=volume_depth)
 
-        write_raw_file(prefix=prefix, data=nrrd_data, 
+        #write_raw_file(prefix=prefix, data=nrrd_data, 
+        #    width=volume_width, height=volume_height, depth=volume_depth)
+
+        write_nrrd_file(prefix=prefix, data=nrrd_data, 
             width=volume_width, height=volume_height, depth=volume_depth)
 
 

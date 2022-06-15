@@ -27,7 +27,7 @@ namespace Ultraliser
 {
 
 MarchingCubes::MarchingCubes(Volume* volume,
-                             const uint8_t _isoValue)
+                             const uint64_t _isoValue)
     : _volume(volume)
     , _isoValue(_isoValue)
 {
@@ -44,10 +44,10 @@ double interpolateIsoValue(double _isoValue, double f1, double f2, double t1, do
 }
 
 uint64_t addSharedVertex(double x1, double y1, double z1,
-                       double c2,
-                       int axis, double f1, double f2,
-                       double _isoValue,
-                       Vertices& vertices)
+                         double c2,
+                         int axis, double f1, double f2,
+                         double _isoValue,
+                         Vertices& vertices)
 {
     size_t vertexIndex = vertices.size();
 
@@ -187,14 +187,14 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
             for (int64_t k = minValue; k < maxZ; ++k)
             {
                 double v[8];
-                v[0] = _volume->getValue(i, j, k);
-                v[1] = _volume->getValue(i + 1, j, k);
-                v[2] = _volume->getValue(i + 1, j + 1, k);
-                v[3] = _volume->getValue(i, j + 1, k);
-                v[4] = _volume->getValue(i, j, k + 1);
-                v[5] = _volume->getValue(i + 1, j, k + 1);
-                v[6] = _volume->getValue(i + 1, j + 1, k + 1);
-                v[7] = _volume->getValue(i, j + 1, k + 1);
+                v[0] = _volume->getValueUI64(i, j, k);
+                v[1] = _volume->getValueUI64(i + 1, j, k);
+                v[2] = _volume->getValueUI64(i + 1, j + 1, k);
+                v[3] = _volume->getValueUI64(i, j + 1, k);
+                v[4] = _volume->getValueUI64(i, j, k + 1);
+                v[5] = _volume->getValueUI64(i + 1, j, k + 1);
+                v[6] = _volume->getValueUI64(i + 1, j + 1, k + 1);
+                v[7] = _volume->getValueUI64(i, j + 1, k + 1);
 
                 // Get the cube index
                 uint64_t cubeIndex = 0;
@@ -221,7 +221,7 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
 
     // Building the shared vertices
     TIMER_RESET;
-    LOOP_STARTS("Building Shared Vertices");
+    LOOP_STARTS("Building Shared Vertices - Parallel");
     for (uint64_t ii = 0; ii < volumeMCVoxels.size(); ii++)
     {
         LOOP_PROGRESS(ii, volumeMCVoxels.size());
@@ -492,14 +492,14 @@ void MarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangle
                 const float z_dz = pMax.z() + 0.5 * voxelSize;    // dz * (k + 1);
 
                 double v[8];
-                v[0] = _volume->getValue(i, j, k);
-                v[1] = _volume->getValue(i + 1, j, k);
-                v[2] = _volume->getValue(i + 1, j + 1, k);
-                v[3] = _volume->getValue(i, j + 1, k);
-                v[4] = _volume->getValue(i, j, k + 1);
-                v[5] = _volume->getValue(i + 1, j, k + 1);
-                v[6] = _volume->getValue(i + 1, j + 1, k + 1);
-                v[7] = _volume->getValue(i, j + 1, k + 1);
+                v[0] = _volume->getValueUI64(i, j, k);
+                v[1] = _volume->getValueUI64(i + 1, j, k);
+                v[2] = _volume->getValueUI64(i + 1, j + 1, k);
+                v[3] = _volume->getValueUI64(i, j + 1, k);
+                v[4] = _volume->getValueUI64(i, j, k + 1);
+                v[5] = _volume->getValueUI64(i + 1, j, k + 1);
+                v[6] = _volume->getValueUI64(i + 1, j + 1, k + 1);
+                v[7] = _volume->getValueUI64(i, j + 1, k + 1);
 
                 // Get the cube index
                 uint64_t cubeIndex = 0;

@@ -476,7 +476,7 @@ void TaggedVolume::projectXY(const std::string &prefix, const bool &projectColor
     TIMER_SET;
 
     uint8_t* normalizedProjection = new uint8_t[getWidth() * getHeight()];
-    float* projection = new float[getWidth() * getHeight()];
+    double* projection = new double[getWidth() * getHeight()];
 
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for schedule(dynamic, 1)
@@ -517,7 +517,7 @@ void TaggedVolume::projectXY(const std::string &prefix, const bool &projectColor
     LOOP_DONE;
 
     // Normalize the value
-    float maxValue = 0;
+    double maxValue = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for schedule(dynamic, 1)
 #endif
@@ -532,7 +532,7 @@ void TaggedVolume::projectXY(const std::string &prefix, const bool &projectColor
 #endif
     for (uint64_t i = 0; i < getWidth() * getHeight(); i++)
     {
-        float pixelValue = float(255.0) * projection[i] / float(maxValue);
+        double pixelValue = 255.0 * projection[i] / maxValue;
         normalizedProjection[i] = uint8_t(pixelValue);
     }
 
@@ -565,7 +565,7 @@ void TaggedVolume::projectZY(const std::string &prefix, const bool &projectColor
     TIMER_SET;
 
     uint8_t* normalizedProjection = new uint8_t[getDepth() * getHeight()];
-    float* projection = new float[getDepth() * getHeight()];
+    double* projection = new double[getDepth() * getHeight()];
 
 #ifdef ULTRALISER_USE_OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
@@ -606,7 +606,7 @@ void TaggedVolume::projectZY(const std::string &prefix, const bool &projectColor
     LOOP_DONE;
 
     // Normalize the value
-    float maxValue = 0;
+    double maxValue = 0.0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for schedule(dynamic, 1)
 #endif
@@ -621,7 +621,7 @@ void TaggedVolume::projectZY(const std::string &prefix, const bool &projectColor
 #endif
     for (uint64_t i = 0; i < getDepth() * getHeight(); i++)
     {
-        float pixelValue = float(255.0) * projection[i] / float(maxValue);
+        double pixelValue = 255.0 * projection[i] / maxValue;
         normalizedProjection[i] = uint8_t(pixelValue);
     }
 

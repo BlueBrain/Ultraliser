@@ -60,6 +60,7 @@
 #include <iomanip>
 #include <unordered_map>
 #include <unordered_set>
+#include <filesystem>
 #include <common/OpenMP.hh>
 
 #ifdef ULTRALISER_USE_H5

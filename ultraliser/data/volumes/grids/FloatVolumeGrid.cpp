@@ -81,10 +81,10 @@ void FloatVolumeGrid<T>::loadBinaryVolumeData(const std::string &prefix)
 }
 
 template <class T>
-void FloatVolumeGrid<T>::loadByteVolumeData(const std::string &prefix)
+void FloatVolumeGrid<T>::loadUnsignedVolumeData(const std::string &rawvolumepath)
 {
     // Read the volume file from the input stream
-    std::string filePath = prefix + RAW_EXTENSION;
+    std::string filePath = rawvolumepath + RAW_EXTENSION;
     std::ifstream imgFileStream;
     imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
     if (imgFileStream.fail())
@@ -101,15 +101,7 @@ void FloatVolumeGrid<T>::loadByteVolumeData(const std::string &prefix)
 template <class T>
 uint64_t FloatVolumeGrid<T>::getNumberBytes() const
 {
-    if (typeid (T) == typeid (uint8_t))
-        return _numberVoxels;
-    else if (typeid (T) == typeid (uint16_t))
-        return _numberVoxels * 2;
-    else if (typeid (T) == typeid (uint32_t))
-        return _numberVoxels * 4;
-    else if (typeid (T) == typeid (uint64_t))
-        return _numberVoxels * 8;
-    else if (typeid (T) == typeid (float))
+    if (typeid (T) == typeid (float))
         return _numberVoxels * 4;
     else if (typeid (T) == typeid (double))
         return _numberVoxels * 8;
@@ -122,24 +114,28 @@ template <class T>
 uint8_t FloatVolumeGrid<T>::getValueUI8(const uint64_t &index) const
 {
     LOG_ERROR("FloatVolumeGrid<T>::getValueUI8 Unimplemented!");
+    return 0;
 }
 
 template <class T>
 uint16_t FloatVolumeGrid<T>::getValueUI16(const uint64_t &index) const
 {
     LOG_ERROR("FloatVolumeGrid<T>::getValueUI16 Unimplemented!");
+    return 0;
 }
 
 template <class T>
 uint32_t FloatVolumeGrid<T>::getValueUI32(const uint64_t &index) const
 {
     LOG_ERROR("FloatVolumeGrid<T>::getValueUI32 Unimplemented!");
+    return 0;
 }
 
 template <class T>
 uint64_t FloatVolumeGrid<T>::getValueUI64(const uint64_t &index) const
 {
     LOG_ERROR("FloatVolumeGrid<T>::getValueUI64 Unimplemented!");
+    return 0;
 }
 
 template <class T>
@@ -154,11 +150,11 @@ double FloatVolumeGrid<T>::getValueF64(const uint64_t &index) const
     return static_cast< double >(_data[index]);
 }
 
-template <class T>
-uint8_t FloatVolumeGrid<T>::getValue(const uint64_t &index) const
-{
-    return _data[index];
-}
+//template <class T>
+//uint8_t FloatVolumeGrid<T>::getValue(const uint64_t &index) const
+//{
+//    return _data[index];
+//}
 
 template <class T>
 uint8_t FloatVolumeGrid<T>::getByte(uint64_t index) const
