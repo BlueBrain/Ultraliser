@@ -29,7 +29,7 @@
 #include <data/volumes/grids/VolumeGrid.h>
 #include <data/volumes/voxels/DMCVoxel.h>
 #include <data/volumes/grids/BitVolumeGrid.h>
-#include <data/volumes/grids/ByteVolumeGrid.h>
+#include <data/volumes/grids/UnsignedVolumeGrid.h>
 #include <data/volumes/grids/VoxelGrid.h>
 #include <data/volumes/grids/Grids.h>
 #include <data/meshes/simple/VolumeMesh.h>
@@ -95,7 +95,7 @@ Volume::Volume(const std::string &prefix,
     case VolumeGrid::TYPE::BIT:
         _loadBinaryVolumeData(prefix);
         break;
-    case VolumeGrid::TYPE::BYTE:
+    case VolumeGrid::TYPE::UI8:
         _loadByteVolumeData(prefix);
         break;
 
@@ -108,25 +108,101 @@ Volume::Volume(const std::string &prefix,
 
 void Volume::_allocateGrid()
 {
+    // Grid dimensions
+    const auto sizeX = _gridDimensions.v[0];
+    const auto sizeY = _gridDimensions.v[1];
+    const auto sizeZ = _gridDimensions.v[2];
+
     // Create the grid
     switch (_gridType)
     {
     case VolumeGrid::TYPE::BIT:
     {
-        _grid = new BitVolumeGrid(_gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
-        break;
-    }
-    case VolumeGrid::TYPE::BYTE:
-    {
-        _grid = new ByteVolumeGrid(_gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
+        _grid = new BitVolumeGrid(sizeX, sizeY, sizeZ);
         break;
     }
 
-    case VolumeGrid::TYPE::VOXEL:
+    case VolumeGrid::TYPE::UI8:
     {
-        _grid = new VoxelGrid(_gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
+        _grid = new VolumeGridU8(sizeX, sizeY, sizeZ);
         break;
     }
+
+    case VolumeGrid::TYPE::UI16:
+    {
+        _grid = new VolumeGridU16(sizeX, sizeY, sizeZ);
+        break;
+    }
+
+    case VolumeGrid::TYPE::UI32:
+    {
+        _grid = new VolumeGridU32(sizeX, sizeY, sizeZ);
+        break;
+    }
+
+    case VolumeGrid::TYPE::UI64:
+    {
+        _grid = new VolumeGridU64(sizeX, sizeY, sizeZ);
+        break;
+    }
+
+    case VolumeGrid::TYPE::F32:
+    {
+        _grid = new VolumeGridF32(sizeX, sizeY, sizeZ);
+        break;
+    }
+
+    case VolumeGrid::TYPE::F64:
+    {
+        _grid = new VolumeGridF64(sizeX, sizeY, sizeZ);
+        break;
+    }
+
+    case VolumeGrid::TYPE::VOXEL_BIT:
+    case VolumeGrid::TYPE::VOXEL_UI8:
+    {
+        _grid = new VoxelGrid<uint8_t>(
+                    _gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
+        break;
+    }
+
+    case VolumeGrid::TYPE::VOXEL_UI16:
+    {
+        _grid = new VoxelGrid<uint16_t>(
+                    _gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
+        break;
+    }
+
+    case VolumeGrid::TYPE::VOXEL_UI32:
+    {
+        _grid = new VoxelGrid<uint32_t>(
+                    _gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
+        break;
+    }
+
+    case VolumeGrid::TYPE::VOXEL_UI64:
+    {
+        _grid = new VoxelGrid<uint64_t>(
+                    _gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
+        break;
+    }
+
+    case VolumeGrid::TYPE::VOXEL_F32:
+    {
+        _grid = new VoxelGrid<float>(
+                    _gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
+        break;
+    }
+
+    case VolumeGrid::TYPE::VOXEL_F64:
+    {
+        _grid = new VoxelGrid<double>(
+                    _gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
+        break;
+    }
+
+    default:
+        break;
     }
 }
 
@@ -830,18 +906,40 @@ void Volume::_floodFillAlongXYZ(VolumeGrid *grid)
 
     } break;
 
-    case VolumeGrid::TYPE::BYTE:
+    case VolumeGrid::TYPE::UI8:
     {
-        xGrid = new ByteVolumeGrid(static_cast< ByteVolumeGrid* >(grid));
-        yGrid = new ByteVolumeGrid(static_cast< ByteVolumeGrid* >(grid));
-        zGrid = new ByteVolumeGrid(static_cast< ByteVolumeGrid* >(grid));
+        xGrid = new UnsignedVolumeGrid<uint8_t>(static_cast< UnsignedVolumeGrid<uint8_t>* >(grid));
+        yGrid = new UnsignedVolumeGrid<uint8_t>(static_cast< UnsignedVolumeGrid<uint8_t>* >(grid));
+        zGrid = new UnsignedVolumeGrid<uint8_t>(static_cast< UnsignedVolumeGrid<uint8_t>* >(grid));
     } break;
 
-    case VolumeGrid::TYPE::VOXEL:
+    case VolumeGrid::TYPE::UI16:
     {
-        xGrid = new VoxelGrid(static_cast< VoxelGrid* >(grid));
-        yGrid = new VoxelGrid(static_cast< VoxelGrid* >(grid));
-        zGrid = new VoxelGrid(static_cast< VoxelGrid* >(grid));
+        xGrid = new UnsignedVolumeGrid<uint16_t>(static_cast< UnsignedVolumeGrid<uint16_t>* >(grid));
+        yGrid = new UnsignedVolumeGrid<uint16_t>(static_cast< UnsignedVolumeGrid<uint16_t>* >(grid));
+        zGrid = new UnsignedVolumeGrid<uint16_t>(static_cast< UnsignedVolumeGrid<uint16_t>* >(grid));
+    } break;
+
+    case VolumeGrid::TYPE::UI32:
+    {
+        xGrid = new UnsignedVolumeGrid<uint32_t>(static_cast< UnsignedVolumeGrid<uint32_t>* >(grid));
+        yGrid = new UnsignedVolumeGrid<uint32_t>(static_cast< UnsignedVolumeGrid<uint32_t>* >(grid));
+        zGrid = new UnsignedVolumeGrid<uint32_t>(static_cast< UnsignedVolumeGrid<uint32_t>* >(grid));
+    } break;
+
+    case VolumeGrid::TYPE::UI64:
+    {
+        xGrid = new UnsignedVolumeGrid<uint64_t>(static_cast< UnsignedVolumeGrid<uint64_t>* >(grid));
+        yGrid = new UnsignedVolumeGrid<uint64_t>(static_cast< UnsignedVolumeGrid<uint64_t>* >(grid));
+        zGrid = new UnsignedVolumeGrid<uint64_t>(static_cast< UnsignedVolumeGrid<uint64_t>* >(grid));
+    } break;
+
+    case VolumeGrid::TYPE::VOXEL_BIT:
+    case VolumeGrid::TYPE::VOXEL_UI8:
+    {
+        xGrid = new VoxelGrid<uint8_t>(static_cast< VoxelGrid<uint8_t>* >(grid));
+        yGrid = new VoxelGrid<uint8_t>(static_cast< VoxelGrid<uint8_t>* >(grid));
+        zGrid = new VoxelGrid<uint8_t>(static_cast< VoxelGrid<uint8_t>* >(grid));
     } break;
     }
 
@@ -1987,7 +2085,7 @@ void Volume::addVolumePass(const Volume* volume)
 
 void Volume::addVolume(const std::string &volumePrefix)
 {
-    Volume* volume = new Volume(volumePrefix, VolumeGrid::TYPE::BYTE);
+    Volume* volume = new Volume(volumePrefix, VolumeGrid::TYPE::UI8);
 
     // If the volume dimensions are not similar to this one
     // then, print an ERROR ...
@@ -2088,7 +2186,7 @@ Volume* Volume::constructFullRangeVolume(const Volume* volume, const int64_t &pa
     Volume* isoVolume = new Volume(volume->getWidth() + padding,
                                    volume->getHeight() + padding,
                                    volume->getDepth() + padding,
-                                   pMin, pMax, VolumeGrid::TYPE::BYTE);
+                                   pMin, pMax, VolumeGrid::TYPE::UI8);
 
     LOG_STATUS("Constructing Iso Volume");
     for (int64_t x = 0; x < volume->getWidth(); ++x)

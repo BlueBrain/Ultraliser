@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2022
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -20,7 +20,7 @@
  **************************************************************************************************/
 
 #include <data/volumes/grids/VolumeGrid.h>
-#include "ByteVolumeGrid.h"
+#include "FloatVolumeGrid.h"
 #include <data/volumes/voxels/DMCVoxel.h>
 #include <algorithms/FloodFiller.h>
 #include <common/Common.h>
@@ -30,10 +30,11 @@
 namespace Ultraliser
 {
 
-ByteVolumeGrid::ByteVolumeGrid(const int64_t &width,
-                               const int64_t &height,
-                               const int64_t &depth,
-                               const bool &preAllocateMemory)
+template <class T>
+FloatVolumeGrid<T>::FloatVolumeGrid(const uint64_t &width,
+                                  const uint64_t &height,
+                                  const uint64_t &depth,
+                                  const bool &preAllocateMemory)
     : VolumeGrid(width, height, depth)
 {
     // Allocate the memory
@@ -43,8 +44,9 @@ ByteVolumeGrid::ByteVolumeGrid(const int64_t &width,
     }
 }
 
-ByteVolumeGrid::ByteVolumeGrid(const Vec3i_64& dimensions,
-                               const bool &preAllocateMemory)
+template <class T>
+FloatVolumeGrid<T>::FloatVolumeGrid(const Vec3ui_64& dimensions,
+                                  const bool &preAllocateMemory)
     : VolumeGrid(dimensions)
 {
     // Allocate the memory
@@ -54,29 +56,32 @@ ByteVolumeGrid::ByteVolumeGrid(const Vec3i_64& dimensions,
     }
 }
 
-ByteVolumeGrid::ByteVolumeGrid(const ByteVolumeGrid* inputGrid) : VolumeGrid(*inputGrid)
+template <class T>
+FloatVolumeGrid<T>::FloatVolumeGrid(const FloatVolumeGrid* inputGrid) : VolumeGrid(*inputGrid)
 {
     // Allocate the memory to be able to copy the data
     _allocateMemory();
 
     // Fill the _data array
-    uint8_t* inputData = inputGrid->getGridData();
+    const T* inputData = inputGrid->getGridData();
 
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (int64_t i = 0; i < _numberVoxels; ++i)
+    for (uint64_t i = 0; i < _numberVoxels; ++i)
     {
         _data[i] = inputData[i];
     }
 }
 
-void ByteVolumeGrid::loadBinaryVolumeData(const std::string &prefix)
+template <class T>
+void FloatVolumeGrid<T>::loadBinaryVolumeData(const std::string &prefix)
 {
 
 }
 
-void ByteVolumeGrid::loadByteVolumeData(const std::string &prefix)
+template <class T>
+void FloatVolumeGrid<T>::loadByteVolumeData(const std::string &prefix)
 {
     // Read the volume file from the input stream
     std::string filePath = prefix + RAW_EXTENSION;
@@ -93,93 +98,143 @@ void ByteVolumeGrid::loadByteVolumeData(const std::string &prefix)
     imgFileStream.close();
 }
 
-uint64_t ByteVolumeGrid::getNumberBytes() const
+template <class T>
+uint64_t FloatVolumeGrid<T>::getNumberBytes() const
 {
-    return I2UI64(_numberVoxels);
+    if (typeid (T) == typeid (uint8_t))
+        return _numberVoxels;
+    else if (typeid (T) == typeid (uint16_t))
+        return _numberVoxels * 2;
+    else if (typeid (T) == typeid (uint32_t))
+        return _numberVoxels * 4;
+    else if (typeid (T) == typeid (uint64_t))
+        return _numberVoxels * 8;
+    else if (typeid (T) == typeid (float))
+        return _numberVoxels * 4;
+    else if (typeid (T) == typeid (double))
+        return _numberVoxels * 8;
+    else
+        LOG_ERROR("Undefined type!");
+        return 0;
 }
 
-uint8_t ByteVolumeGrid::getValue(const uint64_t &index) const
+template <class T>
+uint8_t FloatVolumeGrid<T>::getValueUI8(const uint64_t &index) const
+{
+    LOG_ERROR("FloatVolumeGrid<T>::getValueUI8 Unimplemented!");
+}
+
+template <class T>
+uint16_t FloatVolumeGrid<T>::getValueUI16(const uint64_t &index) const
+{
+    LOG_ERROR("FloatVolumeGrid<T>::getValueUI16 Unimplemented!");
+}
+
+template <class T>
+uint32_t FloatVolumeGrid<T>::getValueUI32(const uint64_t &index) const
+{
+    LOG_ERROR("FloatVolumeGrid<T>::getValueUI32 Unimplemented!");
+}
+
+template <class T>
+uint64_t FloatVolumeGrid<T>::getValueUI64(const uint64_t &index) const
+{
+    LOG_ERROR("FloatVolumeGrid<T>::getValueUI64 Unimplemented!");
+}
+
+template <class T>
+float FloatVolumeGrid<T>::getValueF32(const uint64_t &index) const
+{
+    return static_cast< float >(_data[index]);
+}
+
+template <class T>
+double FloatVolumeGrid<T>::getValueF64(const uint64_t &index) const
+{
+    return static_cast< double >(_data[index]);
+}
+
+template <class T>
+uint8_t FloatVolumeGrid<T>::getValue(const uint64_t &index) const
 {
     return _data[index];
 }
 
-uint8_t ByteVolumeGrid::getByte(uint64_t index) const
+template <class T>
+uint8_t FloatVolumeGrid<T>::getByte(uint64_t index) const
 {
     return _data[index];
 }
+template <class T>
 
-void ByteVolumeGrid::addByte(const uint64_t &index, const uint8_t &byte)
+void FloatVolumeGrid<T>::addByte(const uint64_t &index, const uint8_t &byte)
 {
     _data[index] = byte;
 }
+template <class T>
 
-void ByteVolumeGrid::clear()
+void FloatVolumeGrid<T>::clear()
 {
     for (int64_t i = 0; i < _numberVoxels; ++i)
-        _data[i] = 0;
+        _data[i] = 0.f;
 }
 
-void ByteVolumeGrid::fillVoxel(const uint64_t &index)
+template <class T>
+void FloatVolumeGrid<T>::fillVoxel(const uint64_t &index)
 {
-    _data[index] = 255;
+    _data[index] = 1.f;
 }
 
-void ByteVolumeGrid::clearVoxel(const uint64_t &index)
+template <class T>
+void FloatVolumeGrid<T>::clearVoxel(const uint64_t &index)
 {
-    _data[index] = 0;
+    _data[index] = 0.f;
 }
 
-bool ByteVolumeGrid::isFilled(const uint64_t &index) const
+template <class T>
+bool FloatVolumeGrid<T>::isFilled(const uint64_t &index) const
 {
-    return _data[index] > 0;
+    return _data[index] > 0.0;
 }
 
-bool ByteVolumeGrid::isEmpty(const uint64_t &index) const
+template <class T>
+bool FloatVolumeGrid<T>::isEmpty(const uint64_t &index) const
 {
     return _data[index] == 0;
 }
 
-void ByteVolumeGrid::andWithAnotherGrid(VolumeGrid *anotherGrid)
+template <class T>
+void FloatVolumeGrid<T>::andWithAnotherGrid(VolumeGrid *anotherGrid)
 {
-    // Get a reference to the data
-    uint8_t* inputGridData = static_cast< ByteVolumeGrid* >(anotherGrid)->getGridData();
-
-    // Copy the data
-#ifdef ULTRALISER_USE_OPENMP
-    #pragma omp parallel for
-#endif
-    for (int64_t voxel = 0; voxel < _numberVoxels; ++voxel)
-    {
-        _data[voxel] &= inputGridData[voxel];
-    }
+    LOG_ERROR("FloatVolumeGrid<T>::andWithAnotherGrid Unimplemented!");
 }
 
-void ByteVolumeGrid::orWithAnotherGrid(VolumeGrid *anotherGrid)
+template <class T>
+void FloatVolumeGrid<T>::orWithAnotherGrid(VolumeGrid *anotherGrid)
 {
-    // Get a reference to the data
-    uint8_t* inputGridData = static_cast< ByteVolumeGrid* >(anotherGrid)->getGridData();
-
-    // Copy the data
-#ifdef ULTRALISER_USE_OPENMP
-    #pragma omp parallel for
-#endif
-    for (int64_t voxel = 0; voxel < _numberVoxels; ++voxel)
-    {
-        _data[voxel] |= inputGridData[voxel];
-    }
+    LOG_ERROR("FloatVolumeGrid<T>::orWithAnotherGrid Unimplemented!");
 }
 
-void ByteVolumeGrid::_writeHeader(const std::string &prefix)
+template <class T>
+void FloatVolumeGrid<T>::_writeHeader(const std::string &prefix)
 {
     std::string fileName = prefix + std::string(HEADER_EXTENSION);
     std::fstream header;
     header.open(fileName.c_str(), std::ios::out);
 
+    // Volume format
+    if (typeid (T) == typeid (float))
+        header << "f32" << std::endl;
+    else if (typeid (T) == typeid (double))
+        header << "f64" << std::endl;
+
+    // Volume dimensions
     header << getWidth() << " " << getHeight() << " " << getDepth() << std::endl;
     header.close();
 }
 
-void ByteVolumeGrid::writeRAW(const std::string &prefix)
+template <class T>
+void FloatVolumeGrid<T>::writeRAW(const std::string &prefix)
 {
     // Starts the timer
     TIMER_SET;
@@ -208,7 +263,8 @@ void ByteVolumeGrid::writeRAW(const std::string &prefix)
     image.close();
 }
 
-void ByteVolumeGrid::writeNRRD(const std::string &prefix)
+template <class T>
+void FloatVolumeGrid<T>::writeNRRD(const std::string &prefix)
 {
     // Starts the timer
     TIMER_SET;
@@ -220,7 +276,21 @@ void ByteVolumeGrid::writeNRRD(const std::string &prefix)
     // Header
     fprintf(fptr, "NRRD0001\n");
     fprintf(fptr, "content: \"Volume\"\n");
-    fprintf(fptr, "type: unsigned char\n");
+    if (typeid (T) == typeid (uint8_t))
+        fprintf(fptr, "type: unsigned char\n");
+    else if (typeid (T) == typeid (uint16_t))
+        fprintf(fptr, "type: unsigned short\n");
+    else if (typeid (T) == typeid (uint32_t))
+        fprintf(fptr, "type: unsigned int\n");
+    else if (typeid (T) == typeid (uint64_t))
+        fprintf(fptr, "type: unsigned long\n");
+    else if (typeid (T) == typeid (float))
+        fprintf(fptr, "type: float\n");
+    else if (typeid (T) == typeid (double))
+        fprintf(fptr, "type: double\n");
+    else
+        LOG_ERROR("Undefined volume type!");
+
     fprintf(fptr, "dimension: 3\n");
     fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
             getWidth(), getHeight(), getDepth());
@@ -243,7 +313,8 @@ void ByteVolumeGrid::writeNRRD(const std::string &prefix)
     fclose(fptr);
 }
 
-void ByteVolumeGrid::writeBIN(const std::string &prefix)
+template <class T>
+void FloatVolumeGrid<T>::writeBIN(const std::string &prefix)
 {
     // Starts the timer
     TIMER_SET;
@@ -252,11 +323,11 @@ void ByteVolumeGrid::writeBIN(const std::string &prefix)
     _writeHeader(prefix);
 
     // Create a BitArray
-    auto binData = std::make_unique< BitArray >(I2UI64(_numberVoxels));
+    auto binData = std::make_unique< BitArray >(_numberVoxels);
 
     // Fill the BitArray
     LOOP_STARTS("Filling the BitArray");
-    for (int64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
     {
         LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
         if (_data[voxel])
@@ -297,22 +368,27 @@ void ByteVolumeGrid::writeBIN(const std::string &prefix)
     image.close();
 }
 
-void ByteVolumeGrid::_allocateMemory()
+template <class T>
+void FloatVolumeGrid<T>::_allocateMemory()
 {
     // Allocate the array
-    _data = new uint8_t[I2UI64(_numberVoxels)];
-    for (int64_t i = 0; i < _numberVoxels; ++i)
-        _data[i] = 0;
+    _data = new T[_numberVoxels];
+    for (uint64_t i = 0; i < _numberVoxels; ++i)
+        _data[i] = static_cast<T>(0);
 }
 
-void ByteVolumeGrid::_freeMemory()
+template <class T>
+void FloatVolumeGrid<T>::_freeMemory()
 {
     delete [] _data;
 }
 
-ByteVolumeGrid::~ByteVolumeGrid()
+template <class T>
+FloatVolumeGrid<T>::~FloatVolumeGrid()
 {
     _freeMemory();
 }
 
+template class FloatVolumeGrid<float>;
+template class FloatVolumeGrid<double>;
 }

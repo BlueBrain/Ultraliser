@@ -24,7 +24,8 @@
 
 #include <data/volumes/grids/VolumeGrid.h>
 #include <data/volumes/grids/BitVolumeGrid.h>
-#include <data/volumes/grids/ByteVolumeGrid.h>
+#include <data/volumes/grids/UnsignedVolumeGrid.h>
+#include <data/volumes/grids/FloatVolumeGrid.h>
 #include <data/volumes/grids/VoxelGrid.h>
 #include <data/volumes/grids/Projection.h>
 

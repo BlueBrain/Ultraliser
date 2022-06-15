@@ -137,7 +137,7 @@ int DualMarchingCubes::_getDualPointCode(const int64_t x, const int64_t y, const
     if (_generateManifold)
     {
         // The Manifold Dual Marching Cubes approach from Rephael Wenger as
-        // described in chapter 3.3.5 of his book "Isosurfaces: Geometry,
+        // described in section 3.3.5 of his book "Isosurfaces: Geometry,
         // Topology, and Algorithms" is implemente here.
         // If a problematic C16 or C19 configuration shares the ambiguous face
         // with another C16 or C19 configuration we simply invert the cube code

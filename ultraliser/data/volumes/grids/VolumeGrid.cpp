@@ -26,7 +26,7 @@
 namespace Ultraliser
 {
 
-VolumeGrid::VolumeGrid(const Vec3i_64& dimensions)
+VolumeGrid::VolumeGrid(const Ultraliser::Vec3ui_64 &dimensions)
 {
     // Update dimensions
     _dimensions = dimensions;
@@ -35,9 +35,9 @@ VolumeGrid::VolumeGrid(const Vec3i_64& dimensions)
     _numberVoxels = _dimensions.v[0] * _dimensions.v[1] * _dimensions.v[2];
 }
 
-VolumeGrid::VolumeGrid(const int64_t &width,
-                       const int64_t &height,
-                       const int64_t &depth)
+VolumeGrid::VolumeGrid(const uint64_t &width,
+                       const uint64_t &height,
+                       const uint64_t &depth)
 {
     // Update dimensions
     _dimensions.v[0] = width;
@@ -57,32 +57,33 @@ VolumeGrid::VolumeGrid(VolumeGrid *grid)
     _numberVoxels = _dimensions.v[0] * _dimensions.v[1] * _dimensions.v[2];
 }
 
-Vec3i_64 VolumeGrid::getDimensions() const
+Vec3ui_64 VolumeGrid::getDimensions() const
 {
     return _dimensions;
 }
 
-int64_t VolumeGrid::getWidth() const
+uint64_t VolumeGrid::getWidth() const
 {
     return _dimensions.v[0];
 }
 
-int64_t VolumeGrid::getHeight() const
+uint64_t VolumeGrid::getHeight() const
 {
     return _dimensions.v[1];
 }
 
-int64_t VolumeGrid::getDepth() const
+uint64_t VolumeGrid::getDepth() const
 {
     return _dimensions.v[2];
 }
 
-int64_t VolumeGrid::getNumberVoxels() const
+uint64_t VolumeGrid::getNumberVoxels() const
 {
     return _numberVoxels;
 }
 
-uint64_t VolumeGrid::mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z, bool &outlier) const
+uint64_t VolumeGrid::mapToIndex(const uint64_t &x, const uint64_t &y, const uint64_t &z,
+                                bool &outlier) const
 {
     if(x >= getWidth()  || x < 0 || y >= getHeight() || y < 0 || z >= getDepth()  || z < 0)
     {
@@ -136,7 +137,7 @@ bool VolumeGrid::isEmpty(const int64_t &x, const int64_t &y, const int64_t &z) c
         return isEmpty(index);
 }
 
-int64_t VolumeGrid::getDimension(const int32_t &i) const
+uint64_t VolumeGrid::getDimension(const uint64_t &i) const
 {
     switch (i)
     {
@@ -596,11 +597,11 @@ VolumeGrid::TYPE VolumeGrid::getType(const std::string &typeString)
     }
     else if (typeString == "byte")
     {
-        return TYPE::BYTE;
+        return TYPE::UI8;
     }
     else if (typeString == "voxel")
     {
-        return TYPE::VOXEL;
+        return TYPE::VOXEL_UI8;
     }
     else
     {
@@ -609,17 +610,49 @@ VolumeGrid::TYPE VolumeGrid::getType(const std::string &typeString)
     }
 }
 
+VolumeGrid::TYPE VolumeGrid::getVolumeTypeFromHdrFile(const std::string& filePrefix)
+{
+    // Get the header file path from its prefix
+    const std::string filePath = filePrefix + HEADER_EXTENSION;
+
+    // Open the header file
+    std::ifstream hdrFileStream(filePath.c_str());
+
+    // Read the type
+    std::string type;
+    hdrFileStream >> type;
+
+    // Close the stream
+    hdrFileStream.close();
+
+    if (type == "u8")
+        return TYPE::UI8;
+    else if (type == "u16")
+        return TYPE::UI16;
+    else if (type == "u32")
+        return TYPE::UI32;
+    else if (type == "u64")
+        return TYPE::UI64;
+    else if (type == "f32")
+        return TYPE::F32;
+    else if (type == "f64")
+        return TYPE::F64;
+    else
+        return TYPE::UNDEFINED;
+}
+
+
 std::string VolumeGrid::getTypeString(const VolumeGrid::TYPE& type)
 {
     if (type == TYPE::BIT)
     {
         return std::string("Bit");
     }
-    else if (type == TYPE::BYTE)
+    else if (type == TYPE::UI8)
     {
         return std::string("Byte");
     }
-    else if (type == TYPE::VOXEL)
+    else if (type == TYPE::VOXEL_UI8)
     {
         return std::string("Voxel");
     }

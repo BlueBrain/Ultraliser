@@ -86,9 +86,15 @@ void run(int argc , const char** argv)
     // Parse the arguments and get the tool options
     auto options = parseArguments(argc, argv);
 
+    // Get the volume format from the header file
+    const auto volumeType = VolumeGrid::getVolumeTypeFromHdrFile(options->inputVolumePath);
+
+
+
+
     // Construct a volume from the file
     Ultraliser::Volume* loadedVolume = new Ultraliser::Volume(
-                options->inputVolumePath, Ultraliser::VolumeGrid::TYPE::BYTE);
+                options->inputVolumePath, Ultraliser::VolumeGrid::TYPE::UI8);
 
     std::stringstream prefix;
     if (options->fullRangeIsoValue)
@@ -172,6 +178,3 @@ int main(int argc , const char** argv)
 
     ULTRALISER_DONE;
 }
-
-
-

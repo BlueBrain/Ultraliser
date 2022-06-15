@@ -30,10 +30,11 @@
 namespace Ultraliser
 {
 
-VoxelGrid::VoxelGrid(const int64_t &width,
-                     const int64_t &height,
-                     const int64_t &depth,
-                     const bool& preAllocateMemory)
+template <class T>
+VoxelGrid<T>::VoxelGrid(const uint64_t &width,
+                        const uint64_t &height,
+                        const uint64_t &depth,
+                        const bool& preAllocateMemory)
     : VolumeGrid(width, height, depth)
 {
     // Allocate the memory
@@ -43,7 +44,8 @@ VoxelGrid::VoxelGrid(const int64_t &width,
     }
 }
 
-VoxelGrid::VoxelGrid(const Vec3i_64& dimensions,
+template <class T>
+VoxelGrid<T>::VoxelGrid(const Vec3ui_64& dimensions,
                      const bool& preAllocateMemory)
     : VolumeGrid(dimensions)
 {
@@ -54,14 +56,15 @@ VoxelGrid::VoxelGrid(const Vec3i_64& dimensions,
     }
 }
 
-VoxelGrid::VoxelGrid(const VoxelGrid* inputGrid) : VolumeGrid(*inputGrid)
+template <class T>
+VoxelGrid<T>::VoxelGrid(const VoxelGrid* inputGrid) : VolumeGrid(*inputGrid)
 {
 
     // Allocate the memory to be able to copy the data
     _allocateMemory();
 
     // Fill the _data array
-    Voxels inputData = inputGrid->getGridData();
+    std::vector< Voxel< T > > inputData = inputGrid->getGridData();
 
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
@@ -72,12 +75,14 @@ VoxelGrid::VoxelGrid(const VoxelGrid* inputGrid) : VolumeGrid(*inputGrid)
     }
 }
 
-void VoxelGrid::loadBinaryVolumeData(const std::string &prefix)
+template <class T>
+void VoxelGrid<T>::loadBinaryVolumeData(const std::string &prefix)
 {
 
 }
 
-void VoxelGrid::loadByteVolumeData(const std::string &prefix)
+template <class T>
+void VoxelGrid<T>::loadByteVolumeData(const std::string &prefix)
 {
     // Read the volume file from the input stream
     std::string filePath = prefix + BINARY_EXTENSION;
@@ -105,53 +110,129 @@ void VoxelGrid::loadByteVolumeData(const std::string &prefix)
     delete [] fileData;
 }
 
-uint64_t VoxelGrid::getNumberBytes() const
+template <class T>
+uint64_t VoxelGrid<T>::getNumberBytes() const
 {
     return I2UI64(_numberVoxels);
 }
 
-uint8_t VoxelGrid::getValue(const uint64_t &index) const
+template <class T>
+uint8_t VoxelGrid<T>::getValue(const uint64_t &index) const
 {
     return _data[index].value;
 }
 
-uint8_t VoxelGrid::getByte(uint64_t index) const
+template <class T>
+uint8_t VoxelGrid<T>::getByte(uint64_t index) const
 {
     return _data[index].value;
 }
 
-void VoxelGrid::addByte(const uint64_t &index, const uint8_t &byte)
+
+
+
+
+
+template <class T>
+uint8_t VoxelGrid<T>::getValueUI8(const uint64_t &index) const
+{
+    if (typeid (T) == typeid (uint8_t))
+        return _data[index].value;
+    else
+        return 0;
+}
+
+template <class T>
+uint16_t VoxelGrid<T>::getValueUI16(const uint64_t &index) const
+{
+    if (typeid (T) == typeid (uint8_t))
+        return static_cast< uint16_t >(_data[index].value);
+    else if (typeid (T) == typeid (uint16_t))
+        return _data[index].value;
+    else
+        return 0;
+}
+
+template <class T>
+uint32_t VoxelGrid<T>::getValueUI32(const uint64_t &index) const
+{
+    if (typeid (T) == typeid (uint8_t) || typeid (T) == typeid (uint16_t))
+        return static_cast< uint32_t >(_data[index].value);
+    else if (typeid (T) == typeid (uint32_t))
+        return _data[index].value;
+    else
+        return 0;
+}
+
+template <class T>
+uint64_t VoxelGrid<T>::getValueUI64(const uint64_t &index) const
+{
+    if (typeid (T) == typeid (uint8_t) ||
+        typeid (T) == typeid (uint16_t) ||
+        typeid (T) == typeid (uint32_t))
+        return static_cast< uint64_t >(_data[index].value);
+    else if (typeid (T) == typeid (uint64_t))
+        return _data[index].value;
+    else
+        return 0;
+}
+
+template <class T>
+float VoxelGrid<T>::getValueF32(const uint64_t &index) const
+{
+    return static_cast< float >(_data[index].value);
+}
+
+template <class T>
+double VoxelGrid<T>::getValueF64(const uint64_t &index) const
+{
+    return static_cast< double >(_data[index].value);
+}
+
+
+
+
+
+
+template <class T>
+void VoxelGrid<T>::addByte(const uint64_t &index, const uint8_t &byte)
 {
     _data[index].value = byte;
 }
 
-void VoxelGrid::clear()
+template <class T>
+void VoxelGrid<T>::clear()
 {
     for (int64_t i = 0; i < _numberVoxels; ++i)
         _data[i].value = 0;
 }
 
-void VoxelGrid::fillVoxel(const uint64_t &index)
+template <class T>
+void VoxelGrid<T>::fillVoxel(const uint64_t &index)
 {
     _data[index].value = 255;
 }
 
-void VoxelGrid::clearVoxel(const uint64_t &index)
+template <class T>
+void VoxelGrid<T>::clearVoxel(const uint64_t &index)
 {
     _data[index].value = 0;
 }
 
-bool VoxelGrid::isFilled(const uint64_t &index) const
+template <class T>
+bool VoxelGrid<T>::isFilled(const uint64_t &index) const
 {
     return (_data[index].value > 0);
 }
 
-bool VoxelGrid::isEmpty(const uint64_t &index) const
+template <class T>
+bool VoxelGrid<T>::isEmpty(const uint64_t &index) const
 {
     return (_data[index].value == 0);
 }
 
-void VoxelGrid::_writeHeader(const std::string &prefix)
+template <class T>
+void VoxelGrid<T>::_writeHeader(const std::string &prefix)
 {
     std::string fileName = prefix + std::string(HEADER_EXTENSION);
     std::fstream header;
@@ -160,7 +241,8 @@ void VoxelGrid::_writeHeader(const std::string &prefix)
     header.close();
 }
 
-void VoxelGrid::writeRAW(const std::string &prefix)
+template <class T>
+void VoxelGrid<T>::writeRAW(const std::string &prefix)
 {
     // Starts the timer
     TIMER_SET;
@@ -189,7 +271,8 @@ void VoxelGrid::writeRAW(const std::string &prefix)
     image.close();
 }
 
-void VoxelGrid::writeBIN(const std::string &prefix)
+template <class T>
+void VoxelGrid<T>::writeBIN(const std::string &prefix)
 {
 //    // Starts the timer
 //    TIMER_SET;
@@ -224,7 +307,8 @@ void VoxelGrid::writeBIN(const std::string &prefix)
 //    image.close();
 }
 
-void VoxelGrid::writeNRRD(const std::string &prefix)
+template <class T>
+void VoxelGrid<T>::writeNRRD(const std::string &prefix)
 {
     // Starts the timer
     TIMER_SET;
@@ -259,10 +343,11 @@ void VoxelGrid::writeNRRD(const std::string &prefix)
     fclose(fptr);
 }
 
-void VoxelGrid::andWithAnotherGrid(VolumeGrid *anotherGrid)
+template <class T>
+void VoxelGrid<T>::andWithAnotherGrid(VolumeGrid *anotherGrid)
 {
     // Get a reference to the data
-    Voxels inputData = static_cast< VoxelGrid* >(anotherGrid)->getGridData();
+    std::vector< Voxel< T > > inputData = static_cast< VoxelGrid* >(anotherGrid)->getGridData();
 
     // Copy the data
 #ifdef ULTRALISER_USE_OPENMP
@@ -270,14 +355,15 @@ void VoxelGrid::andWithAnotherGrid(VolumeGrid *anotherGrid)
 #endif
     for (int64_t voxel = 0; voxel < _numberVoxels; ++voxel)
     {
-        _data[voxel].value &= inputData[voxel].value;
+        // _data[voxel].value &= inputData[voxel].value;
     }
 }
 
-void VoxelGrid::orWithAnotherGrid(VolumeGrid *anotherGrid)
+template <class T>
+void VoxelGrid<T>::orWithAnotherGrid(VolumeGrid *anotherGrid)
 {
     // Get a reference to the data
-    Voxels inputData = static_cast< VoxelGrid* >(anotherGrid)->getGridData();
+    std::vector< Voxel< T > > inputData = static_cast< VoxelGrid* >(anotherGrid)->getGridData();
 
     // Copy the data
 #ifdef ULTRALISER_USE_OPENMP
@@ -285,24 +371,41 @@ void VoxelGrid::orWithAnotherGrid(VolumeGrid *anotherGrid)
 #endif
     for (int64_t voxel = 0; voxel < _numberVoxels; ++voxel)
     {
-        _data[voxel].value |= inputData[voxel].value;
+        // _data[voxel].value |= inputData[voxel].value;
     }
 }
 
-void VoxelGrid::_allocateMemory()
+
+
+
+
+
+
+
+template <class T>
+void VoxelGrid<T>::_allocateMemory()
 {
     // Allocate the array
     _data.resize(I2UI64(_numberVoxels));
 }
 
-void VoxelGrid::_freeMemory()
+template <class T>
+void VoxelGrid<T>::_freeMemory()
 {
     _data.clear();
 }
 
-VoxelGrid::~VoxelGrid()
+template <class T>
+VoxelGrid<T>::~VoxelGrid()
 {
     _freeMemory();
 }
+
+template class VoxelGrid<uint8_t>;
+template class VoxelGrid<uint16_t>;
+template class VoxelGrid<uint32_t>;
+template class VoxelGrid<uint64_t>;
+template class VoxelGrid<float>;
+template class VoxelGrid<double>;
 
 }

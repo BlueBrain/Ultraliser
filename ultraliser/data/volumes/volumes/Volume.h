@@ -39,8 +39,11 @@ namespace Ultraliser
  */
 class Volume
 {
-
 public:
+
+    /**
+     * @brief The SOLID_VOXELIZATION_AXIS enum
+     */
     enum SOLID_VOXELIZATION_AXIS
     {
         X = 0,
@@ -126,6 +129,36 @@ public:
                      const int64_t &y,
                      const int64_t &z) const;
 
+
+
+
+
+
+    uint8_t getValueUI8(const int64_t &x,
+                        const int64_t &y,
+                        const int64_t &z) const;
+
+    uint16_t getValueUI16(const int64_t &x,
+                          const int64_t &y,
+                          const int64_t &z) const;
+
+    uint32_t getValueUI32(const int64_t &x,
+                          const int64_t &y,
+                          const int64_t &z) const;
+
+    uint64_t getValueUI64(const int64_t &x,
+                          const int64_t &y,
+                          const int64_t &z) const;
+
+    float getValueF32(const int64_t &x,
+                      const int64_t &y,
+                      const int64_t &z) const;
+
+    double getValueF64(const int64_t &x,
+                       const int64_t &y,
+                       const int64_t &z) const;
+
+
     /**
      * @brief fillVoxel
      * @param x
@@ -184,18 +217,6 @@ public:
                              const std::vector< std::string>& meshFiles);
 
     /**
-     * @brief surfaceVoxelizeVasculatureMorphologyParallel
-     * Create the volumetric shell of the vasculature morphology.
-     * @param vasculatureMorphology
-     * The input vascular morphology.
-     * @param packingAlgorithm
-     * The used packing algorithm.
-     */
-    void surfaceVoxelizeVasculatureMorphologyParallel(
-            VasculatureMorphology* vasculatureMorphology,
-            const std::string& packingAlgorithm = POLYLINE_PACKING);
-	
-    /**
      * @brief surfaceVoxelizeNeuronMorphology
      * @param morphology
      */
@@ -209,6 +230,19 @@ public:
                                                     float threshold = 0.75);
 
     /**
+     * @brief surfaceVoxelizeVasculatureMorphologyParallel
+     * Create the volumetric shell of the vasculature morphology.
+     * @param vasculatureMorphology
+     * The input vascular morphology.
+     * @param packingAlgorithm
+     * The used packing algorithm.
+     */
+    void surfaceVoxelizeVasculatureMorphologyParallel(
+            VasculatureMorphology* vasculatureMorphology,
+            const std::string& packingAlgorithm = POLYLINE_PACKING);
+	
+
+    /**
      * @brief solidVoxelization
      * lood fill the exterior to figure out the interior.
      * @param algorithm
@@ -217,6 +251,7 @@ public:
 
     /**
      * @brief exportToMesh
+     * Exports the volume into a mesh file in several file formats.
      * @param prefix
      * @param formatOBJ
      * @param formatPLY
@@ -231,6 +266,7 @@ public:
 
     /**
      * @brief exportVolumeGridMesh
+     * Export the volumegrid into a mesh file in several file formats.
      * @param prefix
      * @param formatOBJ
      * @param formatPLY
@@ -244,6 +280,7 @@ public:
                                 const bool &formatSTL = false) const;
     /**
      * @brief exportBoundingBoxMesh
+     * Exoprts the bounding box of the mesh in several file formats.
      * @param prefix
      * @param formatOBJ
      * @param formatPLY

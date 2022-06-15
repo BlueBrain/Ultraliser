@@ -1,9 +1,10 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2022
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
  *      Marwan Abdellah < marwan.abdellah@epfl.ch >
+ *      Juan Jose Garcia Cantero < juanjose.garcia@epfl.ch>
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -19,64 +20,35 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_VOXEL_H
-#define ULTRALISER_DATA_VOXEL_H
+#ifndef ULTRALISER_DATA_MORPHOLOGIES_H5_END_FEETINDICES_HH
+#define ULTRALISER_DATA_MORPHOLOGIES_H5_END_FEETINDICES_HH
 
-#include <common/Common.h>
+#include <vector>
+#include <common/Headers.hh>
+
+namespace Ultraliser
+{
 
 /**
- * @brief The Voxel struct
+ * @brief The EndfeetIndices struct
  */
-template <class T>
-struct Voxel
+struct H5EndfeetIndicesList
 {
-public:
+    /**
+     * @brief firstIndex
+     */
+    int64_t firstIndex;
 
     /**
-     * @brief Voxel
-     * @param voxelValue
+     * @brief lastIndex
      */
-    Voxel(const T voxelValue = 0)
-    {
-        value = voxelValue;
-    }
-
-public:
-
-    /**
-     * @brief value
-     */
-    T value;
+    int64_t lastIndex;
 };
 
 /**
- * @brief VoxelsUI8
+ * @brief EndfeetIndicesList
  */
-typedef std::vector< Voxel< uint8_t > > VoxelsUI8;
+typedef std::vector< H5EndfeetIndicesList > EndfeetIndicesList;
 
-/**
- * @brief VoxelsUI16
- */
-typedef std::vector< Voxel< uint16_t > > VoxelsUI16;
-
-/**
- * @brief VoxelsUI32
- */
-typedef std::vector< Voxel< uint32_t > > VoxelsUI32;
-
-/**
- * @brief VoxelsUI64
- */
-typedef std::vector< Voxel< uint64_t > > VoxelsUI64;
-
-/**
- * @brief VoxelsF32
- */
-typedef std::vector< Voxel< float > > VoxelsF32;
-
-/**
- * @brief VoxelsF64
- */
-typedef std::vector< Voxel< double > > VoxelsF64;
-
-#endif // ULTRALISER_DATA_VOXEL_H
+}
+#endif // ULTRALISER_DATA_MORPHOLOGIES_H5_ENDFEET_INDICES_HH

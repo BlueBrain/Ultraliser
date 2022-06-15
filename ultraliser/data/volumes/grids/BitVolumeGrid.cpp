@@ -41,7 +41,7 @@ BitVolumeGrid::BitVolumeGrid(const int64_t &width, const int64_t &height, const 
     }
 }
 
-BitVolumeGrid::BitVolumeGrid(const Vec3i_64 &dimensions, const bool &preAllocateMemory)
+BitVolumeGrid::BitVolumeGrid(const Vec3ui_64 &dimensions, const bool &preAllocateMemory)
     : VolumeGrid(dimensions)
 {
     // Allocate the memory
@@ -109,6 +109,48 @@ void BitVolumeGrid::loadByteVolumeData(const std::string &prefix)
 uint64_t BitVolumeGrid::getNumberBytes() const
 {
     return _data->getNumberBytes();
+}
+
+uint8_t BitVolumeGrid::getValueUI8(const uint64_t &index) const
+{
+    if (_data->bit(index))
+        return uint8_t(1);
+    return 0;
+}
+
+uint16_t BitVolumeGrid::getValueUI16(const uint64_t &index) const
+{
+    if (_data->bit(index))
+        return uint16_t(1);
+    return 0;
+}
+
+uint32_t BitVolumeGrid::getValueUI32(const uint64_t &index) const
+{
+    if (_data->bit(index))
+        return uint32_t(1);
+    return 0;
+}
+
+uint64_t BitVolumeGrid::getValueUI64(const uint64_t &index) const
+{
+    if (_data->bit(index))
+        return uint64_t(1);
+    return 0;
+}
+
+float BitVolumeGrid::getValueF32(const uint64_t &index) const
+{
+    if (_data->bit(index))
+        return 1.f;
+    return 0.f;
+}
+
+double BitVolumeGrid::getValueF64(const uint64_t &index) const
+{
+    if (_data->bit(index))
+        return 1.0;
+    return 0.0;
 }
 
 uint8_t BitVolumeGrid::getValue(const uint64_t &index) const

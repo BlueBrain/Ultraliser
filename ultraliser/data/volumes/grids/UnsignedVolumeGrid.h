@@ -33,7 +33,8 @@ namespace Ultraliser
 /**
  * @brief The ByteVolumeGrid class
  */
-class ByteVolumeGrid : public VolumeGrid
+template <class T>
+class UnsignedVolumeGrid : public VolumeGrid
 {
 public:
 
@@ -41,7 +42,7 @@ public:
      * @brief Grid
      * @param dimensions
      */
-    ByteVolumeGrid(const Vec3i_64& dimensions,
+    UnsignedVolumeGrid(const Vec3ui_64 &dimensions,
                    const bool& preAllocateMemory = true);
 
     /**
@@ -50,18 +51,18 @@ public:
      * @param height
      * @param depth
      */
-    ByteVolumeGrid(const int64_t &width,
-                   const int64_t &height,
-                   const int64_t &depth,
+    UnsignedVolumeGrid(const uint64_t &width,
+                   const uint64_t &height,
+                   const uint64_t &depth,
                    const bool& preAllocateMemory = true);
 
     /**
      * @brief ByteVolumeGrid
      * @param inputGrid
      */
-    ByteVolumeGrid(const ByteVolumeGrid* inputGrid);
+    UnsignedVolumeGrid(const UnsignedVolumeGrid* inputGrid);
 
-    ~ByteVolumeGrid();
+    ~UnsignedVolumeGrid();
 
 public:
 
@@ -166,10 +167,74 @@ public:
      */
     void writeNRRD(const std::string &prefix) override;
 
-    uint8_t* getGridData() const
-    {
-        return _data;
-    }
+    /**
+     * @brief getGridData
+     * @return
+     */
+    T* getGridData() const { return _data; }
+
+    /**
+     * @brief getValueUI8
+     * Returns the value of a voxel specified by a given index as an 8-bit integer.
+     * If the volume has 16-, 32-, 64-bit volume the return value is zero.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as an 8-bit integer.
+     */
+    uint8_t getValueUI8(const uint64_t &index) const;
+
+    /**
+     * @brief getValueUI16
+     * Returns the value of a voxel specified by a given index as a 16-bit integer.
+     * If the volume has 32-, 64-bit volume the return value is zero.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as a 16-bit integer.
+     */
+    uint16_t getValueUI16(const uint64_t &index) const;
+
+    /**
+     * @brief getValueUI32
+     * Returns the value of a voxel specified by a given index as a 32-bit integer.
+     * If the volume has 64-bit volume the return value is zero.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as a 32-bit integer.
+     */
+    uint32_t getValueUI32(const uint64_t &index) const;
+
+    /**
+     * @brief getValueUI64
+     * Returns the value of a voxel specified by a given index as a 64-bit integer.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as a 64-bit integer.
+     */
+    uint64_t getValueUI64(const uint64_t &index) const;
+
+    /**
+     * @brief getValueF32
+     * Returns the value of a voxel specified by a given index as a single-precision float.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as a single-precision float.
+     */
+    float getValueF32(const uint64_t &index) const;
+
+    /**
+     * @brief getValueF64
+     * Returns the value of a voxel specified by a given index as a double-precision float.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as a double-precision float.
+     */
+    double getValueF64(const uint64_t &index) const;
 
 private:
 
@@ -194,8 +259,28 @@ private:
     /**
      * @brief _data
      */
-    uint8_t* _data;
+    T* _data;
 };
+
+/**
+ * @brief VolumeGridU8
+ */
+typedef UnsignedVolumeGrid< uint8_t > VolumeGridU8;
+
+/**
+ * @brief VolumeGridU16
+ */
+typedef UnsignedVolumeGrid< uint16_t > VolumeGridU16;
+
+/**
+ * @brief VolumeGridU32
+ */
+typedef UnsignedVolumeGrid< uint32_t > VolumeGridU32;
+
+/**
+ * @brief VolumeGridU64
+ */
+typedef UnsignedVolumeGrid< uint64_t > VolumeGridU64;
 
 }
 

@@ -41,7 +41,7 @@ public:
      * @brief Grid
      * @param dimensions
      */
-    BitVolumeGrid(const Vec3i_64& dimensions,
+    BitVolumeGrid(const Vec3ui_64 &dimensions,
                   const bool& preAllocateMemory = true);
 
     /**
@@ -89,6 +89,72 @@ public:
      * @return
      */
     uint8_t getValue(const uint64_t &index) const override;
+
+
+    /**
+     * @brief getValueUI8
+     * Returns the value of a voxel specified by a given index as an 8-bit integer.
+     * If the volume has 16-, 32-, 64-bit volume the return value is zero.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as an 8-bit integer.
+     */
+    uint8_t getValueUI8(const uint64_t &index) const override;
+
+    /**
+     * @brief getValueUI16
+     * Returns the value of a voxel specified by a given index as a 16-bit integer.
+     * If the volume has 32-, 64-bit volume the return value is zero.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as a 16-bit integer.
+     */
+    uint16_t getValueUI16(const uint64_t &index) const override;
+
+    /**
+     * @brief getValueUI32
+     * Returns the value of a voxel specified by a given index as a 32-bit integer.
+     * If the volume has 64-bit volume the return value is zero.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as a 32-bit integer.
+     */
+    uint32_t getValueUI32(const uint64_t &index) const override;
+
+    /**
+     * @brief getValueUI64
+     * Returns the value of a voxel specified by a given index as a 64-bit integer.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as a 64-bit integer.
+     */
+    uint64_t getValueUI64(const uint64_t &index) const override;
+
+    /**
+     * @brief getValueF32
+     * Returns the value of a voxel specified by a given index as a single-precision float.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as a single-precision float.
+     */
+    float getValueF32(const uint64_t &index) const override;
+
+    /**
+     * @brief getValueF64
+     * Returns the value of a voxel specified by a given index as a double-precision float.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as a double-precision float.
+     */
+    double getValueF64(const uint64_t &index) const override;
+
+
 
     /**
      * @brief getByte

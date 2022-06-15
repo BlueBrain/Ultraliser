@@ -19,23 +19,22 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_VOLUME_VOXEL_GRID_H
-#define ULTRALISER_DATA_VOLUME_VOXEL_GRID_H
+#ifndef ULTRALISER_DATA_VOLUME_FLOAT_VOLUME_GRID_H
+#define ULTRALISER_DATA_VOLUME_FLOAT_VOLUME_GRID_H
 
-#include <data/volumes/voxels/Voxel.h>
-#include <data/volumes/grids/VolumeGrid.h>
+#include <math/Math.h>
 #include <data/common/BitArray.h>
 #include <data/images/Image.h>
-#include <math/Math.h>
+#include <data/volumes/grids/VolumeGrid.h>
 
 namespace Ultraliser
 {
 
 /**
- * @brief The VoxelGrid class
+ * @brief The FloatVolumeGrid class
  */
 template <class T>
-class VoxelGrid : public VolumeGrid
+class FloatVolumeGrid : public VolumeGrid
 {
 public:
 
@@ -43,8 +42,8 @@ public:
      * @brief Grid
      * @param dimensions
      */
-    VoxelGrid(const Vec3ui_64 &dimensions,
-              const bool& preAllocateMemory = true);
+    FloatVolumeGrid(const Vec3ui_64 &dimensions,
+                   const bool& preAllocateMemory = true);
 
     /**
      * @brief Grid
@@ -52,14 +51,18 @@ public:
      * @param height
      * @param depth
      */
-    VoxelGrid(const uint64_t &width,
-              const uint64_t &height,
-              const uint64_t &depth,
-              const bool& preAllocateMemory = true);
+    FloatVolumeGrid(const uint64_t &width,
+                   const uint64_t &height,
+                   const uint64_t &depth,
+                   const bool& preAllocateMemory = true);
 
-    VoxelGrid(const VoxelGrid* inputGrid);
+    /**
+     * @brief FloatVolumeGrid
+     * @param inputGrid
+     */
+    FloatVolumeGrid(const FloatVolumeGrid* inputGrid);
 
-    ~VoxelGrid();
+    ~FloatVolumeGrid();
 
 public:
 
@@ -80,9 +83,6 @@ public:
      * @return
      */
     uint64_t getNumberBytes() const override;
-
-
-
 
     /**
      * @brief value
@@ -136,6 +136,19 @@ public:
      */
     bool isEmpty(const uint64_t &index) const override;
 
+
+    /**
+     * @brief andWithAnotherGrid
+     * @param anotherGrid
+     */
+    void andWithAnotherGrid(VolumeGrid *anotherGrid) override;
+
+    /**
+     * @brief orWithAnotherGrid
+     * @param anotherGrid
+     */
+    void orWithAnotherGrid(VolumeGrid *anotherGrid) override;
+
     /**
      * @brief writeRAW
      * @param prefix
@@ -154,19 +167,11 @@ public:
      */
     void writeNRRD(const std::string &prefix) override;
 
-    void andWithAnotherGrid(VolumeGrid *anotherGrid) override;
-
-    void orWithAnotherGrid(VolumeGrid *anotherGrid) override;
-
-    std::vector< Voxel< T > > getGridData() const
-    {
-        return _data;
-    }
-
-
-
-
-
+    /**
+     * @brief getGridData
+     * @return
+     */
+    T* getGridData() const { return _data; }
 
     /**
      * @brief getValueUI8
@@ -231,7 +236,6 @@ public:
      */
     double getValueF64(const uint64_t &index) const;
 
-
 private:
 
     /**
@@ -248,16 +252,25 @@ private:
      * @brief _writeHeader
      * @param prefix
      */
-    void _writeHeader(const std::string &prefix) override;
+    void _writeHeader(const std::string &prefix);
 
 private:
 
     /**
      * @brief _data
      */
-    std::vector< Voxel< T > > _data;
+    T* _data;
 };
 
+/**
+ * @brief VolumeGridF32
+ */
+typedef FloatVolumeGrid< float > VolumeGridF32;
+
+/**
+ * @brief VolumeGridF64
+ */
+typedef FloatVolumeGrid< double > VolumeGridF64;
 }
 
-#endif // ULTRALISER_DATA_VOLUME_VOXEL_GRID_H
+#endif // ULTRALISER_DATA_VOLUME_FLOAT_VOLUME_GRID_H

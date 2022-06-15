@@ -44,11 +44,47 @@ public:
         // Each voxel is stored in a single bit
         BIT,
 
-        // Each voxel is stored in a single byte
-        BYTE,
+        // Each voxel is stored in a single byte (8 bits) as unsigned char
+        UI8,
 
-        // Each voxel is stored in a Voxel structure
-        VOXEL
+        // Each voxel is stored in a single word (16 bits) as unsigned short
+        UI16,
+
+        // Each voxel is stored in a doubleword (32 bits) as unsigned int
+        UI32,
+
+        // Each voxel is stored in a quad-word (64 bits) as unsigned long
+        UI64,
+
+        // Each voxel is stored as a single-precision floating-point value
+        F32,
+
+        // Each voxel is stored as a double-precision floating-point value
+        F64,
+
+        // Each voxel is stored in a Voxel structure with a 1 bit value
+        VOXEL_BIT,
+
+        // Each voxel is stored in a Voxel structure with 8 bits
+        VOXEL_UI8,
+
+        // Each voxel is stored in a Voxel structure with 16 bits
+        VOXEL_UI16,
+
+        // Each voxel is stored in a Voxel structure with 32 bits
+        VOXEL_UI32,
+
+        // Each voxel is stored in a Voxel structure with 64 bits
+        VOXEL_UI64,
+
+        // Each voxel is stored in a Voxel structure with a single-precision floating-point value
+        VOXEL_F32,
+
+        // Each voxel is stored in a Voxel structure with a double-precision floating-point value
+        VOXEL_F64,
+
+        // Undefined type
+        UNDEFINED
     };
 
     enum PROJECTION
@@ -70,6 +106,16 @@ public:
     static TYPE getType(const std::string &typeString);
 
     /**
+     * @brief getVolumeTypeFromHdrFile
+     * Parses the header file of the volume and returns its type
+     * @param filePrefix
+     * The prefix of the input file.
+     * @return
+     * Volume type.
+     */
+    static TYPE getVolumeTypeFromHdrFile(const std::string& filePrefix);
+
+    /**
      * @brief getTypeString
      * @param type
      * @return
@@ -82,7 +128,7 @@ public:
      * @brief VolumeGrid
      * @param dimensions
      */
-    VolumeGrid(const Vec3i_64 &dimensions);
+    VolumeGrid(const Vec3ui_64 &dimensions);
 
     /**
      * @brief VolumeGrid
@@ -99,7 +145,7 @@ public:
      * @param height
      * @param depth
      */
-    VolumeGrid(const int64_t &width, const int64_t &height, const int64_t &depth);
+    VolumeGrid(const uint64_t &width, const uint64_t &height, const uint64_t &depth);
 
     virtual ~VolumeGrid();
 
@@ -107,33 +153,76 @@ public:
 
     /**
      * @brief getDimensions
+     * Gets the dimensions of the volume.
      * @return
+     * The dimensions of the volume in a Vec3 vector format.
      */
-    Vec3i_64 getDimensions() const;
+    Vec3ui_64 getDimensions() const;
+
+    /**
+     * @brief getDimension
+     * Gets the dimension of the volume along a given axis.
+     * @param i
+     * The index of the axis.
+     * @return
+     * The dimension of the volume along a given axis.
+     */
+    uint64_t getDimension(const uint64_t &i) const;
+
+    /**
+     * @brief mapToIndex
+     * Maps a given voxel 3D index into a 1D index.
+     * @param x
+     * X-axis index.
+     * @param y
+     * Y-axis index.
+     * @param z
+     * Z-axis index.
+     * @return
+     * The one-dimensional index of the data from a three-dimensional voxels.
+     */
+    uint64_t mapToIndex(const uint64_t &x, const uint64_t &y, const uint64_t &z,
+                        bool &outlier) const;
 
     /**
      * @brief getWidth
+     * Gets the width of the volume.
      * @return
+     * The width of the volume.
      */
-    int64_t getWidth() const;
+    uint64_t getWidth() const;
 
     /**
      * @brief getHeight
+     * Gets the height of the volume.
      * @return
+     * The height of the volume.
      */
-    int64_t getHeight() const;
+    uint64_t getHeight() const;
 
     /**
      * @brief getDepth
+     * Gets the depth of the volume.
      * @return
+     * The depth of the volume.
      */
-    int64_t getDepth() const;
+    uint64_t getDepth() const;
 
     /**
      * @brief getNumberVoxels
+     * Gets the number of voxels in the volume.
      * @return
+     * The number of voxels in the volume.
      */
-    int64_t getNumberVoxels() const;
+    uint64_t getNumberVoxels() const;
+
+    /**
+     * @brief getNumberBytes
+     * Gets the number of bytes used to store the volume data.
+     * @return
+     * The number of bytes used to store the volume data.
+     */
+    virtual uint64_t getNumberBytes() const = 0;
 
     /**
      * @brief loadBinaryVolumeData
@@ -148,37 +237,20 @@ public:
     virtual void loadByteVolumeData(const std::string &prefix) = 0;
 
     /**
-     * @brief getNumberBytes
-     * @return
-     */
-    virtual uint64_t getNumberBytes() const = 0;
-
-    /**
-     * @brief size
-     * @param dimension
-     * @return
-     */
-    int64_t getDimension(const int32_t &i) const;
-
-    /**
-     * @brief mapToIndex
-     * @param x
-     * @param y
-     * @param z
-     * @return
-     */
-    uint64_t mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z, bool &outlier) const;
-
-    /**
      * @brief clear
+     * Clears the voxel data of the volume.
      */
     virtual void clear() = 0;
 
     /**
      * @brief fillVoxel
+     * Fills a given voxel in the volume specified by its three-dimensional indices.
      * @param x
+     * X-axis index.
      * @param y
+     * Y-axis index.
      * @param z
+     * Z-axis index.
      */
     void fillVoxel(const int64_t &x, const int64_t &y, const int64_t &z);
 
@@ -253,6 +325,84 @@ public:
      */
     virtual void orWithAnotherGrid(VolumeGrid *anotherGrid) = 0;
 
+
+
+    /**
+     * @brief getValueUI8
+     * Returns the value of a voxel specified by a given index as an 8-bit integer.
+     * If the volume has 16-, 32-, 64-bit volume the return value is zero.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as an 8-bit integer.
+     */
+    virtual uint8_t getValueUI8(const uint64_t &index) const = 0;
+
+    /**
+     * @brief getValueUI16
+     * Returns the value of a voxel specified by a given index as a 16-bit integer.
+     * If the volume has 32-, 64-bit volume the return value is zero.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as a 16-bit integer.
+     */
+    virtual uint16_t getValueUI16(const uint64_t &index) const = 0;
+
+    /**
+     * @brief getValueUI32
+     * Returns the value of a voxel specified by a given index as a 32-bit integer.
+     * If the volume has 64-bit volume the return value is zero.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as a 32-bit integer.
+     */
+    virtual uint32_t getValueUI32(const uint64_t &index) const = 0;
+
+    /**
+     * @brief getValueUI64
+     * Returns the value of a voxel specified by a given index as a 64-bit integer.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as a 64-bit integer.
+     */
+    virtual uint64_t getValueUI64(const uint64_t &index) const = 0;
+
+    /**
+     * @brief getValueF32
+     * Returns the value of a voxel specified by a given index as a single-precision float.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as a single-precision float.
+     */
+    virtual float getValueF32(const uint64_t &index) const = 0;
+
+    /**
+     * @brief getValueF64
+     * Returns the value of a voxel specified by a given index as a double-precision float.
+     * @param index
+     * The one-dimensional index of the voxel.
+     * @return
+     * The value of the voxel as a double-precision float.
+     */
+    virtual double getValueF64(const uint64_t &index) const = 0;
+
+
+    uint8_t getValueUI8(const int64_t &x, const int64_t &y, const int64_t &z) const;
+
+    uint16_t getValueUI16(const int64_t &x, const int64_t &y, const int64_t &z) const;
+
+    uint32_t getValueUI32(const int64_t &x, const int64_t &y, const int64_t &z) const;
+
+    uint64_t getValueUI64(const int64_t &x, const int64_t &y, const int64_t &z) const;
+
+    float getValueF32(const int64_t &x, const int64_t &y, const int64_t &z) const;
+
+    double getValueF64(const int64_t &x, const int64_t &y, const int64_t &z) const;
+
     /**
      * @brief value
      * @param x
@@ -277,14 +427,20 @@ public:
      * @param projectZYView
      */
     void projectVolume(const std::string &prefix,
-                               const bool &projectXY = false,
-                               const bool &projectXZ = false,
-                               const bool &projectZY = false,
-                               const bool &projectColorCoded = false);
+                       const bool &projectXY = false,
+                       const bool &projectXZ = false,
+                       const bool &projectZY = false,
+                       const bool &projectColorCoded = false);
 
+    /**
+     * @brief writeProjection
+     * @param prefix
+     * @param projection
+     * @param projectColorCoded
+     */
     void writeProjection(const std::string &prefix,
-                                 const PROJECTION &projection,
-                                 const bool &projectColorCoded);
+                         const PROJECTION &projection,
+                         const bool &projectColorCoded);
 
     /**
      * @brief writeRAW
@@ -304,6 +460,12 @@ public:
      */
     virtual void writeNRRD(const std::string &prefix) = 0;
 
+    /**
+     * @brief floodFillSliceAlongAxis
+     * @param x
+     * @param axis
+     * @param padding
+     */
     void floodFillSliceAlongAxis(const int64_t &x, const AXIS &axis, const uint64_t &padding = 0);
 
     /**
@@ -346,24 +508,25 @@ protected:
 
     /**
      * @brief _dimensions
-     * The dimensions of the grid.
+     * Vector containing the dimensions of the grid along each axis.
      */
-    Vec3i_64 _dimensions;
+    Vec3ui_64 _dimensions;
 
     /**
      * @brief _numberVoxels
-     * Number of voxels in the grid.
+     * Total number of voxels in the grid.
      */
-    int64_t _numberVoxels;
+    uint64_t _numberVoxels;
 
     /**
      * @brief _numberBytes
-     * Number of bytes in the grid.
+     * Total number of bytes in the grid.
      */
-    int64_t _numberBytes;
+    uint64_t _numberBytes;
 
     /**
      * @brief _projectionTime
+     * The time it takes to project the volume grid into a 2D image.
      */
     double _projectionTime;
 };
