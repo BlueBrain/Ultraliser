@@ -68,6 +68,28 @@ Volume::Volume(const std::string &filePath)
         _gridDimensions.v[1] = height;
         _gridDimensions.v[2] = depth;
 
+        // Volume pMin and pMax
+        const auto spaceOrigin = header.spaceOrigin;
+        _center.x() = spaceOrigin->at(0);
+        _center.y() = spaceOrigin->at(1);
+        _center.z() = spaceOrigin->at(2);
+
+//         _center.print();
+        const auto spaceDirections = header.spaceDirections;
+
+        _scale.x() = spaceDirections->at(0).at(0);
+        _scale.y() = spaceDirections->at(1).at(1);
+        _scale.z() = spaceDirections->at(2).at(2);
+
+        _scale.print();
+
+        _pMin = _center - 0.5 * _scale;
+        _pMax = _center + 0.5 * _scale;
+
+   //     _pMin.print();
+   //     _pMax.print();
+
+
         // Volume type
         auto type = header.type;
         if (type == libNRRD::NRRDType::UnsignedChar)
@@ -2360,6 +2382,56 @@ Volume* Volume::constructIsoValueVolume(const Volume* volume,
 
     return isoVolume;
 }
+
+Volume* Volume::constructIsoValuesVolume(const Volume* volume,
+                                         const std::vector<uint64_t> &isoValues,
+                                         const Vector3f &pMin, const Vector3f &pMax,
+                                         const Vector3f &center,
+                                         const int64_t &padding)
+{
+
+    Vector3f pLower = pMin, pUpper = pMax;
+    pUpper.x() *= volume->getWidth() / (volume->getHeight() * 1.f);
+    pUpper.y() *= volume->getHeight() / (volume->getHeight() * 1.f);
+    pUpper.z() *= volume->getDepth() / (volume->getHeight() * 1.f);
+
+    Volume* isoVolume = new Volume(volume->getWidth(), //+ padding,
+                                   volume->getHeight(), // + padding,
+                                   volume->getDepth(), // + padding,
+                                   pLower, pUpper, VolumeGrid::TYPE::BIT);
+
+    LOG_STATUS("Constructing Iso Volume");
+    for (int64_t x = 0; x < volume->getWidth(); ++x)
+    {
+        LOOP_PROGRESS(x, volume->getWidth());
+        for (int64_t y = 0; y < volume->getHeight(); ++y)
+        {
+            for (int64_t z = 0; z < volume->getDepth(); ++z)
+            {
+                int64_t xIso = x;// + F2I64(padding / 2.f);
+                int64_t yIso = y;// + F2I64(padding / 2.f);
+                int64_t zIso = z;// + F2I64(padding / 2.f);
+
+                for (uint64_t iv = 0; iv < isoValues.size(); ++iv)
+                {
+                    const auto &voxelValue = volume->getValueUI64(x, y, z);
+                    if (std::find(isoValues.begin(), isoValues.end(), voxelValue) != isoValues.end())
+                    {
+                        isoVolume->fill(xIso, yIso, zIso);
+                    }
+                    else
+                    {
+                        isoVolume->clear(xIso, yIso, zIso);
+                    }
+                }
+            }
+        }
+    }
+    LOOP_DONE;
+
+    return isoVolume;
+}
+
 
 Volume* Volume::constructFullRangeVolume(const Volume* volume, const int64_t &padding)
 {

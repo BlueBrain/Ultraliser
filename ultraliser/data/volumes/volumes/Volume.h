@@ -542,6 +542,14 @@ public:
                                            const uint64_t &isoValue,
                                            const int64_t &padding = 32);
 
+    static Volume* constructIsoValuesVolume(const Volume* volume,
+                                            const std::vector<uint64_t> &isoValues,
+                                            const Vector3f &pMin = Vector3f(0.f),
+                                            const Vector3f &pMax = Vector3f(1.f),
+                                            const Vector3f &center = Vector3f(0.f),
+                                            const int64_t &padding = 32);
+
+
     /**
      * @brief constructFullRangeVolume
      * Constructs a binary volume (1 bit per voxel) from a byte volume (1 byte
@@ -602,6 +610,12 @@ public:
      * Returns the size of the voxel.
      */
     float getVoxelSize() const { return _voxelSize; }
+
+    Vector3f getPMin() const { return _pMin; }
+    Vector3f getPMax() const { return _pMax; }
+    Vector3f getCenter() const { return _center; }
+    Vector3f getScale() const { return _scale; }
+
 
 private:
 
@@ -808,6 +822,13 @@ private:
      * @brief _pMax
      */
     Vector3f _pMax;
+
+    /**
+     * @brief _center
+     */
+    Vector3f _center;
+
+    Vector3f _scale;
 
     /**
      * @brief _expansionRatio

@@ -253,6 +253,35 @@ void parseBoundsFile(std::string boundsFile, Vector3f& pMin, Vector3f& pMax)
     pMax.z() = S2F(tokens[5]);
 }
 
+std::vector< uint64_t > parseIsovaluesFile(const std::string &filePath)
+{
+    std::ifstream stream;
+    stream.open(filePath.c_str());
+    if (!stream.good())
+    {
+        LOG_ERROR("Cannot parse the isovalues file [%s]", filePath.c_str());
+    }
+
+    std::string line;
+    std::getline(stream, line);
+
+    // Split the line into 5 values split by a space
+    std::vector< std::string > tokens;
+    std::istringstream iss(line);
+    copy(std::istream_iterator< std::string >(iss),
+          std::istream_iterator< std::string >(),
+          std::back_inserter(tokens));
+
+    std::vector<uint64_t> isovalues;
+    for (uint64_t i = 0; i < tokens.size(); ++i)
+    {
+        isovalues.push_back(atoll(tokens[i].c_str()));
+    }
+
+    return isovalues;
+}
+
+
 std::vector< std::string > parseVolumeList(const std::string &filePath)
 {
     std::vector< std::string > list;

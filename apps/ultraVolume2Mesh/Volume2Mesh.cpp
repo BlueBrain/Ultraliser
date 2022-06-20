@@ -53,21 +53,10 @@ AppOptions* parseArguments(const int& argc , const char** argv)
 
     LOG_TITLE("Creating Context");
 
-    /// Validate the arguments
-    // Try to make the output directory
-    mkdir(options->outputDirectory.c_str(), 0777);
-    if (!Ultraliser::Directory::exists(options->outputDirectory))
-    {
-        LOG_ERROR("The directory [ %s ] does NOT exist!", options->outputDirectory.c_str());
-    }
-
-    // Exporting formats, at least one of them must be there
-    if (!(options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL))
-    {
-        LOG_ERROR("The user must specify at least one output format of the "
-                  "mesh to export: [--export-obj-mesh, --export-ply-mesh, "
-                  "                 --export-off-mesh, --export-stl-mesh]");
-    }
+    // Verify the arguments after parsing them and extracting the application options.
+    options->verifyOutputDirectoryArgument();
+    options->verifyMeshExportArguments();
+    options->verifyIsoSurfaceExtractionArgument();
 
     // If no prefix is given, use the file name
     if (options->prefix == NO_DEFAULT_VALUE)
@@ -109,17 +98,32 @@ void run(int argc , const char** argv)
 
     // Construct a volume that will be used for the mesh reconstruction
     Ultraliser::Volume* volume;
-    if (options->fullRangeIsoValue)
-    {
-        // Construct a bit volume with a specific iso value
-        volume = Volume::constructFullRangeVolume(loadedVolume, options->zeroPaddingVoxels);
-    }
-    else
-    {
-        // Construct a bit volume with a specific iso value
-        volume = Ultraliser::Volume::constructIsoValueVolume(
-                    loadedVolume, options->isoValue, options->zeroPaddingVoxels);
-    }
+//    if (options->fullRangeIsoValue)
+//    {
+//        // Construct a bit volume with a specific iso value
+//        volume = Volume::constructFullRangeVolume(loadedVolume, options->zeroPaddingVoxels);
+//    }
+//    else
+//    {
+//        // Construct a bit volume with a specific iso value
+//        volume = Volume::constructIsoValueVolume(
+//                    loadedVolume, options->isoValue, options->zeroPaddingVoxels);
+//    }
+
+    const std::vector<uint64_t> isoValues = File::parseIsovaluesFile(options->isovaluesFile);
+
+    volume = Volume::constructIsoValuesVolume(
+                loadedVolume, isoValues, 0);
+
+    Vector3f scale;
+    scale.x() = loadedVolume->getScale().x(); //loadedVolume->getWidth();
+    scale.y() = loadedVolume->getScale().y(); // loadedVolume->getHeight();
+    scale.z() = loadedVolume->getScale().z(); // loadedVolume->getDepth();
+
+    scale.print();
+
+    Vector3f center = loadedVolume->getCenter();
+    center.print();
 
     // Free the loaded volume
     delete loadedVolume;
@@ -133,6 +137,14 @@ void run(int argc , const char** argv)
 
     // Extract the mesh from the volume again
     auto reconstructedMesh = reconstructMeshFromVolume(volume, options);
+
+
+    std::cout << "Scaling \n";
+    scale.print();
+    center.print();
+
+    reconstructedMesh->scale(scale.x(), scale.y(), scale.z());
+    reconstructedMesh->translate(center);
 
     // If a scale factor is given, not 1.0, scale the mesh, otherwise avoid the expensive operation
     if (!(isEqual(options->xScaleFactor, 1.f) &&

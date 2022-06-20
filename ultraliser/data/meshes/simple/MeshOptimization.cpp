@@ -1711,7 +1711,7 @@ void Mesh::smoothNormals()
     int64_t numSmall, numLarge;
     computeAngles(&minAngle, &maxAngle, &numSmall, &numLarge, 15, 150);
 
-    LOG_WARNING("\nMin Angle: [%f],  Max Angle : [%f], Smaller than 15: [%d], Larger than 150: [%d]",
+    LOG_WARNING("Min. Angle: [%f],  Max. Angle : [%f], Smaller than 15: [%d], Larger than 150: [%d]",
                 F2D(minAngle), F2D(maxAngle), numSmall, numLarge);
 
     // Statistics

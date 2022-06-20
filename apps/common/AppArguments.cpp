@@ -164,13 +164,21 @@ void AppArguments::addInputVolumeArguments()
 void AppArguments::addInputVolumeParametersArguments()
 {
     Argument isoValue(
-                "--iso-value",
+                "--isovalue",
                 ARGUMENT_TYPE::INTEGER,
                 "The iso value where the volume will get segmented. Default 127.",
                 ARGUMENT_PRESENCE::OPTIONAL,
                 "127");
     _args->addArgument(&isoValue);
     _options->isoValue = _args->getIntegrValue(&isoValue);
+
+    Argument isovaluesFile(
+                "--isovalues-file",
+                ARGUMENT_TYPE::STRING,
+                "A file containing a list of isovalues to extract the volume",
+                ARGUMENT_PRESENCE::OPTIONAL);
+    _args->addArgument(&isovaluesFile);
+    _options->isovaluesFile = _args->getStringValue(&isovaluesFile);
 
     Argument fullRangeIsoValue(
                 "--full-range-iso-value",

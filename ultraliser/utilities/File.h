@@ -72,6 +72,13 @@ Neurons parseCircuitConfiguration(const std::string &circuitFile);
 void parseBoundsFile(std::string boundsFile, Vector3f& pMin, Vector3f& pMax);
 
 /**
+ * @brief parseIsovaluesFile
+ * @param filePath
+ * @return
+ */
+std::vector< uint64_t > parseIsovaluesFile(const std::string &filePath);
+
+/**
  * @brief parseVolumeList
  *
  * @param filePath

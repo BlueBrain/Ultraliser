@@ -325,6 +325,11 @@ public:
     static const Vector3f ZERO;
 
     /**
+     * @brief ONE
+     */
+    static const Vector3f ONE;
+
+    /**
      * @brief UP
      */
     static const Vector3f UP;

@@ -287,6 +287,12 @@ public:
     uint64_t isoValue;
 
     /**
+     * @brief isovaluesFile
+     * A file containing a list of isovalues used to construct the segmented volume.
+     */
+    std::string isovaluesFile;
+
+    /**
      * @brief isosurfaceTechnique
      * The technique that is used to extract the iso surface from the mesh.
      * Either dmc (Dual Marching Cubes) or mc (Marching Cubes)

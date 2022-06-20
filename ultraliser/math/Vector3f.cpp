@@ -28,6 +28,7 @@ namespace Ultraliser
 {
 
 const Vector3f Vector3f::ZERO       = Vector3f(0.f, 0.f, 0.f);
+const Vector3f Vector3f::ONE        = Vector3f(1.f, 1.f, 1.f);
 const Vector3f Vector3f::UP         = Vector3f(0.f, 1.f, 0.f);
 const Vector3f Vector3f::RIGHT      = Vector3f(1.f, 0.f, 0.f);
 const Vector3f Vector3f::FORWARD    = Vector3f(0.f, 0.f, -1.f);
