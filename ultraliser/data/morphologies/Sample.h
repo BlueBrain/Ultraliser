@@ -57,6 +57,12 @@ public:
     float getRadius() const;
 
     /**
+     * @brief scaleRadius
+     * @param scaleFactor
+     */
+    void scaleRadius(const float& scaleFactor);
+
+    /**
      * @brief getIndex
      * @return
      */

@@ -373,6 +373,7 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
 }
 
 void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(const AstrocyteMorphology* astrocyteMorphology,
+                                                        const float &samplesScale,
                                                         float threshold)
 {
     LOG_TITLE("Astrocyte Surface Voxelization (Parallel)");
@@ -399,7 +400,8 @@ void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(const AstrocyteMorpholog
     {
         // For every section, construct a list of paths connecting its parents and children
         Paths sectionPaths =
-                astrocyteMorphology->getConnectedPathsFromParentsToChildren(sections[i]);
+                astrocyteMorphology->getConnectedPathsFromParentsToChildren(sections[i],
+                                                                            samplesScale);
 
         // Add all the paths to the list that will be rasterized
         paths.insert(paths.end(), sectionPaths.begin(), sectionPaths.end());

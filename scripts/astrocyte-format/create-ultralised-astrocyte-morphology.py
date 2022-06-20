@@ -1,9 +1,8 @@
 # System imports
 import argparse
 import h5py
-from pathlib import Path
 from archngv import NGVCircuit
-import pandas as pd
+
 
 ####################################################################################################
 # CONSTANTS
@@ -13,12 +12,6 @@ H5_POINTS_DIRECTORY = '/points'
 
 # The directory that stores morphology connectivity in an .H5 file
 H5_STRUCTURE_DIRECTORY = '/structure'
-
-# The directory where the endfeet points will be stored
-H5_ENDFEET_POINTS_DIRECTORY = '/endfeetpoints'
-
-# The directory where the endfeet patches will be stored
-H5_ENDFEET_PATCHES_DIRECTORY = '/endfeetpoints'
 
 # The directory that stores morphology perimeters in an .H5 file
 # This is only used for glia, but not used for neurons
@@ -126,11 +119,11 @@ def create_full_astrocyte_structure(astrocyte_h5_file,
     for eid, endfoot in enumerate(endfeet):
 
         triangle_start_index = triangle_last_index + 1
-        triangle_last_index = triangle_start_index + len(endfoot.triangles)
+        triangle_last_index = triangle_start_index + len(endfoot.triangles) - 1
         triangle_indices.append([triangle_start_index, triangle_last_index])
 
         vertex_start_index = vertex_last_index + 1
-        vertex_last_index = vertex_start_index + len(endfoot.vertices)
+        vertex_last_index = vertex_start_index + len(endfoot.vertices) - 1
         vertex_indices.append([vertex_start_index, vertex_last_index])
 
         # Compose the lists
@@ -141,6 +134,12 @@ def create_full_astrocyte_structure(astrocyte_h5_file,
 
         # Compose the lists
         for vid, vertex in enumerate(endfoot.vertices):
+
+            # Translate the coordinates of the endfeet to the origin as well
+            vertex[0] -= coordinates[0]
+            vertex[1] -= coordinates[1]
+            vertex[2] -= coordinates[2]
+
             vertices_array.append([vertex[0], vertex[1], vertex[2], endfoot.thickness])
 
         # Update the vertex offset

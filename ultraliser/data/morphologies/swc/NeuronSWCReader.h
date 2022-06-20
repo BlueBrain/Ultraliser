@@ -27,6 +27,7 @@
 #include <vector>
 #include <data/morphologies/swc/NeuronSWCSample.hh>
 #include <data/morphologies/NeuronMorphology.h>
+#include <data/morphologies/AstrocyteMorphology.h>
 
 
 namespace Ultraliser
@@ -54,6 +55,13 @@ public:
      * @return Return a pointer to the morphology.
      */
     NeuronMorphology* getMorphology();
+
+    /**
+     * @brief getAstrocyteMorphology
+     * Returns a pointer to the astrocyte morphology.
+     * @return
+     */
+    AstrocyteMorphology* getAstrocyteMorphology();
 
 private:
 

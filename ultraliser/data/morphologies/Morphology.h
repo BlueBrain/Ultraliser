@@ -88,7 +88,8 @@ public:
      * @param section
      * @return
      */
-    Paths getConnectedPathsFromParentsToChildren(const Section* section) const;
+    Paths getConnectedPathsFromParentsToChildren(const Section* section,
+                                                 const float &samplesScale = 1.0) const;
 
     /**
      * @brief getBoundingBox

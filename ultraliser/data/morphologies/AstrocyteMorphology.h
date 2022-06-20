@@ -27,6 +27,7 @@
 #include <data/morphologies/EndfootPatch.hh>
 #include <data/morphologies/h5/H5Section.hh>
 #include <data/morphologies/h5/H5Sample.hh>
+#include <data/morphologies/swc/NeuronSWCSample.hh>
 #include <utilities/Utilities.h>
 
 namespace Ultraliser
@@ -38,6 +39,14 @@ namespace Ultraliser
 class AstrocyteMorphology : public Morphology
 {
 public:
+
+    /**
+     * @brief AstrocyteMorphology
+     * Constructor without endfeet.
+     * @param swcSamples
+     * A list of samples.
+     */
+    AstrocyteMorphology(NeuronSWCSamples& swcSamples);
 
     /**
      * @brief EndfeetMorphology
@@ -127,6 +136,14 @@ public:
      * @return
      */
     float getLargestRadiusInMorphology() const;
+
+private:
+
+    /**
+     * @brief _constructMorphologyFromSWC
+     * @param swcSamples
+     */
+    void _constructMorphologyFromSWC(const NeuronSWCSamples& swcSamples);
 
 private:
 

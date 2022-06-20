@@ -43,6 +43,11 @@ float Sample::getRadius() const
     return _radius;
 }
 
+void Sample::scaleRadius(const float& scaleFactor)
+{
+    _radius *= scaleFactor;
+}
+
 uint64_t Sample::getIndex() const
 {
     return _index;

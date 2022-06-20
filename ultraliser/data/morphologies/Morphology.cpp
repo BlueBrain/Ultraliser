@@ -143,7 +143,8 @@ Sections Morphology::getSubsectionsInBoundingBox(const Section* section,
     return internalSections;
 }
 
-Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section) const
+Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section,
+                                                         const float &samplesScale) const
 {
     // All possible combination of paths along the section (from parents to children)
     Paths paths;
@@ -170,9 +171,6 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section)
 
         // Only a single path
         paths.push_back(pathSamples);
-
-        // Done
-        return paths;
     }
 
     // If the section is root and has children
@@ -200,9 +198,6 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section)
             // Add the path
             paths.push_back(pathSamples);
         }
-
-        // Done
-        return paths;
     }
 
     // If the section is a leaf (has no children) node but has parents
@@ -230,9 +225,6 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section)
             // Add the path
             paths.push_back(pathSamples);
         }
-
-        // Done
-        return paths;
     }
 
     // If the section has parents and children
@@ -274,9 +266,16 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section)
                 paths.push_back(pathSamples);
             }
         }
+    }
 
-        // Done
-        return paths;
+    // Scale the samples
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < paths.size(); ++i)
+    {
+        for (uint64_t j = 0; j < paths[i].size(); ++j)
+        {
+            paths[i][j]->scaleRadius(samplesScale);
+        }
     }
 
     // Return the paths

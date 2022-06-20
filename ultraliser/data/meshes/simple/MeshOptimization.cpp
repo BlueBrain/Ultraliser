@@ -1652,9 +1652,7 @@ void Mesh::smoothNormal(const int64_t n)
             if (length >= 0)
             {
                 theta = D2F(atan2(by - cy, bx - cx));
-                phi = D2F(atan2(bz - cz,
-                                sqrt((bx - cx) * (bx - cx) +
-                                     (by - cy) * (by - cy))));
+                phi = D2F(atan2(bz - cz, sqrt((bx - cx) * (bx - cx) + (by - cy) * (by - cy))));
             }
             else
             {
@@ -1667,9 +1665,7 @@ void Mesh::smoothNormal(const int64_t n)
                                dy * iNormal.y() +
                                dz * iNormal.z()) / D2F(4.0 - num);
 
-            Vector3f sv = rotate(_vertices[n].x() - cx,
-                                 _vertices[n].y() - cy,
-                                 _vertices[n].z() - cz,
+            Vector3f sv = rotate(_vertices[n].x() - cx, _vertices[n].y() - cy, _vertices[n].z() - cz,
                                  theta, phi, alpha);
 
             position += sv + Vector3f(cx, cy, cz);
@@ -1683,7 +1679,6 @@ void Mesh::smoothNormal(const int64_t n)
     {
         _vertices[n] = position / I2F(number);
     }
-
 }
 
 void Mesh::smoothNormals()
@@ -1711,7 +1706,7 @@ void Mesh::smoothNormals()
     int64_t numSmall, numLarge;
     computeAngles(&minAngle, &maxAngle, &numSmall, &numLarge, 15, 150);
 
-    LOG_WARNING("\nMin Angle: [%f],  Max Angle : [%f], Smaller than 15: [%d], Larger than 150: [%d]",
+    LOG_DEBUG("Min Angle: [%f],  Max Angle : [%f], Smaller than 15: [%d], Larger than 150: [%d]",
                 F2D(minAngle), F2D(maxAngle), numSmall, numLarge);
 
     // Statistics
@@ -1799,8 +1794,8 @@ bool Mesh::smooth(const int64_t &maxMinAngle, const int64_t &minMaxAngle,
     }
     LOOP_DONE;
 
-    LOG_WARNING("Min. angle: %f, Max. angle: %f, "
-                "Smaler than %d: %d, Larger than %d: %d \n",
+    LOG_DEBUG("Min angle: [%f], Max. angle: [%f], "
+                "Smaler than [%d]: [%d], Larger than [%d]: [%d] \n",
                 F2D(minAngle), F2D(maxAngle), maxMinAngle, numSmall, minMaxAngle, numLarge);
 
     // Statistics
@@ -2813,15 +2808,6 @@ void Mesh::optimizeAdaptively(const uint64_t &optimizationIterations,
 
     // Starting the timer
     TIMER_SET;
-
-    // Smooth normals
-    smoothNormals();
-
-    // Smooth
-    smooth(15, 150, smoothingIterations);
-
-    // Smooth normals
-    smoothNormals();
 
     // Refine the mesh
     refine();

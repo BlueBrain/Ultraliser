@@ -615,6 +615,11 @@ public:
      */
     float zScaleFactor = 1.f;
 
+    /**
+     * @brief morphologySampleScale
+     */
+    float morphologySamplesScale = 0.9f;
+
     /** 
      * @brief axonBranchOrder
      * Maximum branch order applies in the neuron morphology axon reconstruction 

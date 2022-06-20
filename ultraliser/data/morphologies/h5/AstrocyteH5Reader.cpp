@@ -204,6 +204,15 @@ void AstrocyteH5Reader::_readEndfeetPoints()
 
     // Close the dataset
     endfeetPointsDataSet.close();
+
+    // Translate the samples to the global coordinates
+    OMP_PARALLEL_FOR
+    for (uint64_t i = 0; i < _endfeetSamples.size(); ++i)
+    {
+        _endfeetSamples[i].x += _coordinates.x();
+        _endfeetSamples[i].y += _coordinates.y();
+        _endfeetSamples[i].z += _coordinates.z();
+    }
 }
 
 void AstrocyteH5Reader::_readEndfeetPatchesIndices()

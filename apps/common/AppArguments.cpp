@@ -99,6 +99,19 @@ void AppArguments::addMaskArguments()
     _options->maskHeight = _args->getIntegrValue(&maskWidth);
 }
 
+void AppArguments::addMorphologyArguments()
+{
+    Argument samplesScale(
+                "--samples-scale",
+                ARGUMENT_TYPE::FLOAT,
+                "A scale factor used to scale the radius of every sample in the morphology to "
+                "counteract against the voxelization inflation effect. Default 0.9",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "0.9");
+    _args->addArgument(&samplesScale);
+    _options->morphologySamplesScale = _args->getFloatValue(&samplesScale);
+}
+
 void AppArguments::addMorphologyExtractionArguments()
 {
     Argument bboxWidth(
@@ -679,7 +692,7 @@ void AppArguments::addSuppressionArguments()
     _options->ignoreOptimizedMesh = _args->getBoolValue(&ignoreOptimizedMesh);
 
     Argument ignoreWatertightMesh(
-                "--ignore-optimized-mesh",
+                "--ignore-watertight-mesh",
                 ARGUMENT_TYPE::BOOL,
                 "If this flag is set, the watertight mesh will not be written to disk.");
     _args->addArgument(&ignoreWatertightMesh);

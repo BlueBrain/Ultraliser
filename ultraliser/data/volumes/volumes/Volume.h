@@ -206,6 +206,7 @@ public:
      * @param morphology
      */
     void surfaceVoxelizeAstrocyteMorphologyParallel(const AstrocyteMorphology *astrocyteMorphology,
+                                                    const float& samplesScale = 1.0,
                                                     float threshold = 0.75);
 
     /**
