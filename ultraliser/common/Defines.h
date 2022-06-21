@@ -33,8 +33,10 @@
 #define Z_DIMENSION                             2 // [2]
 
 // Flood-filling values
-#define EMPTY_VOXEL_VALUE       0
-#define FILLED_VOXEL_VALUE      255
+#define EMPTY_VOXEL_VALUE                       0
+#define FILLED_VOXEL_VALUE                      255
+#define EMPTY_FLOAT_VOXEL_VALUE                 0.f
+#define FULLED_FLOAT_VOXEL_VALUE                1.f
 
 // PBRT lens radii
 #define LENS_RADIUS_STEP        0.5
@@ -52,6 +54,8 @@
 // Files extensions
 #define HEADER_EXTENSION                        STRING(".hdr")
 #define BOUNDS_EXTENSION                        STRING(".bounds")
+#define ULTRALISER_VOLUME_EXTENSION             STRING(".uvol")
+#define ULTRALISER_BIN_VOLUME_EXTENSION         STRING(".uvolb")
 #define RAW_EXTENSION                           STRING(".img")
 #define BINARY_EXTENSION                        STRING(".bin")
 #define ASCII_EXTENSION                         STRING(".ascii")

@@ -32,9 +32,9 @@ namespace Ultraliser
 
 template <class T>
 FloatVolumeGrid<T>::FloatVolumeGrid(const uint64_t &width,
-                                  const uint64_t &height,
-                                  const uint64_t &depth,
-                                  const bool &preAllocateMemory)
+                                    const uint64_t &height,
+                                    const uint64_t &depth,
+                                    const bool &preAllocateMemory)
     : VolumeGrid(width, height, depth)
 {
     // Allocate the memory
@@ -46,7 +46,7 @@ FloatVolumeGrid<T>::FloatVolumeGrid(const uint64_t &width,
 
 template <class T>
 FloatVolumeGrid<T>::FloatVolumeGrid(const Vec3ui_64& dimensions,
-                                  const bool &preAllocateMemory)
+                                    const bool &preAllocateMemory)
     : VolumeGrid(dimensions)
 {
     // Allocate the memory
@@ -57,7 +57,8 @@ FloatVolumeGrid<T>::FloatVolumeGrid(const Vec3ui_64& dimensions,
 }
 
 template <class T>
-FloatVolumeGrid<T>::FloatVolumeGrid(const FloatVolumeGrid* inputGrid) : VolumeGrid(*inputGrid)
+FloatVolumeGrid<T>::FloatVolumeGrid(const FloatVolumeGrid* inputGrid)
+    : VolumeGrid(*inputGrid)
 {
     // Allocate the memory to be able to copy the data
     _allocateMemory();
@@ -72,6 +73,30 @@ FloatVolumeGrid<T>::FloatVolumeGrid(const FloatVolumeGrid* inputGrid) : VolumeGr
     {
         _data[i] = inputData[i];
     }
+}
+
+
+template <class T>
+void FloatVolumeGrid<T>::readUVOLBData(const std::string &filePath)
+{
+//    FILE * pFile = std::fopen(filePath.c_str(), "rb" );
+//    if (pFile == NULL)
+//    {
+//        LOG_ERROR("Could not open the volume file [ %s ]!", filePath.c_str());
+//    }
+//    // Read the volume file from the input stream
+//    std::ifstream imgFileStream;
+//    imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
+//    if (imgFileStream.fail())
+//    {
+//        LOG_ERROR("Could not open the volume file [ %s ]!", filePath.c_str());
+//    }
+}
+
+template <class T>
+void FloatVolumeGrid<T>::readUVOLData(const std::string &filePath)
+{
+
 }
 
 template <class T>
@@ -150,64 +175,66 @@ double FloatVolumeGrid<T>::getValueF64(const uint64_t &index) const
     return static_cast< double >(_data[index]);
 }
 
-//template <class T>
-//uint8_t FloatVolumeGrid<T>::getValue(const uint64_t &index) const
-//{
-//    return _data[index];
-//}
-
 template <class T>
 uint8_t FloatVolumeGrid<T>::getByte(uint64_t index) const
 {
-    return _data[index];
+    // Cannot be implemented
+    LOG_ERROR("FloatVolumeGrid<T>::getByte() Unimplemented!");
+    return 0;
 }
 template <class T>
 
 void FloatVolumeGrid<T>::addByte(const uint64_t &index, const uint8_t &byte)
 {
-    _data[index] = byte;
+    // Cannot be implemented
+    LOG_ERROR("FloatVolumeGrid<T>::addByte Unimplemented!");
 }
-template <class T>
 
+template <class T>
 void FloatVolumeGrid<T>::clear()
 {
-    for (int64_t i = 0; i < _numberVoxels; ++i)
+#ifdef ULTRALISER_USE_OPENMP
+    #pragma omp parallel for
+#endif
+    for (uint64_t i = 0; i < _numberVoxels; ++i)
         _data[i] = 0.f;
 }
 
 template <class T>
 void FloatVolumeGrid<T>::fillVoxel(const uint64_t &index)
 {
-    _data[index] = 1.f;
+    _data[index] = 1.;
 }
 
 template <class T>
 void FloatVolumeGrid<T>::clearVoxel(const uint64_t &index)
 {
-    _data[index] = 0.f;
+    _data[index] = 0.;
 }
 
 template <class T>
 bool FloatVolumeGrid<T>::isFilled(const uint64_t &index) const
 {
-    return _data[index] > 0.0;
+    return _data[index] > 0.;
 }
 
 template <class T>
 bool FloatVolumeGrid<T>::isEmpty(const uint64_t &index) const
 {
-    return _data[index] == 0;
+    return _data[index] == 0.;
 }
 
 template <class T>
 void FloatVolumeGrid<T>::andWithAnotherGrid(VolumeGrid *anotherGrid)
 {
+    // Cannot be implemented
     LOG_ERROR("FloatVolumeGrid<T>::andWithAnotherGrid Unimplemented!");
 }
 
 template <class T>
 void FloatVolumeGrid<T>::orWithAnotherGrid(VolumeGrid *anotherGrid)
 {
+    // Cannot be implemented
     LOG_ERROR("FloatVolumeGrid<T>::orWithAnotherGrid Unimplemented!");
 }
 
@@ -232,31 +259,8 @@ void FloatVolumeGrid<T>::_writeHeader(const std::string &prefix)
 template <class T>
 void FloatVolumeGrid<T>::writeRAW(const std::string &prefix)
 {
-    // Starts the timer
-    TIMER_SET;
-
-    // Write the header file
-    _writeHeader(prefix);
-
-    // Write the image file
-    std::string fileName = prefix + std::string(RAW_EXTENSION);
-    std::fstream image;
-    image.open(fileName.c_str(), std::ios::out | std::ios::binary);
-
-    LOOP_STARTS("Writing Voxels (1 Byte)");
-    for (int64_t voxel = 0; voxel < _numberVoxels; ++voxel)
-    {
-        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
-        image << _data[voxel];
-    }
-
-    LOOP_DONE;
-
-    // Statistics
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Close the file
-    image.close();
+    // Cannot be implemented
+    LOG_ERROR("FloatVolumeGrid<T>::writeRAW Unimplemented!");
 }
 
 template <class T>
@@ -272,15 +276,7 @@ void FloatVolumeGrid<T>::writeNRRD(const std::string &prefix)
     // Header
     fprintf(fptr, "NRRD0001\n");
     fprintf(fptr, "content: \"Volume\"\n");
-    if (typeid (T) == typeid (uint8_t))
-        fprintf(fptr, "type: unsigned char\n");
-    else if (typeid (T) == typeid (uint16_t))
-        fprintf(fptr, "type: unsigned short\n");
-    else if (typeid (T) == typeid (uint32_t))
-        fprintf(fptr, "type: unsigned int\n");
-    else if (typeid (T) == typeid (uint64_t))
-        fprintf(fptr, "type: unsigned long\n");
-    else if (typeid (T) == typeid (float))
+    if (typeid (T) == typeid (float))
         fprintf(fptr, "type: float\n");
     else if (typeid (T) == typeid (double))
         fprintf(fptr, "type: double\n");
@@ -350,7 +346,7 @@ void FloatVolumeGrid<T>::writeBIN(const std::string &prefix)
         LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
 
         uint8_t value = 0;
-        for (int64_t i = 0; i < 8; ++i)
+        for (uint64_t i = 0; i < 8; ++i)
         {
             if (binData->bit(I2UI64(voxel + i)))
                 value |= 1 << i;
@@ -365,10 +361,119 @@ void FloatVolumeGrid<T>::writeBIN(const std::string &prefix)
 }
 
 template <class T>
+void FloatVolumeGrid<T>::writeUltraliserBinaryVolume(const std::string &prefix)
+{
+    // Starts the timer
+    TIMER_SET;
+
+    std::string fileName = prefix + std::string(ULTRALISER_VOLUME_EXTENSION);
+    FILE* fptr= fopen(fileName.c_str(), "w");
+
+    // Header
+    /// NOTE: The header specifies a single bit per voxel and volume dimensions
+    fprintf(fptr, "1bit\n");
+    fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
+            getWidth(), getHeight(), getDepth());
+
+    // Create a BitArray
+    auto binData = std::make_unique< BitArray >(_numberVoxels);
+
+    // Fill the BitArray
+    LOOP_STARTS("Filling the BitArray");
+    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    {
+        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
+        if (_data[voxel])
+        {
+            binData->setBit(voxel);
+        }
+        else
+        {
+            binData->clearBit(voxel);
+        }
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+
+    LOOP_STARTS("Writing Voxels (1 Bit per Voxel)");
+    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    {
+        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
+
+        uint8_t value = 0;
+        for (uint64_t i = 0; i < 8; ++i)
+        {
+            if (binData->bit(voxel + i))
+                value |= 1 << i;
+        }
+
+        // Add the byte value to the volume
+        fputc(value, fptr);
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Closing the file
+    fclose(fptr);
+}
+
+template <class T>
+void FloatVolumeGrid<T>::writeUltraliserRawVolume(const std::string &prefix)
+{
+    // Cannot be implemented
+    LOG_ERROR("FloatVolumeGrid<T>::writeUltraliserRawVolume Unimplemented!");
+}
+
+template <class T>
+void FloatVolumeGrid<T>::writeUltraliserFloatVolume(const std::string &prefix)
+{
+    // Starts the timer
+    TIMER_SET;
+
+    std::string fileName = prefix + std::string(ULTRALISER_VOLUME_EXTENSION);
+    FILE* fptr= fopen(fileName.c_str(), "w");
+
+    // Header
+    /// NOTE: The header specifies a single bit per voxel and volume dimensions
+    if (typeid (T) == typeid (float))
+        fprintf(fptr, "f32\n");
+    if (typeid (T) == typeid (double))
+        fprintf(fptr, "f64\n");
+    fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
+            getWidth(), getHeight(), getDepth());
+
+    LOOP_STARTS("Writing Voxels (1 Bit per Voxel)");
+    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    {
+        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
+
+        T value;
+        if (_data[voxel])
+            value = FULLED_FLOAT_VOXEL_VALUE;
+        else
+            value = EMPTY_FLOAT_VOXEL_VALUE;
+
+        fputc(value, fptr);
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Closing the file
+    fclose(fptr);
+}
+
+
+template <class T>
 void FloatVolumeGrid<T>::_allocateMemory()
 {
     // Allocate the array
     _data = new T[_numberVoxels];
+
+    // Initialize to zero
+#ifdef ULTRALISER_USE_OPENMP
+    #pragma omp parallel for
+#endif
     for (uint64_t i = 0; i < _numberVoxels; ++i)
         _data[i] = static_cast<T>(0);
 }
@@ -385,6 +490,7 @@ FloatVolumeGrid<T>::~FloatVolumeGrid()
     _freeMemory();
 }
 
-template class FloatVolumeGrid<float>;
-template class FloatVolumeGrid<double>;
+/// Template specialization
+template class FloatVolumeGrid< float >;
+template class FloatVolumeGrid< double >;
 }

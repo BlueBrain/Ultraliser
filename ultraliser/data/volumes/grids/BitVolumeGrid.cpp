@@ -58,6 +58,35 @@ BitVolumeGrid::BitVolumeGrid(const BitVolumeGrid *inputGrid) : VolumeGrid(*input
     *_data = *inputGrid->getGridData();
 }
 
+
+
+struct SomeStruct{
+    char format[3];
+    uint64_t width, height, depth;
+};
+
+void BitVolumeGrid::readUVOLBData(const std::string &filePath)
+{
+//    FILE * pFile = std::fopen(filePath.c_str(), "rb" );
+//    if (pFile == NULL)
+//    {
+//        LOG_ERROR("Could not open the volume file [ %s ]!", filePath.c_str());
+//    }
+//    // Read the volume file from the input stream
+//    std::ifstream imgFileStream;
+//    imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
+//    if (imgFileStream.fail())
+//    {
+//        LOG_ERROR("Could not open the volume file [ %s ]!", filePath.c_str());
+//    }
+}
+
+
+void BitVolumeGrid::readUVOLData(const std::string &filePath)
+{
+
+}
+
 void BitVolumeGrid::loadBinaryVolumeData(const std::string &prefix)
 {
     // Read the volume file from the input stream
@@ -212,11 +241,54 @@ void BitVolumeGrid::orWithAnotherGrid(VolumeGrid *anotherGrid)
 
 void BitVolumeGrid::_writeHeader(const std::string &prefix)
 {
+    // Header path
     std::string fileName = prefix + std::string(HEADER_EXTENSION);
+
+    // Open the file
     std::fstream header;
     header.open(fileName.c_str(), std::ios::out);
+
+    LOG_STATUS("Writing Header [ %s ]", fileName.c_str());
+
+    // Write the dimensions
     header << getWidth() << " " << getHeight() << " " << getDepth() << std::endl;
+
+    // Close the file
     header.close();
+}
+
+void BitVolumeGrid::writeBIN(const std::string &prefix)
+{
+    // Starts the timer
+    TIMER_SET;
+
+    // Write the header file
+    _writeHeader(prefix);
+
+    std::string fileName = prefix + std::string(BINARY_EXTENSION);
+    FILE* fptr= fopen(fileName.c_str(), "w");
+
+    LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
+
+    LOOP_STARTS("Writing Voxels (1 Bit per voxel)");
+    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    {
+        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
+
+        uint8_t value = 0;
+        for (uint64_t i = 0; i < 8; ++i)
+        {
+            if (_data->bit(voxel + i))
+                value |= 1 << i;
+        }
+
+        fputc(value, fptr);
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Closing the file
+    fclose(fptr);
 }
 
 void BitVolumeGrid::writeRAW(const std::string &prefix)
@@ -234,13 +306,13 @@ void BitVolumeGrid::writeRAW(const std::string &prefix)
 
     LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
 
-    LOOP_STARTS("Writing Voxels (1 Byte)");
-    for (int64_t voxel = 0; voxel < _numberVoxels; voxel++)
+    LOOP_STARTS("Writing Voxels (1 Byte per voxel)");
+    for (uint64_t voxel = 0; voxel < _numberVoxels; ++voxel)
     {
         LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
 
         uint8_t value;
-        if (_data->bit(I2UI64(voxel)))
+        if (_data->bit(voxel))
             value = FILLED_VOXEL_VALUE;
         else
             value = EMPTY_VOXEL_VALUE;
@@ -275,13 +347,13 @@ void BitVolumeGrid::writeNRRD(const std::string &prefix)
 
     LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
 
-    LOOP_STARTS("Writing Voxels");
-    for (int64_t voxel = 0; voxel < _numberVoxels; ++voxel)
+    LOOP_STARTS("Writing Voxels (1 Byte per voxel)");
+    for (uint64_t voxel = 0; voxel < _numberVoxels; ++voxel)
     {
         LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
 
         uint8_t value;
-        if (_data->bit(I2UI64(voxel)))
+        if (_data->bit(voxel))
             value = FILLED_VOXEL_VALUE;
         else
             value = EMPTY_VOXEL_VALUE;
@@ -295,39 +367,116 @@ void BitVolumeGrid::writeNRRD(const std::string &prefix)
     fclose(fptr);
 }
 
-void BitVolumeGrid::writeBIN(const std::string &prefix)
+void BitVolumeGrid::writeUltraliserBinaryVolume(const std::string &prefix)
 {
     // Starts the timer
     TIMER_SET;
 
-    // Write the header file
-    _writeHeader(prefix);
+    std::string fileName = prefix + std::string(ULTRALISER_BIN_VOLUME_EXTENSION);
+    FILE* fptr= fopen(fileName.c_str(), "w");
 
-    // Write the image file
-    std::string fileName = prefix + std::string(BINARY_EXTENSION);
-    std::fstream image;
-    image.open(fileName.c_str(), std::ios::out | std::ios::binary);
+    // Header
+    /// NOTE: The header specifies a single bit per voxel and volume dimensions
+    fprintf(fptr, "format:1bit\n");
+    fprintf(fptr,"sizes:%" PRId64 "x%" PRId64 "x%" PRId64 "\n",
+            getWidth(), getHeight(), getDepth());
+    fprintf(fptr, "HEADER_DONE\n");
 
     LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
 
-    LOOP_STARTS("Writing Voxels (1 Bit)");
-    for (int64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    LOOP_STARTS("Writing Voxels (1 Bit per Voxel)");
+    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
     {
         LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
 
         uint8_t value = 0;
-        for (int64_t i = 0; i < 8; ++i)
+        for (uint64_t i = 0; i < 8; ++i)
         {
-            if (_data->bit(I2UI64(voxel + i)))
+            if (_data->bit(voxel + i))
                 value |= 1 << i;
         }
-        image << value;
+
+        // Add the byte value to the volume
+        fputc(value, fptr);
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
 
-    // Close the file
-    image.close();
+    // Closing the file
+    fclose(fptr);
+}
+
+void BitVolumeGrid::writeUltraliserRawVolume(const std::string &prefix)
+{
+    // Starts the timer
+    TIMER_SET;
+
+    std::string fileName = prefix + std::string(ULTRALISER_VOLUME_EXTENSION);
+    FILE* fptr= fopen(fileName.c_str(), "w");
+
+    LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
+
+    // Header
+    /// NOTE: The header specifies a single bit per voxel and volume dimensions
+    fprintf(fptr, "format:1bit\n");
+    fprintf(fptr,"sizes:%" PRId64 "x%" PRId64 "x%" PRId64 "\n",
+            getWidth(), getHeight(), getDepth());
+    fprintf(fptr, "HEADER_DONE\n");
+
+    LOOP_STARTS("Writing Voxels (1 Byte per voxel)");
+    for (uint64_t voxel = 0; voxel < _numberVoxels; ++voxel)
+    {
+        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
+
+        uint8_t value;
+        if (_data->bit(voxel))
+            value = FILLED_VOXEL_VALUE;
+        else
+            value = EMPTY_VOXEL_VALUE;
+
+        fputc(value, fptr);
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Closing the file
+    fclose(fptr);
+}
+
+void BitVolumeGrid::writeUltraliserFloatVolume(const std::string &prefix)
+{
+    // Starts the timer
+    TIMER_SET;
+
+    std::string fileName = prefix + std::string(ULTRALISER_VOLUME_EXTENSION);
+    FILE* fptr= fopen(fileName.c_str(), "w");
+
+    LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
+
+    // Header
+    /// NOTE: The header specifies a single bit per voxel and volume dimensions
+    fprintf(fptr, "f32\n");
+    fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
+            getWidth(), getHeight(), getDepth());
+
+    LOOP_STARTS("Writing Voxels (1 Bit per Voxel)");
+    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    {
+        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
+
+        float value;
+        if (_data->bit(voxel))
+            value = FULLED_FLOAT_VOXEL_VALUE;
+        else
+            value = EMPTY_FLOAT_VOXEL_VALUE;
+
+        fputc(value, fptr);
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Closing the file
+    fclose(fptr);
 }
 
 void BitVolumeGrid::_allocateMemory()

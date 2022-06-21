@@ -320,14 +320,23 @@ public:
 
     /**
      * @brief writeVolumes
+     * Write the volume to the file system using different file formats.
      * @param prefix
+     * File prefix.
      * @param binaryFormat
+     * The volume will be stored in .HDR/.BIN files, where each voxel will be stored in a
+     * single bit.
      * @param rawFormat
+     * The volume will be stored in .HDR/.IMG files, where each voxel will be stored
+     * @param nrrdFormat
+     * @param ultraliserFormat
      */
     void writeVolumes(const std::string &prefix,
                       const bool& binaryFormat = false,
                       const bool& rawFormat = false,
-                      const bool& nrrdFormat = false) const;
+                      const bool& nrrdFormat = false,
+                      const bool &ultraBinaryFormat = false,
+                      const bool &ultraRawFormat = false) const;
 
     /**
      * @brief writeStacks

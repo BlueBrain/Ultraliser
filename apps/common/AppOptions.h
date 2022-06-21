@@ -413,11 +413,21 @@ public:
     bool exportBitVolume = false;
 
     /**
+     * @brief exportUltraBitVolume
+     */
+    bool exportUltraBitVolume = false;
+
+    /**
      * @brief createByteVolume
      * If this flag is set, a default raw volume will be created. This volume
      * has 1 byte per voxel.
      */
-    bool exportByteVolume = false;
+    bool exportRawVolume = false;
+
+    /**
+     * @brief exportUltraRawVolume
+     */
+    bool exportUltraRawVolume = false;
 
     /**
      * @brief exportNRRDVolume

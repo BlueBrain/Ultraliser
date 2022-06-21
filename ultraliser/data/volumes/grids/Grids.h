@@ -19,14 +19,10 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_VOLUME_GRIDS_GRIDS_H
-#define ULTRALISER_DATA_VOLUME_GRIDS_GRIDS_H
+#pragma once
 
 #include <data/volumes/grids/VolumeGrid.h>
+#include <data/volumes/grids/Projection.h>
 #include <data/volumes/grids/BitVolumeGrid.h>
 #include <data/volumes/grids/UnsignedVolumeGrid.h>
 #include <data/volumes/grids/FloatVolumeGrid.h>
-#include <data/volumes/grids/VoxelGrid.h>
-#include <data/volumes/grids/Projection.h>
-
-#endif // ULTRALISER_DATA_VOLUME_GRIDS_GRIDS_H

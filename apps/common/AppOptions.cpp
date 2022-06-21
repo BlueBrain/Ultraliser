@@ -188,7 +188,7 @@ void AppOptions::verifyMeshExportArguments()
 
 void AppOptions::verifyVolumeExportArguments()
 {
-    if (!(exportBitVolume || exportByteVolume || exportNRRDVolume))
+    if (!(exportBitVolume || exportRawVolume || exportNRRDVolume))
     {
         LOG_ERROR("You must specify at least one output format of the volume: "
                   "[--export-bit-volume, --export-byte-volume, --export-nrrd-volume]");
@@ -206,7 +206,7 @@ void AppOptions::createRespectiveDirectories()
     }
 
     // Volumes directory
-    if (exportBitVolume || exportByteVolume || exportNRRDVolume)
+    if (exportBitVolume || exportRawVolume || exportNRRDVolume)
     {
         std::stringstream path;
         path << outputDirectory << "/" << VOLUMES_DIRECTORY;

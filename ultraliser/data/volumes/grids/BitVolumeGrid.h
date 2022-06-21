@@ -38,17 +38,29 @@ class BitVolumeGrid : public VolumeGrid
 public:
 
     /**
-     * @brief Grid
+     * @brief BitVolumeGrid
+     * Constructor
      * @param dimensions
+     * The dimensions of the volume grid.
+     * @param preAllocateMemory
+     * If this flag is set, the memory of the grid will be pre-allocated during the
+     * construction of the object.
      */
     BitVolumeGrid(const Vec3ui_64 &dimensions,
                   const bool& preAllocateMemory = true);
 
     /**
      * @brief Grid
+     * Constructor
      * @param width
+     * The width of the volume.
      * @param height
+     * The height of the volume.
      * @param depth
+     * The depth of the volume.
+     * @param preAllocateMemory
+     * If this flag is set, the memory of the grid will be pre-allocated during the
+     * construction of the object.
      */
     BitVolumeGrid(const int64_t &width,
                   const int64_t &height,
@@ -57,10 +69,13 @@ public:
 
     /**
      * @brief BitVolumeGrid
+     * Copy constructor.
      * @param inputGrid
+     * An input grid to be copied.
      */
     BitVolumeGrid(const BitVolumeGrid* inputGrid);
 
+    /// Destructor
     ~BitVolumeGrid();
 
 public:
@@ -77,24 +92,22 @@ public:
      */
     void loadUnsignedVolumeData(const std::string &rawvolumepath) override;
 
+    void readUVOLBData(const std::string &filePath) override;
+
+    void readUVOLData(const std::string &filePath) override;
+
     /**
      * @brief getNumberBytes
+     * Gets the nummber of memory bytes of the volume grid.
      * @return
+     * Returns the nummber of memory bytes of the volume grid.
      */
     uint64_t getNumberBytes() const override;
-
-//    /**
-//     * @brief value
-//     * @param index
-//     * @return
-//     */
-//    uint8_t getValue(const uint64_t &index) const override;
-
 
     /**
      * @brief getValueUI8
      * Returns the value of a voxel specified by a given index as an 8-bit integer.
-     * If the volume has 16-, 32-, 64-bit volume the return value is zero.
+     * If the volume is a 16-, 32-, 64-bit volume, the return value is zero.
      * @param index
      * The one-dimensional index of the voxel.
      * @return
@@ -105,7 +118,7 @@ public:
     /**
      * @brief getValueUI16
      * Returns the value of a voxel specified by a given index as a 16-bit integer.
-     * If the volume has 32-, 64-bit volume the return value is zero.
+     * If the volume is a 32-, 64-bit volume, the return value is zero.
      * @param index
      * The one-dimensional index of the voxel.
      * @return
@@ -116,7 +129,7 @@ public:
     /**
      * @brief getValueUI32
      * Returns the value of a voxel specified by a given index as a 32-bit integer.
-     * If the volume has 64-bit volume the return value is zero.
+     * If the volume is a 64-bit volume, the return value is zero.
      * @param index
      * The one-dimensional index of the voxel.
      * @return
@@ -212,22 +225,70 @@ public:
     void orWithAnotherGrid(VolumeGrid *anotherGrid) override;
 
     /**
-     * @brief writeRAW
-     * @param prefix
-     */
-    void writeRAW(const std::string &prefix) override;
-
-    /**
      * @brief writeBIN
+     * Writes a binary volume (1 bit per voxel) of the grid.
+     * The dimensions of the volume grid will be written to a .HDR file, while the data will be
+     * written to a separate .BIN file.
      * @param prefix
+     * File prefix.
      */
     void writeBIN(const std::string &prefix) override;
 
     /**
-     * @brief writeNRRD
+     * @brief writeRAW
+     * Writes a raw volume (1 byte per voxel) of the grid.
+     * The dimensions of the volume grid will be written to a .HDR file, while the data will be
+     * written to a separate .RAW file.
      * @param prefix
+     * File prefix.
+     */
+    void writeRAW(const std::string &prefix) override;
+
+    /**
+     * @brief writeNRRD
+     * Writes an NRRD file (8-bit raw) of the grid.
+     * The NRRD file can be read with Paraview, where the dimensions and data are integrated
+     * in the same file.
+     * @param prefix
+     * File prefix.
      */
     void writeNRRD(const std::string &prefix) override;
+
+    /**
+     * @brief writeUltraliserBinaryVolume
+     * Writes an Ultraliser-specific binary volume file (1 bit per voxel).
+     * The created file contains the type of the file ('1bit'), the dimensions of the file
+     * in ('x y z') format and the data of the volume grid in a binary format (1 bit per voxel).
+     * @param path
+     * Absolute file path.
+     */
+    void writeUltraliserBinaryVolume(const std::string &prefix) override;
+
+    /**
+     * @brief writeUltraliserRawVolume
+     * Writes an Ultraliser-specific unsigned volume file (8-, 16-, 32-, or 64-bit file depending
+     * on the type of the volume grid itself).
+     * The created file contains the type of the file ('8ui, 16ui, 32ui or 64ui'), the dimensions
+     * of the file in ('x y z') format and the data of the volume grid.
+     * @param prefix
+     * File prefix.
+     */
+    void writeUltraliserRawVolume(const std::string &prefix) override;
+
+    /**
+     * @brief writeUltraliserFloatVolume
+     * Writes an Ultraliser-specific unsigned volume file (32-, or 64-bit precision volume files
+     * depending on the type of the volume grid itself).
+     * The created file contains the type of the file ('32f or 64f'), the dimensions of the file in
+     * ('x y z') format and the data of the volume grid.
+     * @param prefix
+     * File prefix.
+     */
+    void writeUltraliserFloatVolume(const std::string &prefix) override;
+
+
+
+    void writeNRRDCompresed(const std::string &prefix) ;
 
     BitArray* getGridData() const
     {

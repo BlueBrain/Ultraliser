@@ -90,6 +90,30 @@ UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const UnsignedVolumeGrid* inputGrid)
     }
 }
 
+
+template <class T>
+void UnsignedVolumeGrid<T>::readUVOLBData(const std::string &filePath)
+{
+//    FILE * pFile = std::fopen(filePath.c_str(), "rb" );
+//    if (pFile == NULL)
+//    {
+//        LOG_ERROR("Could not open the volume file [ %s ]!", filePath.c_str());
+//    }
+//    // Read the volume file from the input stream
+//    std::ifstream imgFileStream;
+//    imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
+//    if (imgFileStream.fail())
+//    {
+//        LOG_ERROR("Could not open the volume file [ %s ]!", filePath.c_str());
+//    }
+}
+
+template <class T>
+void UnsignedVolumeGrid<T>::readUVOLData(const std::string &filePath)
+{
+
+}
+
 template <class T>
 void UnsignedVolumeGrid<T>::loadBinaryVolumeData(const std::string &prefix)
 {
@@ -487,6 +511,145 @@ void UnsignedVolumeGrid<T>::writeBIN(const std::string &prefix)
 
     // Close the file
     image.close();
+}
+
+template <class T>
+void UnsignedVolumeGrid<T>::writeUltraliserBinaryVolume(const std::string &prefix)
+{
+    // Starts the timer
+    TIMER_SET;
+
+    std::string fileName = prefix + std::string(ULTRALISER_VOLUME_EXTENSION);
+    FILE* fptr= fopen(fileName.c_str(), "w");
+
+    // Header
+    /// NOTE: The header specifies a single bit per voxel and volume dimensions
+    fprintf(fptr, "1bit\n");
+    fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
+            getWidth(), getHeight(), getDepth());
+
+    // Create a BitArray
+    auto binData = std::make_unique< BitArray >(_numberVoxels);
+
+    // Fill the BitArray
+    LOOP_STARTS("Filling the BitArray");
+    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    {
+        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
+        if (_data[voxel])
+        {
+            binData->setBit(voxel);
+        }
+        else
+        {
+            binData->clearBit(voxel);
+        }
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+
+    LOOP_STARTS("Writing Voxels (1 Bit per Voxel)");
+    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    {
+        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
+
+        uint8_t value = 0;
+        for (uint64_t i = 0; i < 8; ++i)
+        {
+            if (binData->bit(voxel + i))
+                value |= 1 << i;
+        }
+
+        // Add the byte value to the volume
+        fputc(value, fptr);
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Closing the file
+    fclose(fptr);
+}
+
+template <class T>
+void UnsignedVolumeGrid<T>::writeUltraliserRawVolume(const std::string &prefix)
+{
+    // Starts the timer
+    TIMER_SET;
+
+    std::string fileName = prefix + std::string(ULTRALISER_VOLUME_EXTENSION);
+    FILE* fptr= fopen(fileName.c_str(), "w");
+
+    // Header
+    /// NOTE: The header specifies a single bit per voxel and volume dimensions
+    fprintf(fptr, "ui8\n");
+
+    if (typeid (T) == typeid (uint8_t))
+        fprintf(fptr, "ui8\n");
+    else if (typeid (T) == typeid (uint16_t))
+        fprintf(fptr, "ui16\n");
+    else if (typeid (T) == typeid (uint32_t))
+        fprintf(fptr, "ui32\n");
+    else if (typeid (T) == typeid (uint64_t))
+        fprintf(fptr, "ui64\n");
+    else
+        LOG_ERROR("Undefined volume type!");
+
+    fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
+            getWidth(), getHeight(), getDepth());
+
+    LOOP_STARTS("Writing Voxels (1 Bit per Voxel)");
+    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    {
+        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
+        T value;
+        if (_data[voxel])
+            value = FILLED_VOXEL_VALUE;
+        else
+            value = EMPTY_VOXEL_VALUE;
+
+        fputc(value, fptr);
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Closing the file
+    fclose(fptr);
+}
+
+template <class T>
+void UnsignedVolumeGrid<T>::writeUltraliserFloatVolume(const std::string &prefix)
+{
+    // Starts the timer
+    TIMER_SET;
+
+    std::string fileName = prefix + std::string(ULTRALISER_VOLUME_EXTENSION);
+    FILE* fptr= fopen(fileName.c_str(), "w");
+
+    // Header
+    /// NOTE: The header specifies a single bit per voxel and volume dimensions
+    fprintf(fptr, "f32\n");
+    fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
+            getWidth(), getHeight(), getDepth());
+
+    LOOP_STARTS("Writing Voxels (1 Bit per Voxel)");
+    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    {
+        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
+
+        float value;
+        if (_data[voxel])
+            value = FULLED_FLOAT_VOXEL_VALUE;
+        else
+            value = EMPTY_FLOAT_VOXEL_VALUE;
+
+        fputc(value, fptr);
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Closing the file
+    fclose(fptr);
 }
 
 template <class T>

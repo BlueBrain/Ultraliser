@@ -44,44 +44,23 @@ public:
         // Each voxel is stored in a single bit (class 1)
         BIT,
 
-        // Each voxel is stored in a single byte (8 bits) as unsigned char (class 2)
+        // Each voxel is stored in a single byte (8 bits) as uint8_t (class 2)
         UI8,
 
-        // Each voxel is stored in a single word (16 bits) as unsigned short (class 2)
+        // Each voxel is stored in a single word (16 bits) as uint16_t (class 2)
         UI16,
 
-        // Each voxel is stored in a doubleword (32 bits) as unsigned int (class 2)
+        // Each voxel is stored in a doubleword (32 bits) as uint32_t (class 2)
         UI32,
 
-        // Each voxel is stored in a quad-word (64 bits) as unsigned long (class 2)
+        // Each voxel is stored in a quad-word (64 bits) as uint64_t (class 2)
         UI64,
 
-        // Each voxel is stored as a single-precision floating-point value (class 3)
+        // Each voxel is stored as a single-precision floating-point or float value (class 3)
         F32,
 
-        // Each voxel is stored as a double-precision floating-point value (class 3)
+        // Each voxel is stored as a double-precision floating-point or double value (class 3)
         F64,
-
-        // Each voxel is stored in a Voxel structure with a 1 bit value
-        VOXEL_BIT,
-
-        // Each voxel is stored in a Voxel structure with 8 bits
-        VOXEL_UI8,
-
-        // Each voxel is stored in a Voxel structure with 16 bits
-        VOXEL_UI16,
-
-        // Each voxel is stored in a Voxel structure with 32 bits
-        VOXEL_UI32,
-
-        // Each voxel is stored in a Voxel structure with 64 bits
-        VOXEL_UI64,
-
-        // Each voxel is stored in a Voxel structure with a single-precision floating-point value
-        VOXEL_F32,
-
-        // Each voxel is stored in a Voxel structure with a double-precision floating-point value
-        VOXEL_F64,
 
         // Undefined type
         UNDEFINED
@@ -150,6 +129,9 @@ public:
     virtual ~VolumeGrid();
 
 public:
+
+
+
 
     /**
      * @brief getDimensions
@@ -235,6 +217,15 @@ public:
      * @param prefix
      */
     virtual void loadUnsignedVolumeData(const std::string &rawvolumepath) = 0;
+
+
+    virtual void readUVOLBData(const std::string &prefix) = 0;
+
+    virtual void readUVOLData(const std::string &prefix) = 0;
+
+
+
+
 
 
 
@@ -497,22 +488,71 @@ public:
                          const bool &projectColorCoded);
 
     /**
-     * @brief writeRAW
-     * @param prefix
-     */
-    virtual void writeRAW(const std::string &prefix) = 0;
-
-    /**
      * @brief writeBIN
+     * Writes a binary volume (1 bit per voxel) of the grid.
+     * The dimensions of the volume grid will be written to a .HDR file, while the data will be
+     * written to a separate .BIN file.
      * @param prefix
+     * File prefix.
      */
     virtual void writeBIN(const std::string &prefix) = 0;
 
     /**
-     * @brief writeNRRD
+     * @brief writeRAW
+     * Writes a raw volume (1 byte per voxel) of the grid.
+     * The dimensions of the volume grid will be written to a .HDR file, while the data will be
+     * written to a separate .RAW file.
      * @param prefix
+     * File prefix.
+     */
+    virtual void writeRAW(const std::string &prefix) = 0;
+
+    /**
+     * @brief writeNRRD
+     * Writes an NRRD file (8-bit raw) of the grid.
+     * The NRRD file can be read with Paraview, where the dimensions and data are integrated
+     * in the same file.
+     * @param prefix
+     * File prefix.
      */
     virtual void writeNRRD(const std::string &prefix) = 0;
+
+    /**
+     * @brief writeUltraliserBinaryVolume
+     * Writes an Ultraliser-specific binary volume file (1 bit per voxel).
+     * The created file contains the type of the file ('1bit'), the dimensions of the file
+     * in ('x y z') format and the data of the volume grid in a binary format (1 bit per voxel).
+     * @param prefix
+     * File prefix.
+     */
+    virtual void writeUltraliserBinaryVolume(const std::string &path) = 0;
+
+    /**
+     * @brief writeUltraliserRawVolume
+     * Writes an Ultraliser-specific unsigned volume file (8-, 16-, 32-, or 64-bit file depending
+     * on the type of the volume grid itself).
+     * The created file contains the type of the file ('8ui, 16ui, 32ui or 64ui'), the dimensions
+     * of the file in ('x y z') format and the data of the volume grid.
+     * @param prefix
+     * File prefix.
+     */
+    virtual void writeUltraliserRawVolume(const std::string &path) = 0;
+
+    /**
+     * @brief writeUltraliserFloatVolume
+     * Writes an Ultraliser-specific unsigned volume file (32-, or 64-bit precision volume files
+     * depending on the type of the volume grid itself).
+     * The created file contains the type of the file ('32f or 64f'), the dimensions of the file in
+     * ('x y z') format and the data of the volume grid.
+     * @param prefix
+     * File prefix.
+     */
+    virtual void writeUltraliserFloatVolume(const std::string &path) = 0;
+
+
+
+
+
 
     /**
      * @brief floodFillSliceAlongAxis

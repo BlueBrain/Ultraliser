@@ -32,7 +32,6 @@
 #include <data/volumes/voxels/DMCVoxel.h>
 #include <data/volumes/grids/BitVolumeGrid.h>
 #include <data/volumes/grids/UnsignedVolumeGrid.h>
-#include <data/volumes/grids/VoxelGrid.h>
 #include <data/volumes/grids/Grids.h>
 #include <data/meshes/simple/VolumeMesh.h>
 #include <data/meshes/simple/MeshOperations.h>
@@ -305,49 +304,6 @@ void Volume::_allocateGrid()
     case VolumeGrid::TYPE::F64:
     {
         _grid = new VolumeGridF64(sizeX, sizeY, sizeZ);
-        break;
-    }
-
-    case VolumeGrid::TYPE::VOXEL_BIT:
-    case VolumeGrid::TYPE::VOXEL_UI8:
-    {
-        _grid = new VoxelGrid<uint8_t>(
-                    _gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
-        break;
-    }
-
-    case VolumeGrid::TYPE::VOXEL_UI16:
-    {
-        _grid = new VoxelGrid<uint16_t>(
-                    _gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
-        break;
-    }
-
-    case VolumeGrid::TYPE::VOXEL_UI32:
-    {
-        _grid = new VoxelGrid<uint32_t>(
-                    _gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
-        break;
-    }
-
-    case VolumeGrid::TYPE::VOXEL_UI64:
-    {
-        _grid = new VoxelGrid<uint64_t>(
-                    _gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
-        break;
-    }
-
-    case VolumeGrid::TYPE::VOXEL_F32:
-    {
-        _grid = new VoxelGrid<float>(
-                    _gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
-        break;
-    }
-
-    case VolumeGrid::TYPE::VOXEL_F64:
-    {
-        _grid = new VoxelGrid<double>(
-                    _gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
         break;
     }
 
@@ -1095,14 +1051,6 @@ void Volume::_floodFillAlongXYZ(VolumeGrid *grid)
         yGrid = new UnsignedVolumeGrid<uint64_t>(static_cast< UnsignedVolumeGrid<uint64_t>* >(grid));
         zGrid = new UnsignedVolumeGrid<uint64_t>(static_cast< UnsignedVolumeGrid<uint64_t>* >(grid));
     } break;
-
-    case VolumeGrid::TYPE::VOXEL_BIT:
-    case VolumeGrid::TYPE::VOXEL_UI8:
-    {
-        xGrid = new VoxelGrid<uint8_t>(static_cast< VoxelGrid<uint8_t>* >(grid));
-        yGrid = new VoxelGrid<uint8_t>(static_cast< VoxelGrid<uint8_t>* >(grid));
-        zGrid = new VoxelGrid<uint8_t>(static_cast< VoxelGrid<uint8_t>* >(grid));
-    } break;
     }
 
     // Flood fill along the three axes
@@ -1515,7 +1463,9 @@ void Volume::project(const std::string prefix,
 void Volume::writeVolumes(const std::string &prefix,
                           const bool& binaryFormat,
                           const bool& rawFormat,
-                          const bool &nrrdFormat) const
+                          const bool& nrrdFormat,
+                          const bool &ultraBinaryFormat,
+                          const bool &ultraRawFormat) const
 {
     if (binaryFormat || rawFormat || nrrdFormat)
     {
@@ -1526,20 +1476,32 @@ void Volume::writeVolumes(const std::string &prefix,
 
         if (binaryFormat)
         {
-            LOG_STATUS("Bit Volume");
+            LOG_SUCCESS("Bit Volume (1-bit per voxel in .HDR/.BIN files)");
             _grid->writeBIN(prefix);
         }
 
         if (rawFormat)
         {
-            LOG_STATUS("Byte Volume");
+            LOG_SUCCESS("Raw Volume (1, 2, 3 or 4-bytes per voxel in .HDR/.IMG files)");
             _grid->writeRAW(prefix);
         }
 
         if (nrrdFormat)
         {
-            LOG_STATUS("NRRD Volume");
+            LOG_SUCCESS("NRRD Raw Volume in .NRRD file");
             _grid->writeNRRD(prefix);
+        }
+
+        if (ultraBinaryFormat)
+        {
+            LOG_SUCCESS("Ultraliser-specific B Volume in .UVOLB file");
+            _grid->writeUltraliserBinaryVolume(prefix);
+        }
+
+        if (ultraRawFormat)
+        {
+            LOG_SUCCESS("Ultraliser-specific Raw Volume in .UVOL file");
+            _grid->writeUltraliserRawVolume(prefix);
         }
 
         // Statictics

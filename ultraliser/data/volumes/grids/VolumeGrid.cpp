@@ -599,10 +599,6 @@ VolumeGrid::TYPE VolumeGrid::getType(const std::string &typeString)
     {
         return TYPE::UI8;
     }
-    else if (typeString == "voxel")
-    {
-        return TYPE::VOXEL_UI8;
-    }
     else
     {
         LOG_WARNING("The volume type [ %s ] is not correct, using [bit]");
@@ -666,18 +662,12 @@ std::string VolumeGrid::getTypeString(const VolumeGrid::TYPE& type)
     {
         return std::string("Byte");
     }
-    else if (type == TYPE::VOXEL_UI8)
-    {
-        return std::string("Voxel");
-    }
     else
     {
         LOG_ERROR("The volume type is not correct");
         return std::string("");
     }
 }
-
-
 
 uint8_t VolumeGrid::getValueUI8(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
