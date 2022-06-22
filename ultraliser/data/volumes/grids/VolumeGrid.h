@@ -101,16 +101,7 @@ public:
 
 public:
 
-
-
-
-    /**
-     * @brief getDimensions
-     * Gets the dimensions of the volume.
-     * @return
-     * The dimensions of the volume in a Vec3 vector format.
-     */
-    Vec3ui_64 getDimensions() const;
+    void getDimensions(size_t& width, size_t& height, size_t& depth);
 
     /**
      * @brief getDimension
@@ -545,16 +536,28 @@ protected:
 protected:
 
     /**
-     * @brief _dimensions
-     * Vector containing the dimensions of the grid along each axis.
+     * @brief _width
+     * Volume width
      */
-    Vec3ui_64 _dimensions;
+    size_t _width;
+
+    /**
+     * @brief _height
+     * Volume height
+     */
+    size_t _height;
+
+    /**
+     * @brief _depth
+     * Volume depth
+     */
+    size_t _depth;
 
     /**
      * @brief _numberVoxels
      * Total number of voxels in the grid.
      */
-    uint64_t _numberVoxels;
+    size_t _numberVoxels;
 
     /**
      * @brief _projectionTime

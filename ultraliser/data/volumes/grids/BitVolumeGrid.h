@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2022
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -19,13 +19,12 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_VOLUME_BIT_VOLUME_GRID_H
-#define ULTRALISER_DATA_VOLUME_BIT_VOLUME_GRID_H
+#pragma once
 
-#include <data/volumes/grids/VolumeGrid.h>
-#include <data/common/BitArray.h>
-#include <data/images/Image.h>
 #include <math/Math.h>
+#include <data/images/Image.h>
+#include <data/common/BitArray.h>
+#include <data/volumes/grids/VolumeGrid.h>
 
 namespace Ultraliser
 {
@@ -37,22 +36,17 @@ class BitVolumeGrid : public VolumeGrid
 {
 public:
 
+    /**
+     * @brief BitVolumeGrid
+     * @param width
+     * @param height
+     * @param depth
+     * @param data
+     */
     BitVolumeGrid(const size_t &width,
                   const size_t &height,
                   const size_t &depth,
                   BitArray *data);
-
-    /**
-     * @brief BitVolumeGrid
-     * Constructor
-     * @param dimensions
-     * The dimensions of the volume grid.
-     * @param preAllocateMemory
-     * If this flag is set, the memory of the grid will be pre-allocated during the
-     * construction of the object.
-     */
-    BitVolumeGrid(const Vec3ui_64 &dimensions,
-                  const bool& preAllocateMemory = true);
 
     /**
      * @brief Grid
@@ -275,16 +269,19 @@ public:
      */
     void writeUltraliserFloatVolume(const std::string &prefix) override;
 
-
-
-    void writeNRRDCompresed(const std::string &prefix) ;
-
-    BitArray* getGridData() const
-    {
-        return _data;
-    }
+    /**
+     * @brief getGridData
+     * @return
+     */
+    BitArray* getGridData() const { return _data; }
 
 private:
+
+    /**
+     * @brief _writeHeader
+     * @param prefix
+     */
+    void _writeHeader(const std::string &prefix) override;
 
     /**
      * @brief _allocateMemory
@@ -296,12 +293,6 @@ private:
      */
     void _freeMemory();
 
-    /**
-     * @brief _writeHeader
-     * @param prefix
-     */
-    void _writeHeader(const std::string &prefix) override;
-
 private:
 
     /**
@@ -311,5 +302,3 @@ private:
 };
 
 }
-
-#endif // ULTRALISER_DATA_VOLUME_BIT_VOLUME_GRID_H

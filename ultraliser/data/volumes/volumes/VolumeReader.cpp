@@ -17,7 +17,7 @@ VolumeData* readHeaderFile(const std::string& filePath)
     std::string format;
     hdrFileStream >> format;
 
-    if (String::subStringFound(format, FORMAT_1_BIT))
+    if (String::subStringFound(format, FORMAT_BIT))
     {
         volumeData-> type = VOLUME_TYPE::BIT;
     }
@@ -209,7 +209,7 @@ UltraliserVolumeData *readUltraliserVolumeFile(const std::string &filePath)
         // Parse the type of the file
         if (String::subStringFound(token, std::string("format")))
         {
-            if (String::subStringFound(token, FORMAT_1_BIT))
+            if (String::subStringFound(token, FORMAT_BIT))
             {
                 volumeData-> type = VOLUME_TYPE::BIT;
             }

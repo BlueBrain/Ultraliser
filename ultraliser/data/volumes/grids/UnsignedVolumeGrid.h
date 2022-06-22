@@ -45,13 +45,6 @@ public:
 
     /**
      * @brief Grid
-     * @param dimensions
-     */
-    UnsignedVolumeGrid(const Vec3ui_64 &dimensions,
-                       const bool& preAllocateMemory = true);
-
-    /**
-     * @brief Grid
      * @param width
      * @param height
      * @param depth

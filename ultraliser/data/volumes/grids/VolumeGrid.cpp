@@ -25,56 +25,48 @@
 
 namespace Ultraliser
 {
-
-VolumeGrid::VolumeGrid(const Ultraliser::Vec3ui_64 &dimensions)
-{
-    // Update dimensions
-    _dimensions = dimensions;
-
-    // Update number of voxels
-    _numberVoxels = _dimensions.v[0] * _dimensions.v[1] * _dimensions.v[2];
-}
-
 VolumeGrid::VolumeGrid(const uint64_t &width,
                        const uint64_t &height,
                        const uint64_t &depth)
 {
-    // Update dimensions
-    _dimensions.v[0] = width;
-    _dimensions.v[1] = height;
-    _dimensions.v[2] = depth;
+    // Dimensions
+    _width = width;
+    _height = height;
+    _depth = depth;
 
-    // Update number of voxels
+    // Number of voxels
     _numberVoxels = width * height * depth;
 }
 
 VolumeGrid::VolumeGrid(VolumeGrid *grid)
 {
-    // Update dimensions
-    _dimensions = grid->getDimensions();
+    // Dimensions
+    grid->getDimensions(_width, _height, _depth);
 
-    // Update number of voxels
-    _numberVoxels = _dimensions.v[0] * _dimensions.v[1] * _dimensions.v[2];
+    // Number of voxels
+    _numberVoxels = _width * _height * _depth;
 }
 
-Vec3ui_64 VolumeGrid::getDimensions() const
+void VolumeGrid::getDimensions(size_t& width, size_t& height, size_t& depth)
 {
-    return _dimensions;
+    width = _width;
+    height = _height;
+    depth = _depth;
 }
 
 uint64_t VolumeGrid::getWidth() const
 {
-    return _dimensions.v[0];
+    return _width;
 }
 
 uint64_t VolumeGrid::getHeight() const
 {
-    return _dimensions.v[1];
+    return _height;
 }
 
 uint64_t VolumeGrid::getDepth() const
 {
-    return _dimensions.v[2];
+    return _depth;
 }
 
 uint64_t VolumeGrid::getNumberVoxels() const
@@ -93,7 +85,7 @@ uint64_t VolumeGrid::mapToIndex(const uint64_t &x, const uint64_t &y, const uint
     else
     {
         outlier = false;
-        return I2UI64(x + (_dimensions.v[0] * y) + (_dimensions.v[0] * _dimensions.v[1] * z));
+        return I2UI64(x + (_width * y) + (_width * _height * z));
     }
 }
 
@@ -621,33 +613,38 @@ VOLUME_TYPE VolumeGrid::getVolumeTypeFromHdrFile(const std::string& filePrefix)
     // Close the stream
     hdrFileStream.close();
 
-    if (type == "u8")
+    if (type == FORMAT_BIT)
+    {
+        return VOLUME_TYPE::BIT;
+    }
+    else if (type == FORMAT_8UI)
     {
         return VOLUME_TYPE::UI8;
     }
-    else if (type == "u16")
+    else if (type == FORMAT_16UI)
     {
         return VOLUME_TYPE::UI16;
     }
-    else if (type == "u32")
+    else if (type == FORMAT_32UI)
     {
         return VOLUME_TYPE::UI32;
     }
-    else if (type == "u64")
+    else if (type == FORMAT_64UI)
     {
         return VOLUME_TYPE::UI64;
     }
-    else if (type == "f32")
+    else if (type == FORMAT_F32)
     {
         return VOLUME_TYPE::F32;
     }
-    else if (type == "f64")
+    else if (type == FORMAT_F64)
     {
         return VOLUME_TYPE::F64;
     }
     else
     {
         LOG_ERROR("Volume type is NOT defined!");
+        return VOLUME_TYPE::BIT;
     }
 }
 

@@ -45,18 +45,6 @@ FloatVolumeGrid<T>::FloatVolumeGrid(const uint64_t &width,
 }
 
 template <class T>
-FloatVolumeGrid<T>::FloatVolumeGrid(const Vec3ui_64& dimensions,
-                                    const bool &preAllocateMemory)
-    : VolumeGrid(dimensions)
-{
-    // Allocate the memory
-    if (preAllocateMemory)
-    {
-        _allocateMemory();
-    }
-}
-
-template <class T>
 FloatVolumeGrid<T>::FloatVolumeGrid(const FloatVolumeGrid* inputGrid)
     : VolumeGrid(*inputGrid)
 {

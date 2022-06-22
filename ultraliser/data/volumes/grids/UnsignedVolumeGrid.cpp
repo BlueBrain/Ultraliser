@@ -61,18 +61,6 @@ UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const uint64_t &width,
 }
 
 template <class T>
-UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const Vec3ui_64& dimensions,
-                                          const bool &preAllocateMemory)
-    : VolumeGrid(dimensions)
-{
-    // Allocate the memory
-    if (preAllocateMemory)
-    {
-        _allocateMemory();
-    }
-}
-
-template <class T>
 UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const uint64_t &width,
                                           const uint64_t &height,
                                           const uint64_t &depth,

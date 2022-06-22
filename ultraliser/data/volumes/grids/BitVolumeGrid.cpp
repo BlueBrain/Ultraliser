@@ -50,16 +50,6 @@ BitVolumeGrid::BitVolumeGrid(const int64_t &width, const int64_t &height, const 
     }
 }
 
-BitVolumeGrid::BitVolumeGrid(const Vec3ui_64 &dimensions, const bool &preAllocateMemory)
-    : VolumeGrid(dimensions)
-{
-    // Allocate the memory
-    if (preAllocateMemory)
-    {
-        _allocateMemory();
-    }
-}
-
 BitVolumeGrid::BitVolumeGrid(const BitVolumeGrid *inputGrid) : VolumeGrid(*inputGrid)
 {
     // Allocate the memory to be able to copy the data
@@ -187,7 +177,7 @@ void BitVolumeGrid::writeBIN(const std::string &prefix)
 
     std::string fileName = prefix + std::string(BINARY_EXTENSION);
     FILE* fptr= fopen(fileName.c_str(), "w");
-    fprintf(fptr, "format:1bit\n");
+    // fprintf(fptr, "format:1bit\n");
 
     LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
 
@@ -220,7 +210,7 @@ void BitVolumeGrid::writeRAW(const std::string &prefix)
     LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
 
     LOOP_STARTS("Writing Voxels (1 Byte per voxel)");
-    for (uint64_t voxel = 0; voxel < _numberVoxels; ++voxel)
+    for (size_t voxel = 0; voxel < _numberVoxels; ++voxel)
     {
         LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
 
@@ -253,7 +243,7 @@ void BitVolumeGrid::writeNRRD(const std::string &prefix)
     fprintf(fptr, "content: \"Volume\"\n");
     fprintf(fptr, "type: unsigned char\n");
     fprintf(fptr, "dimension: 3\n");
-    fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
+    fprintf(fptr, "sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
             getWidth(), getHeight(), getDepth());
     fprintf(fptr, "spacings: 1 1 1\n");
     fprintf(fptr, "encoding: raw\n");
@@ -261,7 +251,7 @@ void BitVolumeGrid::writeNRRD(const std::string &prefix)
     LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
 
     LOOP_STARTS("Writing Voxels (1 Byte per voxel)");
-    for (uint64_t voxel = 0; voxel < _numberVoxels; ++voxel)
+    for (size_t voxel = 0; voxel < _numberVoxels; ++voxel)
     {
         LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
 
@@ -290,10 +280,11 @@ void BitVolumeGrid::writeUltraliserBinaryVolume(const std::string &prefix)
 
     // Header
     /// NOTE: The header specifies a single bit per voxel and volume dimensions
-    fprintf(fptr, "format:1bit\n");
-    fprintf(fptr,"sizes:%" PRId64 "x%" PRId64 "x%" PRId64 "\n",
+    fprintf(fptr, "HEADER_BEGIN\n");
+    fprintf(fptr, "format:%s\n", FORMAT_BIT.c_str());
+    fprintf(fptr, "size:%" PRId64 "x%" PRId64 "x%" PRId64 "\n",
             getWidth(), getHeight(), getDepth());
-    fprintf(fptr, "HEADER_DONE\n");
+    fprintf(fptr, "HEADER_END\n");
 
     LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
 
@@ -322,13 +313,14 @@ void BitVolumeGrid::writeUltraliserRawVolume(const std::string &prefix)
 
     // Header
     /// NOTE: The header specifies a single bit per voxel and volume dimensions
-    fprintf(fptr, "format:8ui\n");
-    fprintf(fptr,"sizes:%" PRId64 "x%" PRId64 "x%" PRId64 "\n",
+    fprintf(fptr, "HEADER_BEGIN\n");
+    fprintf(fptr, "format:%s\n", FORMAT_8UI.c_str());
+    fprintf(fptr, "size:%" PRId64 "x%" PRId64 "x%" PRId64 "\n",
             getWidth(), getHeight(), getDepth());
-    fprintf(fptr, "HEADER_DONE\n");
+    fprintf(fptr, "HEADER_END\n");
 
     LOOP_STARTS("Writing Voxels (1 Byte per voxel)");
-    for (uint64_t voxel = 0; voxel < _numberVoxels; ++voxel)
+    for (size_t voxel = 0; voxel < _numberVoxels; ++voxel)
     {
         LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
 
@@ -359,12 +351,14 @@ void BitVolumeGrid::writeUltraliserFloatVolume(const std::string &prefix)
 
     // Header
     /// NOTE: The header specifies a single bit per voxel and volume dimensions
-    fprintf(fptr, "f32\n");
-    fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
+    fprintf(fptr, "HEADER_BEGIN\n");
+    fprintf(fptr, "format:%s\n", FORMAT_F32.c_str());
+    fprintf(fptr, "size: %" PRId64 " %" PRId64 " %" PRId64 "\n",
             getWidth(), getHeight(), getDepth());
+    fprintf(fptr, "HEADER_END\n");
 
-    LOOP_STARTS("Writing Voxels (1 Bit per Voxel)");
-    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    LOOP_STARTS("Writing Voxels (32-bits per Voxel)");
+    for (size_t voxel = 0; voxel < _numberVoxels; voxel += 8)
     {
         LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
 

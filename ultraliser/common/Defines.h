@@ -79,13 +79,13 @@
 #define H5_EXTENSION                            STRING(".h5")
 
 // Volume formats
-#define FORMAT_1_BIT                            STRING("1bit")
-#define FORMAT_8UI                              STRING("8ui")
-#define FORMAT_16UI                             STRING("16ui")
-#define FORMAT_32UI                             STRING("32ui")
-#define FORMAT_64UI                             STRING("64ui")
-#define FORMAT_F32                              STRING("f32")
-#define FORMAT_F64                              STRING("f64")
+#define FORMAT_BIT                              STRING("bit")
+#define FORMAT_8UI                              STRING("uchar")
+#define FORMAT_16UI                             STRING("ushort")
+#define FORMAT_32UI                             STRING("uint")
+#define FORMAT_64UI                             STRING("ulong")
+#define FORMAT_F32                              STRING("float")
+#define FORMAT_F64                              STRING("double")
 
 // Artifacts strings
 #define INPUT_STRING                            STRING("input")
