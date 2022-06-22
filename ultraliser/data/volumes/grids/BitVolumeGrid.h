@@ -37,6 +37,11 @@ class BitVolumeGrid : public VolumeGrid
 {
 public:
 
+    BitVolumeGrid(const size_t &width,
+                  const size_t &height,
+                  const size_t &depth,
+                  BitArray *data);
+
     /**
      * @brief BitVolumeGrid
      * Constructor
@@ -79,22 +84,6 @@ public:
     ~BitVolumeGrid();
 
 public:
-
-    /**
-     * @brief loadBinaryVolumeData
-     * @param prefix
-     */
-    void loadBinaryVolumeData(const std::string &prefix) override;
-
-    /**
-     * @brief loadUnsignedVolumeData
-     * @param prefix
-     */
-    void loadUnsignedVolumeData(const std::string &rawvolumepath) override;
-
-    void readUVOLBData(const std::string &filePath) override;
-
-    void readUVOLData(const std::string &filePath) override;
 
     /**
      * @brief getNumberBytes

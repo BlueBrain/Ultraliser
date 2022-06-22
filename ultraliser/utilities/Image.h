@@ -42,6 +42,11 @@ void savePPMLuminanceImage(const std::string &imageName,
                   const int64_t &width,
                   const int64_t &height);
 
+void savePPMLuminanceImage(const std::string &imageName,
+                           const uint16_t *imageData,
+                           const int64_t &width,
+                           const int64_t &height);
+
 /**
  * @brief savePPMColoredImage
  * @param imageName

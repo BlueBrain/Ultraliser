@@ -78,6 +78,15 @@
 #define VMV_EXTENSION                           STRING(".vmv")
 #define H5_EXTENSION                            STRING(".h5")
 
+// Volume formats
+#define FORMAT_1_BIT                            STRING("1bit")
+#define FORMAT_8UI                              STRING("8ui")
+#define FORMAT_16UI                             STRING("16ui")
+#define FORMAT_32UI                             STRING("32ui")
+#define FORMAT_64UI                             STRING("64ui")
+#define FORMAT_F32                              STRING("f32")
+#define FORMAT_F64                              STRING("f64")
+
 // Artifacts strings
 #define INPUT_STRING                            STRING("input")
 #define MC_STRING                               STRING("mc")

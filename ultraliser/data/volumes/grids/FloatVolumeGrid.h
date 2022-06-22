@@ -65,36 +65,11 @@ public:
     ~FloatVolumeGrid();
 
 public:
-
-    /**
-     * @brief loadBinaryVolumeData
-     * @param prefix
-     */
-    void loadBinaryVolumeData(const std::string &prefix) override;
-
-    /**
-     * @brief loadUnsignedVolumeData
-     * @param prefix
-     */
-    void loadUnsignedVolumeData(const std::string &rawvolumepath) override;
-
-
-    void readUVOLBData(const std::string &prefix) override;
-
-    void readUVOLData(const std::string &prefix) override;
-
     /**
      * @brief getNumberBytes
      * @return
      */
     uint64_t getNumberBytes() const override;
-
-//    /**
-//     * @brief value
-//     * @param index
-//     * @return
-//     */
-//    uint8_t getValue(const uint64_t &index) const override;
 
     /**
      * @brief getByte

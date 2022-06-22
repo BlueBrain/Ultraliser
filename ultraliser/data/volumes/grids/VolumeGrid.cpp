@@ -407,7 +407,7 @@ void VolumeGrid::writeProjection(const std::string &prefix,
     std::vector< double > projectionImage(projectionSize);
 
     // Create normalized projection array (0 - 255)
-    std::vector< uint8_t > normalizedProjectionImage(projectionSize);
+    std::vector< uint16_t > normalizedProjectionImage(projectionSize);
 
     // Initialize the projections to zero to avoid garbage
     PROGRESS_SET;
@@ -433,7 +433,7 @@ void VolumeGrid::writeProjection(const std::string &prefix,
                 {
                     if (isFilled(i, j, k))
                     {
-                        projectionImage[i + getWidth() * j] += 1.0;
+                        projectionImage[i + getWidth() * j] += getValueF64(i, j, k);
                     }
                 }
             }
@@ -447,7 +447,7 @@ void VolumeGrid::writeProjection(const std::string &prefix,
                 {
                     if (isFilled(i, j, k))
                     {
-                        projectionImage[i + getWidth() * k] += 1.0;
+                        projectionImage[i + getWidth() * k] += getValueF64(i, j, k);
                     }
                 }
             }
@@ -461,7 +461,7 @@ void VolumeGrid::writeProjection(const std::string &prefix,
                 {
                     if (isFilled(i, j, k))
                     {
-                        projectionImage[k + getDepth() * j] += 1.0;
+                        projectionImage[k + getDepth() * j] += getValueF64(i, j, k);
                     }
                 }
             }
@@ -488,10 +488,10 @@ void VolumeGrid::writeProjection(const std::string &prefix,
     for (int64_t index = 0; index < projectionSize; ++index)
     {
         // Compute float pixel value
-        double pixelValue = 255.0 * projectionImage[index] / maxValue;
+        double pixelValue = 255 * (projectionImage[index] / maxValue);
 
         // Convert to uint8_t to be able to write it to the image
-        normalizedProjectionImage[index] = F2UI8(pixelValue);
+        normalizedProjectionImage[index] = F2UI16(pixelValue);
     }
 
     // Save the projection into a PPM image
@@ -589,24 +589,24 @@ VolumeGrid::~VolumeGrid()
     /// EMPTY
 }
 
-VolumeGrid::TYPE VolumeGrid::getType(const std::string &typeString)
+VOLUME_TYPE VolumeGrid::getType(const std::string &typeString)
 {
     if (typeString == "bit")
     {
-        return TYPE::BIT;
+        return VOLUME_TYPE::BIT;
     }
     else if (typeString == "byte")
     {
-        return TYPE::UI8;
+        return VOLUME_TYPE::UI8;
     }
     else
     {
         LOG_WARNING("The volume type [ %s ] is not correct, using [bit]");
-        return TYPE::BIT;
+        return VOLUME_TYPE::BIT;
     }
 }
 
-VolumeGrid::TYPE VolumeGrid::getVolumeTypeFromHdrFile(const std::string& filePrefix)
+VOLUME_TYPE VolumeGrid::getVolumeTypeFromHdrFile(const std::string& filePrefix)
 {
     // Get the header file path from its prefix
     const std::string filePath = filePrefix + HEADER_EXTENSION;
@@ -623,42 +623,41 @@ VolumeGrid::TYPE VolumeGrid::getVolumeTypeFromHdrFile(const std::string& filePre
 
     if (type == "u8")
     {
-        return TYPE::UI8;
+        return VOLUME_TYPE::UI8;
     }
     else if (type == "u16")
     {
-        return TYPE::UI16;
+        return VOLUME_TYPE::UI16;
     }
     else if (type == "u32")
     {
-        return TYPE::UI32;
+        return VOLUME_TYPE::UI32;
     }
     else if (type == "u64")
     {
-        return TYPE::UI64;
+        return VOLUME_TYPE::UI64;
     }
     else if (type == "f32")
     {
-        return TYPE::F32;
+        return VOLUME_TYPE::F32;
     }
     else if (type == "f64")
     {
-        return TYPE::F64;
+        return VOLUME_TYPE::F64;
     }
     else
     {
         LOG_ERROR("Volume type is NOT defined!");
-        return TYPE::UNDEFINED;
     }
 }
 
-std::string VolumeGrid::getTypeString(const VolumeGrid::TYPE& type)
+std::string VolumeGrid::getTypeString(const VOLUME_TYPE& type)
 {
-    if (type == TYPE::BIT)
+    if (type == VOLUME_TYPE::BIT)
     {
         return std::string("Bit");
     }
-    else if (type == TYPE::UI8)
+    else if (type == VOLUME_TYPE::UI8)
     {
         return std::string("Byte");
     }

@@ -76,52 +76,6 @@ FloatVolumeGrid<T>::FloatVolumeGrid(const FloatVolumeGrid* inputGrid)
 }
 
 
-template <class T>
-void FloatVolumeGrid<T>::readUVOLBData(const std::string &filePath)
-{
-//    FILE * pFile = std::fopen(filePath.c_str(), "rb" );
-//    if (pFile == NULL)
-//    {
-//        LOG_ERROR("Could not open the volume file [ %s ]!", filePath.c_str());
-//    }
-//    // Read the volume file from the input stream
-//    std::ifstream imgFileStream;
-//    imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
-//    if (imgFileStream.fail())
-//    {
-//        LOG_ERROR("Could not open the volume file [ %s ]!", filePath.c_str());
-//    }
-}
-
-template <class T>
-void FloatVolumeGrid<T>::readUVOLData(const std::string &filePath)
-{
-
-}
-
-template <class T>
-void FloatVolumeGrid<T>::loadBinaryVolumeData(const std::string &prefix)
-{
-
-}
-
-template <class T>
-void FloatVolumeGrid<T>::loadUnsignedVolumeData(const std::string &rawvolumepath)
-{
-    // Read the volume file from the input stream
-    std::string filePath = rawvolumepath + RAW_EXTENSION;
-    std::ifstream imgFileStream;
-    imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
-    if (imgFileStream.fail())
-    {
-        LOG_ERROR("Could not open the volume file %s!", filePath.c_str());
-    }
-
-    imgFileStream.read((char*) _data, _numberVoxels);
-
-    // Close the stream
-    imgFileStream.close();
-}
 
 template <class T>
 uint64_t FloatVolumeGrid<T>::getNumberBytes() const

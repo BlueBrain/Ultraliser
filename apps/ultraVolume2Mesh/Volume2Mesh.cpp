@@ -23,8 +23,6 @@
 #include <AppCommon.h>
 #include <AppArguments.h>
 #include <nrrdloader/NRRDLoader.h>
-#include <cstddef>
-#include <cstring>
 
 namespace Ultraliser
 {
@@ -73,187 +71,18 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     return options;
 }
 
-
-struct SomeStruct{
-    char format[4];
-    // uint64_t width, height, depth;
-};
-
-
-
-BitArray* convertStringToBitArray(const std::string &stringArray)
-{
-
-}
-
-uint8_t* convertStringTo8UIArray(const std::string &stringArray)
-{
-    std::byte byteArray[stringArray.size()];
-    std::memcpy(byteArray, stringArray.data(), stringArray.size());
-
-    uint8_t* data = new uint8_t[stringArray.size()];
-
-    for (uint64_t i = 0; i < stringArray.size(); i++)
-    {
-        data[i] = std::to_integer<int>(byteArray[i]);
-    }
-
-    return data;
-}
-
-uint16_t* convertStringTo16UIArray(const std::string &stringArray)
-{
-
-}
-
-uint32_t* convertStringTo32UIArray(const std::string &stringArray)
-{
-
-}
-
-uint64_t* convertStringTo64UIArray(const std::string &stringArray)
-{
-
-}
-
-
-void readUVOLBData(const std::string &filePath)
-{
-    std::fstream fin(filePath.c_str());
-
-    std::stringstream ostrm;
-
-    ostrm << fin.rdbuf();
-
-
-    std::string token;
-
-
-//    std::getline(ostrm, token, ' ');
-//    std::cout << "1 " << token << std::endl;
-
-//    std::getline(ostrm, token, ' ');
-//    std::cout << "2 " << token << std::endl;
-
-//    std::getline(ostrm, token, ' ');
-//    std::cout << "3 " << token << std::endl;
-
-//    std::getline(ostrm, token, ' ');
-//    std::cout << "4 " << token << std::endl;
-
-
-    bool isHeaderDone = false;
-
-    while(1) {
-
-        // Parse till the end of the line
-        std::getline(ostrm, token, '\n');
-        std::cout << token << std::endl;
-
-        std::cout << token.size() << std::endl;
-        if (Ultraliser::String::subStringFound(token, std::string("HEADER_DONE")))
-        {
-            std::cout << " FOUND \n";
-            isHeaderDone = true;
-        }
-
-
-        // Read the binary chunk
-        if (isHeaderDone)
-        {
-            // Parse till the end of the stream
-            std::getline(ostrm, token);
-            std::cout << token.size() << token.length()  <<std::endl;
-
-            // Conversion of the data
-
-            auto x = convertStringTo8UIArray(token);
-            for (int d = 0; d < token.size(); d++)
-            {
-            //    std::cout << x[d] << " ";
-            }
-            std::cout << std::endl;
-
-            break;
-            // Get all the string in an array
-
-        }
-    }
-
-    exit(0);
-
-//    std::cout << ostrm.s
-
-
-    std::cout << ostrm.str();
-
-    exit(0);
-
-    FILE * pFile = std::fopen(filePath.c_str(), "rb" );
-    if (pFile == NULL)
-    {
-        LOG_ERROR("Could not open the volume file [ %s ]!", filePath.c_str());
-    }
-
-
-    SomeStruct xx;
-
-
-    size_t lSize = ftell (pFile);
-    // fseek (pFile , 0 , SEEK_SET);
-
-    std::cout << lSize << std::endl;
-//    fread (&xx,sizeof(xx),1,pFile);
-
-    char str[100];
-
-    for (int i = 0; i < 100; i++)
-    {
-        str[i] = ' ';
-    }
-
-    if( fgets (str, 100, pFile)!=NULL ) {
-          /* writing content to stdout */
-          puts(str);
-       }
-
-    for (int i = 0; i < 100; i++)
-    {
-        std::cout << str[i] << "* ";
-    }
-    std::cout << std::endl;
-
-    if( fgets (str, 60, pFile)!=NULL ) {
-          /* writing content to stdout */
-          puts(str);
-       }
-
-    for (int i = 0; i < 100; i++)
-    {
-        std::cout << str[i] << "* ";
-    }
-    std::cout << std::endl;
-
-
-   // fread (&mystruct,sizeof(mystruct_t),1,pFile);
-
-    fclose (pFile);
-
-}
-
 void run(int argc , const char** argv)
 {
     // Parse the arguments and get the tool options
     auto options = parseArguments(argc, argv);
 
-
-
-    readUVOLBData(options->inputVolumePath);
-    exit(0);
-
-
     // Construct a volume from the file
     Volume* loadedVolume = new Ultraliser::Volume(options->inputVolumePath);
+
+    loadedVolume->project(options->projectionPrefix + "p",
+                    options->projectXY, options->projectXZ, options->projectZY,
+                    options->projectColorCoded);
+
 
     std::stringstream prefix;
     if (options->fullRangeIsoValue)
@@ -274,18 +103,19 @@ void run(int argc , const char** argv)
 
     // Construct a volume that will be used for the mesh reconstruction
     Ultraliser::Volume* volume;
-//    if (options->fullRangeIsoValue)
-//    {
-//        // Construct a bit volume with a specific iso value
-//        volume = Volume::constructFullRangeVolume(loadedVolume, options->zeroPaddingVoxels);
-//    }
-//    else
-//    {
-//        // Construct a bit volume with a specific iso value
-//        volume = Volume::constructIsoValueVolume(
-//                    loadedVolume, options->isoValue, options->zeroPaddingVoxels);
-//    }
+    if (options->fullRangeIsoValue)
+    {
+        // Construct a bit volume with a specific iso value
+        volume = Volume::constructFullRangeVolume(loadedVolume, 0); // options->zeroPaddingVoxels);
+    }
+    else
+    {
+        // Construct a bit volume with a specific iso value
+        volume = Volume::constructIsoValueVolume(
+                    loadedVolume, options->isoValue, options->zeroPaddingVoxels);
+    }
 
+    /*
     const std::vector<uint64_t> isoValues = File::parseIsovaluesFile(options->isovaluesFile);
 
     volume = Volume::constructIsoValuesVolume(
@@ -301,9 +131,10 @@ void run(int argc , const char** argv)
     Vector3f center = loadedVolume->getCenter();
     center.print();
 
+
     // Free the loaded volume
     delete loadedVolume;
-
+*/
     // Enable solid voxelization
     if (options->useSolidVoxelization)
         volume->solidVoxelization(options->voxelizationAxis);
@@ -314,14 +145,10 @@ void run(int argc , const char** argv)
     // Extract the mesh from the volume again
     auto reconstructedMesh = reconstructMeshFromVolume(volume, options);
 
-
-    std::cout << "Scaling \n";
-    scale.print();
-    center.print();
-
+    /*
     reconstructedMesh->scale(scale.x(), scale.y(), scale.z());
     reconstructedMesh->translate(center);
-
+*/
     // If a scale factor is given, not 1.0, scale the mesh, otherwise avoid the expensive operation
     if (!(isEqual(options->xScaleFactor, 1.f) &&
           isEqual(options->xScaleFactor, 1.f) &&

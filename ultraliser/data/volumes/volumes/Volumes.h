@@ -22,6 +22,8 @@
 #ifndef ULTRALISER_DATA_VOLUME_VOLUMES_VOLUMES_H
 #define ULTRALISER_DATA_VOLUME_VOLUMES_VOLUMES_H
 
+#include <data/volumes/volumes/VolumeData.hh>
+#include <data/volumes/volumes/VolumeReader.h>
 #include <data/volumes/volumes/Volume.h>
 #include <data/volumes/volumes/TaggedVolume.h>
 

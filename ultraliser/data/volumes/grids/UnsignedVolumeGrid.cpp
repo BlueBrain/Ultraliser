@@ -31,6 +31,22 @@ namespace Ultraliser
 {
 
 template <class T>
+UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const size_t &width,
+                   const size_t &height,
+                   const size_t &depth,
+                   T* data)
+    : VolumeGrid(width, height, depth)
+{
+    _allocateMemory();
+
+    // Update the data
+    for (uint64_t i = 0; i < width * height * depth; ++i)
+        _data[i] =  data[i];
+
+    // _data = data;
+}
+
+template <class T>
 UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const uint64_t &width,
                                           const uint64_t &height,
                                           const uint64_t &depth,
@@ -90,102 +106,6 @@ UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const UnsignedVolumeGrid* inputGrid)
     }
 }
 
-
-template <class T>
-void UnsignedVolumeGrid<T>::readUVOLBData(const std::string &filePath)
-{
-//    FILE * pFile = std::fopen(filePath.c_str(), "rb" );
-//    if (pFile == NULL)
-//    {
-//        LOG_ERROR("Could not open the volume file [ %s ]!", filePath.c_str());
-//    }
-//    // Read the volume file from the input stream
-//    std::ifstream imgFileStream;
-//    imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
-//    if (imgFileStream.fail())
-//    {
-//        LOG_ERROR("Could not open the volume file [ %s ]!", filePath.c_str());
-//    }
-}
-
-template <class T>
-void UnsignedVolumeGrid<T>::readUVOLData(const std::string &filePath)
-{
-
-}
-
-template <class T>
-void UnsignedVolumeGrid<T>::loadBinaryVolumeData(const std::string &prefix)
-{
-
-}
-
-template <class T>
-void UnsignedVolumeGrid<T>::loadUnsignedVolumeData(const std::string &rawvolumepath)
-{
-    // Read the volume file from the input stream
-    std::string filePath = rawvolumepath + RAW_EXTENSION;
-
-    uint64_t volSizeBytes;
-
-
-
-
-//    std::ifstream imgFileStream;
-//    imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
-//    if (imgFileStream.fail())
-//    {
-//        LOG_ERROR("Could not open the volume file %s!", filePath.c_str());
-//    }
-
-    if (typeid (T) == typeid (uint8_t))
-    {
-         FILE* ptrFile = std::fopen(filePath.c_str(), "rb");
-        // imgFileStream.read((char*) _data, _numberVoxels);
-
-        volSizeBytes = _numberVoxels;
-
-        // Read the volume raw file
-        size_t imageSize = fread((char*)_data,
-                                 1,
-                                 volSizeBytes,
-                                 ptrFile);
-
-    }
-
-    if (typeid (T) == typeid (uint16_t))
-    {
-//        // imgFileStream.read((char*) _data, _numberVoxels);
-//        volSizeBytes = _numberVoxels;
-
-
-
-
-//        fread ((short*)_data, sizeof(uint16_t), _numberVoxels, ptrFile);
-
-        std::ifstream imgFileStream;
-        imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
-
-        //imgFileStream.read(reinterpret_cast<char *>(_data), _numberVoxels * 2);
-
-        uint64_t i = 0;
-        uint16_t iSample;
-        while(imgFileStream.read((char *)&iSample, sizeof(uint16_t)))
-        {
-            _data[i] = iSample;
-            i++;
-            // m_vectorSamples.push_back(iSample);
-        }
-
-//
-    }
-
-
-
-
-    // Close the stream
-    // mgFileStream.close();
-}
 
 template <class T>
 uint64_t UnsignedVolumeGrid<T>::getNumberBytes() const

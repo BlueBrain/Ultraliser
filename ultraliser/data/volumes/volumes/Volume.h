@@ -28,6 +28,8 @@
 #include <data/meshes/advanced/AdvancedMesh.h>
 #include <data/morphologies/Morphologies.h>
 #include <data/meshes/simple/Mesh.h>
+#include <data/volumes/volumes/VolumeType.hh>
+#include <data/volumes/volumes/VolumeData.hh>
 
 namespace Ultraliser
 {
@@ -76,7 +78,7 @@ public:
            const Vector3f& pMax,
            const uint64_t &baseResolution = 512,
            const float &expansionRatio = 0.0,
-           const VolumeGrid::TYPE& gridType = VolumeGrid::TYPE::BIT);
+           const VOLUME_TYPE& gridType = VOLUME_TYPE::BIT);
 
     /**
      * @brief Volume
@@ -90,17 +92,9 @@ public:
            const int64_t depth,
            const Vector3f pMin,
            const Vector3f pMax,
-           const VolumeGrid::TYPE& gridType = VolumeGrid::TYPE::BIT,
+           const VOLUME_TYPE& gridType = VOLUME_TYPE::BIT,
            const float expansionRatio = 0.0);
 
-//    /**
-//     * @brief Volume
-//     * Constructor
-//     * @param prefix
-//     * @param type
-//     */
-//    Volume(const std::string &prefix,
-//           const VolumeGrid::TYPE& gridType);
     ~Volume();
 
     /**
@@ -110,31 +104,10 @@ public:
      */
     uint8_t getByte(const uint64_t index) const;
 
-//    /**
-//     * @brief getValue
-//     * @param index
-//     * @return
-//     */
-//    uint8_t getValue(const uint64_t index) const;
 
     uint8_t getConfirmedValue(const int64_t &x,
                                       const int64_t &y,
                                       const int64_t &z) const;
-//    /**
-//     * @brief getValue
-//     * @param x
-//     * @param y
-//     * @param z
-//     * @return
-//     */
-//    uint8_t getValue(const int64_t &x,
-//                     const int64_t &y,
-//                     const int64_t &z) const;
-
-
-
-
-
 
     uint8_t getValueUI8(const int64_t &x,
                         const int64_t &y,
@@ -531,7 +504,7 @@ public:
     static Volume* constructFromTiffMask(const std::string &maskDirectory,
                                          const int64_t &maskWidth,
                                          const int64_t &maskHeight,
-                                         const VolumeGrid::TYPE &gridType);
+                                         const VOLUME_TYPE &gridType);
 
     /**
      * @brief constructIsoValueVolume
@@ -583,7 +556,7 @@ public:
      * @return
      * Histogram array.
      */
-    static std::vector<uint64_t> createHistogram(const Volume* volume, const VolumeGrid::TYPE type);
+    static std::vector<uint64_t> createHistogram(const Volume* volume, const VOLUME_TYPE type);
 
     /**
      * @brief getVoxelBoundingBox
@@ -629,25 +602,6 @@ public:
 private:
 
     /**
-     * @brief _loadHeaderData
-     * @param prefix
-     */
-    void _loadHeaderData(const std::string &prefix);
-
-    /**
-     * @brief _load1BitRawData
-     * @param prefix
-     */
-    void _load1BitRawData(const std::string &prefix);
-
-    /**
-     * @brief _loadUnsignedVolumeData
-     * @param prefix
-     */
-    void _loadUnsignedRawData(const std::string &prefix);
-
-
-    /**
      * @brief _allocateGrid
      */
     void _allocateGrid();
@@ -657,6 +611,13 @@ private:
      * Creates the volume grid and initializes it to zeros.
      */
     void _createGrid(void);
+
+    void _createGrid(const std::string& headerFilePath);
+
+    void _createGrid(const UltraliserVolumeData* volumeData);
+
+    void _createGrid(const NRRDVolumeData* volumeData);
+
 
     /**
      * @brief _clampIndex
@@ -820,7 +781,7 @@ private:
     /**
      * @brief _gridType
      */
-    VolumeGrid::TYPE _gridType;
+    VOLUME_TYPE _gridType;
 
     /**
      * @brief _pMin

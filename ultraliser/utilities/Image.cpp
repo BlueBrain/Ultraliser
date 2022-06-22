@@ -59,6 +59,37 @@ void savePPMLuminanceImage(const std::string &imageName,
     fclose(image);
 }
 
+void savePPMLuminanceImage(const std::string &imageName,
+                           const uint16_t *imageData,
+                           const int64_t &width,
+                           const int64_t &height)
+{
+    // Make the file
+    std::stringstream imageStream;
+    imageStream << imageName << PPM_EXTENSION;
+    FILE* image = fopen(imageStream.str().c_str(), "wb");
+
+    // Add the header
+    fprintf(image, "P6\n%ld %ld\n65535\n", width, height);
+
+    uint64_t index = 0;
+    for (int64_t i = 0; i < width; ++i)
+    {
+        for (int64_t j = 0; j < height; ++j)
+        {
+            uint16_t color[3];
+            uint64_t index1D = I2UI64(width * height) - index;
+            color[0] = imageData[index1D]; // R
+            color[1] = imageData[index1D]; // G
+            color[2] = imageData[index1D]; // B
+            fwrite(color, 2, 3, image);
+            index++;
+        }
+    }
+
+    fclose(image);
+}
+
 void savePPMColoredImage(const std::string &imageName,
                   const Vector3f* imageData,
                   const int64_t &width,

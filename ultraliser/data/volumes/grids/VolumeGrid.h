@@ -25,6 +25,7 @@
 #include <math/Math.h>
 #include <data/common/BitArray.h>
 #include <data/images/Image.h>
+#include <data/volumes/volumes/VolumeType.hh>
 
 namespace Ultraliser
 {
@@ -35,36 +36,6 @@ namespace Ultraliser
 class VolumeGrid
 {
 public:
-
-    /**
-     * @brief The TYPE enum
-     */
-    enum TYPE
-    {
-        // Each voxel is stored in a single bit (class 1)
-        BIT,
-
-        // Each voxel is stored in a single byte (8 bits) as uint8_t (class 2)
-        UI8,
-
-        // Each voxel is stored in a single word (16 bits) as uint16_t (class 2)
-        UI16,
-
-        // Each voxel is stored in a doubleword (32 bits) as uint32_t (class 2)
-        UI32,
-
-        // Each voxel is stored in a quad-word (64 bits) as uint64_t (class 2)
-        UI64,
-
-        // Each voxel is stored as a single-precision floating-point or float value (class 3)
-        F32,
-
-        // Each voxel is stored as a double-precision floating-point or double value (class 3)
-        F64,
-
-        // Undefined type
-        UNDEFINED
-    };
 
     enum PROJECTION
     {
@@ -82,7 +53,7 @@ public:
      * @brief getType
      * @return
      */
-    static TYPE getType(const std::string &typeString);
+    static VOLUME_TYPE getType(const std::string &typeString);
 
     /**
      * @brief getVolumeTypeFromHdrFile
@@ -92,14 +63,14 @@ public:
      * @return
      * Volume type.
      */
-    static TYPE getVolumeTypeFromHdrFile(const std::string& filePrefix);
+    static VOLUME_TYPE getVolumeTypeFromHdrFile(const std::string& filePrefix);
 
     /**
      * @brief getTypeString
      * @param type
      * @return
      */
-    static std::string getTypeString(const VolumeGrid::TYPE &type);
+    static std::string getTypeString(const VOLUME_TYPE &type);
 
 public:
 
@@ -207,29 +178,6 @@ public:
     virtual uint64_t getNumberBytes() const = 0;
 
     /**
-     * @brief loadBinaryVolumeData
-     * @param prefix
-     */
-    virtual void loadBinaryVolumeData(const std::string &prefix) = 0;
-
-    /**
-     * @brief loadUnsignedVolumeData
-     * @param prefix
-     */
-    virtual void loadUnsignedVolumeData(const std::string &rawvolumepath) = 0;
-
-
-    virtual void readUVOLBData(const std::string &prefix) = 0;
-
-    virtual void readUVOLData(const std::string &prefix) = 0;
-
-
-
-
-
-
-
-    /**
      * @brief clear
      * Clears the voxel data of the volume.
      */
@@ -298,13 +246,6 @@ public:
      * @return
      */
     bool isEmpty(const int64_t &x, const int64_t &y, const int64_t &z) const;
-
-    /**
-     * @brief value
-     * @param index
-     * @return
-     */
-    // virtual uint8_t getValue(const uint64_t &index) const = 0;
 
     /**
      * @brief andWithAnotherGrid
@@ -614,12 +555,6 @@ protected:
      * Total number of voxels in the grid.
      */
     uint64_t _numberVoxels;
-
-    /**
-     * @brief _numberBytes
-     * Total number of bytes in the grid.
-     */
-    uint64_t _numberBytes;
 
     /**
      * @brief _projectionTime
