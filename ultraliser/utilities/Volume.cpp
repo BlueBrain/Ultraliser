@@ -9,7 +9,7 @@ namespace Utils
 namespace Volume
 {
 
-void writeBitGridToNRRDFile(const std::string &prefix, const BitVolumeGrid* grid)
+void writeNRRD(const std::string &prefix, const BitVolumeGrid* grid)
 {
     // Starts the timer
     TIMER_SET;
@@ -46,7 +46,7 @@ void writeBitGridToNRRDFile(const std::string &prefix, const BitVolumeGrid* grid
 }
 
 template< class T >
-void writeUnsignedGridToNRRDFile(const std::string &prefix, const UnsignedVolumeGrid<T>* grid)
+void writeNRRD(const std::string &prefix, const UnsignedVolumeGrid<T>* grid)
 {
     // Starts the timer
     TIMER_SET;
@@ -106,9 +106,8 @@ void writeUnsignedGridToNRRDFile(const std::string &prefix, const UnsignedVolume
     fclose(fptr);
 }
 
-
 template< class T >
-void writeFloatGridToNRRDFile(const std::string &prefix, const FloatVolumeGrid<T>* grid)
+void writeNRRD(const std::string &prefix, const FloatVolumeGrid<T>* grid)
 {
     // Starts the timer
     TIMER_SET;
@@ -156,10 +155,8 @@ void writeFloatGridToNRRDFile(const std::string &prefix, const FloatVolumeGrid<T
     fclose(fptr);
 }
 
-
-
-void writeBitGridToVOLFile(const std::string &prefix, const BitVolumeGrid* grid,
-                           const bool &oneBitPerVoxel)
+void writeVOL(const std::string &prefix, const BitVolumeGrid* grid,
+              const bool &oneBitPerVoxel)
 {
     // Starts the timer
     TIMER_SET;
@@ -206,7 +203,7 @@ void writeBitGridToVOLFile(const std::string &prefix, const BitVolumeGrid* grid,
 }
 
 template< class T >
-void writeUnsignedGridToVOLFile(const std::string &prefix,  const UnsignedVolumeGrid<T>* grid)
+void writeVOL(const std::string &prefix,  const UnsignedVolumeGrid<T>* grid)
 {
     // Starts the timer
     TIMER_SET;
@@ -259,7 +256,7 @@ void writeUnsignedGridToVOLFile(const std::string &prefix,  const UnsignedVolume
 }
 
 template< class T >
-void writeFloatGridToVOLFile(const std::string &prefix,  const FloatVolumeGrid<T>* grid)
+void writeVOL(const std::string &prefix,  const FloatVolumeGrid<T>* grid)
 {
     // Starts the timer
     TIMER_SET;
@@ -340,7 +337,7 @@ void writeHeaderFile(const std::string &prefix, const VOLUME_TYPE& type,
     header.close();
 }
 
-void writeBitGridToRAWFile(const std::string &prefix, const BitVolumeGrid* grid)
+void writeRAW(const std::string &prefix, const BitVolumeGrid* grid)
 {
     // Starts the timer
     TIMER_SET;
@@ -369,7 +366,7 @@ void writeBitGridToRAWFile(const std::string &prefix, const BitVolumeGrid* grid)
 }
 
 template< class T >
-void writeUnsignedGridToRawFile(const std::string &prefix,  const UnsignedVolumeGrid<T>* grid)
+void writeRAW(const std::string &prefix,  const UnsignedVolumeGrid<T>* grid)
 {
     VOLUME_TYPE type;
     size_t voxelSizeInBytes = 0;
@@ -404,7 +401,7 @@ void writeUnsignedGridToRawFile(const std::string &prefix,  const UnsignedVolume
 
     LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
 
-    Lfwrite(grid->getGridData(), voxelSizeInBytes, grid->getNumberVoxels(), fptr);
+    fwrite(grid->getGridData(), voxelSizeInBytes, grid->getNumberVoxels(), fptr);
 
     // Closing the file
     fclose(fptr);

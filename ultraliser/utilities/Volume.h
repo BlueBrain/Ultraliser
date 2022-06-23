@@ -17,52 +17,52 @@ namespace Volume
 {
 
 /**
- * @brief writeBitGridToNRRDFile
+ * @brief writeNRRD
  * @param prefix
  * @param grid
  */
-void writeBitGridToNRRDFile(const std::string &prefix, const BitVolumeGrid *grid);
+void writeNRRD(const std::string &prefix, const BitVolumeGrid *grid);
 
 /**
- * @brief writeUnsignedGridToNRRDFile
- * @param prefix
- * @param grid
- */
-template< class T >
-void writeUnsignedGridToNRRDFile(const std::string &prefix, const UnsignedVolumeGrid<T>* grid);
-
-/**
- * @brief writeFloatGridToNRRDFile
+ * @brief writeNRRD
  * @param prefix
  * @param grid
  */
 template< class T >
-void writeFloatGridToNRRDFile(const std::string &prefix, const FloatVolumeGrid<T>* grid);
+void writeNRRD(const std::string &prefix, const UnsignedVolumeGrid<T>* grid);
 
 /**
- * @brief writeBitGridToVOLFile
+ * @brief writeNRRD
+ * @param prefix
+ * @param grid
+ */
+template< class T >
+void writeNRRD(const std::string &prefix, const FloatVolumeGrid<T>* grid);
+
+/**
+ * @brief writeVOL
  * @param prefix
  * @param grid
  * @param oneBitPerVoxel
  */
-void writeBitGridToVOLFile(const std::string &prefix, const BitVolumeGrid* grid,
-                           const bool& oneBitPerVoxel = true);
+void writeVOL(const std::string &prefix, const BitVolumeGrid* grid,
+              const bool& oneBitPerVoxel = true);
 
 /**
- * @brief writeUnsignedGridToVOLFile
+ * @brief writeVOL
  * @param prefix
  * @param grid
  */
 template< class T >
-void writeUnsignedGridToVOLFile(const std::string &prefix,  const UnsignedVolumeGrid<T>* grid);
+void writeVOL(const std::string &prefix,  const UnsignedVolumeGrid<T>* grid);
 
 /**
- * @brief writeFloatGridToVOLFile
+ * @brief writeVOL
  * @param prefix
  * @param grid
  */
 template< class T >
-void writeFloatGridToVOLFile(const std::string &prefix,  const FloatVolumeGrid<T>* grid);
+void writeVOL(const std::string &prefix,  const FloatVolumeGrid<T>* grid);
 
 /**
  * @brief writeHeaderFile
@@ -76,19 +76,19 @@ void writeHeaderFile(const std::string &prefix, const VOLUME_TYPE& type,
                      const size_t& width, const size_t& height, const size_t& depth);
 
 /**
- * @brief writeBitGridToRAWFile
+ * @brief writeRAW
  * @param prefix
  * @param grid
  */
-void writeBitGridToRAWFile(const std::string &prefix, const BitVolumeGrid* grid);
+void writeRAW(const std::string &prefix, const BitVolumeGrid* grid);
 
 /**
- * @brief writeUnsignedGridToRawFile
+ * @brief writeRAW
  * @param prefix
  * @param grid
  */
 template< class T >
-void writeUnsignedGridToRawFile(const std::string &prefix,  const UnsignedVolumeGrid<T>* grid);
+void writeRAW(const std::string &prefix,  const UnsignedVolumeGrid<T>* grid);
 
 }
 }

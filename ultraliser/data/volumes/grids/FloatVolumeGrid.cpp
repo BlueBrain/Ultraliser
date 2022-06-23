@@ -181,55 +181,6 @@ void FloatVolumeGrid<T>::orWithAnotherGrid(VolumeGrid *anotherGrid)
 }
 
 template <class T>
-void FloatVolumeGrid<T>::writeRAWVolume(const std::string &prefix) const
-{
-    // Cannot be implemented
-    LOG_ERROR("FloatVolumeGrid<T>::writeRAWVolume Unimplemented!");
-}
-
-template <class T>
-void FloatVolumeGrid<T>::writeNRRDVolume(const std::string &prefix) const
-{
-    // Starts the timer
-    TIMER_SET;
-
-    // File name
-    std::string fileName = prefix + std::string(NRRD_EXTENSION);
-    FILE* fptr= fopen(fileName.c_str(), "w");
-
-    // Header
-    fprintf(fptr, "NRRD0001\n");
-    fprintf(fptr, "content: \"Volume\"\n");
-    if (typeid (T) == typeid (float))
-        fprintf(fptr, "type: float\n");
-    else if (typeid (T) == typeid (double))
-        fprintf(fptr, "type: double\n");
-    else
-        LOG_ERROR("Undefined volume type!");
-
-    fprintf(fptr, "dimension: 3\n");
-    fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
-            getWidth(), getHeight(), getDepth());
-    fprintf(fptr, "spacings: 1 1 1\n");
-    fprintf(fptr, "encoding: raw\n");
-
-    LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
-
-    LOOP_STARTS("Writing Voxels");
-    for (int64_t voxel = 0; voxel < _numberVoxels; ++voxel)
-    {
-        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
-
-        fputc(_data[voxel], fptr);
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Closing the file
-    fclose(fptr);
-}
-
-template <class T>
 void FloatVolumeGrid<T>::writeBitVolume(const std::string &prefix) const
 {
     // Starts the timer
@@ -297,39 +248,20 @@ void FloatVolumeGrid<T>::writeUnsignedVolume(const std::string &prefix) const
 template <class T>
 void FloatVolumeGrid<T>::writeFloatVolume(const std::string &prefix) const
 {
-    // Starts the timer
-    TIMER_SET;
+   Utils::Volume::writeVOL(prefix, this);
+}
 
-    std::string fileName = prefix + std::string(ULTRALISER_VOLUME_EXTENSION);
-    FILE* fptr= fopen(fileName.c_str(), "w");
+template <class T>
+void FloatVolumeGrid<T>::writeRAWVolume(const std::string &prefix) const
+{
+    // Cannot be implemented
+    LOG_ERROR("FloatVolumeGrid<T>::writeRAWVolume Unimplemented!");
+}
 
-    // Header
-    /// NOTE: The header specifies a single bit per voxel and volume dimensions
-    if (typeid (T) == typeid (float))
-        fprintf(fptr, "f32\n");
-    if (typeid (T) == typeid (double))
-        fprintf(fptr, "f64\n");
-    fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
-            getWidth(), getHeight(), getDepth());
-
-    LOOP_STARTS("Writing Voxels (1 Bit per Voxel)");
-    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
-    {
-        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
-
-        T value;
-        if (_data[voxel])
-            value = FULLED_FLOAT_VOXEL_VALUE;
-        else
-            value = EMPTY_FLOAT_VOXEL_VALUE;
-
-        fputc(value, fptr);
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Closing the file
-    fclose(fptr);
+template <class T>
+void FloatVolumeGrid<T>::writeNRRDVolume(const std::string &prefix) const
+{
+    Utils::Volume::writeNRRD(prefix, this);
 }
 
 

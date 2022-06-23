@@ -280,40 +280,6 @@ void UnsignedVolumeGrid<T>::orWithAnotherGrid(VolumeGrid *anotherGrid)
     }
 }
 
-
-template <class T>
-void UnsignedVolumeGrid<T>::writeRAWVolume(const std::string &prefix) const
-{
-    // Starts the timer
-    TIMER_SET;
-
-//    // Write the image file
-//    std::string fileName = prefix + std::string(RAW_EXTENSION);
-//    std::fstream image;
-//    image.open(fileName.c_str(), std::ios::out | std::ios::binary);
-
-//    LOOP_STARTS("Writing Voxels (1 Byte)");
-//    for (int64_t voxel = 0; voxel < _numberVoxels; ++voxel)
-//    {
-//        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
-//        image << _data[voxel];
-//    }
-
-//    LOOP_DONE;
-
-//    // Statistics
-//    LOG_STATS(GET_TIME_SECONDS);
-
-//    // Close the file
-//    image.close();
-}
-
-template <class T>
-void UnsignedVolumeGrid<T>::writeNRRDVolume(const std::string &prefix) const
-{
-   // Utils::Volume::writeDataArrayToNRRDFile<T>(prefix, _data, getWidth(), getHeight(), getDepth());
-}
-
 template <class T>
 void UnsignedVolumeGrid<T>::writeBitVolume(const std::string &prefix) const
 {
@@ -375,82 +341,25 @@ void UnsignedVolumeGrid<T>::writeBitVolume(const std::string &prefix) const
 template <class T>
 void UnsignedVolumeGrid<T>::writeUnsignedVolume(const std::string &prefix) const
 {
-    // Starts the timer
-    TIMER_SET;
-
-    std::string fileName = prefix + std::string(ULTRALISER_VOLUME_EXTENSION);
-    FILE* fptr= fopen(fileName.c_str(), "w");
-
-    // Header
-    /// NOTE: The header specifies a single bit per voxel and volume dimensions
-    fprintf(fptr, "ui8\n");
-
-    if (typeid (T) == typeid (uint8_t))
-        fprintf(fptr, "ui8\n");
-    else if (typeid (T) == typeid (uint16_t))
-        fprintf(fptr, "ui16\n");
-    else if (typeid (T) == typeid (uint32_t))
-        fprintf(fptr, "ui32\n");
-    else if (typeid (T) == typeid (uint64_t))
-        fprintf(fptr, "ui64\n");
-    else
-        LOG_ERROR("Undefined volume type!");
-
-    fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
-            getWidth(), getHeight(), getDepth());
-
-    LOOP_STARTS("Writing Voxels (1 Bit per Voxel)");
-    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
-    {
-        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
-        T value;
-        if (_data[voxel])
-            value = FILLED_VOXEL_VALUE;
-        else
-            value = EMPTY_VOXEL_VALUE;
-
-        fputc(value, fptr);
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Closing the file
-    fclose(fptr);
+    Utils::Volume::writeVOL(prefix, this);
 }
 
 template <class T>
 void UnsignedVolumeGrid<T>::writeFloatVolume(const std::string &prefix) const
 {
-    // Starts the timer
-    TIMER_SET;
+    LOG_WARNING("Unimplemented UnsignedVolumeGrid<T>::writeFloatVolume!");
+}
 
-    std::string fileName = prefix + std::string(ULTRALISER_VOLUME_EXTENSION);
-    FILE* fptr= fopen(fileName.c_str(), "w");
+template <class T>
+void UnsignedVolumeGrid<T>::writeNRRDVolume(const std::string &prefix) const
+{
+    Utils::Volume::writeNRRD<T>(prefix, this);
+}
 
-    // Header
-    /// NOTE: The header specifies a single bit per voxel and volume dimensions
-    fprintf(fptr, "f32\n");
-    fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
-            getWidth(), getHeight(), getDepth());
-
-    LOOP_STARTS("Writing Voxels (1 Bit per Voxel)");
-    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
-    {
-        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
-
-        float value;
-        if (_data[voxel])
-            value = FULLED_FLOAT_VOXEL_VALUE;
-        else
-            value = EMPTY_FLOAT_VOXEL_VALUE;
-
-        fputc(value, fptr);
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Closing the file
-    fclose(fptr);
+template <class T>
+void UnsignedVolumeGrid<T>::writeRAWVolume(const std::string &prefix) const
+{
+    Utils::Volume::writeRAW<T>(prefix, this);
 }
 
 template <class T>

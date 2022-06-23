@@ -1,3 +1,24 @@
+/***************************************************************************************************
+ * Copyright (c) 2016 - 2022
+ * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
+ *
+ * Author(s)
+ *      Marwan Abdellah < marwan.abdellah@epfl.ch >
+ *
+ * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
+ *
+ * This library is free software; you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License version 3.0 as published by the Free Software Foundation.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * You should have received a copy of the GNU General Public License along with this library;
+ * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+ * MA 02111-1307, USA.
+ * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
+ **************************************************************************************************/
+
 #pragma once
 
 #include "Volume.h"
@@ -5,37 +26,49 @@
 #include <data/volumes/grids/Grids.h>
 
 template
-void writeUnsignedGridToNRRDFile< uint8_t >(const std::string &, const VolumeGridU8*);
+void writeNRRD< uint8_t >(const std::string &, const VolumeGridU8*);
 
 template
-void writeUnsignedGridToNRRDFile< uint16_t >(const std::string &, const VolumeGridU16*);
+void writeNRRD< uint16_t >(const std::string &, const VolumeGridU16*);
 
 template
-void writeUnsignedGridToNRRDFile< uint32_t >(const std::string &, const VolumeGridU32*);
+void writeNRRD< uint32_t >(const std::string &, const VolumeGridU32*);
 
 template
-void writeUnsignedGridToNRRDFile< uint64_t >(const std::string &, const VolumeGridU64*);
+void writeNRRD< uint64_t >(const std::string &, const VolumeGridU64*);
 
 template
-void writeFloatGridToNRRDFile< float >(const std::string&, const VolumeGridF32*);
+void writeNRRD< float >(const std::string&, const VolumeGridF32*);
 
 template
-void writeFloatGridToNRRDFile< double >(const std::string&, const VolumeGridF64*);
+void writeNRRD< double >(const std::string&, const VolumeGridF64*);
 
 template
-void writeUnsignedGridToVOLFile< uint8_t >(const std::string &, const VolumeGridU8*);
+void writeRAW< uint8_t >(const std::string&, const VolumeGridU8*);
 
 template
-void writeUnsignedGridToVOLFile< uint16_t >(const std::string &, const VolumeGridU16*);
+void writeRAW< uint16_t >(const std::string&, const VolumeGridU16*);
 
 template
-void writeUnsignedGridToVOLFile< uint32_t >(const std::string &, const VolumeGridU32*);
+void writeRAW< uint32_t >(const std::string&, const VolumeGridU32*);
 
 template
-void writeUnsignedGridToVOLFile< uint64_t >(const std::string &, const VolumeGridU64*);
+void writeRAW< uint64_t >(const std::string&, const VolumeGridU64*);
 
 template
-void writeFloatGridToVOLFile< float >(const std::string&, const VolumeGridF32*);
+void writeVOL< uint8_t >(const std::string &, const VolumeGridU8*);
 
 template
-void writeFloatGridToVOLFile< double >(const std::string&, const VolumeGridF64*);
+void writeVOL< uint16_t >(const std::string &, const VolumeGridU16*);
+
+template
+void writeVOL< uint32_t >(const std::string &, const VolumeGridU32*);
+
+template
+void writeVOL< uint64_t >(const std::string &, const VolumeGridU64*);
+
+template
+void writeVOL< float >(const std::string&, const VolumeGridF32*);
+
+template
+void writeVOL< double >(const std::string&, const VolumeGridF64*);

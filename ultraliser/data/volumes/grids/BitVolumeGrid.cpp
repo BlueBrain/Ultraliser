@@ -153,12 +153,12 @@ void BitVolumeGrid::writeBitVolume(const std::string &prefix) const
 {
     // Add the "-bit" suffix to make it understandable that this volume is a bit volume.
     std::string binaryPrefix = prefix + "-bit";
-    Utils::Volume::writeBitGridToVOLFile(binaryPrefix, this, true);
+    Utils::Volume::writeVOL(binaryPrefix, this, true);
 }
 
 void BitVolumeGrid::writeUnsignedVolume(const std::string &prefix) const
 {
-    Utils::Volume::writeBitGridToVOLFile(prefix, this);
+    Utils::Volume::writeVOL(prefix, this);
 }
 
 void BitVolumeGrid::writeFloatVolume(const std::string &prefix) const
@@ -168,12 +168,12 @@ void BitVolumeGrid::writeFloatVolume(const std::string &prefix) const
 
 void BitVolumeGrid::writeNRRDVolume(const std::string &prefix) const
 {
-    Utils::Volume::writeBitGridToNRRDFile(prefix, this);
+    Utils::Volume::writeNRRD(prefix, this);
 }
 
 void BitVolumeGrid::writeRAWVolume(const std::string &prefix) const
 {
-    Utils::Volume::writeBitGridToRAWFile(prefix, this);
+    Utils::Volume::writeRAW(prefix, this);
 }
 
 void BitVolumeGrid::_allocateMemory()
