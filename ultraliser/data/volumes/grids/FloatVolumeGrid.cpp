@@ -181,32 +181,14 @@ void FloatVolumeGrid<T>::orWithAnotherGrid(VolumeGrid *anotherGrid)
 }
 
 template <class T>
-void FloatVolumeGrid<T>::_writeHeader(const std::string &prefix)
-{
-    std::string fileName = prefix + std::string(HEADER_EXTENSION);
-    std::fstream header;
-    header.open(fileName.c_str(), std::ios::out);
-
-    // Volume format
-    if (typeid (T) == typeid (float))
-        header << "f32" << std::endl;
-    else if (typeid (T) == typeid (double))
-        header << "f64" << std::endl;
-
-    // Volume dimensions
-    header << getWidth() << " " << getHeight() << " " << getDepth() << std::endl;
-    header.close();
-}
-
-template <class T>
-void FloatVolumeGrid<T>::writeRAW(const std::string &prefix)
+void FloatVolumeGrid<T>::writeRAWVolume(const std::string &prefix) const
 {
     // Cannot be implemented
-    LOG_ERROR("FloatVolumeGrid<T>::writeRAW Unimplemented!");
+    LOG_ERROR("FloatVolumeGrid<T>::writeRAWVolume Unimplemented!");
 }
 
 template <class T>
-void FloatVolumeGrid<T>::writeNRRD(const std::string &prefix)
+void FloatVolumeGrid<T>::writeNRRDVolume(const std::string &prefix) const
 {
     // Starts the timer
     TIMER_SET;
@@ -248,62 +230,7 @@ void FloatVolumeGrid<T>::writeNRRD(const std::string &prefix)
 }
 
 template <class T>
-void FloatVolumeGrid<T>::writeBIN(const std::string &prefix)
-{
-    // Starts the timer
-    TIMER_SET;
-
-    // Write the header file
-    _writeHeader(prefix);
-
-    // Create a BitArray
-    auto binData = std::make_unique< BitArray >(_numberVoxels);
-
-    // Fill the BitArray
-    LOOP_STARTS("Filling the BitArray");
-    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
-    {
-        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
-        if (_data[voxel])
-        {
-            binData->setBit(voxel);
-        }
-        else
-        {
-            binData->clearBit(voxel);
-        }
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Write the image file
-    TIMER_RESET;
-    std::string fileName = prefix + std::string(BINARY_EXTENSION);
-    std::fstream image;
-    image.open(fileName.c_str(), std::ios::out | std::ios::binary);
-
-    LOOP_STARTS("Writing Voxels (1 Bit)");
-    for (int64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
-    {
-        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
-
-        uint8_t value = 0;
-        for (uint64_t i = 0; i < 8; ++i)
-        {
-            if (binData->bit(I2UI64(voxel + i)))
-                value |= 1 << i;
-        }
-        image << value;
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Close the file
-    image.close();
-}
-
-template <class T>
-void FloatVolumeGrid<T>::writeUltraliserBinaryVolume(const std::string &prefix)
+void FloatVolumeGrid<T>::writeBitVolume(const std::string &prefix) const
 {
     // Starts the timer
     TIMER_SET;
@@ -361,14 +288,14 @@ void FloatVolumeGrid<T>::writeUltraliserBinaryVolume(const std::string &prefix)
 }
 
 template <class T>
-void FloatVolumeGrid<T>::writeUltraliserRawVolume(const std::string &prefix)
+void FloatVolumeGrid<T>::writeUnsignedVolume(const std::string &prefix) const
 {
     // Cannot be implemented
-    LOG_ERROR("FloatVolumeGrid<T>::writeUltraliserRawVolume Unimplemented!");
+    LOG_ERROR("FloatVolumeGrid<T>::writeUnsignedVolume Unimplemented!");
 }
 
 template <class T>
-void FloatVolumeGrid<T>::writeUltraliserFloatVolume(const std::string &prefix)
+void FloatVolumeGrid<T>::writeFloatVolume(const std::string &prefix) const
 {
     // Starts the timer
     TIMER_SET;

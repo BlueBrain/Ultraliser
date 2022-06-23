@@ -23,6 +23,7 @@
 #define ULTRALISER_COMMON_DEFINES_H
 
 #include <string>
+#include <limits.h>
 
 #define AXES_COUNT                              6
 
@@ -37,6 +38,11 @@
 #define FILLED_VOXEL_VALUE                      255
 #define EMPTY_FLOAT_VOXEL_VALUE                 0.f
 #define FULLED_FLOAT_VOXEL_VALUE                1.f
+
+#define FILLED_UI8_VOXEL_VALUE                  UCHAR_MAX
+#define FILLED_UI16_VOXEL_VALUE                 USHRT_MAX
+#define FILLED_UI32_VOXEL_VALUE                 UINT_MAX
+#define FILLED_UI64_VOXEL_VALUE                 ULLONG_MAX
 
 // PBRT lens radii
 #define LENS_RADIUS_STEP        0.5

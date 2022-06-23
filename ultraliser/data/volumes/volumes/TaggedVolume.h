@@ -270,10 +270,10 @@ public:
     void addVolume(const Volume* volume, const uint8_t& index);
 
     /**
-     * @brief writeRAW
+     * @brief writeRAWVolume
      * @param prefix
      */
-    void writeRAW(const std::string &prefix) const;
+    void writeRAWVolume(const std::string &prefix) const;
 
     /**
      * @brief writeVolumes
@@ -299,10 +299,10 @@ public:
     void writeASCII(const std::string &prefix) const;
 
     /**
-     * @brief writeNRRD
+     * @brief writeNRRDVolume
      * @param prefix
      */
-    void writeNRRD(const std::string &prefix) const;
+    void writeNRRDVolume(const std::string &prefix) const;
 
     /**
      * @brief projectVolume

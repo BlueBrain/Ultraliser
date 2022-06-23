@@ -133,55 +133,7 @@ public:
      */
     void orWithAnotherGrid(VolumeGrid *anotherGrid) override;
 
-    /**
-     * @brief writeRAW
-     * @param prefix
-     */
-    void writeRAW(const std::string &prefix) override;
 
-    /**
-     * @brief writeBIN
-     * @param prefix
-     */
-    void writeBIN(const std::string &prefix) override;
-
-    /**
-     * @brief writeNRRD
-     * @param prefix
-     */
-    void writeNRRD(const std::string &prefix) override;
-
-    /**
-     * @brief writeUltraliserBinaryVolume
-     * Writes an Ultraliser-specific binary volume file (1 bit per voxel).
-     * The created file contains the type of the file ('1bit'), the dimensions of the file
-     * in ('x y z') format and the data of the volume grid in a binary format (1 bit per voxel).
-     * @param path
-     * Absolute file path.
-     */
-    void writeUltraliserBinaryVolume(const std::string &prefix) override;
-
-    /**
-     * @brief writeUltraliserRawVolume
-     * Writes an Ultraliser-specific unsigned volume file (8-, 16-, 32-, or 64-bit file depending
-     * on the type of the volume grid itself).
-     * The created file contains the type of the file ('8ui, 16ui, 32ui or 64ui'), the dimensions
-     * of the file in ('x y z') format and the data of the volume grid.
-     * @param prefix
-     * File prefix.
-     */
-    void writeUltraliserRawVolume(const std::string &prefix) override;
-
-    /**
-     * @brief writeUltraliserFloatVolume
-     * Writes an Ultraliser-specific unsigned volume file (32-, or 64-bit precision volume files
-     * depending on the type of the volume grid itself).
-     * The created file contains the type of the file ('32f or 64f'), the dimensions of the file in
-     * ('x y z') format and the data of the volume grid.
-     * @param prefix
-     * File prefix.
-     */
-    void writeUltraliserFloatVolume(const std::string &prefix) override;
 
     /**
      * @brief getGridData
@@ -252,6 +204,51 @@ public:
      */
     double getValueF64(const uint64_t &index) const;
 
+
+    /**
+     * @brief writeBitVolume
+     * Writes an Ultraliser-specific binary volume file (1 bit per voxel).
+     * The created file contains the type of the file ('1bit'), the dimensions of the file
+     * in ('x y z') format and the data of the volume grid in a binary format (1 bit per voxel).
+     * @param path
+     * Absolute file path.
+     */
+    void writeBitVolume(const std::string &prefix) const override;
+
+    /**
+     * @brief writeUnsignedVolume
+     * Writes an Ultraliser-specific unsigned volume file (8-, 16-, 32-, or 64-bit file depending
+     * on the type of the volume grid itself).
+     * The created file contains the type of the file ('8ui, 16ui, 32ui or 64ui'), the dimensions
+     * of the file in ('x y z') format and the data of the volume grid.
+     * @param prefix
+     * File prefix.
+     */
+    void writeUnsignedVolume(const std::string &prefix) const override;
+
+    /**
+     * @brief writeFloatVolume
+     * Writes an Ultraliser-specific unsigned volume file (32-, or 64-bit precision volume files
+     * depending on the type of the volume grid itself).
+     * The created file contains the type of the file ('32f or 64f'), the dimensions of the file in
+     * ('x y z') format and the data of the volume grid.
+     * @param prefix
+     * File prefix.
+     */
+    void writeFloatVolume(const std::string &prefix) const override;
+
+    /**
+     * @brief writeNRRDVolume
+     * @param prefix
+     */
+    void writeNRRDVolume(const std::string &prefix) const override;
+
+    /**
+     * @brief writeRAWVolume
+     * @param prefix
+     */
+    void writeRAWVolume(const std::string &prefix) const override;
+
 private:
 
     /**
@@ -263,12 +260,6 @@ private:
      * @brief _freeMemory
      */
     void _freeMemory();
-
-    /**
-     * @brief _writeHeader
-     * @param prefix
-     */
-    void _writeHeader(const std::string &prefix);
 
 private:
 

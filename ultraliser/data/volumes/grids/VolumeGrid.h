@@ -407,7 +407,7 @@ public:
                        const bool &projectXY = false,
                        const bool &projectXZ = false,
                        const bool &projectZY = false,
-                       const bool &projectColorCoded = false);
+                       const bool &projectColorCoded = false) const;
 
     /**
      * @brief writeProjection
@@ -417,69 +417,11 @@ public:
      */
     void writeProjection(const std::string &prefix,
                          const PROJECTION &projection,
-                         const bool &projectColorCoded);
+                         const bool &projectColorCoded) const;
 
-    /**
-     * @brief writeBIN
-     * Writes a binary volume (1 bit per voxel) of the grid.
-     * The dimensions of the volume grid will be written to a .HDR file, while the data will be
-     * written to a separate .BIN file.
-     * @param prefix
-     * File prefix.
-     */
-    virtual void writeBIN(const std::string &prefix) = 0;
 
-    /**
-     * @brief writeRAW
-     * Writes a raw volume (1 byte per voxel) of the grid.
-     * The dimensions of the volume grid will be written to a .HDR file, while the data will be
-     * written to a separate .RAW file.
-     * @param prefix
-     * File prefix.
-     */
-    virtual void writeRAW(const std::string &prefix) = 0;
 
-    /**
-     * @brief writeNRRD
-     * Writes an NRRD file (8-bit raw) of the grid.
-     * The NRRD file can be read with Paraview, where the dimensions and data are integrated
-     * in the same file.
-     * @param prefix
-     * File prefix.
-     */
-    virtual void writeNRRD(const std::string &prefix) = 0;
 
-    /**
-     * @brief writeUltraliserBinaryVolume
-     * Writes an Ultraliser-specific binary volume file (1 bit per voxel).
-     * The created file contains the type of the file ('1bit'), the dimensions of the file
-     * in ('x y z') format and the data of the volume grid in a binary format (1 bit per voxel).
-     * @param prefix
-     * File prefix.
-     */
-    virtual void writeUltraliserBinaryVolume(const std::string &path) = 0;
-
-    /**
-     * @brief writeUltraliserRawVolume
-     * Writes an Ultraliser-specific unsigned volume file (8-, 16-, 32-, or 64-bit file depending
-     * on the type of the volume grid itself).
-     * The created file contains the type of the file ('8ui, 16ui, 32ui or 64ui'), the dimensions
-     * of the file in ('x y z') format and the data of the volume grid.
-     * @param prefix
-     * File prefix.
-     */
-    virtual void writeUltraliserRawVolume(const std::string &path) = 0;
-
-    /**
-     * @brief writeUltraliserFloatVolume
-     * Writes an Ultraliser-specific unsigned volume file (32-, or 64-bit precision volume files
-     * depending on the type of the volume grid itself).
-     * The created file contains the type of the file ('32f or 64f'), the dimensions of the file in
-     * ('x y z') format and the data of the volume grid.
-     * @param prefix
-     * File prefix.
-     */
-    virtual void writeUltraliserFloatVolume(const std::string &path) = 0;
 
 
 
@@ -524,14 +466,59 @@ public:
      */
     virtual uint64_t computeNumberNonZeroVoxels() const;
 
-protected:
+
 
     /**
-     * @brief _writeHeader
-     * Writes the header file of the data.
+     * @brief writeBitVolume
+     * Writes an Ultraliser-specific binary volume file (1 bit per voxel).
+     * The created file contains the type of the file ('1bit'), the dimensions of the file
+     * in ('x y z') format and the data of the volume grid in a binary format (1 bit per voxel).
      * @param prefix
+     * File prefix.
      */
-    virtual void _writeHeader(const std::string &prefix) = 0;
+    virtual void writeBitVolume(const std::string &path) const = 0;
+
+    /**
+     * @brief writeUnsignedVolume
+     * Writes an Ultraliser-specific unsigned volume file (8-, 16-, 32-, or 64-bit file depending
+     * on the type of the volume grid itself).
+     * The created file contains the type of the file ('8ui, 16ui, 32ui or 64ui'), the dimensions
+     * of the file in ('x y z') format and the data of the volume grid.
+     * @param prefix
+     * File prefix.
+     */
+    virtual void writeUnsignedVolume(const std::string &path) const = 0;
+
+    /**
+     * @brief writeFloatVolume
+     * Writes an Ultraliser-specific unsigned volume file (32-, or 64-bit precision volume files
+     * depending on the type of the volume grid itself).
+     * The created file contains the type of the file ('32f or 64f'), the dimensions of the file in
+     * ('x y z') format and the data of the volume grid.
+     * @param prefix
+     * File prefix.
+     */
+    virtual void writeFloatVolume(const std::string &path) const = 0;
+
+    /**
+     * @brief writeNRRDVolume
+     * Writes an NRRD file (8-bit raw) of the grid.
+     * The NRRD file can be read with Paraview, where the dimensions and data are integrated
+     * in the same file.
+     * @param prefix
+     * File prefix.
+     */
+    virtual void writeNRRDVolume(const std::string &prefix) const = 0;
+
+    /**
+     * @brief writeRAWVolume
+     * Writes a raw volume (1 byte per voxel) of the grid.
+     * The dimensions of the volume grid will be written to a .HDR file, while the data will be
+     * written to a separate .RAW file.
+     * @param prefix
+     * File prefix.
+     */
+    virtual void writeRAWVolume(const std::string &prefix) const = 0;
 
 protected:
 
@@ -558,12 +545,6 @@ protected:
      * Total number of voxels in the grid.
      */
     size_t _numberVoxels;
-
-    /**
-     * @brief _projectionTime
-     * The time it takes to project the volume grid into a 2D image.
-     */
-    double _projectionTime;
 };
 
 }

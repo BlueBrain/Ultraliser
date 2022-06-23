@@ -336,7 +336,7 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
 
 void VolumeGrid::writeProjection(const std::string &prefix,
                                  const PROJECTION &projection,
-                                 const bool &projectColorCoded)
+                                 const bool &projectColorCoded) const
 {
     // Starts the timer
     TIMER_SET;
@@ -504,7 +504,7 @@ void VolumeGrid::projectVolume(const std::string &prefix,
                                const bool &xyProjection,
                                const bool &xzProjection,
                                const bool &zyProjection,
-                               const bool &colorCodedProjection)
+                               const bool &colorCodedProjection) const
 {
     if (xyProjection || xzProjection || zyProjection)
     {
@@ -529,9 +529,8 @@ void VolumeGrid::projectVolume(const std::string &prefix,
         }
 
         // Statistics
-        _projectionTime = GET_TIME_SECONDS;
         LOG_STATUS_IMPORTANT("Volume Projection Stats.");
-        LOG_STATS(_projectionTime);
+        LOG_STATS(GET_TIME_SECONDS);
     }
 }
 

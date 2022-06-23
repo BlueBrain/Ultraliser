@@ -581,15 +581,15 @@ void generateVolumeArtifacts(const Volume* volume, const AppOptions* options)
     }
 
     // Write the volume
-    if (options->exportBitVolume || options->exportRawVolume || options->exportNRRDVolume ||
-        options->exportUltraBitVolume || options->exportUltraRawVolume )
+    if (options->exportBitVolume || options->exportUnsignedVolume || options->exportFloatVolume ||
+        options->exportNRRDVolume || options->exportRawVolume )
     {
         volume->writeVolumes(options->volumePrefix,
                              options->exportBitVolume,
-                             options->exportRawVolume,
+                             options->exportUnsignedVolume,
+                             options->exportFloatVolume,
                              options->exportNRRDVolume,
-                             options->exportUltraBitVolume,
-                             options->exportUltraRawVolume);
+                             options->exportRawVolume);
     }
 
     // Write the stacks

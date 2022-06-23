@@ -425,9 +425,14 @@ public:
     bool exportRawVolume = false;
 
     /**
-     * @brief exportUltraRawVolume
+     * @brief exportUnsignedVolume
      */
-    bool exportUltraRawVolume = false;
+    bool exportUnsignedVolume = false;
+
+    /**
+     * @brief exportFloatVolume
+     */
+    bool exportFloatVolume = false;
 
     /**
      * @brief exportNRRDVolume

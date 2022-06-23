@@ -80,7 +80,7 @@ double float2double(float input);
  * @param input
  * @return
  */
-template <class T >
+template < class T >
 T string2int(std::string input);
 
 /**
@@ -88,7 +88,7 @@ T string2int(std::string input);
  * @param input
  * @return
  */
-template <class T >
+template < class T >
 T string2uint(std::string input);
 
 /**

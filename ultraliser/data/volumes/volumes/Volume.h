@@ -305,11 +305,11 @@ public:
      * @param ultraliserFormat
      */
     void writeVolumes(const std::string &prefix,
-                      const bool& binaryFormat = false,
-                      const bool& rawFormat = false,
+                      const bool& bitFormat = false,
+                      const bool& unsignedFormat = false,
+                      const bool& floatFormat = false,
                       const bool& nrrdFormat = false,
-                      const bool &ultraBinaryFormat = false,
-                      const bool &ultraRawFormat = false) const;
+                      const bool &rawFormat = false) const;
 
     /**
      * @brief writeStacks

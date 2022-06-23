@@ -306,7 +306,7 @@ void TaggedVolume::_createLabelingColorMap()
     _labelingColorMap[SOMA_INDEX] = Vector4f(1.f, 1.f, 0.f, 1.f);
 }
 
-void TaggedVolume::writeRAW(const std::string &prefix) const
+void TaggedVolume::writeRAWVolume(const std::string &prefix) const
 {
     // Start timer
     TIMER_SET;
@@ -396,7 +396,7 @@ void TaggedVolume::writeASCII(const std::string &prefix) const
     image.close();
 }
 
-void TaggedVolume::writeNRRD(const std::string &prefix) const
+void TaggedVolume::writeNRRDVolume(const std::string &prefix) const
 {
 
     // Starts the timer
@@ -443,10 +443,10 @@ void TaggedVolume::writeVolumes(const std::string &prefix,
         writeBIN(prefix);
 
     if (rawFormat)
-        writeRAW(prefix);
+        writeRAWVolume(prefix);
 
     if (nrrdFormat)
-        writeNRRD(prefix);
+        writeNRRDVolume(prefix);
 }
 
 void TaggedVolume::project(const std::string &prefix,

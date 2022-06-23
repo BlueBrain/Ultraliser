@@ -83,7 +83,6 @@ void run(int argc , const char** argv)
                     options->projectXY, options->projectXZ, options->projectZY,
                     options->projectColorCoded);
 
-
     std::stringstream prefix;
     if (options->fullRangeIsoValue)
         prefix << options->outputPrefix;

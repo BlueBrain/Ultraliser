@@ -1535,47 +1535,44 @@ void Volume::project(const std::string prefix,
 }
 
 void Volume::writeVolumes(const std::string &prefix,
-                          const bool& binaryFormat,
-                          const bool& rawFormat,
-                          const bool& nrrdFormat,
-                          const bool &ultraBinaryFormat,
-                          const bool &ultraRawFormat) const
+                          const bool& bitFormat, const bool &unsignedFormat, const bool &floatFormat,
+                          const bool& nrrdFormat, const bool& rawFormat) const
 {
-    if (binaryFormat || rawFormat || nrrdFormat || ultraBinaryFormat || ultraRawFormat)
+    if (bitFormat || unsignedFormat || floatFormat || nrrdFormat || rawFormat)
     {
         // Start the timer
         TIMER_SET;
 
         LOG_TITLE("Writing Volumes");
 
-        if (binaryFormat)
+        if (bitFormat)
         {
             LOG_SUCCESS("Bit Volume (1-bit per voxel in .HDR/.BIN files)");
-            _grid->writeBIN(prefix);
+            _grid->writeBitVolume(prefix);
         }
 
-        if (rawFormat)
+        if (unsignedFormat)
         {
-            LOG_SUCCESS("Raw Volume (1, 2, 3 or 4-bytes per voxel in .HDR/.IMG files)");
-            _grid->writeRAW(prefix);
+            LOG_SUCCESS("Bit Volume (1-bit per voxel in .HDR/.BIN files)");
+            _grid->writeUnsignedVolume(prefix);
+        }
+
+        if (floatFormat)
+        {
+            LOG_SUCCESS("Bit Volume (1-bit per voxel in .HDR/.BIN files)");
+            _grid->writeFloatVolume(prefix);
         }
 
         if (nrrdFormat)
         {
             LOG_SUCCESS("NRRD Raw Volume in .nrrd file");
-            _grid->writeNRRD(prefix);
+            _grid->writeNRRDVolume(prefix);
         }
 
-        if (ultraBinaryFormat)
+        if (rawFormat)
         {
-            LOG_SUCCESS("Ultraliser-specific Binary Volume in .uvolb file");
-            _grid->writeUltraliserBinaryVolume(prefix);
-        }
-
-        if (ultraRawFormat)
-        {
-            LOG_SUCCESS("Ultraliser-specific Raw Volume in .uvol file");
-            _grid->writeUltraliserRawVolume(prefix);
+            LOG_SUCCESS("Raw Volume (1, 2, 3 or 4-bytes per voxel in .HDR/.IMG files)");
+            _grid->writeRAWVolume(prefix);
         }
 
         // Statictics

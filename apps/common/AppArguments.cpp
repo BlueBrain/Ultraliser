@@ -347,42 +347,43 @@ void AppArguments::addVolumeExportArguments()
     Argument exportBitVolume(
                 "--export-bit-volume",
                 ARGUMENT_TYPE::BOOL,
-                "Export a bit volume, where each voxel is stored in a single bit."
-                "The resulting volume files are: .BIN file (data) and .HDR file (meta-data)");
+                "Export an Ultraliser-specific bit volume, where each voxel is stored in 1 bit. "
+                "The header and data are stored in a single file with the extention .vol.");
     _args->addArgument(&exportBitVolume);
     _options->exportBitVolume = _args->getBoolValue(&exportBitVolume);
 
-    Argument exportUltraBitVolume(
-                "--export-ultra-bit-volume",
+    Argument exportUnsignedVolume(
+                "--export-unsigned-volume",
                 ARGUMENT_TYPE::BOOL,
-                "Export an Ultraliser-specific bit volume, where each voxel is stored in a 1-bit, "
-                "but the data and header are stored in a single file with the extention .UVOLB.");
-    _args->addArgument(&exportUltraBitVolume);
-    _options->exportUltraBitVolume = _args->getBoolValue(&exportUltraBitVolume);
+                "Export an Ultraliser-specific unsigned volume, where each voxel is stored either "
+                "in 1, 2, 3 or 4 bytes depending on the type of the volume. "
+                "The data and header are stored in a single file with the extention .vol.");
+    _args->addArgument(&exportUnsignedVolume);
+    _options->exportUnsignedVolume = _args->getBoolValue(&exportUnsignedVolume);
+
+    Argument exportFloatVolume(
+                "--export-float-volume",
+                ARGUMENT_TYPE::BOOL,
+                "Export an Ultraliser-specific float volume, where each voxel is stored in float. "
+                "The data and header are stored in a single file with the extention .vol.");
+    _args->addArgument(&exportFloatVolume);
+    _options->exportFloatVolume = _args->getBoolValue(&exportFloatVolume);
 
     Argument exportRawVolume(
                 "--export-raw-volume",
                 ARGUMENT_TYPE::BOOL,
                 "Export a raw volume, where each voxel is stored in 1, 2, 3 or 4 bytes depending "
                 "on the volume type."
-                "The resulting files are: .IMG file (contains data) and .HDR file (meta-data)");
+                "The resulting files are: .img file (contains data) and .hdr file (meta-data)");
     _args->addArgument(&exportRawVolume);
     _options->exportRawVolume = _args->getBoolValue(&exportRawVolume);
-
-    Argument exportUltraRawVolume(
-                "--export-ultra-raw-volume",
-                ARGUMENT_TYPE::BOOL,
-                "Export an Ultraliser-specific raw volume, where each voxel is stored in 1, 2, 3 "
-                "or 4 bytes depending on the volume type, but the data and header are stored in a "
-                "single file with the extention .UVOL.");
-    _args->addArgument(&exportUltraRawVolume);
-    _options->exportUltraRawVolume = _args->getBoolValue(&exportUltraRawVolume);
 
     Argument exportNRRDVolume(
                 "--export-nrrd-volume",
                 ARGUMENT_TYPE::BOOL,
-                "Export an NRRD raw volume that is compatible with VTK and can be loaded with "
-                "Paraview for visualization purposes.");
+                "Export a .nrrd volume that is compatible with VTK and can be loaded with "
+                "Paraview for visualization purposes."
+                "The resulting file contains the header and the data.");
     _args->addArgument(&exportNRRDVolume);
     _options->exportNRRDVolume = _args->getBoolValue(&exportNRRDVolume);
 
