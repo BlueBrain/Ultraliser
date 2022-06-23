@@ -1,7 +1,7 @@
 #pragma once
 
 #include <common/Headers.hh>
-#include <data/volumes/volumes/VolumeData.hh>
+#include <data/volumes/utilities/VolumeData.hh>
 
 namespace Ultraliser
 {

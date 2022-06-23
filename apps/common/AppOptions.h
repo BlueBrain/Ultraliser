@@ -24,6 +24,7 @@
 
 #include <common/Common.h>
 #include <arguments/Argument.h>
+#include <data/volumes/Volume.h>
 #include <data/volumes/Volumes.h>
 
 namespace Ultraliser

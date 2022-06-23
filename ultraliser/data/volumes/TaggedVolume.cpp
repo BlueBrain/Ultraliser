@@ -19,7 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#include <data/volumes/volumes/TaggedVolume.h>
+#include <data/volumes/TaggedVolume.h>
 #include <data/volumes/grids/VolumeGrid.h>
 #include <utilities/Image.h>
 #include <data/volumes/grids/Projection.h>

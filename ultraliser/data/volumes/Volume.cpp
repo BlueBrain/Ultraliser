@@ -21,7 +21,7 @@
 
 #include "Volume.h"
 #include <nrrdloader/NRRDLoader.h>
-#include <data/volumes/volumes/VolumeType.hh>
+#include <data/volumes/utilities/VolumeType.hh>
 #include <common/Headers.hh>
 #include <common/Common.h>
 #include <geometry/Intersection.h>
@@ -36,7 +36,7 @@
 #include <data/volumes/grids/Grids.h>
 #include <data/meshes/simple/VolumeMesh.h>
 #include <data/meshes/simple/MeshOperations.h>
-#include <data/volumes/volumes/VolumeReader.h>
+#include <data/volumes/utilities/VolumeReader.h>
 
 namespace Ultraliser
 {

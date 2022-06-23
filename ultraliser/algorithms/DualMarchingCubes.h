@@ -30,8 +30,8 @@
 #define ULTRALISER_DUAL_MARCHING_CUBES_H
 
 #include <algorithms/DualMarchingCubes.hh>
-#include <data/volumes/volumes/Volume.h>
-#include <data/volumes/volumes/TaggedVolume.h>
+#include <data/volumes/Volume.h>
+#include <data/volumes/TaggedVolume.h>
 #include <data/meshes/advanced/AdvancedMesh.h>
 
 // Default iso surface value

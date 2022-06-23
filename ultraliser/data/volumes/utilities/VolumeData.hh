@@ -2,7 +2,7 @@
 
 #include <common/Headers.hh>
 #include <geometry/Geometry.h>
-#include <data/volumes/volumes/VolumeType.hh>
+#include <data/volumes/utilities/VolumeType.hh>
 #include <nrrdloader/DataMangler.h>
 
 namespace Ultraliser

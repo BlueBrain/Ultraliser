@@ -23,7 +23,7 @@
 #define ULTRALISER_TAGGED_VOLUME_H
 
 #include <common/Common.h>
-#include <data/volumes/volumes/Volume.h>
+#include <data/volumes/Volume.h>
 
 namespace Ultraliser
 {

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "Volume.h"
+#include "VolumeWriter.h"
 #include <utilities/Timer.h>
 #include <data/volumes/grids/Grids.h>
 

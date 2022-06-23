@@ -28,8 +28,8 @@
 #include <data/meshes/advanced/AdvancedMesh.h>
 #include <data/morphologies/Morphologies.h>
 #include <data/meshes/simple/Mesh.h>
-#include <data/volumes/volumes/VolumeType.hh>
-#include <data/volumes/volumes/VolumeData.hh>
+#include <data/volumes/utilities/VolumeType.hh>
+#include <data/volumes/utilities/VolumeData.hh>
 
 namespace Ultraliser
 {

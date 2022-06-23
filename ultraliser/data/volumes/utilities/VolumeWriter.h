@@ -1,7 +1,7 @@
 #pragma once
 
 #include <common/Common.h>
-#include <data/volumes/volumes/VolumeType.hh>
+#include <data/volumes/utilities/VolumeType.hh>
 
 namespace Ultraliser
 {
@@ -10,11 +10,6 @@ namespace Ultraliser
 class BitVolumeGrid;
 template <class T> class UnsignedVolumeGrid;
 template <class T> class FloatVolumeGrid;
-
-namespace Utils
-{
-namespace Volume
-{
 
 /**
  * @brief writeNRRD
@@ -90,6 +85,4 @@ void writeRAW(const std::string &prefix, const BitVolumeGrid* grid);
 template< class T >
 void writeRAW(const std::string &prefix,  const UnsignedVolumeGrid<T>* grid);
 
-}
-}
 }

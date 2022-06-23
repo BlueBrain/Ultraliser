@@ -1,12 +1,8 @@
-#include "Volume.h"
+#include "VolumeWriter.h"
 #include <utilities/Timer.h>
 #include <data/volumes/grids/Grids.h>
 
 namespace Ultraliser
-{
-namespace Utils
-{
-namespace Volume
 {
 
 void writeNRRD(const std::string &prefix, const BitVolumeGrid* grid)
@@ -408,8 +404,6 @@ void writeRAW(const std::string &prefix,  const UnsignedVolumeGrid<T>* grid)
 }
 
 // Templeta Specialization
-#include "Volume.ipp"
+#include "VolumeWriter.ipp"
 
-}
-}
 }

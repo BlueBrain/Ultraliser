@@ -26,7 +26,7 @@
 #include <common/Common.h>
 #include <utilities/Utilities.h>
 #include <data/volumes/grids/Projection.h>
-#include <utilities/Volume.h>
+#include <data/volumes/utilities/VolumeWriter.h>
 
 namespace Ultraliser
 {
@@ -341,7 +341,7 @@ void UnsignedVolumeGrid<T>::writeBitVolume(const std::string &prefix) const
 template <class T>
 void UnsignedVolumeGrid<T>::writeUnsignedVolume(const std::string &prefix) const
 {
-    Utils::Volume::writeVOL(prefix, this);
+    writeVOL(prefix, this);
 }
 
 template <class T>
@@ -353,13 +353,13 @@ void UnsignedVolumeGrid<T>::writeFloatVolume(const std::string &prefix) const
 template <class T>
 void UnsignedVolumeGrid<T>::writeNRRDVolume(const std::string &prefix) const
 {
-    Utils::Volume::writeNRRD<T>(prefix, this);
+    writeNRRD<T>(prefix, this);
 }
 
 template <class T>
 void UnsignedVolumeGrid<T>::writeRAWVolume(const std::string &prefix) const
 {
-    Utils::Volume::writeRAW<T>(prefix, this);
+    writeRAW<T>(prefix, this);
 }
 
 template <class T>

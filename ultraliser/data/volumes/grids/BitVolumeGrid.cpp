@@ -26,6 +26,7 @@
 #include <data/volumes/voxels/DMCVoxel.h>
 #include <data/volumes/grids/Projection.h>
 #include <utilities/Utilities.h>
+#include <data/volumes/utilities/VolumeWriter.h>
 
 namespace Ultraliser
 {
@@ -153,12 +154,12 @@ void BitVolumeGrid::writeBitVolume(const std::string &prefix) const
 {
     // Add the "-bit" suffix to make it understandable that this volume is a bit volume.
     std::string binaryPrefix = prefix + "-bit";
-    Utils::Volume::writeVOL(binaryPrefix, this, true);
+    writeVOL(binaryPrefix, this, true);
 }
 
 void BitVolumeGrid::writeUnsignedVolume(const std::string &prefix) const
 {
-    Utils::Volume::writeVOL(prefix, this);
+    writeVOL(prefix, this);
 }
 
 void BitVolumeGrid::writeFloatVolume(const std::string &prefix) const
@@ -168,12 +169,12 @@ void BitVolumeGrid::writeFloatVolume(const std::string &prefix) const
 
 void BitVolumeGrid::writeNRRDVolume(const std::string &prefix) const
 {
-    Utils::Volume::writeNRRD(prefix, this);
+    writeNRRD(prefix, this);
 }
 
 void BitVolumeGrid::writeRAWVolume(const std::string &prefix) const
 {
-    Utils::Volume::writeRAW(prefix, this);
+    writeRAW(prefix, this);
 }
 
 void BitVolumeGrid::_allocateMemory()

@@ -25,7 +25,7 @@
 #include <math/Math.h>
 #include <data/common/BitArray.h>
 #include <data/images/Image.h>
-#include <data/volumes/volumes/VolumeType.hh>
+#include <data/volumes/utilities/VolumeType.hh>
 
 namespace Ultraliser
 {

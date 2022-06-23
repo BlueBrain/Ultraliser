@@ -22,9 +22,9 @@
 #ifndef ULTRALISER_DATA_VOLUME_VOLUMES_VOLUMES_H
 #define ULTRALISER_DATA_VOLUME_VOLUMES_VOLUMES_H
 
-#include <data/volumes/volumes/VolumeData.hh>
-#include <data/volumes/volumes/VolumeReader.h>
-#include <data/volumes/volumes/Volume.h>
-#include <data/volumes/volumes/TaggedVolume.h>
+#include <data/volumes/utilities/VolumeData.hh>
+#include <data/volumes/utilities/VolumeReader.h>
+#include <data/volumes/utilities/VolumeType.hh>
+#include <data/volumes/utilities/VolumeWriter.h>
 
 #endif // ULTRALISER_DATA_VOLUME_VOLUMES_VOLUMES_H
