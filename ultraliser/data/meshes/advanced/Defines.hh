@@ -30,8 +30,7 @@
  * to the original repository at < https://github.com/MarcoAttene/MeshFix-V2.1>.
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MESHES_ADVANCED_DEFINES_HH
-#define ULTRALISER_DATA_MESHES_ADVANCED_DEFINES_HH
+#pragma once
 
 #define FABS(a) (((a)<0)?(-(a)):(a))
 #define LOG2(a) (log(a)/log(2))
@@ -58,5 +57,3 @@
      (A12) * ((A21) * (A33) - (A23) * (A31)) +                                                      \
      (A13) * ((A21) * (A32) - (A22) * (A31)))
 
-
-#endif // ULTRALISER_DATA_MESHES_ADVANCED_DEFINES_HH

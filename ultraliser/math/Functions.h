@@ -995,5 +995,3 @@ bool isEqual(T a, T b)
 }
 
 }
-
-#endif // ULTRALISER_MATH_UTILITIES_H

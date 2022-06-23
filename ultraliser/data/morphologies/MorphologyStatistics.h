@@ -20,8 +20,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef MORPHOLOGYSTATISTICS_H
-#define MORPHOLOGYSTATISTICS_H
+#pragma once
 
 #include <common/Common.h>
 #include <data/morphologies/Morphologies.h>
@@ -108,5 +107,3 @@ private:
 };
 
 }
-
-#endif // MORPHOLOGYSTATISTICS_H

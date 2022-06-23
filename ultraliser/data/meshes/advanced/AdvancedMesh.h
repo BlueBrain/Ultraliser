@@ -30,8 +30,7 @@
  * to the original repository at < https://github.com/MarcoAttene/MeshFix-V2.1>.
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MESHES_ADVANCED_MESH_H
-#define ULTRALISER_DATA_MESHES_ADVANCED_MESH_H
+#pragma once
 
 #include <data/meshes/advanced/math/Matrix.h>
 #include <data/meshes/advanced/primitives/AdvancedVertex.h>
@@ -1088,7 +1087,8 @@ public:
      */
     AdvancedVertex *nextVertexOnRegionBoundary(AdvancedVertex *vertex) const;
 
-    /**
+    /**#ifndef ULTRALISER_DATA_MESHES_ADVANCED_MESH_H
+#define ULTRALISER_DATA_MESHES_ADVANCED_MESH_H
      * @brief getRegionInternalVertices
      * Retrieve internal vertices of a region. O(l->numels()).
 
@@ -1197,7 +1197,8 @@ public:
      * @brief quantize
      * Scale the mesh to make it fit within a cube [0,0,0]-[s,s,s] and snap
      * coordinates on grid points O(N).
-     * @param s
+     * @param s#ifndef ULTRALISER_DATA_MESHES_ADVANCED_MESH_H
+#define ULTRALISER_DATA_MESHES_ADVANCED_MESH_H
      */
     void quantize(const int s = 65536);
 
@@ -1788,5 +1789,3 @@ protected:
 // Defines
 #include <data/meshes/advanced/Macros.hh>
 }
-
-#endif // ULTRALISER_DATA_MESHES_ADVANCED_MESH_H

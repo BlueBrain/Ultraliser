@@ -30,9 +30,7 @@
  * to the original repository at < https://github.com/MarcoAttene/MeshFix-V2.1>.
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MESHES_ADVANCED_H
-#define ULTRALISER_DATA_MESHES_ADVANCED_H
+#pragma once
 
 #include <data/meshes/advanced/AdvancedMesh.h>
 
-#endif // ULTRALISER_DATA_MESHES_ADVANCED_H

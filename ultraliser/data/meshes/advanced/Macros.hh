@@ -30,8 +30,7 @@
  * to the original repository at < https://github.com/MarcoAttene/MeshFix-V2.1>.
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MESH_ADVANCED_MACROS_HH
-#define ULTRALISER_MESH_ADVANCED_MACROS_HH
+#pragma once
 
 #define TO_TRIANGLE(POINTER)    static_cast< AdvancedTriangle* > (POINTER)
 
@@ -66,5 +65,3 @@
 #define TAG_SHARPEDGE(A)                (MARK_BIT((A),7))
 #define IS_SHARPEDGE(A)                 (IS_BIT((A),7))
 #define UNTAG_SHARPEDGE(A)              (UNMARK_BIT((A),7))
-
-#endif // ULTRALISER_MESH_ADVANCED_MACROS_HH

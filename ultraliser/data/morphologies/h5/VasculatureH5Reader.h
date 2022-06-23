@@ -20,8 +20,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_READER_H
-#define ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_READER_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -104,4 +103,3 @@ private:
 };
 
 }
-#endif // ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_READER_H

@@ -20,8 +20,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_SECTION_H
-#define ULTRALISER_DATA_MORPHOLOGIES_SECTION_H
+#pragma once
 
 #include <data/morphologies/Sample.h>
 
@@ -266,5 +265,3 @@ private:
 typedef std::vector< Section* > Sections;
 
 }
-
-#endif // ULTRALISER_DATA_MORPHOLOGIES_SECTION_H

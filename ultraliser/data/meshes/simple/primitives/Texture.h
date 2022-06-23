@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MESHES_SIMPLE_PRIMITIVES_TEXTURE_HH
-#define ULTRALISER_MESHES_SIMPLE_PRIMITIVES_TEXTURE_HH
+#pragma once
 
 #include <math/Math.h>
 #include <data/meshes/simple/primitives/Quad.hh>
@@ -65,4 +64,3 @@ typedef std::vector <TextureID> TextureIDs;
 
 }
 
-#endif // ULTRALISER_MESHES_SIMPLE_PRIMITIVES_TEXTURE_HH

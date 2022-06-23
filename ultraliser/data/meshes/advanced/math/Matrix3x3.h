@@ -30,8 +30,7 @@
  * to the original repository at < https://github.com/MarcoAttene/MeshFix-V2.1>.
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_STRUCTURES_MATRIX_3X3_H
-#define ULTRALISER_DATA_STRUCTURES_MATRIX_3X3_H
+#pragma once
 
 namespace Ultraliser
 {
@@ -198,7 +197,9 @@ public:
      */
     double lrMultiply(const double &a, const double &b, const double &c) const;
 
-    /**
+    /**#ifndef ULTRALISER_DATA_STRUCTURES_MATRIX_3X3_H
+#define ULTRALISER_DATA_STRUCTURES_MATRIX_3X3_H
+
      * @brief lrMultiply
      * Returns the (scalar) result of v * M * w.
      * @param v1
@@ -214,6 +215,4 @@ public:
 };
 
 }
-
-#endif // ULTRALISER_DATA_STRUCTURES_MATRIX_3X3_H
 

@@ -19,11 +19,8 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_VOLUME_VOXELS_VOXELS_H
-#define ULTRALISER_DATA_VOLUME_VOXELS_VOXELS_H
+#pragma once
 
 #include <data/volumes/voxels/Voxel.h>
 #include <data/volumes/voxels/DMCVoxel.h>
 #include <data/volumes/voxels/MCVoxel.h>
-
-#endif // ULTRALISER_DATA_VOLUME_VOXELS_VOXELS_H

@@ -1,5 +1,4 @@
-#ifndef ULTRALISER_DATA_MESHES_ADVANCED_UTILITIES_H
-#define ULTRALISER_DATA_MESHES_ADVANCED_UTILITIES_H
+#pragma once
 
 #include <data/meshes/advanced/primitives/AdvancedVertex.h>
 #include <data/meshes/advanced/AdvancedMesh.h>
@@ -62,4 +61,3 @@ void jitterCoordinate(double& coordinate, int j);
 
 }
 
-#endif // ULTRALISER_DATA_MESHES_ADVANCED_UTILITIES_H

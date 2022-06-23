@@ -159,5 +159,3 @@ void skipCommentAndBlankLines(FILE *filePointer);
 
 }
 }
-
-#endif // ULTRALISER_UTILITIES_FILE_H

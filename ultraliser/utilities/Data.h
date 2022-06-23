@@ -40,5 +40,3 @@ std::string formatSize(const uint64_t &size);
 
 // Conversion to a human readable format in a char array
 #define FORMAT(NUMBER) STRING_FORMAT(NUMBER).c_str()
-
-#endif // ULTRALISER_UTILITIES_DATA_H

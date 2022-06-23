@@ -20,8 +20,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_H5_SAMPLE_HH
-#define ULTRALISER_DATA_MORPHOLOGIES_H5_SAMPLE_HH
+#pragma once
 
 #include <vector>
 #include <common/Headers.hh>
@@ -67,4 +66,3 @@ struct H5Sample
 typedef std::vector< H5Sample > H5Samples;
 
 }
-#endif // ULTRALISER_DATA_MORPHOLOGIES_H5_SAMPLE_HH

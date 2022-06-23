@@ -30,8 +30,7 @@
  * to the original repository at < https://github.com/MarcoAttene/MeshFix-V2.1>.
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MESHES_ADVANCED_PRIMITIVES_ADVANCED_INDEXED_MESH_HH
-#define ULTRALISER_DATA_MESHES_ADVANCED_PRIMITIVES_ADVANCED_INDEXED_MESH_HH
+#pragma once
 
 #include <data/meshes/advanced/primitives/AdvancedIndexedTriangle.hh>
 
@@ -56,4 +55,3 @@ struct AdvancedIndexedMesh
 
 }
 
-#endif // ULTRALISER_DATA_MESHES_ADVANCED_PRIMITIVES_ADVANCED_INDEXED_MESH_HH

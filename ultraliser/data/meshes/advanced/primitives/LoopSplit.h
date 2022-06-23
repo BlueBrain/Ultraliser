@@ -30,8 +30,7 @@
  * to the original repository at < https://github.com/MarcoAttene/MeshFix-V2.1>.
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MESHES_ADVANCED_STRUCTURES_LOOP_SPLIT_H
-#define ULTRALISER_DATA_MESHES_ADVANCED_STRUCTURES_LOOP_SPLIT_H
+#pragma once
 
 #include <data/meshes/advanced/primitives/AdvancedVertex.h>
 #include <data/meshes/advanced/primitives/AdvancedEdge.h>
@@ -88,4 +87,3 @@ public:
 
 }
 
-#endif // ULTRALISER_DATA_MESHES_ADVANCED_STRUCTURES_LOOP_SPLIT_H
