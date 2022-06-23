@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_UTILITIES_TIMER_H
-#define ULTRALISER_UTILITIES_TIMER_H
+#pragma once
 
 #include <common/Common.h>
 #include <chrono>
@@ -109,5 +108,3 @@ private:
 
 // Gets the time in micro-seconds, TIMER_SET must be called before calling this
 #define GET_TIME_MICRO_SECONDS timer.elapsedTimeInMicroSeconds()
-
-#endif // ULTRALISER_UTILITIES_TIMER_H

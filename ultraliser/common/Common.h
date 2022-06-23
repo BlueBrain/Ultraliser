@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_COMMON_COMMON_H
-#define ULTRALISER_COMMON_COMMON_H
+#pragma once
 
 #include <common/Headers.hh>
 #include <common/Defines.h>
@@ -41,8 +40,7 @@ static int64_t AXES[ AXES_COUNT ][ 3 ] =
 
 inline void p_swap(void **a, void **b) {void *t = *a; *a = *b; *b = t;}
 
-typedef unsigned char	UBYTE;
-typedef   signed char	 BYTE;
-typedef unsigned short UINT16;
-typedef   signed short	INT16;
-#endif // ULTRALISER_COMMON_COMMON_H
+typedef unsigned char   UBYTE;
+typedef   signed char   BYTE;
+typedef unsigned short  UINT16;
+typedef   signed short  INT16;

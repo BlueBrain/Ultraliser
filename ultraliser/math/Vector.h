@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MATH_VECTOR_H
-#define ULTRALISER_MATH_VECTOR_H
+#pragma once
 
 #include <math/Functions.h>
 #include <common/Common.h>
@@ -1080,5 +1079,3 @@ inline void updateMinMax(const Vec< N, T >& x,
 }
 
 }
-
-#endif // ULTRALISER_MATH_VECTOR_H

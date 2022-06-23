@@ -19,13 +19,10 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MATH_CONSTANTS_H
-#define ULTRALISER_MATH_CONSTANTS_H
+#pragma once
 
 // Float PI
 #define ULTRALISER_PIF 3.1415926535897932384626433832795f
 
 // Double PI
 #define ULTRALISER_PI 3.1415926535897932384626433832795
-
-#endif // ULTRALISER_MATH_CONSTANTS_H

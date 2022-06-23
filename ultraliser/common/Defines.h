@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_COMMON_DEFINES_H
-#define ULTRALISER_COMMON_DEFINES_H
+#pragma once
 
 #include <string>
 #include <limits.h>
@@ -229,5 +228,3 @@
 
 // Application done
 #define ULTRALISER_DONE                         printf("\n"); return EXIT_SUCCESS;
-
-#endif // ULTRALISER_COMMON_DEFINES_H

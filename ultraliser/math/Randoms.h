@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MATH_RANDOMS_H
-#define ULTRALISER_MATH_RANDOMS_H
+#pragma once
 
 #include <common/Common.h>
 #include <math/Vector4f.h>
@@ -62,7 +61,4 @@ float getRandomFloat(const float min = 0.f, const float max = 1.0);
  */
 Vector4f getRandomRGBAColor(const float min = 0.f, const float max = 1.0);
 
-
 }
-
-#endif // ULTRALISER_MATH_RANDOMS_H

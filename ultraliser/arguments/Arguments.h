@@ -19,12 +19,9 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ARGUMENTS_ARGUMENTS_H
-#define ULTRALISER_ARGUMENTS_ARGUMENTS_H
+#pragma once
 
 #include <arguments/Args.h>
 #include <arguments/Argument.h>
 #include <arguments/ArgumentEnums.hh>
 #include <arguments/ArgumentParser.h>
-
-#endif // ULTRALISER_ARGUMENTS_ARGUMENTS_H

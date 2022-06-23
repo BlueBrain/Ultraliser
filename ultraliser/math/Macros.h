@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MATH_MACROS_H
-#define ULTRALISER_MATH_MACROS_H
+#pragma once
 
 #include <math/Constants.h>
 #include <utilities/TypeConversion.h>
@@ -100,5 +99,3 @@
     if (p0 < p1) { min = p0; max = p1; } else { min = p1; max = p0; }                              \
     rad = fa * boxHalfSize[X] + fb * boxHalfSize[Y];                                               \
     if (min > rad || max < -rad) return 0;
-
-#endif // ULTRALISER_MATH_MACROS_H

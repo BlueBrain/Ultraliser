@@ -19,10 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_IMAGE_IMAGE_DATA_H
-#define ULTRALISER_DATA_IMAGE_IMAGE_DATA_H
+#pragma once
 
 #include <data/images/Image.h>
 #include <data/images/TIFFImage.h>
-
-#endif // ULTRALISER_DATA_IMAGE_IMAGE_DATA_H

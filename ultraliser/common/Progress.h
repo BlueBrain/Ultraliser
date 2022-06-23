@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_COMMON_PROGRESS_H
-#define ULTRALISER_COMMON_PROGRESS_H
+#pragma once
 
 #include <common/Headers.hh>
 #include <common/Logging.h>
@@ -119,5 +118,3 @@ static void inline progressUpdate(uint64_t& progressValue)
 
 // Update the progress bar
 #define PROGRESS_UPDATE progressUpdate(ULTRALISER_PROGRESS)
-
-#endif // ULTRALISER_COMMON_PROGRESS_H

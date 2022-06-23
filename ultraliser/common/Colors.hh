@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_COMMON_COLORS_HH
-#define ULTRALISER_COMMON_COLORS_HH
+#pragma once
 
 #define STD_RESET           "\033[0m"
 #define STD_BLACK           "\033[30m"
@@ -39,5 +38,3 @@
 #define STD_BOLD_MAGENTA    "\033[1m\033[35m"
 #define STD_BOLD_CYAN       "\033[1m\033[36m"
 #define STD_BOLD_WHITE      "\033[1m\033[37m"
-
-#endif // ULTRALISER_COMMON_COLORS_HH

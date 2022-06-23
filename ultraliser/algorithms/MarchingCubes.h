@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ALGORITHMS_MARCHINGCUBES_H
-#define ULTRALISER_ALGORITHMS_MARCHINGCUBES_H
+#pragma once
 
 #include <algorithms/DualMarchingCubes.hh>
 #include <data/volumes/Volume.h>
@@ -133,5 +132,3 @@ private:
 };
 
 }
-
-#endif // ULTRALISER_ALGORITHMS_MARCHINGCUBES_H

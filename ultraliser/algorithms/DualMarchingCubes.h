@@ -26,8 +26,7 @@
  * at < https://github.com/dominikwodniok/dualmc >.
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DUAL_MARCHING_CUBES_H
-#define ULTRALISER_DUAL_MARCHING_CUBES_H
+#pragma once
 
 #include <algorithms/DualMarchingCubes.hh>
 #include <data/volumes/Volume.h>
@@ -212,4 +211,3 @@ private:
 };
 
 }
-#endif // ULTRALISER_DUAL_MARCHING_CUBES_H

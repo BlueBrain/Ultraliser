@@ -22,8 +22,7 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_SOMA_GEOMETRY_H
-#define ULTRALISER_SOMA_GEOMETRY_H
+#pragma once
 
 #include <data/meshes/simple/primitives/Primitives.h>
 #include <data/morphologies/NeuronMorphology.h>
@@ -180,6 +179,4 @@ private:
     float _somaRadius;
 };
 
-}  // namespace Ultraliser
-
-#endif  // ULTRALISER_SOMA_GEOMETRY_H
+}

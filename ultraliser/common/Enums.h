@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_COMMON_ENUMS_H
-#define ULTRALISER_COMMON_ENUMS_H
+#pragma once
 
 namespace Ultraliser
 {
@@ -41,5 +40,3 @@ enum AXIS
 };
 
 }
-
-#endif // ULTRALISER_COMMON_ENUMS_H

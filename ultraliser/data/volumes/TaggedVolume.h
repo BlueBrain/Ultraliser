@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_TAGGED_VOLUME_H
-#define ULTRALISER_TAGGED_VOLUME_H
+#pragma once
 
 #include <common/Common.h>
 #include <data/volumes/Volume.h>
@@ -444,5 +443,3 @@ private:
 };
 
 }
-
-#endif // ULTRALISER_TAGGED_VOLUME_H

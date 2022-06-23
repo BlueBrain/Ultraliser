@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MATH_UTILITIES_H
-#define ULTRALISER_MATH_UTILITIES_H
+#pragma once
 
 #include <common/Common.h>
 #include <utilities/TypeConversion.h>

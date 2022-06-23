@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_VOLUME_VOLUME_GRID_H
-#define ULTRALISER_DATA_VOLUME_VOLUME_GRID_H
+#pragma once
 
 #include <math/Math.h>
 #include <data/common/BitArray.h>
@@ -548,5 +547,3 @@ protected:
 };
 
 }
-
-#endif // ULTRALISER_DATA_VOLUME_VOLUME_GRID_H

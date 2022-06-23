@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_UTILITIES_TYPES_H
-#define ULTRALISER_UTILITIES_TYPES_H
+#pragma once
 
 #include <common/Common.h>
 
@@ -145,6 +144,3 @@ template<> size_t string2uint< size_t >(std::string);
 
 }
 }
-
-
-#endif // ULTRALISER_UTILITIES_TYPES_H

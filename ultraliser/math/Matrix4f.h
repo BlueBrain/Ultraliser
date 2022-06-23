@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MATH_MATRIX4F_H
-#define ULTRALISER_MATH_MATRIX4F_H
+#pragma once
 
 #include <common/Common.h>
 
@@ -453,4 +452,3 @@ Matrix4f operator * (const Matrix4f& x, const Matrix4f& y);
 
 }
 
-#endif // ULTRALISER_MATH_MATRIX4F_H

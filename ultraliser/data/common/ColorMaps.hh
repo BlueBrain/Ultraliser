@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_COMMON_COLOR_MAPS_H
-#define ULTRALISER_DATA_COMMON_COLOR_MAPS_H
+#pragma once
 
 #include <math/Math.h>
 
@@ -21266,4 +21265,3 @@ static Vector3f GIST_NCAR_CM[256] = {
 };
 
 }
-#endif // ULTRALISER_DATA_COMMON_COLOR_MAPS_H

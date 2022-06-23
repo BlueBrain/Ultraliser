@@ -19,8 +19,8 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ALGORITHMS_ALGORITHMS_H
-#define ULTRALISER_ALGORITHMS_ALGORITHMS_H
+#pragma once
+
 
 #include <algorithms/MarchingCubes.h>
 #include <algorithms/DualMarchingCubes.h>
@@ -28,5 +28,3 @@
 #include <algorithms/SectionGeometry.h>
 #include <algorithms/SomaGeometry.h>
 #include <algorithms/Sorting.h>
-
-#endif // ULTRALISER_ALGORITHMS_ALGORITHMS_H

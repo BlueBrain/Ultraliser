@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_VOLUME_FLOAT_VOLUME_GRID_H
-#define ULTRALISER_DATA_VOLUME_FLOAT_VOLUME_GRID_H
+#pragma once
 
 #include <math/Math.h>
 #include <data/common/BitArray.h>
@@ -273,4 +272,3 @@ typedef FloatVolumeGrid< float > VolumeGridF32;
 typedef FloatVolumeGrid< double > VolumeGridF64;
 }
 
-#endif // ULTRALISER_DATA_VOLUME_FLOAT_VOLUME_GRID_H

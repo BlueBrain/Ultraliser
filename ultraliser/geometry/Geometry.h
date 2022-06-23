@@ -19,10 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_GEOMETRY_GEOMETRY_H
-#define ULTRALISER_GEOMETRY_GEOMETRY_H
+#pragma once
 
 #include <geometry/Intersection.h>
 #include <geometry/Utilities.h>
-
-#endif // ULTRALISER_GEOMETRY_GEOMETRY_H

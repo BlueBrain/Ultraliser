@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_GRIDS_PROJECTION_H
-#define ULTRALISER_DATA_GRIDS_PROJECTION_H
+#pragma once
 
 #include <data/common/ColorMap.h>
 #include <utilities/Utilities.h>
@@ -64,4 +63,3 @@ void saveColorMappedProjectionWithAllColorMaps(const std::string &prefix,
 
 }
 
-#endif // ULTRALISER_DATA_GRIDS_PROJECTION_H

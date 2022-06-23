@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_IMAGE_TIFF_IMAGE_H
-#define ULTRALISER_DATA_IMAGE_TIFF_IMAGE_H
+#pragma once
 
 #ifdef ULTRALISER_USE_TIFF
 #include <tiffio.h>
@@ -162,6 +161,3 @@ private:
      */
     static std::string _hexadecimal;
 };
-
-
-#endif // ULTRALISER_DATA_IMAGE_TIFF_IMAGE_H

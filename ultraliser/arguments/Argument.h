@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ARGUMENTS_ARGUMENT_H
-#define ULTRALISER_ARGUMENTS_ARGUMENT_H
+#pragma once
 
 #include <arguments/ArgumentEnums.hh>
 #include <common/Common.h>
@@ -181,5 +180,3 @@ private:
 typedef std::vector<Argument*> Arguments;
 
 }
-
-#endif // ULTRALISER_ARGUMENTS_ARGUMENT_H

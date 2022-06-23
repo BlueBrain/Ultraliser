@@ -22,8 +22,7 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ICOSPHERE_GEOMETRY_H
-#define ULTRALISER_ICOSPHERE_GEOMETRY_H
+#pragma once
 
 #include <common/Common.h>
 
@@ -5516,6 +5515,4 @@ static const uint32_t IcosphereTrianglesIndices[] =
     64,   60,   75,   664,  668,  659,  691,  709,  710,  255,  240,  254
 };
 
-}  // namespace Ultraliser
-
-#endif  // ULTRALISER_ISOSPHERE_GEOMETRY_H
+}

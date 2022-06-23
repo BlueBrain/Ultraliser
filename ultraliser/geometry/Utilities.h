@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_GEOMRTY_UTILITIES_H
-#define ULTRALISER_GEOMRTY_UTILITIES_H
+#pragma once
 
 #include <common/Common.h>
 #include <math/Vector.h>
@@ -133,6 +132,3 @@ void printVoxelData(const Vector3f &pMin, const Vector3f &pMax,
 
 }
 }
-
-
-#endif // ULTRALISER_GEOMRTY_UTILITIES_H

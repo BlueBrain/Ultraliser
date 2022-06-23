@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MATH_EIGENVECTOR_HH
-#define ULTRALISER_MATH_EIGENVECTOR_HH
+#pragma once
 
 namespace Ultraliser
 {
@@ -91,5 +90,3 @@ struct EigenVector
 };
 
 }
-
-#endif // ULTRALISER_MATH_EIGENVECTOR_HH

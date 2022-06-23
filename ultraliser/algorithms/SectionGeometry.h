@@ -20,8 +20,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_SECTION_GEOMETRY_H
-#define ULTRALISER_SECTION_GEOMETRY_H
+#pragma once
 
 #include <data/meshes/simple/primitives/Primitives.h>
 #include <data/morphologies/Section.h>
@@ -237,5 +236,3 @@ public:
 };
 
 }
-
-#endif // ULTRALISER_SECTION_GEOMETRY_H

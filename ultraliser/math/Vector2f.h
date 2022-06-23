@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MATH_VECTOR_2F_H
-#define ULTRALISER_MATH_VECTOR_2F_H
+#pragma once
 
 #include <cmath>
 
@@ -344,5 +343,3 @@ bool operator == (const Vector2f& v0, const Vector2f& v1);
 bool operator != (const Vector2f& v0, const Vector2f& v1);
 
 }
-
-#endif // ULTRALISER_MATH_VECTOR_2F_H

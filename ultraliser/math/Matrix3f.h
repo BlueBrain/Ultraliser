@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MATH_MATRIX3F_H
-#define ULTRALISER_MATH_MATRIX3F_H
+#pragma once
 
 #include <cstdio>
 
@@ -308,4 +307,3 @@ Matrix3f operator * (const Matrix3f& x, const Matrix3f& y);
 
 }
 
-#endif // ULTRALISER_MATH_MATRIX3F_H
