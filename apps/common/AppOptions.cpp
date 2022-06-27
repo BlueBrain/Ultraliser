@@ -173,6 +173,51 @@ void AppOptions::verifyIsoSurfaceExtractionArgument()
     }
 }
 
+void AppOptions::verifyIsoOptionArgument()
+{
+    if (isoOption == "isovalue")
+    {
+        LOG_SUCCESS("Isovalue [%zu] will be used to segment the volume", isoValue);
+    }
+    else if (isoOption == "isovalues")
+    {
+        if (isovaluesFile == NO_DEFAULT_VALUE)
+        {
+            LOG_ERROR("The isovalues-file is NOT given. Please specify a text file containing all "
+                      "the iso values required to segment the volume.");
+        }
+
+        if (!File::exists(isovaluesFile))
+        {
+            LOG_ERROR("The file [ %s ] does NOT exist!", isovaluesFile.c_str());
+        }
+    }
+    else if (isoOption == "min")
+    {
+        LOG_SUCCESS("Isovalues [%zu-inf] will be used to segment the volume", isoValue);
+    }
+    else if (isoOption == "max")
+    {
+        LOG_SUCCESS("Isovalues [0-%zu] will be used to segment the volume", isoValue);
+    }
+    else if (isoOption == "range")
+    {
+        if (minIsoValue > maxIsoValue)
+        {
+            LOG_ERROR("The minimum isovalue CANNOT be greater than the maximum isovalue");
+        }
+    }
+    else if (isoOption == "full-range")
+    {
+        LOG_WARNING("All the voxels in the volume will be selected! No specific isovalues "
+                    "were specified");
+    }
+    else
+    {
+        LOG_ERROR("The iso-option [%s] CANNOT be recognized, see the options from the help");
+    }
+}
+
 void AppOptions::verifyMeshExportArguments()
 {
     // Exporting formats, at least one of them must be there

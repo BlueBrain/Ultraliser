@@ -2508,32 +2508,36 @@ Volume* Volume::constructFullRangeVolume(const Volume* volume, const int64_t &pa
 }
 
 std::vector<uint64_t> Volume::createHistogram(const Volume* volume,
-                                              const VOLUME_TYPE type)
+                                              const VOLUME_TYPE& type)
 {
     uint64_t histogramWidth;
     switch (type)
     {
-    case (VOLUME_TYPE::UI8):
+    case VOLUME_TYPE::UI8:
     {
         histogramWidth = std::numeric_limits<uint8_t>::max();
     } break;
 
-    case (VOLUME_TYPE::UI16):
+    case VOLUME_TYPE::UI16:
     {
         histogramWidth = std::numeric_limits<uint16_t>::max();
     } break;
 
-    case (VOLUME_TYPE::UI32):
+    case VOLUME_TYPE::UI32:
     {
         histogramWidth = std::numeric_limits<uint32_t>::max();
     } break;
 
-    case (VOLUME_TYPE::UI64):
+    case VOLUME_TYPE::UI64:
     {
         histogramWidth = std::numeric_limits<uint64_t>::max();
     } break;
 
+    case VOLUME_TYPE::BIT:
+    case VOLUME_TYPE::F32:
+    case VOLUME_TYPE::F64:
     default:
+        LOG_ERROR("Histograms CANNOT be computed to float volumes!");
         break;
     }
 

@@ -57,6 +57,8 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyOutputDirectoryArgument();
     options->verifyMeshExportArguments();
     options->verifyIsoSurfaceExtractionArgument();
+    options->verifyIsoOptionArgument();
+
 
     // If no prefix is given, use the file name
     if (options->prefix == NO_DEFAULT_VALUE)
@@ -89,15 +91,15 @@ void run(int argc , const char** argv)
     else
         prefix << options->outputPrefix << "-" << options->isoValue;
 
-    if (1)//options->writeHistogram)
+    if (options->writeHistogram)
     {
-//        // Create the histogram
-//        std::vector<uint64_t> histogram = Ultraliser::Volume::createHistogram(loadedVolume,
-//                                                                              volumeType);
+        // Create the histogram
+        std::vector<uint64_t> histogram = Volume::createHistogram(loadedVolume,
+                                                                  loadedVolume->getType());
 
-//        // Write the histogram to a file
-//        const std::string path = prefix.str() + std::string(".histogram");
-//        File::writeIntegerDistributionToFile(path, histogram);
+        // Write the histogram to a file
+        const std::string path = prefix.str() + std::string(".histogram");
+        File::writeIntegerDistributionToFile(path, histogram);
     }
 
     // Construct a volume that will be used for the mesh reconstruction
@@ -105,7 +107,7 @@ void run(int argc , const char** argv)
     if (options->fullRangeIsoValue)
     {
         // Construct a bit volume with a specific iso value
-        volume = Volume::constructFullRangeVolume(loadedVolume, 0); // options->zeroPaddingVoxels);
+        volume = Volume::constructFullRangeVolume(loadedVolume, options->zeroPaddingVoxels);
     }
     else
     {

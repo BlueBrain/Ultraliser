@@ -134,6 +134,11 @@ public:
     void verifyIsoSurfaceExtractionArgument();
 
     /**
+     * @brief verifyIsoOptionArgument
+     */
+    void verifyIsoOptionArgument();
+
+    /**
      * @brief verifyVolumeExportArguments
      * Verifies the volume export options.
      */
@@ -281,8 +286,19 @@ public:
     std::string boundsFile;
 
     /**
+     * @brief isoOption
+     * isoOption can be one of the following:
+     * 1. isovalue: a single iso value is used to segment the volume (--isovalue).
+     * 2. min: all the voxels with values over a given iso value will be selected (--min-isovalue)
+     * 3. max: all the voxels with values below a given iso value will be selected (--max-isovalue)
+     * 4. isovalues: a list of iso values are used to segment the volume (--iso-values-file)
+     * 5. fullrange: all the non-zero voxels of the volumes will be used for the meshing (full-range)
+     */
+    std::string isoOption;
+
+    /**
      * @brief isoValue
-     * The iso value where the volume will get segmented, default 127.
+     * The isovalue where the volume will get segmented, default 127.
      */
     uint64_t isoValue;
 
@@ -293,17 +309,29 @@ public:
     std::string isovaluesFile;
 
     /**
-     * @brief isosurfaceTechnique
-     * The technique that is used to extract the iso surface from the mesh.
-     * Either dmc (Dual Marching Cubes) or mc (Marching Cubes)
+     * @brief minIsoValue
+     * Select all the values that are greater than or equal this isovalue.
      */
-    std::string isosurfaceTechnique;
+    size_t minIsoValue;
+
+    /**
+     * @brief maxIsoValue
+     * Select all the values that are lower than this isovalue.
+     */
+    size_t maxIsoValue;
 
     /**
      * @brief fullRangeIsoValue
      * If the voxel contains any value, then use it.
      */
     bool fullRangeIsoValue;
+
+    /**
+     * @brief isosurfaceTechnique
+     * The technique that is used to extract the iso surface from the mesh.
+     * Either dmc (Dual Marching Cubes) or mc (Marching Cubes)
+     */
+    std::string isosurfaceTechnique;
 
     /**
      * @brief volumeResolution

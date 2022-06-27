@@ -163,14 +163,52 @@ void AppArguments::addInputVolumeArguments()
 
 void AppArguments::addInputVolumeParametersArguments()
 {
+    Argument isoOption(
+                "--iso-option",
+                ARGUMENT_TYPE::STRING,
+                "The iso-option can be one of the following options: "
+                "[isovalue (default)] a single iso-value is used to segment the volume, defined by "
+                "--isovalue NUMBER; "
+                "[min-isovalue] all the voxels with values over a given iso-value "
+                "will be selected, defined by --min-isovalue NUMBER; "
+                "[max-isovalue] all the voxels with values below a given iso-value will be "
+                "selected; defined by --max-isovalue NUMBER"
+                "[iso-values] a group or range of is-values are used to segment the volume, "
+                "defined by the the values loaded from --isovalues-file;"
+                "[fullrange]",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "isovalue");
+    _args->addArgument(&isoOption);
+    _options->isoOption = _args->getStringValue(&isoOption);
+
     Argument isoValue(
                 "--isovalue",
                 ARGUMENT_TYPE::INTEGER,
-                "The iso value where the volume will get segmented. Default 127.",
+                "The iso value where the volume will get segmented. Default 1.",
                 ARGUMENT_PRESENCE::OPTIONAL,
-                "127");
+                "1");
     _args->addArgument(&isoValue);
     _options->isoValue = _args->getIntegrValue(&isoValue);
+
+    Argument minIsoValue(
+                "--min-isovalue",
+                ARGUMENT_TYPE::INTEGER,
+                "The minimum iso-value used to segment the volume. All the values "
+                "greater than this values will be taken into consideration. Default 1.",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "1");
+    _args->addArgument(&minIsoValue);
+    _options->minIsoValue = _args->getIntegrValue(&minIsoValue);
+
+    Argument maxIsoValue(
+                "--max-isovalue",
+                ARGUMENT_TYPE::INTEGER,
+                "The maximum iso-value used to segment the volume. All the values "
+                "smaller than this values will be taken into consideration. Default 255.",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "255");
+    _args->addArgument(&maxIsoValue);
+    _options->minIsoValue = _args->getIntegrValue(&maxIsoValue);
 
     Argument isovaluesFile(
                 "--isovalues-file",
@@ -179,14 +217,6 @@ void AppArguments::addInputVolumeParametersArguments()
                 ARGUMENT_PRESENCE::OPTIONAL);
     _args->addArgument(&isovaluesFile);
     _options->isovaluesFile = _args->getStringValue(&isovaluesFile);
-
-    Argument fullRangeIsoValue(
-                "--full-range-iso-value",
-                ARGUMENT_TYPE::BOOL,
-                "If the voxel contains any value other than zero, then use it."
-                "If this option is set the --iso-value option is ignored.");
-    _args->addArgument(&fullRangeIsoValue);
-    _options->fullRangeIsoValue = _args->getBoolValue(&fullRangeIsoValue);
 
     Argument writeHistogram(
                 "--write-histogram",

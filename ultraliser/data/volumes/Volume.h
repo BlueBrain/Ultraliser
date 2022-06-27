@@ -555,7 +555,7 @@ public:
      * @return
      * Histogram array.
      */
-    static std::vector<uint64_t> createHistogram(const Volume* volume, const VOLUME_TYPE type);
+    static std::vector<uint64_t> createHistogram(const Volume* volume, const VOLUME_TYPE &type);
 
     /**
      * @brief getVoxelBoundingBox
@@ -596,6 +596,12 @@ public:
     Vector3f getPMax() const { return _pMax; }
     Vector3f getCenter() const { return _center; }
     Vector3f getScale() const { return _scale; }
+
+    /**
+     * @brief getType
+     * @return
+     */
+    VOLUME_TYPE getType() const { return _gridType; }
 
 
 private:
