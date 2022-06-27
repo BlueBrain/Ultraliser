@@ -19,14 +19,11 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_PBRT_MICROSCOPES_H
-#define ULTRALISER_PBRT_MICROSCOPES_H
+#pragma once
 
 #include <microscopes/PBRT.h>
 #include <microscopes/BFM.h>
 #include <microscopes/LSFM.h>
 #include <microscopes/FluorescenceMicroscopy.h>
 #include <microscopes/MicroscopyConfiguration.h>
-
-#endif // ULTRALISER_PBRT_MICROSCOPES_H
 

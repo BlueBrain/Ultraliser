@@ -20,8 +20,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  ******************************************************************************/
 
-#ifndef ULTRALISER_ULTRALISER_H
-#define ULTRALISER_ULTRALISER_H
+#pragma once
 
 #include <common/Headers.hh>
 #include <common/Defines.h>
@@ -33,5 +32,3 @@
 #include <math/Math.h>
 #include <microscopes/PBRT.h>
 #include <utilities/Utilities.h>
-
-#endif // ULTRALISER_ULTRALISER_H

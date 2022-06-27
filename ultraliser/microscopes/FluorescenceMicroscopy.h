@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef PBRT_FLUORESCENCE_MICROSCOPY_H
-#define PBRT_FLUORESCENCE_MICROSCOPY_H
+#pragma once
 
 #include <math/Math.h>
 #include <microscopes/PBRTParameters.h>
@@ -61,6 +60,4 @@ std::string createConfigFluorescenceMicroscopeZY(const std::string inputConfig,
 
 }
 }
-
-#endif // PBRT_FLUORESCENCE_MICROSCOPY_H
 

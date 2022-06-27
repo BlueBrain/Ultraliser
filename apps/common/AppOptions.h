@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_SYSTEM_OPTIONS_HH
-#define ULTRALISER_SYSTEM_OPTIONS_HH
+#pragma once
 
 #include <common/Common.h>
 #include <arguments/Argument.h>
@@ -663,6 +662,3 @@ public:
 };
 
 }
-
-#endif // ULTRALISER_ARGUMENTS_ARGUMENTS_ULTRALISER_OPTIONS_HH
-
