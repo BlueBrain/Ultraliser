@@ -92,6 +92,13 @@
 #define FORMAT_F32                              STRING("float")
 #define FORMAT_F64                              STRING("double")
 
+// Iso-options
+#define ISOVALUE_STRING                         STRING("isovalue")
+#define ISOVALUES_STRING                        STRING("isovalues")
+#define MIN_ISOVALUE_STRING                     STRING("min")
+#define MAX_ISOVALUE_STRING                     STRING("max")
+#define FULL_RANGE_STRING                       STRING("fullrange")
+
 // Artifacts strings
 #define INPUT_STRING                            STRING("input")
 #define MC_STRING                               STRING("mc")

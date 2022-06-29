@@ -21,6 +21,7 @@
 
 #include "Vector2f.h"
 #include "Vector3f.h"
+#include <cmath>
 #include <common/Common.h>
 #include <utilities/Utilities.h>
 
@@ -227,9 +228,14 @@ void Vector3f::print() const
 
 bool Vector3f::isNan() const
 {
-    return std::isnan(_elements[0]) ||
-           std::isnan(_elements[1]) ||
-           std::isnan(_elements[2]);
+    return std::isnan(_elements[0]) || std::isnan(_elements[1]) || std::isnan(_elements[2]);
+}
+
+bool Vector3f::isZero() const
+{
+    return std::isless(_elements[0], FLT_EPSILON) &&
+           std::isless(_elements[1], FLT_EPSILON)&&
+           std::isless(_elements[2], FLT_EPSILON);
 }
 
 Vector3f Vector3f::orthogonal() const

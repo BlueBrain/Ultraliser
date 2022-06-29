@@ -89,8 +89,8 @@ public:
     Volume(const int64_t width,
            const int64_t height,
            const int64_t depth,
-           const Vector3f pMin,
-           const Vector3f pMax,
+           const Vector3f pMin = Vector3f::ZERO,
+           const Vector3f pMax = Vector3f::ZERO,
            const VOLUME_TYPE& gridType = VOLUME_TYPE::BIT,
            const float expansionRatio = 0.0);
 
@@ -520,15 +520,19 @@ public:
      * A binary volume (1 bit per voxel) corresponding to the given iso value.
      */
     static Volume* constructIsoValueVolume(const Volume* volume,
-                                           const uint64_t &isoValue,
-                                           const int64_t &padding = 32);
+                                           const size_t &isoValue);
 
-    static Volume* constructIsoValuesVolume(const Volume* volume,
-                                            const std::vector<uint64_t> &isoValues,
-                                            const Vector3f &pMin = Vector3f(0.f),
-                                            const Vector3f &pMax = Vector3f(1.f),
-                                            const Vector3f &center = Vector3f(0.f),
-                                            const int64_t &padding = 32);
+
+    static Volume* constructVolumeWithMinimumIsoValue(const Volume* volume,
+                                                      const size_t& minIsoValue);
+
+    static Volume* constructVolumeWithMaximumIsoValue(const Volume* volume,
+                                                      const size_t& minIsoValue);
+
+    static Volume* constructVolumeWithIsoRange(const Volume* volume,
+                                               const size_t& minIsoValue,
+                                               const size_t& maxIsoValue);
+
 
 
     /**
@@ -544,8 +548,12 @@ public:
      * @return
      * A binary volume (1 bit per voxel) corresponding to the given iso value.
      */
-    static Volume* constructFullRangeVolume(const Volume* volume,
-                                            const int64_t &padding = 32);
+    static Volume* constructFullRangeVolume(const Volume* volume);
+
+
+
+    static Volume* constructIsoValuesVolume(const Volume* volume,
+                                            const std::vector<uint64_t> &isoValues);
 
     /**
      * @brief createHistogram
@@ -810,12 +818,6 @@ private:
      * Additional layer of voxels around the bounding box of the object.
      */
     float _expansionRatio;
-
-    /**
-     * @brief _gridDimensions
-     * The dimensions of the volume grid.
-     */
-    Vec3i_64 _gridDimensions;
 
     /**
      * @brief rawFileName

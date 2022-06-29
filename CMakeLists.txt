@@ -43,7 +43,7 @@ include(BZip2)
 
 include_directories("/usr/include")
 
-# C++ 14
+# C++ 17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 

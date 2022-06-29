@@ -104,38 +104,46 @@ void run(int argc , const char** argv)
 
     // Construct a volume that will be used for the mesh reconstruction
     Ultraliser::Volume* volume;
-    if (options->fullRangeIsoValue)
+    if (options->isoOption == ISOVALUE_STRING)
     {
         // Construct a bit volume with a specific iso value
-        volume = Volume::constructFullRangeVolume(loadedVolume, options->zeroPaddingVoxels);
+        volume = Volume::constructIsoValueVolume(loadedVolume, options->isoValue);
+    }
+    else if (options->isoOption == ISOVALUES_STRING)
+    {
+        // Parse the isp-values file into a list
+        const std::vector< uint64_t > isoValues = File::parseIsovaluesFile(options->isovaluesFile);
+
+        volume = Volume::constructIsoValuesVolume(loadedVolume, isoValues);
+    }
+    else if (options->isoOption == MIN_ISOVALUE_STRING)
+    {
+        volume = Volume::constructVolumeWithMinimumIsoValue(loadedVolume, options->minIsoValue);
+    }
+    else if (options->isoOption == MAX_ISOVALUE_STRING)
+    {
+        volume = Volume::constructVolumeWithMaximumIsoValue(loadedVolume, options->maxIsoValue);
+    }
+    else if (options->isoOption == FULL_RANGE_STRING)
+    {
+        // Construct a bit volume with a specific iso value
+        volume = Volume::constructFullRangeVolume(loadedVolume);
     }
     else
     {
-        // Construct a bit volume with a specific iso value
-        volume = Volume::constructIsoValueVolume(
-                    loadedVolume, options->isoValue, options->zeroPaddingVoxels);
+        LOG_ERROR("The selected isooption [%s] is NOT valid.", options->isoOption.c_str());
     }
-
-    /*
-    const std::vector<uint64_t> isoValues = File::parseIsovaluesFile(options->isovaluesFile);
-
-    volume = Volume::constructIsoValuesVolume(
-                loadedVolume, isoValues, 0);
 
     Vector3f scale;
     scale.x() = loadedVolume->getScale().x(); //loadedVolume->getWidth();
     scale.y() = loadedVolume->getScale().y(); // loadedVolume->getHeight();
     scale.z() = loadedVolume->getScale().z(); // loadedVolume->getDepth();
 
-    scale.print();
-
     Vector3f center = loadedVolume->getCenter();
-    center.print();
-
 
     // Free the loaded volume
     delete loadedVolume;
-*/
+
     // Enable solid voxelization
     if (options->useSolidVoxelization)
         volume->solidVoxelization(options->voxelizationAxis);
@@ -155,10 +163,7 @@ void run(int argc , const char** argv)
           isEqual(options->xScaleFactor, 1.f) &&
           isEqual(options->xScaleFactor, 1.f)))
     {
-        // Scale the mesh
-        reconstructedMesh->scale(options->xScaleFactor,
-                                 options->yScaleFactor,
-                                 options->zScaleFactor);
+        reconstructedMesh->scale(options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
     }
 
     // Free the voulme

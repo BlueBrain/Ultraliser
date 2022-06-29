@@ -20,6 +20,7 @@
  **************************************************************************************************/
 
 #include "Volume.h"
+#include <cstddef>
 #include <nrrdloader/NRRDLoader.h>
 #include <data/volumes/utilities/VolumeType.hh>
 #include <common/Headers.hh>
@@ -42,6 +43,8 @@ namespace Ultraliser
 {
 
 Volume::Volume(const std::string &filePath)
+    : _pMin(Vector3f::ZERO)
+    , _pMax(Vector3f::ZERO)
 {
     // Get the volume extension
     auto extension = std::filesystem::path(filePath).extension().string();
@@ -79,22 +82,72 @@ Volume::Volume(const std::string &filePath)
 
     // Since we don't have any geometric bounds, use 1.0 for the voxel resolution
     // TODO: The voxel resolution should be computed from the given bounds
-    _voxelSize = 1.0;
+    _voxelSize = 1.f;
+
+    // If the bounds are zero, then adjust the scale based on the grid dimensions.
+    if (_pMin.isZero() and _pMax.isZero())
+    {
+        // pMin will be at the origin
+        _pMin = Vector3f::ZERO;
+
+        // pMax will be at the higher bound
+        _pMax.x() = 1.f * _grid->getWidth();
+        _pMax.y() = 1.f * _grid->getHeight();
+        _pMax.z() = 1.f * _grid->getDepth();
+
+        _scale = _pMax - _pMin;
+        _center = _pMin + (0.5f * _scale);
+    }
 
     // Profiling
     _surfaceVoxelizationTime = 0.0;
     _solidVoxelizationTime = 0.0;
     _addingVolumePassTime = 0.0;
-
 }
+
+Volume::Volume(const Vector3f& pMin,
+               const Vector3f& pMax,
+               const uint64_t &baseResolution,
+               const float &expansionRatio,
+               const VOLUME_TYPE& gridType)
+    : _gridType(gridType)
+    , _pMin(pMin)
+    , _pMax(pMax)
+    , _expansionRatio(expansionRatio)
+    , _baseResolution(baseResolution)
+{
+    // Create the grid
+    _createGrid();
+
+    // Profiling
+    _surfaceVoxelizationTime = 0.0;
+    _solidVoxelizationTime = 0.0;
+    _addingVolumePassTime = 0.0;
+}
+
+Volume::Volume(const int64_t width,
+               const int64_t height,
+               const int64_t depth,
+               const Vector3f pMin,
+               const Vector3f pMax,
+               const VOLUME_TYPE& gridType,
+               const float expansionRatio)
+    : _gridType(gridType)
+    , _pMin(pMin)
+    , _pMax(pMax)
+    , _expansionRatio(expansionRatio)
+{
+    // Since we don't have any geometric bounds, use 1.0 for the voxel resolution
+    // TODO: The voxel resolution should be computed from the given bounds
+    _voxelSize = 1.0;
+
+    // Allocating the grid
+    _allocateGrid();
+}
+
 
 void Volume::_createGrid(const NRRDVolumeData* volumeData)
 {
-    // Update the grid dimensions
-    _gridDimensions.v[0] = volumeData->width;
-    _gridDimensions.v[1] = volumeData->height;
-    _gridDimensions.v[2] = volumeData->depth;
-
     // Update the cente, scale and pMin and pMax accordingly
     _center = volumeData->center;
     _scale = volumeData->scale;
@@ -254,11 +307,6 @@ void Volume::_createGrid(const std::string& hdrFilePath)
         LOG_ERROR("Unimplemented volume format");
     } break;
     }
-
-    // Update the grid dimensions
-    _gridDimensions.v[0] = volumeData->width;
-    _gridDimensions.v[1] = volumeData->height;
-    _gridDimensions.v[2] = volumeData->depth;
 }
 
 void Volume::_createGrid(const UltraliserVolumeData* volumeData)
@@ -327,64 +375,14 @@ void Volume::_createGrid(const UltraliserVolumeData* volumeData)
 
     } break;
     }
-
-    // Update the grid dimensions
-    _gridDimensions.v[0] = volumeData->width;
-    _gridDimensions.v[1] = volumeData->height;
-    _gridDimensions.v[2] = volumeData->depth;
 }
-
-Volume::Volume(const Vector3f& pMin,
-               const Vector3f& pMax,
-               const uint64_t &baseResolution,
-               const float &expansionRatio,
-               const VOLUME_TYPE& gridType)
-    : _gridType(gridType)
-    , _pMin(pMin)
-    , _pMax(pMax)
-    , _expansionRatio(expansionRatio)
-    , _baseResolution(baseResolution)
-{
-    // Create the grid
-    _createGrid();
-
-    // Profiling
-    _surfaceVoxelizationTime = 0.0;
-    _solidVoxelizationTime = 0.0;
-    _addingVolumePassTime = 0.0;
-}
-
-Volume::Volume(const int64_t width,
-               const int64_t height,
-               const int64_t depth,
-               const Vector3f pMin,
-               const Vector3f pMax,
-               const VOLUME_TYPE& gridType,
-               const float expansionRatio)
-    : _gridType(gridType)
-    , _pMin(pMin)
-    , _pMax(pMax)
-    , _expansionRatio(expansionRatio)
-{
-    _gridDimensions.v[0] = width;
-    _gridDimensions.v[1] = height;
-    _gridDimensions.v[2] = depth;
-
-    // Since we don't have any geometric bounds, use 1.0 for the voxel resolution
-    // TODO: The voxel resolution should be computed from the given bounds
-    _voxelSize = 1.0;
-
-    // Allocating the grid
-    _allocateGrid();
-}
-
 
 void Volume::_allocateGrid()
 {
     // Grid dimensions
-    const auto sizeX = _gridDimensions.v[0];
-    const auto sizeY = _gridDimensions.v[1];
-    const auto sizeZ = _gridDimensions.v[2];
+    const auto sizeX = _grid->getWidth();
+    const auto sizeY = _grid->getHeight();
+    const auto sizeZ = _grid->getDepth();
 
     // Create the grid
     switch (_gridType)
@@ -458,12 +456,12 @@ void Volume::_createGrid(void)
     _voxelSize = boundingBoxSize[_largestDimensionIdx] / (1.f * _baseResolution);
 
     // Compute the volume dimensions based on the current voxel size
-    _gridDimensions.v[0] = F2UI64(std::round(boundingBoxSize[0] / _voxelSize));
-    _gridDimensions.v[1] = F2UI64(std::round(boundingBoxSize[1] / _voxelSize));
-    _gridDimensions.v[2] = F2UI64(std::round(boundingBoxSize[2] / _voxelSize));
+    auto width = F2UI64(std::round(boundingBoxSize[0] / _voxelSize));
+    auto height = F2UI64(std::round(boundingBoxSize[1] / _voxelSize));
+    auto depth = F2UI64(std::round(boundingBoxSize[2] / _voxelSize));
 
     LOG_SUCCESS("Volume Dimenions [ %d x %d x %d ] : [ %f x %f x %f ]",
-                _gridDimensions.v[0] , _gridDimensions.v[1] , _gridDimensions.v[2],
+                width, height, depth,
                 boundingBoxSize[0], boundingBoxSize[1], boundingBoxSize[2]);
 
     // Allocating the grid
@@ -481,8 +479,8 @@ void Volume::surfaceVoxelization(Mesh* mesh,
     TIMER_SET;
 
     if (verbose)
-        LOG_STATUS("Creating Volume Shell [%d x %d x %d]",
-                   _gridDimensions[0], _gridDimensions[1], _gridDimensions[2]);
+        LOG_STATUS("Creating Volume Shell [%zs x %zs x %zs]",
+                   _grid->getWidth(), _grid->getHeight(), _grid->getDepth());
     if (parallel)
         _rasterizeParallel(mesh, _grid);
     else
@@ -801,7 +799,7 @@ void Volume::surfaceVoxelization(const std::string &inputDirectory,
     TIMER_SET;
 
     LOG_STATUS("Creating Volume Shell [%d x %d x %d]",
-               _gridDimensions[0], _gridDimensions[1], _gridDimensions[2]);
+               _grid->getWidth(), _grid->getHeight(), _grid->getDepth());
     uint64_t processedMeshCount = 0;
     LOOP_STARTS("Rasterization");
     PROGRESS_SET;
@@ -1255,7 +1253,8 @@ bool Volume::_testTriangleCubeIntersection(Mesh* mesh, uint64_t triangleIdx, con
 bool Volume::_testSampleCubeIntersection(Sample* sample, const GridIndex& voxel)
 {
     // Voxel half size
-    float voxelHalfSize = _voxelSize * 0.5f;    
+    float voxelHalfSize = _voxelSize * 0.5f;
+
     // Get the center of the voxel
     Vector3f voxelCenter;
     voxelCenter[0] = _pMin[0] + (voxel[0] * _voxelSize) + voxelHalfSize;
@@ -2130,15 +2129,15 @@ void Volume::fillVoxel(const int64_t &x,
                        const int64_t &z)
 {
 
-    if (x - 1 < 0 || x > _gridDimensions[0])
+    if (x - 1 < 0 || x > _grid->getWidth())
     {
         return;
     }
-    if (y - 1 < 0 || y > _gridDimensions[1])
+    if (y - 1 < 0 || y > _grid->getHeight())
     {
         return;
     }
-    if (z - 1 < 0 || z > _gridDimensions[2])
+    if (z - 1 < 0 || z > _grid->getDepth())
     {
         return;
     }
@@ -2377,128 +2376,201 @@ Volume::~Volume()
     delete _grid;
 }
 
+
 Volume* Volume::constructIsoValueVolume(const Volume* volume,
-                                        const uint64_t& isoValue,
-                                        const int64_t &padding)
+                                        const size_t& isoValue)
 {
-    Vector3f pMin(0.f), pMax(1.f);
+    // Create the iso-volume
+    Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),
+                                   volume->getPMin(), volume->getPMax(),
+                                   VOLUME_TYPE::BIT);
 
-    pMax.x() *= volume->getWidth();
-    pMax.y() *= volume->getHeight();
-    pMax.z() *= volume->getDepth();
-
-    Volume* isoVolume = new Volume(volume->getWidth() + padding,
-                                   volume->getHeight() + padding,
-                                   volume->getDepth() + padding,
-                                   pMin, pMax, VOLUME_TYPE::BIT);
-
-    LOG_STATUS("Constructing Iso Volume");
-    for (int64_t x = 0; x < volume->getWidth(); ++x)
+    LOG_STATUS("Constructing Iso Volume from a Single Value [%zs]", isoValue);
+    for (size_t x = 0; x < volume->getWidth(); ++x)
     {
         LOOP_PROGRESS(x, volume->getWidth());
-        for (int64_t y = 0; y < volume->getHeight(); ++y)
+        for (size_t y = 0; y < volume->getHeight(); ++y)
         {
-            for (int64_t z = 0; z < volume->getDepth(); ++z)
+            for (size_t z = 0; z < volume->getDepth(); ++z)
             {
-                int64_t xIso = x + F2I64(padding / 2.f);
-                int64_t yIso = y + F2I64(padding / 2.f);
-                int64_t zIso = z + F2I64(padding / 2.f);
-
                 if (volume->getValueUI64(x, y, z) == isoValue)
-                    isoVolume->fill(xIso, yIso, zIso);
+                {
+                    isoVolume->fill(x, y, z);
+                }
                 else
-                    isoVolume->clear(xIso, yIso, zIso);
+                {
+                    isoVolume->clear(x, y, z);
+                }
             }
         }
     }
     LOOP_DONE;
 
+    // Return the resulting iso-volume
+    return isoVolume;
+}
+
+Volume* Volume::constructVolumeWithMinimumIsoValue(const Volume* volume,
+                                                   const size_t& minIsoValue)
+{
+    // Create the iso-volume
+    Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),
+                                   volume->getPMin(), volume->getPMax(),
+                                   VOLUME_TYPE::BIT);
+
+    LOG_STATUS("Constructing Iso Volume with Minimum Value [%zs]", minIsoValue);
+    for (size_t x = 0; x < volume->getWidth(); ++x)
+    {
+        LOOP_PROGRESS(x, volume->getWidth());
+        for (size_t y = 0; y < volume->getHeight(); ++y)
+        {
+            for (size_t z = 0; z < volume->getDepth(); ++z)
+            {
+                if (volume->getValueUI64(x, y, z) >= minIsoValue)
+                {
+                    isoVolume->fill(x, y, z);
+                }
+                else
+                {
+                    isoVolume->clear(x, y, z);
+                }
+            }
+        }
+    }
+    LOOP_DONE;
+
+    // Return the resulting iso-volume
+    return isoVolume;
+}
+
+Volume* Volume::constructVolumeWithMaximumIsoValue(const Volume* volume,
+                                                   const size_t& minIsoValue)
+{
+    // Create the iso-volume
+    Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),
+                                   volume->getPMin(), volume->getPMax(),
+                                   VOLUME_TYPE::BIT);
+
+    LOG_STATUS("Constructing Iso Volume with Minimum Value [%zs]", minIsoValue);
+    for (size_t x = 0; x < volume->getWidth(); ++x)
+    {
+        LOOP_PROGRESS(x, volume->getWidth());
+        for (size_t y = 0; y < volume->getHeight(); ++y)
+        {
+            for (size_t z = 0; z < volume->getDepth(); ++z)
+            {
+                if (volume->getValueUI64(x, y, z) <= minIsoValue)
+                {
+                    isoVolume->fill(x, y, z);
+                }
+                else
+                {
+                    isoVolume->clear(x, y, z);
+                }
+            }
+        }
+    }
+    LOOP_DONE;
+
+    // Return the resulting iso-volume
+    return isoVolume;
+}
+
+Volume* Volume::constructVolumeWithIsoRange(const Volume* volume,
+                                            const size_t& minIsoValue,
+                                            const size_t& maxIsoValue)
+{
+    // Create the iso-volume
+    Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),
+                                   volume->getPMin(), volume->getPMax(),
+                                   VOLUME_TYPE::BIT);
+
+    LOG_STATUS("Constructing Iso Volume with Range [%zs - %zs]", minIsoValue, maxIsoValue);
+    for (size_t x = 0; x < volume->getWidth(); ++x)
+    {
+        LOOP_PROGRESS(x, volume->getWidth());
+        for (size_t y = 0; y < volume->getHeight(); ++y)
+        {
+            for (size_t z = 0; z < volume->getDepth(); ++z)
+            {
+                if (volume->getValueUI64(x, y, z) <= maxIsoValue &&
+                        volume->getValueUI64(x, y, z) >= minIsoValue)
+                {
+                    isoVolume->fill(x, y, z);
+                }
+                else
+                {
+                    isoVolume->clear(x, y, z);
+                }
+            }
+        }
+    }
+    LOOP_DONE;
+
+    // Return the resulting iso-volume
+    return isoVolume;
+}
+
+Volume* Volume::constructFullRangeVolume(const Volume* volume)
+{
+    // Create the iso-volume
+    Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),
+                                   volume->getPMin(), volume->getPMax(),
+                                   VOLUME_TYPE::BIT);
+
+    LOG_STATUS("Constructing Full Range Iso Volume");
+    for (size_t x = 0; x < volume->getWidth(); ++x)
+    {
+        LOOP_PROGRESS(x, volume->getWidth());
+        for (size_t y = 0; y < volume->getHeight(); ++y)
+        {
+            for (size_t z = 0; z < volume->getDepth(); ++z)
+            {
+                if (volume->getValueUI64(x, y, z) > 0)
+                {
+                    isoVolume->fill(x, y, z);
+                }
+                else
+                {
+                    isoVolume->clear(x, y, z);
+                }
+            }
+        }
+    }
+    LOOP_DONE;
+
+    // Return the resulting iso-volume
     return isoVolume;
 }
 
 Volume* Volume::constructIsoValuesVolume(const Volume* volume,
-                                         const std::vector<uint64_t> &isoValues,
-                                         const Vector3f &pMin, const Vector3f &pMax,
-                                         const Vector3f &center,
-                                         const int64_t &padding)
+                                         const std::vector< uint64_t > &isoValues)
 {
-
-    Vector3f pLower = pMin, pUpper = pMax;
-    pUpper.x() *= volume->getWidth() / (volume->getHeight() * 1.f);
-    pUpper.y() *= volume->getHeight() / (volume->getHeight() * 1.f);
-    pUpper.z() *= volume->getDepth() / (volume->getHeight() * 1.f);
-
-    Volume* isoVolume = new Volume(volume->getWidth(), //+ padding,
-                                   volume->getHeight(), // + padding,
-                                   volume->getDepth(), // + padding,
-                                   pLower, pUpper, VOLUME_TYPE::BIT);
+    // Create the iso-volume
+    Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),
+                                   volume->getPMin(), volume->getPMax(),
+                                   VOLUME_TYPE::BIT);
 
     LOG_STATUS("Constructing Iso Volume");
     for (int64_t x = 0; x < volume->getWidth(); ++x)
     {
         LOOP_PROGRESS(x, volume->getWidth());
-        for (int64_t y = 0; y < volume->getHeight(); ++y)
+        for (size_t y = 0; y < volume->getHeight(); ++y)
         {
-            for (int64_t z = 0; z < volume->getDepth(); ++z)
+            for (size_t z = 0; z < volume->getDepth(); ++z)
             {
-                int64_t xIso = x;// + F2I64(padding / 2.f);
-                int64_t yIso = y;// + F2I64(padding / 2.f);
-                int64_t zIso = z;// + F2I64(padding / 2.f);
-
-                for (uint64_t iv = 0; iv < isoValues.size(); ++iv)
+                for (size_t iv = 0; iv < isoValues.size(); ++iv)
                 {
                     const auto &voxelValue = volume->getValueUI64(x, y, z);
                     if (std::find(isoValues.begin(), isoValues.end(), voxelValue) != isoValues.end())
                     {
-                        isoVolume->fill(xIso, yIso, zIso);
+                        isoVolume->fill(x, y, z);
                     }
                     else
                     {
-                        isoVolume->clear(xIso, yIso, zIso);
+                        isoVolume->clear(x, y, z);
                     }
                 }
-            }
-        }
-    }
-    LOOP_DONE;
-
-    return isoVolume;
-}
-
-Volume* Volume::constructFullRangeVolume(const Volume* volume, const int64_t &padding)
-{
-    Vector3f pMin(0.f), pMax(1.f);
-
-    pMax.x() *= volume->getWidth();
-    pMax.y() *= volume->getHeight();
-    pMax.z() *= volume->getDepth();
-
-    Volume* isoVolume = new Volume(volume->getWidth() + padding,
-                                   volume->getHeight() + padding,
-                                   volume->getDepth() + padding,
-                                   pMin, pMax, VOLUME_TYPE::UI8);
-
-    LOG_STATUS("Constructing Full Range Iso Volume");
-    for (int64_t x = 0; x < volume->getWidth(); ++x)
-    {
-        LOOP_PROGRESS(x, volume->getWidth());
-        for (int64_t y = 0; y < volume->getHeight(); ++y)
-        {
-            for (int64_t z = 0; z < volume->getDepth(); ++z)
-            {
-                int64_t xIso = x + F2I64(padding / 2.f);
-                int64_t yIso = y + F2I64(padding / 2.f);
-                int64_t zIso = z + F2I64(padding / 2.f);
-
-                if (volume->getValueUI64(x, y, z) > 0)
-                {
-                    isoVolume->fill(xIso, yIso, zIso);
-                }
-                else
-                {
-                    isoVolume->clear(xIso, yIso, zIso);
-                }
-
             }
         }
     }

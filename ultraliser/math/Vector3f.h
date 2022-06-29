@@ -205,6 +205,12 @@ public:
      * @brief isNan
      */
     bool isNan() const;
+
+    /**
+     * @brief isZero
+     * @return
+     */
+    bool isZero() const;
     
     /**
      * @brief orthogonal
