@@ -158,7 +158,7 @@ void Volume::_createGrid(const NRRDVolumeData* volumeData)
     {
     case VOLUME_TYPE::BIT:
     {
-        LOG_ERROR("Unimplemented olume::_createGrid(const NRRDVolumeData* volumeData)");
+        LOG_ERROR("Unimplemented Volume::_createGrid(const NRRDVolumeData* volumeData)");
     } break;
 
     case VOLUME_TYPE::UI8:
@@ -174,7 +174,7 @@ void Volume::_createGrid(const NRRDVolumeData* volumeData)
         // Create the grid and update the type
         _gridType = VOLUME_TYPE::UI16;
         _grid = new VolumeGridU16(volumeData->width, volumeData->height, volumeData->depth,
-                                  volumeData->data->asBytes().data());
+                                  volumeData->data->asUnsingedShorts().data());
     } break;
 
     case VOLUME_TYPE::UI32:
@@ -182,7 +182,7 @@ void Volume::_createGrid(const NRRDVolumeData* volumeData)
         // Create the grid and update the type
         _gridType = VOLUME_TYPE::UI32;
         _grid = new VolumeGridU32(volumeData->width, volumeData->height, volumeData->depth,
-                                  volumeData->data->asBytes().data());
+                                  volumeData->data->asUnsignedIntegers().data());
     } break;
 
     case VOLUME_TYPE::UI64:
@@ -190,7 +190,7 @@ void Volume::_createGrid(const NRRDVolumeData* volumeData)
         // Create the grid and update the type
         _gridType = VOLUME_TYPE::UI64;
         _grid = new VolumeGridU64(volumeData->width, volumeData->height, volumeData->depth,
-                                  volumeData->data->asBytes().data());
+                                  volumeData->data->asUnsignedLongs().data());
     } break;
 
     case VOLUME_TYPE::F32:
@@ -198,7 +198,7 @@ void Volume::_createGrid(const NRRDVolumeData* volumeData)
         // Create the grid and update the type
         _gridType = VOLUME_TYPE::F32;
         _grid = new VolumeGridF32(volumeData->width, volumeData->height, volumeData->depth,
-                                  volumeData->data->asBytes().data());
+                                  volumeData->data->asFloats().data());
 
     } break;
 
@@ -206,7 +206,7 @@ void Volume::_createGrid(const NRRDVolumeData* volumeData)
     {
         _gridType = VOLUME_TYPE::F64;
         _grid = new VolumeGridF64(volumeData->width, volumeData->height, volumeData->depth,
-                                  volumeData->data->asBytes().data());
+                                  volumeData->data->asDoubles().data());
     } break;
 
     default:

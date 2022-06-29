@@ -36,7 +36,6 @@ AppOptions* parseArguments(const int& argc , const char** argv)
               "The reconstructed mesh can be optimized to create a mesh with "
               "nicer topology and less tessellation.");
 
-
     args->addInputVolumeArguments();
     args->addInputVolumeParametersArguments();
     args->addVolumeProjectionArguments();
@@ -91,16 +90,16 @@ void run(int argc , const char** argv)
     else
         prefix << options->outputPrefix << "-" << options->isoValue;
 
-    if (options->writeHistogram)
-    {
-        // Create the histogram
-        std::vector<uint64_t> histogram = Volume::createHistogram(loadedVolume,
-                                                                  loadedVolume->getType());
+//    if (options->writeHistogram)
+//    {
+//        // Create the histogram
+//        std::vector<uint64_t> histogram = Volume::createHistogram(loadedVolume,
+//                                                                  loadedVolume->getType());
 
-        // Write the histogram to a file
-        const std::string path = prefix.str() + std::string(".histogram");
-        File::writeIntegerDistributionToFile(path, histogram);
-    }
+//        // Write the histogram to a file
+//        const std::string path = prefix.str() + std::string(".histogram");
+//        File::writeIntegerDistributionToFile(path, histogram);
+//    }
 
     // Construct a volume that will be used for the mesh reconstruction
     Ultraliser::Volume* volume;

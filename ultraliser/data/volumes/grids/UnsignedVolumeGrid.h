@@ -119,7 +119,6 @@ public:
      */
     bool isEmpty(const uint64_t &index) const override;
 
-
     /**
      * @brief andWithAnotherGrid
      * @param anotherGrid
@@ -131,8 +130,6 @@ public:
      * @param anotherGrid
      */
     void orWithAnotherGrid(VolumeGrid *anotherGrid) override;
-
-
 
     /**
      * @brief getGridData
@@ -149,7 +146,7 @@ public:
      * @return
      * The value of the voxel as an 8-bit integer.
      */
-    uint8_t getValueUI8(const uint64_t &index) const;
+    uint8_t getValueUI8(const uint64_t &index) const override;
 
     /**
      * @brief getValueUI16
@@ -160,7 +157,7 @@ public:
      * @return
      * The value of the voxel as a 16-bit integer.
      */
-    uint16_t getValueUI16(const uint64_t &index) const;
+    uint16_t getValueUI16(const uint64_t &index) const override;
 
     /**
      * @brief getValueUI32
@@ -171,7 +168,7 @@ public:
      * @return
      * The value of the voxel as a 32-bit integer.
      */
-    uint32_t getValueUI32(const uint64_t &index) const;
+    uint32_t getValueUI32(const uint64_t &index) const override;
 
     /**
      * @brief getValueUI64
@@ -181,7 +178,7 @@ public:
      * @return
      * The value of the voxel as a 64-bit integer.
      */
-    uint64_t getValueUI64(const uint64_t &index) const;
+    uint64_t getValueUI64(const uint64_t &index) const override;
 
     /**
      * @brief getValueF32
@@ -191,7 +188,7 @@ public:
      * @return
      * The value of the voxel as a single-precision float.
      */
-    float getValueF32(const uint64_t &index) const;
+    float getValueF32(const uint64_t &index) const override;
 
     /**
      * @brief getValueF64
@@ -201,7 +198,7 @@ public:
      * @return
      * The value of the voxel as a double-precision float.
      */
-    double getValueF64(const uint64_t &index) const;
+    double getValueF64(const uint64_t &index) const override;
 
 
     /**

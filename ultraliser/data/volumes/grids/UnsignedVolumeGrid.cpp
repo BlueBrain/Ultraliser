@@ -33,18 +33,16 @@ namespace Ultraliser
 
 template <class T>
 UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const size_t &width,
-                   const size_t &height,
-                   const size_t &depth,
-                   T* data)
+                                          const size_t &height,
+                                          const size_t &depth,
+                                          T* data)
     : VolumeGrid(width, height, depth)
 {
     _allocateMemory();
 
     // Update the data
-    for (uint64_t i = 0; i < width * height * depth; ++i)
+    for (size_t i = 0; i < width * height * depth; ++i)
         _data[i] =  data[i];
-
-    // _data = data;
 }
 
 template <class T>
@@ -367,7 +365,8 @@ void UnsignedVolumeGrid<T>::_allocateMemory()
 {
     // Allocate the array
     _data = new T[_numberVoxels];
-    for (uint64_t i = 0; i < _numberVoxels; ++i)
+
+    for (size_t i = 0; i < _numberVoxels; ++i)
         _data[i] = static_cast<T>(0);
 }
 
@@ -383,9 +382,9 @@ UnsignedVolumeGrid<T>::~UnsignedVolumeGrid()
     _freeMemory();
 }
 
-template class UnsignedVolumeGrid<uint8_t>;
-template class UnsignedVolumeGrid<uint16_t>;
-template class UnsignedVolumeGrid<uint32_t>;
-template class UnsignedVolumeGrid<uint64_t>;
+template class UnsignedVolumeGrid< uint8_t >;
+template class UnsignedVolumeGrid< uint16_t >;
+template class UnsignedVolumeGrid< uint32_t >;
+template class UnsignedVolumeGrid< uint64_t >;
 
 }

@@ -110,9 +110,6 @@ NRRDVolumeData* readNRRDVolumeFile(const std::string& filePath)
     // Reference to the header
     auto &header = nrrdVolume.header;
 
-    // Reference to the data
-    auto &data = *(nrrdVolume.data);
-
     // Store the data in a VolumeData object
     auto volumeData = new NRRDVolumeData();
 
@@ -135,48 +132,37 @@ NRRDVolumeData* readNRRDVolumeFile(const std::string& filePath)
     volumeData->scale.z() = spaceDirections->at(2).at(2);
 
     // Volume type
-    switch (header.type)
-    {
-    case libNRRD::NRRDType::UnsignedChar:
+    if (header.type == libNRRD::NRRDType::UnsignedChar)
     {
         volumeData-> type = VOLUME_TYPE::UI8;
-    } break;
-
-    case libNRRD::NRRDType::UnsignedShort:
+    }
+    else if (header.type == libNRRD::NRRDType::UnsignedShort)
     {
         volumeData-> type = VOLUME_TYPE::UI16;
-    } break;
-
-    case libNRRD::NRRDType::UnsignedInt:
+    }
+    else if (header.type == libNRRD::NRRDType::UnsignedInt)
     {
         volumeData-> type = VOLUME_TYPE::UI32;
-    } break;
-
-    case libNRRD::NRRDType::UnsignedLong:
+    }
+    else if (header.type == libNRRD::NRRDType::UnsignedLong)
     {
         volumeData-> type = VOLUME_TYPE::UI64;
-    } break;
-
-    case libNRRD::NRRDType::Float:
+    }
+    else if (header.type == libNRRD::NRRDType::Float)
     {
         volumeData-> type = VOLUME_TYPE::F32;
-    } break;
-
-    case libNRRD::NRRDType::Double:
+    }
+    else if (header.type == libNRRD::NRRDType::Double)
     {
         volumeData-> type = VOLUME_TYPE::F64;
-    } break;
-
-        // Other file formats that are currently NOT supported by Ultraliser
-    case libNRRD::NRRDType::Char:
-    case libNRRD::NRRDType::Short:
-    case libNRRD::NRRDType::Int:
-    case libNRRD::NRRDType::Long:
-    default:
+    }
+    else
     {
         LOG_ERROR("Undefined volume format");
-    } break;
     }
+
+    // Store the data
+    volumeData->data = nrrdVolume.data.release();
 
     // Return the volume data
     return volumeData;

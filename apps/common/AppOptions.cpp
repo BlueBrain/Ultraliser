@@ -207,7 +207,7 @@ void AppOptions::verifyIsoOptionArgument()
             LOG_ERROR("The minimum isovalue CANNOT be greater than the maximum isovalue");
         }
     }
-    else if (isoOption == "full-range")
+    else if (isoOption == "fullrange")
     {
         LOG_WARNING("All the voxels in the volume will be selected! No specific isovalues "
                     "were specified");

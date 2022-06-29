@@ -71,8 +71,7 @@ struct NRRDVolumeData : VolumeData
     /**
      * @brief data
      */
-    std::unique_ptr<libNRRD::IDataMangler> data;
-
+    libNRRD::IDataMangler* data;
 };
 
 /**
