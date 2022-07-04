@@ -327,10 +327,10 @@ public:
     size_t maxIsoValue;
 
     /**
-     * @brief fullRangeIsoValue
-     * If the voxel contains any value, then use it.
+     * @brief nonZeroVoxels
+     * If the voxel contains any value except it, then use it.
      */
-    bool fullRangeIsoValue;
+    bool nonZeroVoxels;
 
     /**
      * @brief isosurfaceTechnique

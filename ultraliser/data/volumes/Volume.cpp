@@ -2593,6 +2593,10 @@ std::vector<uint64_t> Volume::createHistogram(const Volume* volume,
     } break;
 
     case VOLUME_TYPE::BIT:
+    {
+        LOG_ERROR("Histograms CANNOT be computed to a bit volume!");
+    }
+
     case VOLUME_TYPE::F32:
     case VOLUME_TYPE::F64:
     default:
@@ -2601,21 +2605,21 @@ std::vector<uint64_t> Volume::createHistogram(const Volume* volume,
     }
 
     // Allocation
-    std::vector<uint64_t> histogram;
+    std::vector< size_t > histogram;
     histogram.resize(histogramWidth);
 
     // Initialization
-    for (uint64_t i = 0; i < histogramWidth; ++i)
+    for (size_t i = 0; i < histogramWidth; ++i)
         histogram[i] = 0;
 
-    for (int64_t x = 0; x < volume->getWidth(); ++x)
+    for (size_t x = 0; x < volume->getWidth(); ++x)
     {
         LOOP_PROGRESS(x, volume->getWidth());
-        for (int64_t y = 0; y < volume->getHeight(); ++y)
+        for (size_t y = 0; y < volume->getHeight(); ++y)
         {
-            for (int64_t z = 0; z < volume->getDepth(); ++z)
+            for (size_t z = 0; z < volume->getDepth(); ++z)
             {
-                histogram[volume->isFilled(x, y, z)] += 1;
+                histogram[volume->getValueUI64(x, y, z)] += 1;
             }
         }
     }

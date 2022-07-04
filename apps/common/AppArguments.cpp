@@ -232,7 +232,7 @@ void AppArguments::addInputVolumeParametersArguments()
                 ARGUMENT_TYPE::BOOL,
                 "Write the histogram of the volume into a text file.");
     _args->addArgument(&writeHistogram);
-    _options->writeHistogram = _args->getBoolValue(&isoValue);
+    _options->writeHistogram = _args->getBoolValue(&writeHistogram);
 }
 
 void AppArguments::addOutputArguments()

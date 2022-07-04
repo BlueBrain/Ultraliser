@@ -74,26 +74,25 @@ void run(int argc , const char** argv)
     // Construct a volume from the file
     Volume* loadedVolume = new Ultraliser::Volume(options->inputVolumePath);
 
-    loadedVolume->project(options->projectionPrefix + "p",
-                    options->projectXY, options->projectXZ, options->projectZY,
-                    options->projectColorCoded);
+    // Compute the projection of the loaded volume (used for verification)
+    if (options->projectXY || options->projectXZ || options->projectZY)
+    {
+        loadedVolume->project(options->projectionPrefix + "-in",
+                              options->projectXY, options->projectXZ, options->projectZY,
+                              options->projectColorCoded);
+    }
 
-    std::stringstream prefix;
-    if (options->fullRangeIsoValue)
-        prefix << options->outputPrefix;
-    else
-        prefix << options->outputPrefix << "-" << options->isoValue;
+    // Compute the projection of the histogram
+    if (options->writeHistogram)
+    {
+        // Create the histogram
+        std::vector<uint64_t> histogram = Volume::createHistogram(loadedVolume,
+                                                                  loadedVolume->getType());
 
-//    if (options->writeHistogram)
-//    {
-//        // Create the histogram
-//        std::vector<uint64_t> histogram = Volume::createHistogram(loadedVolume,
-//                                                                  loadedVolume->getType());
-
-//        // Write the histogram to a file
-//        const std::string path = prefix.str() + std::string(".histogram");
-//        File::writeIntegerDistributionToFile(path, histogram);
-//    }
+        // Write the histogram to a file
+        const std::string path = options->outputPrefix + HISTOGRAM_EXTENSION;
+        File::writeIntegerDistributionToFile(path, histogram);
+    }
 
     // Construct the iso-volume that will be used for the mesh reconstruction
     Ultraliser::Volume* volume;
