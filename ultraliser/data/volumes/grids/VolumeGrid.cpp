@@ -29,8 +29,6 @@ VolumeGrid::VolumeGrid(const uint64_t &width,
                        const uint64_t &height,
                        const uint64_t &depth)
 {
-    std::cout << "_createGrid 3*" << std::endl;
-
     // Dimensions
     _width = width;
     _height = height;

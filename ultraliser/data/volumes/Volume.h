@@ -536,7 +536,7 @@ public:
 
 
     /**
-     * @brief constructFullRangeVolume
+     * @brief constructNonZeroVolume
      * Constructs a binary volume (1 bit per voxel) from a byte volume (1 byte
      * per voxel). If the voxel is filled, then it sets the value of the bit
      * to 1, otherwise it is zero.
@@ -548,7 +548,7 @@ public:
      * @return
      * A binary volume (1 bit per voxel) corresponding to the given iso value.
      */
-    static Volume* constructFullRangeVolume(const Volume* volume);
+    static Volume* constructNonZeroVolume(const Volume* volume);
 
 
 
@@ -616,8 +616,11 @@ private:
 
     /**
      * @brief _allocateGrid
+     * @param width
+     * @param height
+     * @param depth
      */
-    void _allocateGrid();
+    void _allocateGrid(const size_t& width, const size_t& height, const size_t& depth);
 
     /**
      * @brief _createGrid

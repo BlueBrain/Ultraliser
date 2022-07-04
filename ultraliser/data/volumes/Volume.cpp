@@ -142,9 +142,8 @@ Volume::Volume(const int64_t width,
     _voxelSize = 1.0;
 
     // Allocating the grid
-    _allocateGrid();
+    _allocateGrid(width, height, depth);
 }
-
 
 void Volume::_createGrid(const NRRDVolumeData* volumeData)
 {
@@ -377,57 +376,45 @@ void Volume::_createGrid(const UltraliserVolumeData* volumeData)
     }
 }
 
-void Volume::_allocateGrid()
+void Volume::_allocateGrid(const size_t &width, const size_t &height, const size_t &depth)
 {
-    // Grid dimensions
-    const auto sizeX = _grid->getWidth();
-    const auto sizeY = _grid->getHeight();
-    const auto sizeZ = _grid->getDepth();
-
     // Create the grid
     switch (_gridType)
     {
     case VOLUME_TYPE::BIT:
     {
-        _grid = new BitVolumeGrid(sizeX, sizeY, sizeZ);
-        break;
-    }
+        _grid = new BitVolumeGrid(width, height, depth);
+    } break;
 
     case VOLUME_TYPE::UI8:
     {
-        _grid = new VolumeGridU8(sizeX, sizeY, sizeZ);
-        break;
-    }
+        _grid = new VolumeGridU8(width, height, depth);
+    } break;
 
     case VOLUME_TYPE::UI16:
     {
-        _grid = new VolumeGridU16(sizeX, sizeY, sizeZ);
-        break;
-    }
+        _grid = new VolumeGridU16(width, height, depth);
+    } break;
 
     case VOLUME_TYPE::UI32:
     {
-        _grid = new VolumeGridU32(sizeX, sizeY, sizeZ);
-        break;
-    }
+        _grid = new VolumeGridU32(width, height, depth);
+    } break;
 
     case VOLUME_TYPE::UI64:
     {
-        _grid = new VolumeGridU64(sizeX, sizeY, sizeZ);
-        break;
-    }
+        _grid = new VolumeGridU64(width, height, depth);
+    } break;
 
     case VOLUME_TYPE::F32:
     {
-        _grid = new VolumeGridF32(sizeX, sizeY, sizeZ);
-        break;
-    }
+        _grid = new VolumeGridF32(width, height, depth);
+    } break;
 
     case VOLUME_TYPE::F64:
     {
-        _grid = new VolumeGridF64(sizeX, sizeY, sizeZ);
-        break;
-    }
+        _grid = new VolumeGridF64(width, height, depth);
+    }  break;
 
     default:
         break;
@@ -465,7 +452,7 @@ void Volume::_createGrid(void)
                 boundingBoxSize[0], boundingBoxSize[1], boundingBoxSize[2]);
 
     // Allocating the grid
-    _allocateGrid();
+    _allocateGrid(width, height, depth);
 }
 
 
@@ -479,7 +466,7 @@ void Volume::surfaceVoxelization(Mesh* mesh,
     TIMER_SET;
 
     if (verbose)
-        LOG_STATUS("Creating Volume Shell [%zs x %zs x %zs]",
+        LOG_STATUS("Creating Volume Shell [%zu x %zu x %zu]",
                    _grid->getWidth(), _grid->getHeight(), _grid->getDepth());
     if (parallel)
         _rasterizeParallel(mesh, _grid);
@@ -2385,7 +2372,7 @@ Volume* Volume::constructIsoValueVolume(const Volume* volume,
                                    volume->getPMin(), volume->getPMax(),
                                    VOLUME_TYPE::BIT);
 
-    LOG_STATUS("Constructing Iso Volume from a Single Value [%zs]", isoValue);
+    LOG_STATUS("Constructing Iso Volume from a Single Value [%zu]", isoValue);
     for (size_t x = 0; x < volume->getWidth(); ++x)
     {
         LOOP_PROGRESS(x, volume->getWidth());
@@ -2418,7 +2405,7 @@ Volume* Volume::constructVolumeWithMinimumIsoValue(const Volume* volume,
                                    volume->getPMin(), volume->getPMax(),
                                    VOLUME_TYPE::BIT);
 
-    LOG_STATUS("Constructing Iso Volume with Minimum Value [%zs]", minIsoValue);
+    LOG_STATUS("Constructing Iso Volume with Minimum Value [%zu]", minIsoValue);
     for (size_t x = 0; x < volume->getWidth(); ++x)
     {
         LOOP_PROGRESS(x, volume->getWidth());
@@ -2451,7 +2438,7 @@ Volume* Volume::constructVolumeWithMaximumIsoValue(const Volume* volume,
                                    volume->getPMin(), volume->getPMax(),
                                    VOLUME_TYPE::BIT);
 
-    LOG_STATUS("Constructing Iso Volume with Minimum Value [%zs]", minIsoValue);
+    LOG_STATUS("Constructing Iso Volume with Minimum Value [%zu]", minIsoValue);
     for (size_t x = 0; x < volume->getWidth(); ++x)
     {
         LOOP_PROGRESS(x, volume->getWidth());
@@ -2485,7 +2472,7 @@ Volume* Volume::constructVolumeWithIsoRange(const Volume* volume,
                                    volume->getPMin(), volume->getPMax(),
                                    VOLUME_TYPE::BIT);
 
-    LOG_STATUS("Constructing Iso Volume with Range [%zs - %zs]", minIsoValue, maxIsoValue);
+    LOG_STATUS("Constructing Iso Volume with Range [%zu - %zu]", minIsoValue, maxIsoValue);
     for (size_t x = 0; x < volume->getWidth(); ++x)
     {
         LOOP_PROGRESS(x, volume->getWidth());
@@ -2511,7 +2498,7 @@ Volume* Volume::constructVolumeWithIsoRange(const Volume* volume,
     return isoVolume;
 }
 
-Volume* Volume::constructFullRangeVolume(const Volume* volume)
+Volume* Volume::constructNonZeroVolume(const Volume* volume)
 {
     // Create the iso-volume
     Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),

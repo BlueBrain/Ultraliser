@@ -105,6 +105,12 @@ public:
     void verifyMaskPrefixArgument();
 
     /**
+     * @brief verifyVolumePrefixArgument
+     * Verifies the prefix arguments for a given volume.
+     */
+    void verifyVolumePrefixArgument();
+
+    /**
      * @brief verifyMaskDimensionsArguments
      * Verifies the dimensions of the given mask NOT to be zero.
      */

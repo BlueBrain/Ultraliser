@@ -31,10 +31,10 @@ AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
     std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This tool reconstructs a watertight mesh from a given volume."
-              "The volume is given in .img/.hdr format."
-              "The reconstructed mesh can be optimized to create a mesh with "
-              "nicer topology and less tessellation.");
+              "ultraVolume2Mesh reconstructs a watertight mesh from a given volume."
+              "The volume can be a .NRRD file, a RAW file in .HDR/.IMG or an Ulrraliser-specific "
+              "volume in .UVOL or .UVOLB. The reconstructed mesh can is optimized to create clean "
+              "topology and less tessellation.");
 
     args->addInputVolumeArguments();
     args->addInputVolumeParametersArguments();
@@ -57,13 +57,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyMeshExportArguments();
     options->verifyIsoSurfaceExtractionArgument();
     options->verifyIsoOptionArgument();
-
-
-    // If no prefix is given, use the file name
-    if (options->prefix == NO_DEFAULT_VALUE)
-    {
-        options->prefix = Ultraliser::File::getName(options->inputVolumePath);
-    }
+    options->verifyVolumePrefixArgument();
 
     // Initialize context
     options->initializeContext();
@@ -101,32 +95,41 @@ void run(int argc , const char** argv)
 //        File::writeIntegerDistributionToFile(path, histogram);
 //    }
 
-    // Construct a volume that will be used for the mesh reconstruction
+    // Construct the iso-volume that will be used for the mesh reconstruction
     Ultraliser::Volume* volume;
     if (options->isoOption == ISOVALUE_STRING)
     {
-        // Construct a bit volume with a specific iso value
+        // Construct a volume with a specific iso value
         volume = Volume::constructIsoValueVolume(loadedVolume, options->isoValue);
     }
     else if (options->isoOption == ISOVALUES_STRING)
     {
-        // Parse the isp-values file into a list
+        // Parse the iso-values from the file into a list
         const std::vector< uint64_t > isoValues = File::parseIsovaluesFile(options->isovaluesFile);
 
+        // Construct a volume with a list of values
         volume = Volume::constructIsoValuesVolume(loadedVolume, isoValues);
     }
     else if (options->isoOption == MIN_ISOVALUE_STRING)
     {
+        // Construct a volume with a minimum value
         volume = Volume::constructVolumeWithMinimumIsoValue(loadedVolume, options->minIsoValue);
     }
     else if (options->isoOption == MAX_ISOVALUE_STRING)
     {
+        // Construct a volume with a maximum value
         volume = Volume::constructVolumeWithMaximumIsoValue(loadedVolume, options->maxIsoValue);
     }
-    else if (options->isoOption == FULL_RANGE_STRING)
+    else if (options->isoOption == ISOVALUE_RANGE_STRING)
     {
-        // Construct a bit volume with a specific iso value
-        volume = Volume::constructFullRangeVolume(loadedVolume);
+        // Construct a volume with a given range
+        volume = Volume::constructVolumeWithIsoRange(loadedVolume,
+                                                     options->minIsoValue, options->maxIsoValue);
+    }
+    else if (options->isoOption == NON_ZERO_STRING)
+    {
+        // Construct a volume containing all the non-zero voxels of the loaded volume
+        volume = Volume::constructNonZeroVolume(loadedVolume);
     }
     else
     {
