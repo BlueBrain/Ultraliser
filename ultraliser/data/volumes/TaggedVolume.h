@@ -19,11 +19,10 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_TAGGED_VOLUME_H
-#define ULTRALISER_TAGGED_VOLUME_H
+#pragma once
 
 #include <common/Common.h>
-#include <data/volumes/volumes/Volume.h>
+#include <data/volumes/Volume.h>
 
 namespace Ultraliser
 {
@@ -270,10 +269,10 @@ public:
     void addVolume(const Volume* volume, const uint8_t& index);
 
     /**
-     * @brief writeRAW
+     * @brief writeRAWVolume
      * @param prefix
      */
-    void writeRAW(const std::string &prefix) const;
+    void writeRAWVolume(const std::string &prefix) const;
 
     /**
      * @brief writeVolumes
@@ -299,10 +298,10 @@ public:
     void writeASCII(const std::string &prefix) const;
 
     /**
-     * @brief writeNRRD
+     * @brief writeNRRDVolume
      * @param prefix
      */
-    void writeNRRD(const std::string &prefix) const;
+    void writeNRRDVolume(const std::string &prefix) const;
 
     /**
      * @brief projectVolume
@@ -444,5 +443,3 @@ private:
 };
 
 }
-
-#endif // ULTRALISER_TAGGED_VOLUME_H

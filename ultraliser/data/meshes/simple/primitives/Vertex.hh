@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MESHES_SIMPLE_PRIMITIVES_VERTEX_HH
-#define ULTRALISER_MESHES_SIMPLE_PRIMITIVES_VERTEX_HH
+#pragma once
 
 #include <math/Math.h>
 
@@ -44,4 +43,3 @@ typedef std::vector< Vertex > Vertices;
 
 }
 
-#endif // ULTRALISER_MESHES_SIMPLE_PRIMITIVES_VERTEX_HH

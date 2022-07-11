@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_BIT_ARRAY_H
-#define ULTRALISER_DATA_BIT_ARRAY_H
+#pragma once
 
 #include <common/Common.h>
 
@@ -439,4 +438,3 @@ protected:
 };
 
 }
-#endif // ULTRALISER_DATA_BIT_ARRAY_H

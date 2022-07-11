@@ -26,12 +26,11 @@
  * at < https://github.com/dominikwodniok/dualmc >.
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DUAL_MARCHING_CUBES_H
-#define ULTRALISER_DUAL_MARCHING_CUBES_H
+#pragma once
 
 #include <algorithms/DualMarchingCubes.hh>
-#include <data/volumes/volumes/Volume.h>
-#include <data/volumes/volumes/TaggedVolume.h>
+#include <data/volumes/Volume.h>
+#include <data/volumes/TaggedVolume.h>
 #include <data/meshes/advanced/AdvancedMesh.h>
 
 // Default iso surface value
@@ -50,7 +49,7 @@ public:
      * @param isoValue
      */
     DualMarchingCubes(Volume* volume,
-                      const uint8_t isoValue = DEFAULT_ISO_VALUE,
+                      const uint64_t isoValue = DEFAULT_ISO_VALUE,
                       const bool &generateManifold = true);
 
     /**
@@ -198,7 +197,7 @@ private:
     /**
      * @brief _isoValue
      */
-    const uint8_t _isoValue;
+    const uint64_t _isoValue;
 
     /**
      * @brief _generateManifold
@@ -212,4 +211,3 @@ private:
 };
 
 }
-#endif // ULTRALISER_DUAL_MARCHING_CUBES_H

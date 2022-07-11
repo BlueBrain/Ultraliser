@@ -25,6 +25,8 @@
  * commercial use. For further information, please contact Marco Attene.
  **************************************************************************************************/
 
+#pragma once
+
 namespace Ultraliser
 {
 

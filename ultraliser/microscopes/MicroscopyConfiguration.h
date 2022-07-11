@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_PBRT_MICROSCOPY_CONFIGURATION_H
-#define ULTRALISER_PBRT_MICROSCOPY_CONFIGURATION_H
+#pragma once
 
 #include <data/NeuronData.h>
 #include <microscopes/PBRTParameters.h>
@@ -191,5 +190,3 @@ void createPBRTMicroscopyConfigurations(const std::string &pbrtBFMConfig,
 
 }
 }
-
-#endif // ULTRALISER_PBRT_MICROSCOPY_CONFIGURATION_H

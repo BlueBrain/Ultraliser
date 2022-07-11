@@ -19,12 +19,11 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ALGORITHMS_MARCHINGCUBES_H
-#define ULTRALISER_ALGORITHMS_MARCHINGCUBES_H
+#pragma once
 
 #include <algorithms/DualMarchingCubes.hh>
-#include <data/volumes/volumes/Volume.h>
-#include <data/volumes/volumes/TaggedVolume.h>
+#include <data/volumes/Volume.h>
+#include <data/volumes/TaggedVolume.h>
 #include <data/meshes/advanced/AdvancedMesh.h>
 
 namespace Ultraliser
@@ -44,7 +43,7 @@ public:
      * @param isoValue
      */
     MarchingCubes(Volume* volume,
-                  const uint8_t isoValue = 127);
+                  const uint64_t isoValue = 127);
 
     /**
      * @brief generateMesh
@@ -124,7 +123,7 @@ private:
     /**
      * @brief _isoValue
      */
-    const uint8_t _isoValue;
+    const uint64_t _isoValue;
 
     /**
      * @brief _meshExtractionTime
@@ -133,5 +132,3 @@ private:
 };
 
 }
-
-#endif // ULTRALISER_ALGORITHMS_MARCHINGCUBES_H

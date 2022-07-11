@@ -1,4 +1,3 @@
-#ifndef ULTRALISER_ARGUMENTS_ARGS_H
 /***************************************************************************************************
  * Copyright (c) 2016 - 2021
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
@@ -20,7 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#define ULTRALISER_ARGUMENTS_ARGS_H
+#pragma once
 
 #include "ArgumentParser.h"
 
@@ -105,5 +104,3 @@ private:
 };
 
 }
-
-#endif // ULTRALISER_ARGUMENTS_ARGS_H

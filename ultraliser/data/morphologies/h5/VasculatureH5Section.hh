@@ -20,8 +20,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_SECTION_HH
-#define ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_SECTION_HH
+#pragma once
 
 #include <vector>
 #include <common/Headers.hh>
@@ -55,4 +54,3 @@ struct VasculatureH5Section
 typedef std::vector< VasculatureH5Section > VasculatureH5Sections;
 
 }
-#endif // ULTRALISER_DATA_MORPHOLOGIES_VASCULATURE_H5_SECTION_HH

@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_PBRT_LSFM_H
-#define ULTRALISER_PBRT_LSFM_H
+#pragma once
 
 #include <math/Math.h>
 #include <microscopes/PBRTParameters.h>
@@ -61,6 +60,3 @@ std::string createConfigLSFMZY(const std::string inputConfig,
 
 }
 }
-
-#endif // ULTRALISER_PBRT_LSFM_H
-

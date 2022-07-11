@@ -26,8 +26,7 @@
  * at < https://github.com/dominikwodniok/dualmc >.
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ALGORITHMS_DUAL_MARCHING_CUBES_HH
-#define ULTRALISER_ALGORITHMS_DUAL_MARCHING_CUBES_HH
+#pragma once
 
 #include <common/Common.h>
 
@@ -451,5 +450,3 @@ static const uint8_t PROBLEMATIC_CONFIGS[256] =
 };
 
 }
-
-#endif // ULTRALISER_ALGORITHMS_DUAL_MARCHING_CUBES_HH

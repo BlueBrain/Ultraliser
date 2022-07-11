@@ -30,11 +30,9 @@
  * to the original repository at < https://github.com/MarcoAttene/MeshFix-V2.1>.
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_STRUCTURES_MATRIX_H
-#define ULTRALISER_DATA_STRUCTURES_MATRIX_H
+#pragma once
 
 #include <data/meshes/advanced/math/Matrix3x3.h>
 #include <data/meshes/advanced/math/Matrix4x4.h>
 
-#endif // MATRIX_H
 

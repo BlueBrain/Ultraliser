@@ -19,10 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_DATA_H
-#define ULTRALISER_DATA_DATA_H
+#pragma once
 
 #include <data/meshes/advanced/Advanced.h>
 #include <data/meshes/simple/Simple.h>
-
-#endif // ULTRALISER_DATA_DATA_H

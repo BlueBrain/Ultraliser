@@ -22,8 +22,7 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ALGORITHMS_SIMULATION_ANIM_SYSTEM_H
-#define ULTRALISER_ALGORITHMS_SIMULATION_ANIM_SYSTEM_H
+#pragma once
 
 #include "Mesh.h"
 
@@ -94,5 +93,3 @@ private:
 
 }
 }
-
-#endif  // ULTRALISER_ALGORITHMS_SIMULATION_ANIM_SYSTEM_H

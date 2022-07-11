@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_BITARRAY_HH
-#define ULTRALISER_DATA_BITARRAY_HH
+#pragma once
 
 /// Make CHAR_BIT 8 if it's not defined in limits.h
 #ifndef CHAR_BIT
@@ -38,5 +37,3 @@
 
 /// Most significant bit in a character
 #define MS_BIT                (1 << (CHAR_BIT - 1))
-
-#endif // ULTRALISER_DATA_BITARRAY_HH

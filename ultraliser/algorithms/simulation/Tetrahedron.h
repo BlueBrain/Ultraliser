@@ -22,8 +22,7 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ALGORITHMS_SIMULATION_TETRAHEDRON_H
-#define ULTRALISER_ALGORITHMS_SIMULATION_TETRAHEDRON_H
+#pragma once
 
 #include "Node.h"
 
@@ -111,8 +110,5 @@ typedef Tetrahedron* TetrahedronPtr;
  */
 typedef std::vector<TetrahedronPtr> Tetrahedra;
 
-
 }
 }
-
-#endif  // ULTRALISER_ALGORITHMS_SIMULATION_TETRAHEDRON_H

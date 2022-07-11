@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MESH_SIMPLE_MESH_STATISTICS_H
-#define ULTRALISER_DATA_MESH_SIMPLE_MESH_STATISTICS_H
+#pragma once
 
 #include <common/Common.h>
 #include <math/Math.h>
@@ -177,5 +176,3 @@ private:
 };
 
 }
-
-#endif // ULTRALISER_DATA_MESH_SIMPLE_MESH_STATISTICS_H

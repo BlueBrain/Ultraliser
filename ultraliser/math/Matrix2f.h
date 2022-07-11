@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MATH_MATRIX2F_H
-#define ULTRALISER_MATH_MATRIX2F_H
+#pragma once
 
 #include <cstdio>
 
@@ -234,5 +233,3 @@ Vector2f operator * (const Matrix2f& m, const Vector2f& v);
 Matrix2f operator * (const Matrix2f& x, const Matrix2f& y);
 
 }
-
-#endif // ULTRALISER_MATH_MATRIX2F_H

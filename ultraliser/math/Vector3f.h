@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MATH_VECTOR_3F_H
-#define ULTRALISER_MATH_VECTOR_3F_H
+#pragma once
 
 namespace Ultraliser
 {
@@ -206,6 +205,12 @@ public:
      * @brief isNan
      */
     bool isNan() const;
+
+    /**
+     * @brief isZero
+     * @return
+     */
+    bool isZero() const;
     
     /**
      * @brief orthogonal
@@ -323,6 +328,11 @@ public:
      * @brief ZERO
      */
     static const Vector3f ZERO;
+
+    /**
+     * @brief ONE
+     */
+    static const Vector3f ONE;
 
     /**
      * @brief UP
@@ -445,5 +455,3 @@ bool operator < (const Vector3f& v0, const Vector3f& v1);
 bool operator != (const Vector3f& v0, const Vector3f& v1);
 
 }
-
-#endif // ULTRALISER_MATH_VECTOR_3F_H

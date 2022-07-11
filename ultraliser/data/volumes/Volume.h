@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_VOLUME_H
-#define ULTRALISER_DATA_VOLUME_H
+#pragma once
 
 #include <common/Common.h>
 #include <data/common/GridIndex.h>
@@ -28,6 +27,8 @@
 #include <data/meshes/advanced/AdvancedMesh.h>
 #include <data/morphologies/Morphologies.h>
 #include <data/meshes/simple/Mesh.h>
+#include <data/volumes/utilities/VolumeType.hh>
+#include <data/volumes/utilities/VolumeData.hh>
 
 namespace Ultraliser
 {
@@ -39,8 +40,11 @@ namespace Ultraliser
  */
 class Volume
 {
-
 public:
+
+    /**
+     * @brief The SOLID_VOXELIZATION_AXIS enum
+     */
     enum SOLID_VOXELIZATION_AXIS
     {
         X = 0,
@@ -50,6 +54,8 @@ public:
     };
 
 public:
+
+    Volume(const std::string &filePath);
 
     /**
      * @brief Volume
@@ -71,7 +77,7 @@ public:
            const Vector3f& pMax,
            const uint64_t &baseResolution = 512,
            const float &expansionRatio = 0.0,
-           const VolumeGrid::TYPE& gridType = VolumeGrid::TYPE::BIT);
+           const VOLUME_TYPE& gridType = VOLUME_TYPE::BIT);
 
     /**
      * @brief Volume
@@ -83,19 +89,11 @@ public:
     Volume(const int64_t width,
            const int64_t height,
            const int64_t depth,
-           const Vector3f pMin,
-           const Vector3f pMax,
-           const VolumeGrid::TYPE& gridType = VolumeGrid::TYPE::BIT,
+           const Vector3f pMin = Vector3f::ZERO,
+           const Vector3f pMax = Vector3f::ZERO,
+           const VOLUME_TYPE& gridType = VOLUME_TYPE::BIT,
            const float expansionRatio = 0.0);
 
-    /**
-     * @brief Volume
-     * Constructor
-     * @param prefix
-     * @param type
-     */
-    Volume(const std::string &prefix,
-           const VolumeGrid::TYPE& gridType = VolumeGrid::TYPE::BIT);
     ~Volume();
 
     /**
@@ -105,26 +103,35 @@ public:
      */
     uint8_t getByte(const uint64_t index) const;
 
-    /**
-     * @brief getValue
-     * @param index
-     * @return
-     */
-    uint8_t getValue(const uint64_t index) const;
 
     uint8_t getConfirmedValue(const int64_t &x,
                                       const int64_t &y,
                                       const int64_t &z) const;
-    /**
-     * @brief getValue
-     * @param x
-     * @param y
-     * @param z
-     * @return
-     */
-    uint8_t getValue(const int64_t &x,
-                     const int64_t &y,
-                     const int64_t &z) const;
+
+    uint8_t getValueUI8(const int64_t &x,
+                        const int64_t &y,
+                        const int64_t &z) const;
+
+    uint16_t getValueUI16(const int64_t &x,
+                          const int64_t &y,
+                          const int64_t &z) const;
+
+    uint32_t getValueUI32(const int64_t &x,
+                          const int64_t &y,
+                          const int64_t &z) const;
+
+    uint64_t getValueUI64(const int64_t &x,
+                          const int64_t &y,
+                          const int64_t &z) const;
+
+    float getValueF32(const int64_t &x,
+                      const int64_t &y,
+                      const int64_t &z) const;
+
+    double getValueF64(const int64_t &x,
+                       const int64_t &y,
+                       const int64_t &z) const;
+
 
     /**
      * @brief fillVoxel
@@ -184,18 +191,6 @@ public:
                              const std::vector< std::string>& meshFiles);
 
     /**
-     * @brief surfaceVoxelizeVasculatureMorphologyParallel
-     * Create the volumetric shell of the vasculature morphology.
-     * @param vasculatureMorphology
-     * The input vascular morphology.
-     * @param packingAlgorithm
-     * The used packing algorithm.
-     */
-    void surfaceVoxelizeVasculatureMorphologyParallel(
-            VasculatureMorphology* vasculatureMorphology,
-            const std::string& packingAlgorithm = POLYLINE_PACKING);
-	
-    /**
      * @brief surfaceVoxelizeNeuronMorphology
      * @param morphology
      */
@@ -209,6 +204,19 @@ public:
                                                     float threshold = 0.75);
 
     /**
+     * @brief surfaceVoxelizeVasculatureMorphologyParallel
+     * Create the volumetric shell of the vasculature morphology.
+     * @param vasculatureMorphology
+     * The input vascular morphology.
+     * @param packingAlgorithm
+     * The used packing algorithm.
+     */
+    void surfaceVoxelizeVasculatureMorphologyParallel(
+            VasculatureMorphology* vasculatureMorphology,
+            const std::string& packingAlgorithm = POLYLINE_PACKING);
+	
+
+    /**
      * @brief solidVoxelization
      * lood fill the exterior to figure out the interior.
      * @param algorithm
@@ -217,6 +225,7 @@ public:
 
     /**
      * @brief exportToMesh
+     * Exports the volume into a mesh file in several file formats.
      * @param prefix
      * @param formatOBJ
      * @param formatPLY
@@ -231,6 +240,7 @@ public:
 
     /**
      * @brief exportVolumeGridMesh
+     * Export the volumegrid into a mesh file in several file formats.
      * @param prefix
      * @param formatOBJ
      * @param formatPLY
@@ -244,6 +254,7 @@ public:
                                 const bool &formatSTL = false) const;
     /**
      * @brief exportBoundingBoxMesh
+     * Exoprts the bounding box of the mesh in several file formats.
      * @param prefix
      * @param formatOBJ
      * @param formatPLY
@@ -281,14 +292,23 @@ public:
 
     /**
      * @brief writeVolumes
+     * Write the volume to the file system using different file formats.
      * @param prefix
+     * File prefix.
      * @param binaryFormat
+     * The volume will be stored in .HDR/.BIN files, where each voxel will be stored in a
+     * single bit.
      * @param rawFormat
+     * The volume will be stored in .HDR/.IMG files, where each voxel will be stored
+     * @param nrrdFormat
+     * @param ultraliserFormat
      */
     void writeVolumes(const std::string &prefix,
-                      const bool& binaryFormat = false,
-                      const bool& rawFormat = false,
-                      const bool& nrrdFormat = false) const;
+                      const bool& bitFormat = false,
+                      const bool& unsignedFormat = false,
+                      const bool& floatFormat = false,
+                      const bool& nrrdFormat = false,
+                      const bool &rawFormat = false) const;
 
     /**
      * @brief writeStacks
@@ -483,7 +503,7 @@ public:
     static Volume* constructFromTiffMask(const std::string &maskDirectory,
                                          const int64_t &maskWidth,
                                          const int64_t &maskHeight,
-                                         const VolumeGrid::TYPE &gridType);
+                                         const VOLUME_TYPE &gridType);
 
     /**
      * @brief constructIsoValueVolume
@@ -500,11 +520,23 @@ public:
      * A binary volume (1 bit per voxel) corresponding to the given iso value.
      */
     static Volume* constructIsoValueVolume(const Volume* volume,
-                                           const uint8_t &isoValue,
-                                           const int64_t &padding = 32);
+                                           const size_t &isoValue);
+
+
+    static Volume* constructVolumeWithMinimumIsoValue(const Volume* volume,
+                                                      const size_t& minIsoValue);
+
+    static Volume* constructVolumeWithMaximumIsoValue(const Volume* volume,
+                                                      const size_t& minIsoValue);
+
+    static Volume* constructVolumeWithIsoRange(const Volume* volume,
+                                               const size_t& minIsoValue,
+                                               const size_t& maxIsoValue);
+
+
 
     /**
-     * @brief constructFullRangeVolume
+     * @brief constructNonZeroVolume
      * Constructs a binary volume (1 bit per voxel) from a byte volume (1 byte
      * per voxel). If the voxel is filled, then it sets the value of the bit
      * to 1, otherwise it is zero.
@@ -516,8 +548,12 @@ public:
      * @return
      * A binary volume (1 bit per voxel) corresponding to the given iso value.
      */
-    static Volume* constructFullRangeVolume(const Volume* volume,
-                                            const int64_t &padding = 32);
+    static Volume* constructNonZeroVolume(const Volume* volume);
+
+
+
+    static Volume* constructIsoValuesVolume(const Volume* volume,
+                                            const std::vector<uint64_t> &isoValues);
 
     /**
      * @brief createHistogram
@@ -527,7 +563,7 @@ public:
      * @return
      * Histogram array.
      */
-    static std::vector<uint64_t> createHistogram(const Volume* volume);
+    static std::vector<uint64_t> createHistogram(const Volume* volume, const VOLUME_TYPE &type);
 
     /**
      * @brief getVoxelBoundingBox
@@ -564,36 +600,40 @@ public:
      */
     float getVoxelSize() const { return _voxelSize; }
 
+    Vector3f getPMin() const { return _pMin; }
+    Vector3f getPMax() const { return _pMax; }
+    Vector3f getCenter() const { return _center; }
+    Vector3f getScale() const { return _scale; }
+
+    /**
+     * @brief getType
+     * @return
+     */
+    VOLUME_TYPE getType() const { return _gridType; }
+
+
 private:
 
     /**
-     * @brief _loadHeaderData
-     * @param prefix
-     */
-    void _loadHeaderData(const std::string &prefix);
-
-    /**
-     * @brief _loadByteVolumeData
-     * @param prefix
-     */
-    void _loadByteVolumeData(const std::string &prefix);
-
-    /**
-     * @brief _loadBinaryVolumeData
-     * @param prefix
-     */
-    void _loadBinaryVolumeData(const std::string &prefix);
-
-    /**
      * @brief _allocateGrid
+     * @param width
+     * @param height
+     * @param depth
      */
-    void _allocateGrid();
+    void _allocateGrid(const size_t& width, const size_t& height, const size_t& depth);
 
     /**
      * @brief _createGrid
      * Creates the volume grid and initializes it to zeros.
      */
     void _createGrid(void);
+
+    void _createGrid(const std::string& headerFilePath);
+
+    void _createGrid(const UltraliserVolumeData* volumeData);
+
+    void _createGrid(const NRRDVolumeData* volumeData);
+
 
     /**
      * @brief _clampIndex
@@ -757,7 +797,7 @@ private:
     /**
      * @brief _gridType
      */
-    const VolumeGrid::TYPE _gridType;
+    VOLUME_TYPE _gridType;
 
     /**
      * @brief _pMin
@@ -770,16 +810,22 @@ private:
     Vector3f _pMax;
 
     /**
+     * @brief _center
+     */
+    Vector3f _center;
+
+    Vector3f _scale;
+
+    /**
      * @brief _expansionRatio
      * Additional layer of voxels around the bounding box of the object.
      */
     float _expansionRatio;
 
     /**
-     * @brief _gridDimensions
-     * The dimensions of the volume grid.
+     * @brief rawFileName
      */
-    Vec3i_64 _gridDimensions;
+    std::string _rawFileName;
 
     /**
      * @brief _baseResolution
@@ -831,5 +877,3 @@ public:
 };
 
 }
-
-#endif // ULTRALISER_DATA_VOLUME_H

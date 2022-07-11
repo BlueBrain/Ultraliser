@@ -34,7 +34,7 @@ namespace Ultraliser
 {
 
 DualMarchingCubes::DualMarchingCubes(Volume *volume,
-                                     const uint8_t isoValue,
+                                     const uint64_t isoValue,
                                      const bool& generateManifold)
     : _volume(volume)
     , _isoValue(isoValue)
@@ -102,21 +102,21 @@ int DualMarchingCubes::_getCellCode(const int64_t &x, const int64_t &y, const in
     // Determine for each cube corner if it is outside or inside
     int code = 0;
 
-    if (_volume->getValue(x, y, z) >= _isoValue)
+    if (_volume->getValueUI64(x, y, z) >= _isoValue)
         code |= 1;
-    if (_volume->getValue(x + 1, y, z) >= _isoValue)
+    if (_volume->getValueUI64(x + 1, y, z) >= _isoValue)
         code |= 2;
-    if (_volume->getValue(x, y + 1, z) >= _isoValue)
+    if (_volume->getValueUI64(x, y + 1, z) >= _isoValue)
         code |= 4;
-    if (_volume->getValue(x + 1, y + 1, z) >= _isoValue)
+    if (_volume->getValueUI64(x + 1, y + 1, z) >= _isoValue)
         code |= 8;
-    if (_volume->getValue(x, y, z + 1) >= _isoValue)
+    if (_volume->getValueUI64(x, y, z + 1) >= _isoValue)
         code |= 16;
-    if (_volume->getValue(x + 1, y, z + 1) >= _isoValue)
+    if (_volume->getValueUI64(x + 1, y, z + 1) >= _isoValue)
         code |= 32;
-    if (_volume->getValue(x, y + 1, z + 1) >= _isoValue)
+    if (_volume->getValueUI64(x, y + 1, z + 1) >= _isoValue)
         code |= 64;
-    if (_volume->getValue(x + 1, y + 1, z + 1) >= _isoValue)
+    if (_volume->getValueUI64(x + 1, y + 1, z + 1) >= _isoValue)
         code |= 128;
 
     return code;
@@ -224,38 +224,38 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     // Sum edge intersection vertices using the point code
     if (I2UI32(pointCode) & EDGE0)
     {
-        p.x() += (_isoValue - _volume->getValue(x, y, z)) /
-                (_volume->getValue(x + 1, y, z) - _volume->getValue(x, y, z));
+        p.x() += (_isoValue - _volume->getValueUI64(x, y, z)) /
+                (_volume->getValueUI64(x + 1, y, z) - _volume->getValueUI64(x, y, z));
         points++;
     }
 
     if (I2UI32(pointCode) & EDGE1)
     {
         p.x() += 1.0f;
-        p.z() += (_isoValue - _volume->getValue(x + 1, y, z)) /
-                (_volume->getValue(x + 1, y, z + 1) - _volume->getValue(x + 1, y, z));
+        p.z() += (_isoValue - _volume->getValueUI64(x + 1, y, z)) /
+                (_volume->getValueUI64(x + 1, y, z + 1) - _volume->getValueUI64(x + 1, y, z));
         points++;
     }
 
     if (I2UI32(pointCode) & EDGE2)
     {
-        p.x() += (_isoValue - _volume->getValue(x, y, z + 1)) /
-                (_volume->getValue(x + 1, y, z + 1) - _volume->getValue(x, y, z + 1));
+        p.x() += (_isoValue - _volume->getValueUI64(x, y, z + 1)) /
+                (_volume->getValueUI64(x + 1, y, z + 1) - _volume->getValueUI64(x, y, z + 1));
         p.z() += 1.0f;
         points++;
     }
 
     if (I2UI32(pointCode) & EDGE3)
     {
-        p.z() += (_isoValue - _volume->getValue(x, y, z)) /
-                (_volume->getValue(x, y, z + 1) - _volume->getValue(x, y, z));
+        p.z() += (_isoValue - _volume->getValueUI64(x, y, z)) /
+                (_volume->getValueUI64(x, y, z + 1) - _volume->getValueUI64(x, y, z));
         points++;
     }
 
     if (I2UI32(pointCode) & EDGE4)
     {
-        p.x() += (_isoValue - _volume->getValue(x, y + 1, z)) /
-                (_volume->getValue(x + 1, y + 1, z) - _volume->getValue(x, y + 1, z));
+        p.x() += (_isoValue - _volume->getValueUI64(x, y + 1, z)) /
+                (_volume->getValueUI64(x + 1, y + 1, z) - _volume->getValueUI64(x, y + 1, z));
         p.y() += 1.0f;
         points++;
     }
@@ -263,16 +263,16 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     if (I2UI32(pointCode) & EDGE5)
     {
         p.x() += 1.0f;
-        p.z() += (_isoValue - _volume->getValue(x + 1, y + 1, z)) /
-                (_volume->getValue(x + 1, y + 1, z + 1) - _volume->getValue(x + 1, y + 1, z));
+        p.z() += (_isoValue - _volume->getValueUI64(x + 1, y + 1, z)) /
+                (_volume->getValueUI64(x + 1, y + 1, z + 1) - _volume->getValueUI64(x + 1, y + 1, z));
         p.y() += 1.0f;
         points++;
     }
 
     if (I2UI32(pointCode) & EDGE6)
     {
-        p.x() += (_isoValue - _volume->getValue(x, y + 1, z + 1)) /
-                (_volume->getValue(x + 1, y + 1, z + 1) - _volume->getValue(x, y + 1, z + 1));
+        p.x() += (_isoValue - _volume->getValueUI64(x, y + 1, z + 1)) /
+                (_volume->getValueUI64(x + 1, y + 1, z + 1) - _volume->getValueUI64(x, y + 1, z + 1));
         p.z() += 1.0f;
         p.y() += 1.0f;
         points++;
@@ -280,32 +280,32 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
 
     if (I2UI32(pointCode) & EDGE7)
     {
-        p.z() += (_isoValue - _volume->getValue(x, y + 1 , z)) /
-                (_volume->getValue(x, y + 1, z + 1) - _volume->getValue(x, y + 1 , z));
+        p.z() += (_isoValue - _volume->getValueUI64(x, y + 1 , z)) /
+                (_volume->getValueUI64(x, y + 1, z + 1) - _volume->getValueUI64(x, y + 1 , z));
         p.y() += 1.0f;
         points++;
     }
 
     if (I2UI32(pointCode) & EDGE8)
     {
-        p.y() += (_isoValue - _volume->getValue(x, y, z)) /
-                (_volume->getValue(x, y + 1, z) - _volume->getValue(x, y, z));
+        p.y() += (_isoValue - _volume->getValueUI64(x, y, z)) /
+                (_volume->getValueUI64(x, y + 1, z) - _volume->getValueUI64(x, y, z));
         points++;
     }
 
     if (I2UI32(pointCode) & EDGE9)
     {
         p.x() += 1.0f;
-        p.y() += (_isoValue - _volume->getValue(x + 1, y, z)) /
-                (_volume->getValue(x + 1, y + 1, z) - _volume->getValue(x + 1, y, z));
+        p.y() += (_isoValue - _volume->getValueUI64(x + 1, y, z)) /
+                (_volume->getValueUI64(x + 1, y + 1, z) - _volume->getValueUI64(x + 1, y, z));
         points++;
     }
 
     if (I2UI32(pointCode) & EDGE10)
     {
         p.x() += 1.0f;
-        p.y() += (_isoValue - _volume->getValue(x + 1, y, z + 1)) /
-                (_volume->getValue(x + 1, y + 1, z + 1) - _volume->getValue(x + 1, y, z + 1));
+        p.y() += (_isoValue - _volume->getValueUI64(x + 1, y, z + 1)) /
+                (_volume->getValueUI64(x + 1, y + 1, z + 1) - _volume->getValueUI64(x + 1, y, z + 1));
         p.z() += 1.0f;
         points++;
     }
@@ -313,8 +313,8 @@ void DualMarchingCubes::_calculateDualPoint(const int64_t &x, const int64_t &y, 
     if (I2UI32(pointCode) & EDGE11)
     {
         p.z() += 1.0f;
-        p.y() += (_isoValue - _volume->getValue(x, y, z + 1)) /
-                (_volume->getValue(x, y + 1, z + 1) - _volume->getValue(x, y, z + 1));
+        p.y() += (_isoValue - _volume->getValueUI64(x, y, z + 1)) /
+                (_volume->getValueUI64(x, y + 1, z + 1) - _volume->getValueUI64(x, y, z + 1));
         points++;
     }
 
@@ -401,8 +401,8 @@ void DualMarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangl
                 // X-aligned edge
                 if (z > minValue && y > minValue)
                 {
-                    const uint64_t value0 = _volume->getValue(x, y, z);
-                    const uint64_t value1 = _volume->getValue(x + 1, y, z);
+                    const uint64_t value0 = _volume->getValueUI64(x, y, z);
+                    const uint64_t value1 = _volume->getValueUI64(x + 1, y, z);
 
                     bool const entering = (value0 < _isoValue) && (value1 >= _isoValue);
                     bool const exiting = (value0 >= _isoValue) && (value1 < _isoValue);
@@ -418,8 +418,8 @@ void DualMarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangl
                 // Y-aligned edge
                 if (z > minValue && x > minValue)
                 {
-                    const uint64_t value0 = _volume->getValue(x, y, z);
-                    const uint64_t value1 = _volume->getValue(x, y + 1, z);
+                    const uint64_t value0 = _volume->getValueUI64(x, y, z);
+                    const uint64_t value1 = _volume->getValueUI64(x, y + 1, z);
 
                     bool const entering = value0 < _isoValue && value1 >= _isoValue;
                     bool const exiting = value0 >= _isoValue && value1 < _isoValue;
@@ -434,8 +434,8 @@ void DualMarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangl
                 // Z-aligned edge
                 if (x > minValue && y > minValue)
                 {
-                    const uint64_t value0 = _volume->getValue(x, y, z);
-                    const uint64_t value1 = _volume->getValue(x, y, z + 1);
+                    const uint64_t value0 = _volume->getValueUI64(x, y, z);
+                    const uint64_t value1 = _volume->getValueUI64(x, y, z + 1);
 
                     bool const entering = value0 < _isoValue && value1 >= _isoValue;
                     bool const exiting = value0 >= _isoValue && value1 < _isoValue;
@@ -611,8 +611,8 @@ void DualMarchingCubes::_buildSharedVertices(Vertices &vertices, Triangles &tria
                 // Construct quads for X edge
                 if (z > minValue && y > minValue)
                 {
-                    const uint64_t value0 = _volume->getValue(x, y, z);
-                    const uint64_t value1 = _volume->getValue(x + 1, y, z);
+                    const uint64_t value0 = _volume->getValueUI64(x, y, z);
+                    const uint64_t value1 = _volume->getValueUI64(x + 1, y, z);
 
                     bool const entering = (value0 < _isoValue) && (value1 >= _isoValue);
                     bool const exiting = (value0 >= _isoValue) && (value1 < _isoValue);
@@ -641,8 +641,8 @@ void DualMarchingCubes::_buildSharedVertices(Vertices &vertices, Triangles &tria
                 // Construct quads for y edge
                 if (z > minValue && x > minValue)
                 {
-                    const uint64_t value0 = _volume->getValue(x, y, z);
-                    const uint64_t value1 = _volume->getValue(x, y + 1, z);
+                    const uint64_t value0 = _volume->getValueUI64(x, y, z);
+                    const uint64_t value1 = _volume->getValueUI64(x, y + 1, z);
 
                     bool const entering = value0 < _isoValue && value1 >= _isoValue;
                     bool const exiting = value0 >= _isoValue && value1 < _isoValue;
@@ -671,8 +671,8 @@ void DualMarchingCubes::_buildSharedVertices(Vertices &vertices, Triangles &tria
                 // Construct quads for z edge
                 if (x > minValue && y > minValue)
                 {
-                    const uint64_t value0 = _volume->getValue(x, y, z);
-                    const uint64_t value1 = _volume->getValue(x, y, z + 1);
+                    const uint64_t value0 = _volume->getValueUI64(x, y, z);
+                    const uint64_t value1 = _volume->getValueUI64(x, y, z + 1);
 
                     bool const entering = value0 < _isoValue && value1 >= _isoValue;
                     bool const exiting = value0 >= _isoValue && value1 < _isoValue;

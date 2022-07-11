@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_COMMON_HEADERS_HH
-#define ULTRALISER_COMMON_HEADERS_HH
+#pragma once
 
 #include <map>
 #include <set>
@@ -60,12 +59,10 @@
 #include <iomanip>
 #include <unordered_map>
 #include <unordered_set>
+#include <filesystem>
 #include <common/OpenMP.hh>
 
 #ifdef ULTRALISER_USE_H5
 #include <hdf5.h>
 #include "H5Cpp.h"
 #endif
-
-
-#endif // ULTRALISER_COMMON_HEADERS_HH

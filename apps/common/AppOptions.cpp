@@ -129,6 +129,15 @@ void AppOptions::verifyMaskPrefixArgument()
     }
 }
 
+void AppOptions::verifyVolumePrefixArgument()
+{
+    // If no prefix is given, use the file name
+    if (prefix == NO_DEFAULT_VALUE)
+    {
+        prefix = Ultraliser::File::getName(inputVolumePath);
+    }
+}
+
 void AppOptions::verifyMaskDimensionsArguments()
 {
     if (maskWidth == 0 || maskHeight == 0)
@@ -173,6 +182,56 @@ void AppOptions::verifyIsoSurfaceExtractionArgument()
     }
 }
 
+void AppOptions::verifyIsoOptionArgument()
+{
+    if (isoOption == "isovalue")
+    {
+        LOG_SUCCESS("Isovalue [%zu] will be used to segment the volume", isoValue);
+    }
+    else if (isoOption == ISOVALUES_STRING)
+    {
+        if (isovaluesFile == NO_DEFAULT_VALUE)
+        {
+            LOG_ERROR("The isovalues-file is NOT given. Please specify a text file containing all "
+                      "the iso values required to segment the volume.");
+        }
+
+        // Check if the file exists
+        if (!File::exists(isovaluesFile))
+        {
+            LOG_ERROR("The file [ %s ] does NOT exist!", isovaluesFile.c_str());
+        }
+    }
+    else if (isoOption == MIN_ISOVALUE_STRING)
+    {
+        LOG_SUCCESS("Isovalues [%zu-inf] will be used to segment the volume", minIsoValue);
+    }
+    else if (isoOption == MAX_ISOVALUE_STRING)
+    {
+        LOG_SUCCESS("Isovalues [0-%zu] will be used to segment the volume", maxIsoValue);
+    }
+    else if (isoOption == ISOVALUE_RANGE_STRING)
+    {
+        if (minIsoValue > maxIsoValue)
+        {
+            LOG_ERROR("The minimum isovalue CANNOT be greater than the maximum isovalue");
+        }
+        else
+        {
+            LOG_SUCCESS("Isovalues [%zu-%zu] range will be used to segment the volume",
+                        minIsoValue, maxIsoValue);
+        }
+    }
+    else if (isoOption == NON_ZERO_STRING)
+    {
+        LOG_WARNING("All the NON-zero voxels in the volume will be used to segment the volume");
+    }
+    else
+    {
+        LOG_ERROR("The iso-option [%s] CANNOT be recognized, see the options from the help");
+    }
+}
+
 void AppOptions::verifyMeshExportArguments()
 {
     // Exporting formats, at least one of them must be there
@@ -188,7 +247,7 @@ void AppOptions::verifyMeshExportArguments()
 
 void AppOptions::verifyVolumeExportArguments()
 {
-    if (!(exportBitVolume || exportByteVolume || exportNRRDVolume))
+    if (!(exportBitVolume || exportRawVolume || exportNRRDVolume))
     {
         LOG_ERROR("You must specify at least one output format of the volume: "
                   "[--export-bit-volume, --export-byte-volume, --export-nrrd-volume]");
@@ -206,7 +265,7 @@ void AppOptions::createRespectiveDirectories()
     }
 
     // Volumes directory
-    if (exportBitVolume || exportByteVolume || exportNRRDVolume)
+    if (exportBitVolume || exportRawVolume || exportNRRDVolume)
     {
         std::stringstream path;
         path << outputDirectory << "/" << VOLUMES_DIRECTORY;

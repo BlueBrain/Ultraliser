@@ -574,43 +574,60 @@ void generateVolumeArtifacts(const Volume* volume, const AppOptions* options)
 {
     // Projecting the volume to validate its content
     if (options->projectXY || options->projectXZ || options->projectZY)
+    {
         volume->project(options->projectionPrefix,
                         options->projectXY, options->projectXZ, options->projectZY,
                         options->projectColorCoded);
+    }
 
     // Write the volume
-    if (options->exportBitVolume || options->exportByteVolume || options->exportNRRDVolume)
+    if (options->exportBitVolume || options->exportUnsignedVolume || options->exportFloatVolume ||
+        options->exportNRRDVolume || options->exportRawVolume )
+    {
         volume->writeVolumes(options->volumePrefix,
                              options->exportBitVolume,
-                             options->exportByteVolume,
-                             options->exportNRRDVolume);
+                             options->exportUnsignedVolume,
+                             options->exportFloatVolume,
+                             options->exportNRRDVolume,
+                             options->exportRawVolume);
+    }
 
     // Write the stacks
     if (options->exportStackXY || options->exportStackXZ || options->exportStackZY)
+    {
         volume->writeStacks(options->outputDirectory + "/" + STACKS_SIRECTORY, options->prefix,
                             options->exportStackXY, options->exportStackXZ, options->exportStackZY);
+    }
 
     // Export volume mesh
     if (options->exportVolumeMesh)
+    {
         volume->exportToMesh(options->meshPrefix,
                              options->exportOBJ, options->exportPLY,
                              options->exportOFF, options->exportSTL);
+    }
 
     // Export volume bounding box mesh
     if (options->exportVolumeBoundingBoxMesh)
+    {
         volume->exportBoundingBoxMesh(options->meshPrefix,
                                       options->exportOBJ, options->exportPLY,
                                       options->exportOFF, options->exportSTL);
+    }
 
     // Export volume grid mesh
     if (options->exportVolumeGridMesh)
+    {
         volume->exportVolumeGridToMesh(options->meshPrefix,
                                        options->exportOBJ, options->exportPLY,
                                        options->exportOFF, options->exportSTL);
+    }
 
     // Print the volume statistics
     if (options->writeStatistics)
+    {
         volume->printStats(VOLUME_STRING, &options->statisticsPrefix);
+    }
 }
 
 }

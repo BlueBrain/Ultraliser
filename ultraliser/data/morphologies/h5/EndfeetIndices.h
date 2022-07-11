@@ -20,8 +20,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_ENDFEETINDICES_H
-#define ULTRALISER_DATA_MORPHOLOGIES_ENDFEETINDICES_H
+#pragma once
 
 #include <vector>
 #include <common/Headers.hh>
@@ -51,5 +50,3 @@ struct EndfeetIndices
 typedef std::vector< EndfeetIndices > EndfeetIndicesList;
 
 }
-
-#endif // ULTRALISER_DATA_MORPHOLOGIES_ENDFEETINDICES_H

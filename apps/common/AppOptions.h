@@ -19,11 +19,11 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_SYSTEM_OPTIONS_HH
-#define ULTRALISER_SYSTEM_OPTIONS_HH
+#pragma once
 
 #include <common/Common.h>
 #include <arguments/Argument.h>
+#include <data/volumes/Volume.h>
 #include <data/volumes/Volumes.h>
 
 namespace Ultraliser
@@ -105,6 +105,12 @@ public:
     void verifyMaskPrefixArgument();
 
     /**
+     * @brief verifyVolumePrefixArgument
+     * Verifies the prefix arguments for a given volume.
+     */
+    void verifyVolumePrefixArgument();
+
+    /**
      * @brief verifyMaskDimensionsArguments
      * Verifies the dimensions of the given mask NOT to be zero.
      */
@@ -132,6 +138,11 @@ public:
      * Verifies the isosurface extraction technique.
      */
     void verifyIsoSurfaceExtractionArgument();
+
+    /**
+     * @brief verifyIsoOptionArgument
+     */
+    void verifyIsoOptionArgument();
 
     /**
      * @brief verifyVolumeExportArguments
@@ -281,10 +292,45 @@ public:
     std::string boundsFile;
 
     /**
+     * @brief isoOption
+     * isoOption can be one of the following:
+     * 1. isovalue: a single iso value is used to segment the volume (--isovalue).
+     * 2. min: all the voxels with values over a given iso value will be selected (--min-isovalue)
+     * 3. max: all the voxels with values below a given iso value will be selected (--max-isovalue)
+     * 4. isovalues: a list of iso values are used to segment the volume (--iso-values-file)
+     * 5. fullrange: all the non-zero voxels of the volumes will be used for the meshing (full-range)
+     */
+    std::string isoOption;
+
+    /**
      * @brief isoValue
-     * The iso value where the volume will get segmented, default 127.
+     * The isovalue where the volume will get segmented, default 127.
      */
     uint64_t isoValue;
+
+    /**
+     * @brief isovaluesFile
+     * A file containing a list of isovalues used to construct the segmented volume.
+     */
+    std::string isovaluesFile;
+
+    /**
+     * @brief minIsoValue
+     * Select all the values that are greater than or equal this isovalue.
+     */
+    size_t minIsoValue;
+
+    /**
+     * @brief maxIsoValue
+     * Select all the values that are lower than this isovalue.
+     */
+    size_t maxIsoValue;
+
+    /**
+     * @brief nonZeroVoxels
+     * If the voxel contains any value except it, then use it.
+     */
+    bool nonZeroVoxels;
 
     /**
      * @brief isosurfaceTechnique
@@ -292,12 +338,6 @@ public:
      * Either dmc (Dual Marching Cubes) or mc (Marching Cubes)
      */
     std::string isosurfaceTechnique;
-
-    /**
-     * @brief fullRangeIsoValue
-     * If the voxel contains any value, then use it.
-     */
-    bool fullRangeIsoValue;
 
     /**
      * @brief volumeResolution
@@ -407,11 +447,26 @@ public:
     bool exportBitVolume = false;
 
     /**
+     * @brief exportUltraBitVolume
+     */
+    bool exportUltraBitVolume = false;
+
+    /**
      * @brief createByteVolume
      * If this flag is set, a default raw volume will be created. This volume
      * has 1 byte per voxel.
      */
-    bool exportByteVolume = false;
+    bool exportRawVolume = false;
+
+    /**
+     * @brief exportUnsignedVolume
+     */
+    bool exportUnsignedVolume = false;
+
+    /**
+     * @brief exportFloatVolume
+     */
+    bool exportFloatVolume = false;
 
     /**
      * @brief exportNRRDVolume
@@ -641,6 +696,3 @@ public:
 };
 
 }
-
-#endif // ULTRALISER_ARGUMENTS_ARGUMENTS_ULTRALISER_OPTIONS_HH
-

@@ -22,8 +22,7 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ALGORITHMS_SIMULATION_SPRING_H
-#define ULTRALISER_ALGORITHMS_SIMULATION_SPRING_H
+#pragma once
 
 #include "Node.h"
 
@@ -151,5 +150,3 @@ typedef std::unordered_set<SpringPtr, SpringHash, SpringEqual> UniqueSprings;
 
 }
 }
-
-#endif  // ULTRALISER_ALGORITHMS_SIMULATION_SPRING_H

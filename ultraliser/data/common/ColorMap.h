@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_COMMON_COLORMAP_H
-#define ULTRALISER_DATA_COMMON_COLORMAP_H
+#pragma once
 
 #include <data/common/CommonData.h>
 #include <data/common/ColorMaps.hh>
@@ -149,5 +148,3 @@ const static std::vector<std::string> MAPS =
 
 }
 }
-
-#endif // ULTRALISER_DATA_COMMON_COLORMAP_H

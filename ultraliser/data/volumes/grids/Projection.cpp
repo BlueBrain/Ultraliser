@@ -25,11 +25,11 @@ namespace Ultraliser
 {
 
 void saveColorMappedProjection(const std::string &prefix,
-                               const float* projection,
+                               const double *projection,
                                const uint64_t &projectionWidth,
                                const uint64_t &projectionHeight,
-                               const float& minValue,
-                               const float& maxValue,
+                               const double &minValue,
+                               const double &maxValue,
                                const std::string &colorMap)
 {
 
@@ -56,11 +56,11 @@ void saveColorMappedProjection(const std::string &prefix,
 
 
 void saveColorMappedProjectionWithAllColorMaps(const std::string &prefix,
-                                               const float* projection,
+                                               const double* projection,
                                                const uint64_t &projectionWidth,
                                                const uint64_t &projectionHeight,
-                                               const float& minValue,
-                                               const float& maxValue)
+                                               const double& minValue,
+                                               const double& maxValue)
 {
     // Starts the timer
     TIMER_SET;

@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2022
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -19,9 +19,9 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_UTILITIES_UTILITIES_H
-#define ULTRALISER_UTILITIES_UTILITIES_H
+#pragma once
 
+#include <utilities/Arrays.h>
 #include <utilities/Data.h>
 #include <utilities/Directory.h>
 #include <utilities/File.h>
@@ -30,5 +30,3 @@
 #include <utilities/String.h>
 #include <utilities/Timer.h>
 #include <utilities/TypeConversion.h>
-
-#endif // ULTRALISER_UTILITIES_WRITERS_H

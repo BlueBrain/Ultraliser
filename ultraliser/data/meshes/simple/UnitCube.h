@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MESH_SIMPLE_UNIT_CUBE_H
-#define ULTRALISER_DATA_MESH_SIMPLE_UNIT_CUBE_H
+#pragma once
 
 #include <data/meshes/simple/primitives/Primitives.h>
 
@@ -72,5 +71,3 @@ private:
 };
 
 }
-
-#endif // ULTRALISER_DATA_MESH_SIMPLE_UNIT_CUBE_H

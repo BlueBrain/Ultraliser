@@ -1,9 +1,10 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2022
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
  *      Marwan Abdellah < marwan.abdellah@epfl.ch >
+ *      Juan Jose Garcia Cantero < juanjose.garcia@epfl.ch>
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -19,10 +20,33 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_VOLUME_VOLUMES_VOLUMES_H
-#define ULTRALISER_DATA_VOLUME_VOLUMES_VOLUMES_H
+#pragma once
 
-#include <data/volumes/volumes/Volume.h>
-#include <data/volumes/volumes/TaggedVolume.h>
+#include <vector>
+#include <common/Headers.hh>
 
-#endif // ULTRALISER_DATA_VOLUME_VOLUMES_VOLUMES_H
+namespace Ultraliser
+{
+
+/**
+ * @brief The EndfeetIndices struct
+ */
+struct H5EndfeetIndicesList
+{
+    /**
+     * @brief firstIndex
+     */
+    int64_t firstIndex;
+
+    /**
+     * @brief lastIndex
+     */
+    int64_t lastIndex;
+};
+
+/**
+ * @brief EndfeetIndicesList
+ */
+typedef std::vector< H5EndfeetIndicesList > EndfeetIndicesList;
+
+}

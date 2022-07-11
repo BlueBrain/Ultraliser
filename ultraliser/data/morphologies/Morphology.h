@@ -20,8 +20,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_MORPHOLOGY_H
-#define ULTRALISER_DATA_MORPHOLOGIES_MORPHOLOGY_H
+#pragma once
 
 #include <data/morphologies/Sample.h>
 #include <data/morphologies/Section.h>
@@ -308,5 +307,3 @@ protected:
 };
 
 }
-
-#endif // ULTRALISER_DATA_MORPHOLOGIES_MORPHOLOGY_H

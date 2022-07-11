@@ -39,9 +39,11 @@ BitArray::BitArray(const uint64_t numBits)
 
 BitArray::BitArray(uint8_t *array, const uint64_t numBits)
     : _numBits(numBits)
-    , _data(array)
 {
     _numBytes = BITS_TO_CHARS(numBits);
+    _data = new uint8_t[_numBytes];
+
+    std::memcpy(_data, array, _numBytes);
 }
 
 void BitArray::print(std::ostream &outStream)

@@ -30,8 +30,7 @@
  * to the original repository at < https://github.com/MarcoAttene/MeshFix-V2.1>.
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MESHES_ADVANCED_PRIMITIVES_ADVANCED_POINT_H
-#define ULTRALISER_DATA_MESHES_ADVANCED_PRIMITIVES_ADVANCED_POINT_H
+#pragma once
 
 #include <common/Common.h>
 
@@ -847,5 +846,4 @@ extern const AdvancedPoint INFINITE_POINT;
 
 }
 
-#endif // ULTRALISER_DATA_MESHES_ADVANCED_PRIMITIVES_ADVANCED_POINT_H
 

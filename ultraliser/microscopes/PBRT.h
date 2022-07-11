@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_PBRT_H
-#define ULTRALISER_PBRT_H
+#pragma once
 
 #include <string>
 #include <sstream>
@@ -100,7 +99,3 @@ void createDepthOfFieldFile(const std::string dofDirectory,
 
 }
 }
-
-
-
-#endif // ULTRALISER_PBRT_H

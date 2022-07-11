@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_PBRT_BMF_H
-#define ULTRALISER_PBRT_BMF_H
+#pragma once
 
 #include <math/Math.h>
 #include <microscopes/PBRTParameters.h>
@@ -60,6 +59,4 @@ std::string createConfigBrightFieldMicroscopeZY(const std::string inputConfig,
 
 }
 }
-
-#endif // ULTRALISER_PBRT_BMF_H
 

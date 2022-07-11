@@ -26,23 +26,23 @@
 #include <data/volumes/voxels/DMCVoxel.h>
 #include <data/volumes/grids/Projection.h>
 #include <utilities/Utilities.h>
+#include <data/volumes/utilities/VolumeWriter.h>
 
 namespace Ultraliser
 {
 
+BitVolumeGrid::BitVolumeGrid(const size_t &width,
+                             const size_t &height,
+                             const size_t &depth,
+                             BitArray* data)
+    : VolumeGrid(width, height, depth)
+{
+    _data = data;
+}
+
 BitVolumeGrid::BitVolumeGrid(const int64_t &width, const int64_t &height, const int64_t &depth,
                              const bool &preAllocateMemory)
     : VolumeGrid(width, height, depth)
-{
-    // Allocate the memory
-    if (preAllocateMemory)
-    {
-        _allocateMemory();
-    }
-}
-
-BitVolumeGrid::BitVolumeGrid(const Vec3i_64 &dimensions, const bool &preAllocateMemory)
-    : VolumeGrid(dimensions)
 {
     // Allocate the memory
     if (preAllocateMemory)
@@ -58,69 +58,51 @@ BitVolumeGrid::BitVolumeGrid(const BitVolumeGrid *inputGrid) : VolumeGrid(*input
     *_data = *inputGrid->getGridData();
 }
 
-void BitVolumeGrid::loadBinaryVolumeData(const std::string &prefix)
-{
-    // Read the volume file from the input stream
-    std::string filePath = prefix + BINARY_EXTENSION;
-    std::ifstream imgFileStream;
-    imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
-    if (imgFileStream.fail())
-    {
-        LOG_ERROR("Could not open the volume file [ %s ]!", filePath.c_str());
-    }
-
-    imgFileStream.read((char*) _data, I2I64(_data->getNumberBytes()));
-
-    // Close the stream
-    imgFileStream.close();
-}
-
-void BitVolumeGrid::loadByteVolumeData(const std::string &prefix)
-{
-    // Read the volume file from the input stream
-    std::string filePath = prefix + BINARY_EXTENSION;
-    std::ifstream imgFileStream;
-    imgFileStream.open(filePath.c_str(), std::ios::in | std::ios::binary);
-    if (imgFileStream.fail())
-    {
-        LOG_ERROR("Could not open the volume file [ %s ]!", filePath.c_str());
-    }
-
-    // Read the file in a temporary array
-    uint8_t* fileData = new uint8_t[I2UI64(_numberVoxels)];
-    imgFileStream.read((char*) fileData, I2I64(_data->getNumberBytes()));
-
-    // Close the stream
-    imgFileStream.close();
-
-    // Fill the actual data array
-    for (uint64_t i = 0; i < I2UI64(_numberVoxels); ++i)
-    {
-        if (fileData[i] > 0)
-            _data->setBit(i);
-        else
-            _data->clearBit(i);
-    }
-
-    // Release the data loaded from file
-    delete [] fileData;
-}
-
 uint64_t BitVolumeGrid::getNumberBytes() const
 {
     return _data->getNumberBytes();
 }
 
-uint8_t BitVolumeGrid::getValue(const uint64_t &index) const
+uint8_t BitVolumeGrid::getValueUI8(const uint64_t &index) const
 {
     if (_data->bit(index))
-    {
         return uint8_t(1);
-    }
-    else
-    {
-        return uint8_t(0);
-    }
+    return 0;
+}
+
+uint16_t BitVolumeGrid::getValueUI16(const uint64_t &index) const
+{
+    if (_data->bit(index))
+        return uint16_t(1);
+    return 0;
+}
+
+uint32_t BitVolumeGrid::getValueUI32(const uint64_t &index) const
+{
+    if (_data->bit(index))
+        return uint32_t(1);
+    return 0;
+}
+
+uint64_t BitVolumeGrid::getValueUI64(const uint64_t &index) const
+{
+    if (_data->bit(index))
+        return uint64_t(255);
+    return 0;
+}
+
+float BitVolumeGrid::getValueF32(const uint64_t &index) const
+{
+    if (_data->bit(index))
+        return 1.f;
+    return 0.f;
+}
+
+double BitVolumeGrid::getValueF64(const uint64_t &index) const
+{
+    if (_data->bit(index))
+        return 1.0;
+    return 0.0;
 }
 
 uint8_t BitVolumeGrid::getByte(uint64_t index) const
@@ -168,124 +150,31 @@ void BitVolumeGrid::orWithAnotherGrid(VolumeGrid *anotherGrid)
     _data->operator|=(*(static_cast< BitVolumeGrid* >(anotherGrid)->getGridData()));
 }
 
-void BitVolumeGrid::_writeHeader(const std::string &prefix)
+void BitVolumeGrid::writeBitVolume(const std::string &prefix) const
 {
-    std::string fileName = prefix + std::string(HEADER_EXTENSION);
-    std::fstream header;
-    header.open(fileName.c_str(), std::ios::out);
-    header << getWidth() << " " << getHeight() << " " << getDepth() << std::endl;
-    header.close();
+    // Add the "-bit" suffix to make it understandable that this volume is a bit volume.
+    std::string binaryPrefix = prefix + "-bit";
+    writeVOL(binaryPrefix, this, true);
 }
 
-void BitVolumeGrid::writeRAW(const std::string &prefix)
+void BitVolumeGrid::writeUnsignedVolume(const std::string &prefix) const
 {
-    // Starts the timer
-    TIMER_SET;
-
-    // Write the header file
-    _writeHeader(prefix);
-
-    // Write the image file
-    std::string fileName = prefix + std::string(RAW_EXTENSION);
-    std::fstream image;
-    image.open(fileName.c_str(), std::ios::out | std::ios::binary);
-
-    LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
-
-    LOOP_STARTS("Writing Voxels (1 Byte)");
-    for (int64_t voxel = 0; voxel < _numberVoxels; voxel++)
-    {
-        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
-
-        uint8_t value;
-        if (_data->bit(I2UI64(voxel)))
-            value = FILLED_VOXEL_VALUE;
-        else
-            value = EMPTY_VOXEL_VALUE;
-
-        image << value;
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Close the file
-    image.close();
+    writeVOL(prefix, this);
 }
 
-void BitVolumeGrid::writeNRRD(const std::string &prefix)
+void BitVolumeGrid::writeFloatVolume(const std::string &prefix) const
 {
-    // Starts the timer
-    TIMER_SET;
-
-    // File name
-    std::string fileName = prefix + std::string(NRRD_EXTENSION);
-    FILE* fptr= fopen(fileName.c_str(), "w");
-
-    // Header
-    fprintf(fptr, "NRRD0001\n");
-    fprintf(fptr, "content: \"Volume\"\n");
-    fprintf(fptr, "type: unsigned char\n");
-    fprintf(fptr, "dimension: 3\n");
-    fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
-            getWidth(), getHeight(), getDepth());
-    fprintf(fptr, "spacings: 1 1 1\n");
-    fprintf(fptr, "encoding: raw\n");
-
-    LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
-
-    LOOP_STARTS("Writing Voxels");
-    for (int64_t voxel = 0; voxel < _numberVoxels; ++voxel)
-    {
-        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
-
-        uint8_t value;
-        if (_data->bit(I2UI64(voxel)))
-            value = FILLED_VOXEL_VALUE;
-        else
-            value = EMPTY_VOXEL_VALUE;
-
-        fputc(value, fptr);
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Closing the file
-    fclose(fptr);
+   LOG_WARNING("BitVolumeGrid::writeFloatVolume, BitVolumeGrids CANNOT be written to float volumes!");
 }
 
-void BitVolumeGrid::writeBIN(const std::string &prefix)
+void BitVolumeGrid::writeNRRDVolume(const std::string &prefix) const
 {
-    // Starts the timer
-    TIMER_SET;
+    writeNRRD(prefix, this);
+}
 
-    // Write the header file
-    _writeHeader(prefix);
-
-    // Write the image file
-    std::string fileName = prefix + std::string(BINARY_EXTENSION);
-    std::fstream image;
-    image.open(fileName.c_str(), std::ios::out | std::ios::binary);
-
-    LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
-
-    LOOP_STARTS("Writing Voxels (1 Bit)");
-    for (int64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
-    {
-        LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
-
-        uint8_t value = 0;
-        for (int64_t i = 0; i < 8; ++i)
-        {
-            if (_data->bit(I2UI64(voxel + i)))
-                value |= 1 << i;
-        }
-        image << value;
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Close the file
-    image.close();
+void BitVolumeGrid::writeRAWVolume(const std::string &prefix) const
+{
+    writeRAW(prefix, this);
 }
 
 void BitVolumeGrid::_allocateMemory()

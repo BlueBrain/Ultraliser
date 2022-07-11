@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MESH_SIMPLE_TRIANGLE_OPERATIONS_H
-#define ULTRALISER_DATA_MESH_SIMPLE_TRIANGLE_OPERATIONS_H
+#pragma once
 
 #include <common/Common.h>
 #include <data/common/CommonData.h>
@@ -231,4 +230,4 @@ float computeTriangleShape(Vector3f p0, Vector3f p1, Vector3f p2);
 float computeTriangleShapeAndSize(Vector3f p0, Vector3f p1, Vector3f p2,
                                   const float averageArea);
 }
-#endif // ULTRALISER_DATA_MESH_SIMPLE_TRIANGLE_OPERATIONS_H
+

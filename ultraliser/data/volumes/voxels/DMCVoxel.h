@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_DMC_VOXEL_H
-#define ULTRALISER_DATA_DMC_VOXEL_H
+#pragma once
 
 #include <common/Common.h>
 
@@ -115,5 +114,3 @@ typedef std::vector< DMCVoxel* > DMCVoxels;
  * A list (std::vector) of lists (std::vector's) of DMCVoxel's.
  */
 typedef std::vector< DMCVoxels > DMCVoxelsList;
-
-#endif // ULTRALISER_DATA_DMC_VOXEL_H

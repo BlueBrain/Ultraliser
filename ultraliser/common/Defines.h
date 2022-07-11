@@ -19,10 +19,10 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_COMMON_DEFINES_H
-#define ULTRALISER_COMMON_DEFINES_H
+#pragma once
 
 #include <string>
+#include <limits.h>
 
 #define AXES_COUNT                              6
 
@@ -33,8 +33,15 @@
 #define Z_DIMENSION                             2 // [2]
 
 // Flood-filling values
-#define EMPTY_VOXEL_VALUE       0
-#define FILLED_VOXEL_VALUE      255
+#define EMPTY_VOXEL_VALUE                       0
+#define FILLED_VOXEL_VALUE                      255
+#define EMPTY_FLOAT_VOXEL_VALUE                 0.f
+#define FULLED_FLOAT_VOXEL_VALUE                1.f
+
+#define FILLED_UI8_VOXEL_VALUE                  UCHAR_MAX
+#define FILLED_UI16_VOXEL_VALUE                 USHRT_MAX
+#define FILLED_UI32_VOXEL_VALUE                 UINT_MAX
+#define FILLED_UI64_VOXEL_VALUE                 ULLONG_MAX
 
 // PBRT lens radii
 #define LENS_RADIUS_STEP        0.5
@@ -52,6 +59,8 @@
 // Files extensions
 #define HEADER_EXTENSION                        STRING(".hdr")
 #define BOUNDS_EXTENSION                        STRING(".bounds")
+#define ULTRALISER_VOLUME_EXTENSION             STRING(".uvol")
+#define ULTRALISER_BIN_VOLUME_EXTENSION         STRING(".uvolb")
 #define RAW_EXTENSION                           STRING(".img")
 #define BINARY_EXTENSION                        STRING(".bin")
 #define ASCII_EXTENSION                         STRING(".ascii")
@@ -73,6 +82,24 @@
 #define STL_EXTENSION                           STRING(".stl")
 #define VMV_EXTENSION                           STRING(".vmv")
 #define H5_EXTENSION                            STRING(".h5")
+
+// Volume formats
+#define FORMAT_BIT                              STRING("bit")
+#define FORMAT_8UI                              STRING("uchar")
+#define FORMAT_16UI                             STRING("ushort")
+#define FORMAT_32UI                             STRING("uint")
+#define FORMAT_64UI                             STRING("ulong")
+#define FORMAT_F32                              STRING("float")
+#define FORMAT_F64                              STRING("double")
+
+// Iso-options
+#define ISOVALUE_STRING                         STRING("value")
+#define ISOVALUES_STRING                        STRING("values")
+#define MIN_ISOVALUE_STRING                     STRING("min")
+#define MAX_ISOVALUE_STRING                     STRING("max")
+#define MAX_ISOVALUE_STRING                     STRING("max")
+#define ISOVALUE_RANGE_STRING                   STRING("range")
+#define NON_ZERO_STRING                         STRING("nonzero")
 
 // Artifacts strings
 #define INPUT_STRING                            STRING("input")
@@ -112,28 +139,29 @@
 #define DISTRIBUTIONS_DIRECTORY                 STRING("distributions")
 
 // Distributions stats
-#define DISTRIBUTION_EXTENSION                  std::string(".dist")
-#define ASPECT_RATIO_SUFFIX                     std::string("-aspect-ratio")
-#define RADIUS_RATIO_SUFFIX                     std::string("-radius-ratio")
-#define EDGE_RATIO_SUFFIX                       std::string("-edge-ratio")
-#define RADIUS_TO_EDGE_RATIO_SUFFIX             std::string("-radius-to-edge-ratio")
-#define MIN_ANGLE_SUFFIX                        std::string("-min-angle")
-#define MAX_ANGLE_SUFFIX                        std::string("-max-angle")
-#define TRIANGLE_SHAPE_SUFFIX                   std::string("-triangle-shape")
-#define TRIANGLE_SHAPE_SIZE_SUFFIX              std::string("-triangle-size-shape")
-#define SCALED_JACOBIAN_SUFFIX                  std::string("-scaled-jacobian")
-#define CONDITION_NUMBER_SUFFIX                 std::string("-condition-number")
-#define DISTORTION_SUFFIX                       std::string("-distortion")
-#define RELATIVE_SIZE_SUFFIX                    std::string("-relative-size")
-#define SAMPLES_RADII                           std::string("-samples-radii")
-#define SECTION_AVERAGE_RADIUS                  std::string("-section-average-radius")
-#define NUMBER_SAMPLES_PER_SECTION              std::string("-number-samples-per-section")
-#define SEGMENTS_LENGTH                         std::string("-segments-length")
-#define SECTIONS_LENGTH                         std::string("-sections-length")
-#define SEGMENTS_SURFACE_AREA                   std::string("-segments-surface-area")
-#define SECTIONS_SURFACE_AREA                   std::string("-sections-surface-area")
-#define SEGMENTS_VOLUME                         std::string("-segments-volume")
-#define SECTIONS_VOLUME                         std::string("-sections-volume")
+#define DISTRIBUTION_EXTENSION                  STRING(".dist")
+#define HISTOGRAM_EXTENSION                     STRING(".hist")
+#define ASPECT_RATIO_SUFFIX                     STRING("-aspect-ratio")
+#define RADIUS_RATIO_SUFFIX                     STRING("-radius-ratio")
+#define EDGE_RATIO_SUFFIX                       STRING("-edge-ratio")
+#define RADIUS_TO_EDGE_RATIO_SUFFIX             STRING("-radius-to-edge-ratio")
+#define MIN_ANGLE_SUFFIX                        STRING("-min-angle")
+#define MAX_ANGLE_SUFFIX                        STRING("-max-angle")
+#define TRIANGLE_SHAPE_SUFFIX                   STRING("-triangle-shape")
+#define TRIANGLE_SHAPE_SIZE_SUFFIX              STRING("-triangle-size-shape")
+#define SCALED_JACOBIAN_SUFFIX                  STRING("-scaled-jacobian")
+#define CONDITION_NUMBER_SUFFIX                 STRING("-condition-number")
+#define DISTORTION_SUFFIX                       STRING("-distortion")
+#define RELATIVE_SIZE_SUFFIX                    STRING("-relative-size")
+#define SAMPLES_RADII                           STRING("-samples-radii")
+#define SECTION_AVERAGE_RADIUS                  STRING("-section-average-radius")
+#define NUMBER_SAMPLES_PER_SECTION              STRING("-number-samples-per-section")
+#define SEGMENTS_LENGTH                         STRING("-segments-length")
+#define SECTIONS_LENGTH                         STRING("-sections-length")
+#define SEGMENTS_SURFACE_AREA                   STRING("-segments-surface-area")
+#define SECTIONS_SURFACE_AREA                   STRING("-sections-surface-area")
+#define SEGMENTS_VOLUME                         STRING("-segments-volume")
+#define SECTIONS_VOLUME                         STRING("-sections-volume")
 
 // OBJ flags
 #define OBJ_VERTEX_FLAG                         STRING("v")
@@ -210,5 +238,3 @@
 
 // Application done
 #define ULTRALISER_DONE                         printf("\n"); return EXIT_SUCCESS;
-
-#endif // ULTRALISER_COMMON_DEFINES_H

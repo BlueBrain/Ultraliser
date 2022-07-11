@@ -25,64 +25,57 @@
 
 namespace Ultraliser
 {
-
-VolumeGrid::VolumeGrid(const Vec3i_64& dimensions)
+VolumeGrid::VolumeGrid(const uint64_t &width,
+                       const uint64_t &height,
+                       const uint64_t &depth)
 {
-    // Update dimensions
-    _dimensions = dimensions;
+    // Dimensions
+    _width = width;
+    _height = height;
+    _depth = depth;
 
-    // Update number of voxels
-    _numberVoxels = _dimensions.v[0] * _dimensions.v[1] * _dimensions.v[2];
-}
-
-VolumeGrid::VolumeGrid(const int64_t &width,
-                       const int64_t &height,
-                       const int64_t &depth)
-{
-    // Update dimensions
-    _dimensions.v[0] = width;
-    _dimensions.v[1] = height;
-    _dimensions.v[2] = depth;
-
-    // Update number of voxels
+    // Number of voxels
     _numberVoxels = width * height * depth;
 }
 
 VolumeGrid::VolumeGrid(VolumeGrid *grid)
 {
-    // Update dimensions
-    _dimensions = grid->getDimensions();
+    // Dimensions
+    grid->getDimensions(_width, _height, _depth);
 
-    // Update number of voxels
-    _numberVoxels = _dimensions.v[0] * _dimensions.v[1] * _dimensions.v[2];
+    // Number of voxels
+    _numberVoxels = _width * _height * _depth;
 }
 
-Vec3i_64 VolumeGrid::getDimensions() const
+void VolumeGrid::getDimensions(size_t& width, size_t& height, size_t& depth)
 {
-    return _dimensions;
+    width = _width;
+    height = _height;
+    depth = _depth;
 }
 
-int64_t VolumeGrid::getWidth() const
+uint64_t VolumeGrid::getWidth() const
 {
-    return _dimensions.v[0];
+    return _width;
 }
 
-int64_t VolumeGrid::getHeight() const
+uint64_t VolumeGrid::getHeight() const
 {
-    return _dimensions.v[1];
+    return _height;
 }
 
-int64_t VolumeGrid::getDepth() const
+uint64_t VolumeGrid::getDepth() const
 {
-    return _dimensions.v[2];
+    return _depth;
 }
 
-int64_t VolumeGrid::getNumberVoxels() const
+uint64_t VolumeGrid::getNumberVoxels() const
 {
     return _numberVoxels;
 }
 
-uint64_t VolumeGrid::mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z, bool &outlier) const
+uint64_t VolumeGrid::mapToIndex(const uint64_t &x, const uint64_t &y, const uint64_t &z,
+                                bool &outlier) const
 {
     if(x >= getWidth()  || x < 0 || y >= getHeight() || y < 0 || z >= getDepth()  || z < 0)
     {
@@ -92,7 +85,7 @@ uint64_t VolumeGrid::mapToIndex(const int64_t &x, const int64_t &y, const int64_
     else
     {
         outlier = false;
-        return I2UI64(x + (_dimensions.v[0] * y) + (_dimensions.v[0] * _dimensions.v[1] * z));
+        return I2UI64(x + (_width * y) + (_width * _height * z));
     }
 }
 
@@ -136,7 +129,7 @@ bool VolumeGrid::isEmpty(const int64_t &x, const int64_t &y, const int64_t &z) c
         return isEmpty(index);
 }
 
-int64_t VolumeGrid::getDimension(const int32_t &i) const
+uint64_t VolumeGrid::getDimension(const uint64_t &i) const
 {
     switch (i)
     {
@@ -343,7 +336,7 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
 
 void VolumeGrid::writeProjection(const std::string &prefix,
                                  const PROJECTION &projection,
-                                 const bool &projectColorCoded)
+                                 const bool &projectColorCoded) const
 {
     // Starts the timer
     TIMER_SET;
@@ -403,17 +396,17 @@ void VolumeGrid::writeProjection(const std::string &prefix,
     }
 
     // Create a projection array (float)
-    std::vector< float > projectionImage(projectionSize);
+    std::vector< double > projectionImage(projectionSize);
 
     // Create normalized projection array (0 - 255)
-    std::vector< uint8_t > normalizedProjectionImage(projectionSize);
+    std::vector< uint16_t > normalizedProjectionImage(projectionSize);
 
     // Initialize the projections to zero to avoid garbage
     PROGRESS_SET;
     OMP_PARALLEL_FOR
     for (int64_t index = 0; index < projectionSize; ++index)
     {
-        projectionImage[index] = 0.f;
+        projectionImage[index] = 0.0;
         normalizedProjectionImage[index] = 0;
     }
 
@@ -432,7 +425,7 @@ void VolumeGrid::writeProjection(const std::string &prefix,
                 {
                     if (isFilled(i, j, k))
                     {
-                        projectionImage[i + getWidth() * j] += 1.0;
+                        projectionImage[i + getWidth() * j] += getValueF64(i, j, k);
                     }
                 }
             }
@@ -446,7 +439,7 @@ void VolumeGrid::writeProjection(const std::string &prefix,
                 {
                     if (isFilled(i, j, k))
                     {
-                        projectionImage[i + getWidth() * k] += 1.0;
+                        projectionImage[i + getWidth() * k] += getValueF64(i, j, k);
                     }
                 }
             }
@@ -460,7 +453,7 @@ void VolumeGrid::writeProjection(const std::string &prefix,
                 {
                     if (isFilled(i, j, k))
                     {
-                        projectionImage[k + getDepth() * j] += 1.0;
+                        projectionImage[k + getDepth() * j] += getValueF64(i, j, k);
                     }
                 }
             }
@@ -475,7 +468,7 @@ void VolumeGrid::writeProjection(const std::string &prefix,
     LOOP_DONE;
 
     // Get the maximum value
-    float maxValue = 0.f;
+    double maxValue = 0.0;
     for (int64_t index = 0; index < projectionSize; ++index)
     {
         if (projectionImage[index] > maxValue)
@@ -487,10 +480,10 @@ void VolumeGrid::writeProjection(const std::string &prefix,
     for (int64_t index = 0; index < projectionSize; ++index)
     {
         // Compute float pixel value
-        float pixelValue = float(255.0f) * projectionImage[index] / float(maxValue);
+        double pixelValue = 255 * (projectionImage[index] / maxValue);
 
         // Convert to uint8_t to be able to write it to the image
-        normalizedProjectionImage[index] = F2UI8(pixelValue);
+        normalizedProjectionImage[index] = F2UI16(pixelValue);
     }
 
     // Save the projection into a PPM image
@@ -511,7 +504,7 @@ void VolumeGrid::projectVolume(const std::string &prefix,
                                const bool &xyProjection,
                                const bool &xzProjection,
                                const bool &zyProjection,
-                               const bool &colorCodedProjection)
+                               const bool &colorCodedProjection) const
 {
     if (xyProjection || xzProjection || zyProjection)
     {
@@ -536,9 +529,8 @@ void VolumeGrid::projectVolume(const std::string &prefix,
         }
 
         // Statistics
-        _projectionTime = GET_TIME_SECONDS;
         LOG_STATUS_IMPORTANT("Volume Projection Stats.");
-        LOG_STATS(_projectionTime);
+        LOG_STATS(GET_TIME_SECONDS);
     }
 }
 
@@ -588,40 +580,82 @@ VolumeGrid::~VolumeGrid()
     /// EMPTY
 }
 
-VolumeGrid::TYPE VolumeGrid::getType(const std::string &typeString)
+VOLUME_TYPE VolumeGrid::getType(const std::string &typeString)
 {
     if (typeString == "bit")
     {
-        return TYPE::BIT;
+        return VOLUME_TYPE::BIT;
     }
     else if (typeString == "byte")
     {
-        return TYPE::BYTE;
-    }
-    else if (typeString == "voxel")
-    {
-        return TYPE::VOXEL;
+        return VOLUME_TYPE::UI8;
     }
     else
     {
         LOG_WARNING("The volume type [ %s ] is not correct, using [bit]");
-        return TYPE::BIT;
+        return VOLUME_TYPE::BIT;
     }
 }
 
-std::string VolumeGrid::getTypeString(const VolumeGrid::TYPE& type)
+VOLUME_TYPE VolumeGrid::getVolumeTypeFromHdrFile(const std::string& filePrefix)
 {
-    if (type == TYPE::BIT)
+    // Get the header file path from its prefix
+    const std::string filePath = filePrefix + HEADER_EXTENSION;
+
+    // Open the header file
+    std::ifstream hdrFileStream(filePath.c_str());
+
+    // Read the type
+    std::string type;
+    hdrFileStream >> type;
+
+    // Close the stream
+    hdrFileStream.close();
+
+    if (type == FORMAT_BIT)
+    {
+        return VOLUME_TYPE::BIT;
+    }
+    else if (type == FORMAT_8UI)
+    {
+        return VOLUME_TYPE::UI8;
+    }
+    else if (type == FORMAT_16UI)
+    {
+        return VOLUME_TYPE::UI16;
+    }
+    else if (type == FORMAT_32UI)
+    {
+        return VOLUME_TYPE::UI32;
+    }
+    else if (type == FORMAT_64UI)
+    {
+        return VOLUME_TYPE::UI64;
+    }
+    else if (type == FORMAT_F32)
+    {
+        return VOLUME_TYPE::F32;
+    }
+    else if (type == FORMAT_F64)
+    {
+        return VOLUME_TYPE::F64;
+    }
+    else
+    {
+        LOG_ERROR("Volume type is NOT defined!");
+        return VOLUME_TYPE::BIT;
+    }
+}
+
+std::string VolumeGrid::getTypeString(const VOLUME_TYPE& type)
+{
+    if (type == VOLUME_TYPE::BIT)
     {
         return std::string("Bit");
     }
-    else if (type == TYPE::BYTE)
+    else if (type == VOLUME_TYPE::UI8)
     {
         return std::string("Byte");
-    }
-    else if (type == TYPE::VOXEL)
-    {
-        return std::string("Voxel");
     }
     else
     {
@@ -630,5 +664,64 @@ std::string VolumeGrid::getTypeString(const VolumeGrid::TYPE& type)
     }
 }
 
+uint8_t VolumeGrid::getValueUI8(const int64_t &x, const int64_t &y, const int64_t &z) const
+{
+    bool outlier;
+    uint64_t index = mapToIndex(x, y, z, outlier);
+    if (outlier)
+        return 0;
+    else
+        return getValueUI8(index);
+}
+
+uint16_t VolumeGrid::getValueUI16(const int64_t &x, const int64_t &y, const int64_t &z) const
+{
+    bool outlier;
+    uint64_t index = mapToIndex(x, y, z, outlier);
+    if (outlier)
+        return 0;
+    else
+        return getValueUI16(index);
+}
+
+uint32_t VolumeGrid::getValueUI32(const int64_t &x, const int64_t &y, const int64_t &z) const
+{
+    bool outlier;
+    uint64_t index = mapToIndex(x, y, z, outlier);
+    if (outlier)
+        return 0;
+    else
+        return getValueUI32(index);
+}
+
+uint64_t VolumeGrid::getValueUI64(const int64_t &x, const int64_t &y, const int64_t &z) const
+{
+    bool outlier;
+    uint64_t index = mapToIndex(x, y, z, outlier);
+    if (outlier)
+        return 0;
+    else
+        return getValueUI64(index);
+}
+
+float VolumeGrid::getValueF32(const int64_t &x, const int64_t &y, const int64_t &z) const
+{
+    bool outlier;
+    uint64_t index = mapToIndex(x, y, z, outlier);
+    if (outlier)
+        return 0;
+    else
+        return getValueF32(index);
+}
+
+double VolumeGrid::getValueF64(const int64_t &x, const int64_t &y, const int64_t &z) const
+{
+    bool outlier;
+    uint64_t index = mapToIndex(x, y, z, outlier);
+    if (outlier)
+        return 0;
+    else
+        return getValueF64(index);
+}
 
 }

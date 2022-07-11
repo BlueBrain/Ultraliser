@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_PBRT_PBRT_PARAMETERS_H
-#define ULTRALISER_PBRT_PBRT_PARAMETERS_H
+#pragma once
 
 #include <string>
 #include <math/Math.h>
@@ -78,6 +77,3 @@ struct PBRTParameters
 
 }
 }
-
-#endif // ULTRALISER_PBRT_PBRT_PARAMETERS_H
-

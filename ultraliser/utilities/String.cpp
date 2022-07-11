@@ -149,6 +149,18 @@ void removeExtraSpaces(std::string &inputString)
     inputString.erase(newEnd, inputString.end());
 }
 
+void toLower(std::string &inputString)
+{
+    std::transform(inputString.begin(), inputString.end(), inputString.begin(),[](unsigned char c)
+    { return std::tolower(c); });
+}
+
+void toUpper(std::string &inputString)
+{
+    std::transform(inputString.begin(), inputString.end(), inputString.begin(),[](unsigned char c)
+    { return std::toupper(c); });
+}
+
 }
 }
 

@@ -19,13 +19,10 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_COMMON_COMMON_DATA_H
-#define ULTRALISER_DATA_COMMON_COMMON_DATA_H
+#pragma once
 
 #include <data/common/BitArray.h>
 #include <data/common/GridIndex.h>
 #include <data/common/ColorMap.h>
 #include <data/common/RGBColor.hh>
 #include <data/common/ROI.h>
-
-#endif // ULTRALISER_DATA_COMMON_COMMON_DATA_H

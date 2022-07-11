@@ -53,7 +53,7 @@ set(DIRECTORIES "algorithms"
                 "data/morphologies/vmv"
                 "data/volumes"
                 "data/volumes/grids"
-                "data/volumes/volumes"
+                "data/volumes/utilities"
                 "data/volumes/voxels"
                 "geometry"
                 "math"
@@ -91,6 +91,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # Create a shared library
 add_library(ultraliser ${ULTRALISER_SOURCE_FILES} ${ULTRALISER_HEADER_FILES})
+
+# Link against ultraliser
+target_link_libraries(ultraliser nrrdlib)
 
 # Copy the artifacts for the apps
 set_property(TARGET ultraliser PROPERTY IMPORTED_LOCATION

@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_PRIMITIVES_H
-#define ULTRALISER_DATA_PRIMITIVES_H
+#pragma once
 
 #include <data/meshes/simple/primitives/Vertex.hh>
 #include <data/meshes/simple/primitives/Normal.h>
@@ -28,4 +27,3 @@
 #include <data/meshes/simple/primitives/Quad.hh>
 #include <data/meshes/simple/primitives/Texture.h>
 
-#endif // ULTRALISER_DATA_PRIMITIVES_H

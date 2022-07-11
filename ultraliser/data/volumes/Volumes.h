@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2022
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -19,11 +19,8 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_VOLUME_DATA_H
-#define ULTRALISER_DATA_VOLUME_DATA_H
+#pragma once
 
 #include <data/volumes/grids/Grids.h>
-#include <data/volumes/volumes/Volumes.h>
 #include <data/volumes/voxels/Voxels.h>
-
-#endif // ULTRALISER_DATA_DATA_H
+#include <data/volumes/utilities/Utilities.h>

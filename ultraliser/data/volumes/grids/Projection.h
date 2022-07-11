@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_GRIDS_PROJECTION_H
-#define ULTRALISER_DATA_GRIDS_PROJECTION_H
+#pragma once
 
 #include <data/common/ColorMap.h>
 #include <utilities/Utilities.h>
@@ -39,11 +38,11 @@ namespace Ultraliser
  * @param colorMap
  */
 void saveColorMappedProjection(const std::string &prefix,
-                               const float* projection,
+                               const double* projection,
                                const uint64_t &projectionWidth,
                                const uint64_t &projectionHeight,
-                               const float& minValue,
-                               const float& maxValue,
+                               const double& minValue,
+                               const double& maxValue,
                                const std::string &colorMap);
 
 /**
@@ -56,12 +55,11 @@ void saveColorMappedProjection(const std::string &prefix,
  * @param maxValue
  */
 void saveColorMappedProjectionWithAllColorMaps(const std::string &prefix,
-                                               const float* projection,
+                                               const double *projection,
                                                const uint64_t &projectionWidth,
                                                const uint64_t &projectionHeight,
-                                               const float& minValue,
-                                               const float& maxValue);
+                                               const double &minValue,
+                                               const double &maxValue);
 
 }
 
-#endif // ULTRALISER_DATA_GRIDS_PROJECTION_H

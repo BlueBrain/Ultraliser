@@ -32,9 +32,6 @@
 
 #pragma once
 
-#ifndef ULTRALISER_DATA_MESHES_ADVANCED_PRIMITIVES_ADVANCED_TRIANGLE_H
-#define ULTRALISER_DATA_MESHES_ADVANCED_PRIMITIVES_ADVANCED_TRIANGLE_H
-
 #include "AdvancedEdge.h"
 
 namespace Ultraliser
@@ -536,5 +533,4 @@ If triangle is degenerate return a null vector.
 
 }
 
-#endif // ULTRALISER_DATA_MESHES_ADVANCED_PRIMITIVES_ADVANCED_TRIANGLE_H
 

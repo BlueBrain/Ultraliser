@@ -30,8 +30,7 @@
  * to the original repository at < https://github.com/MarcoAttene/MeshFix-V2.1>.
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_STRUCTURES_GRAPH_H
-#define ULTRALISER_DATA_STRUCTURES_GRAPH_H
+#pragma once
 
 #include <common/Common.h>
 #include <data/structures/List.h>
@@ -280,5 +279,3 @@ public:
 };
 
 }
-
-#endif // ULTRALISER_DATA_STRUCTURES_GRAPH_H

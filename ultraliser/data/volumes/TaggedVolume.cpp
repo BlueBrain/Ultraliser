@@ -19,7 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#include <data/volumes/volumes/TaggedVolume.h>
+#include <data/volumes/TaggedVolume.h>
 #include <data/volumes/grids/VolumeGrid.h>
 #include <utilities/Image.h>
 #include <data/volumes/grids/Projection.h>
@@ -306,7 +306,7 @@ void TaggedVolume::_createLabelingColorMap()
     _labelingColorMap[SOMA_INDEX] = Vector4f(1.f, 1.f, 0.f, 1.f);
 }
 
-void TaggedVolume::writeRAW(const std::string &prefix) const
+void TaggedVolume::writeRAWVolume(const std::string &prefix) const
 {
     // Start timer
     TIMER_SET;
@@ -396,7 +396,7 @@ void TaggedVolume::writeASCII(const std::string &prefix) const
     image.close();
 }
 
-void TaggedVolume::writeNRRD(const std::string &prefix) const
+void TaggedVolume::writeNRRDVolume(const std::string &prefix) const
 {
 
     // Starts the timer
@@ -443,10 +443,10 @@ void TaggedVolume::writeVolumes(const std::string &prefix,
         writeBIN(prefix);
 
     if (rawFormat)
-        writeRAW(prefix);
+        writeRAWVolume(prefix);
 
     if (nrrdFormat)
-        writeNRRD(prefix);
+        writeNRRDVolume(prefix);
 }
 
 void TaggedVolume::project(const std::string &prefix,
@@ -476,7 +476,7 @@ void TaggedVolume::projectXY(const std::string &prefix, const bool &projectColor
     TIMER_SET;
 
     uint8_t* normalizedProjection = new uint8_t[getWidth() * getHeight()];
-    float* projection = new float[getWidth() * getHeight()];
+    double* projection = new double[getWidth() * getHeight()];
 
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for schedule(dynamic, 1)
@@ -517,7 +517,7 @@ void TaggedVolume::projectXY(const std::string &prefix, const bool &projectColor
     LOOP_DONE;
 
     // Normalize the value
-    float maxValue = 0;
+    double maxValue = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for schedule(dynamic, 1)
 #endif
@@ -532,7 +532,7 @@ void TaggedVolume::projectXY(const std::string &prefix, const bool &projectColor
 #endif
     for (uint64_t i = 0; i < getWidth() * getHeight(); i++)
     {
-        float pixelValue = float(255.0) * projection[i] / float(maxValue);
+        double pixelValue = 255.0 * projection[i] / maxValue;
         normalizedProjection[i] = uint8_t(pixelValue);
     }
 
@@ -565,7 +565,7 @@ void TaggedVolume::projectZY(const std::string &prefix, const bool &projectColor
     TIMER_SET;
 
     uint8_t* normalizedProjection = new uint8_t[getDepth() * getHeight()];
-    float* projection = new float[getDepth() * getHeight()];
+    double* projection = new double[getDepth() * getHeight()];
 
 #ifdef ULTRALISER_USE_OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
@@ -606,7 +606,7 @@ void TaggedVolume::projectZY(const std::string &prefix, const bool &projectColor
     LOOP_DONE;
 
     // Normalize the value
-    float maxValue = 0;
+    double maxValue = 0.0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for schedule(dynamic, 1)
 #endif
@@ -621,7 +621,7 @@ void TaggedVolume::projectZY(const std::string &prefix, const bool &projectColor
 #endif
     for (uint64_t i = 0; i < getDepth() * getHeight(); i++)
     {
-        float pixelValue = float(255.0) * projection[i] / float(maxValue);
+        double pixelValue = 255.0 * projection[i] / maxValue;
         normalizedProjection[i] = uint8_t(pixelValue);
     }
 

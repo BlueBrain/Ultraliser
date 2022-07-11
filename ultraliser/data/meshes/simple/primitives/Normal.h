@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MESHES_SIMPLE_PRIMITIVES_NORMAL_H
-#define ULTRALISER_MESHES_SIMPLE_PRIMITIVES_NORMAL_H
+#pragma once
 
 #include <math/Math.h>
 
@@ -43,5 +42,3 @@ typedef Normal* NormalPtr;
 typedef std::vector< Normal > Normals;
 
 }
-
-#endif // ULTRALISER_MESHES_SIMPLE_PRIMITIVES_NORMAL_H

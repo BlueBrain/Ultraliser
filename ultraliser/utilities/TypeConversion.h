@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_UTILITIES_TYPES_H
-#define ULTRALISER_UTILITIES_TYPES_H
+#pragma once
 
 #include <common/Common.h>
 
@@ -80,7 +79,7 @@ double float2double(float input);
  * @param input
  * @return
  */
-template <class T >
+template < class T >
 T string2int(std::string input);
 
 /**
@@ -88,7 +87,7 @@ T string2int(std::string input);
  * @param input
  * @return
  */
-template <class T >
+template < class T >
 T string2uint(std::string input);
 
 /**
@@ -145,6 +144,3 @@ template<> size_t string2uint< size_t >(std::string);
 
 }
 }
-
-
-#endif // ULTRALISER_UTILITIES_TYPES_H

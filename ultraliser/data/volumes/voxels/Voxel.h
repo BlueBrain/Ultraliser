@@ -19,14 +19,14 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_VOXEL_H
-#define ULTRALISER_DATA_VOXEL_H
+#pragma once
 
 #include <common/Common.h>
 
 /**
  * @brief The Voxel struct
  */
+template <class T>
 struct Voxel
 {
 public:
@@ -35,7 +35,7 @@ public:
      * @brief Voxel
      * @param voxelValue
      */
-    Voxel(const uint8_t voxelValue = 0)
+    Voxel(const T voxelValue = 0)
     {
         value = voxelValue;
     }
@@ -45,14 +45,35 @@ public:
     /**
      * @brief value
      */
-    uint8_t value;
+    T value;
 };
 
 /**
- * @brief Voxels
+ * @brief VoxelsUI8
  */
-typedef std::vector< Voxel > Voxels;
+typedef std::vector< Voxel< uint8_t > > VoxelsUI8;
 
+/**
+ * @brief VoxelsUI16
+ */
+typedef std::vector< Voxel< uint16_t > > VoxelsUI16;
 
+/**
+ * @brief VoxelsUI32
+ */
+typedef std::vector< Voxel< uint32_t > > VoxelsUI32;
 
-#endif // ULTRALISER_DATA_VOXEL_H
+/**
+ * @brief VoxelsUI64
+ */
+typedef std::vector< Voxel< uint64_t > > VoxelsUI64;
+
+/**
+ * @brief VoxelsF32
+ */
+typedef std::vector< Voxel< float > > VoxelsF32;
+
+/**
+ * @brief VoxelsF64
+ */
+typedef std::vector< Voxel< double > > VoxelsF64;

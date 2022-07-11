@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MATH_QUAT4F_H
-#define ULTRALISER_MATH_QUAT4F_H
+#pragma once
 
 #include <math/Matrix3f.h>
 
@@ -397,4 +396,3 @@ Quat4f operator * (float f, const Quat4f& q);
 Quat4f operator * (const Quat4f& q, float f);
 
 }
-#endif // ULTRALISER_MATH_QUAT4F_H

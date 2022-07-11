@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_UTILITIES_IMAGE_H
-#define ULTRALISER_UTILITIES_IMAGE_H
+#pragma once
 
 #include <common/Common.h>
 #include <math/Math.h>
@@ -41,6 +40,11 @@ void savePPMLuminanceImage(const std::string &imageName,
                   const uint8_t *imageData,
                   const int64_t &width,
                   const int64_t &height);
+
+void savePPMLuminanceImage(const std::string &imageName,
+                           const uint16_t *imageData,
+                           const int64_t &width,
+                           const int64_t &height);
 
 /**
  * @brief savePPMColoredImage
@@ -80,5 +84,3 @@ void saveBrainbowImage(const std::string &imageName,
 
 }
 }
-
-#endif // ULTRALISER_UTILITIES_IMAGE_H

@@ -20,8 +20,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_ASTROCYTE_MORPHOLOGY_H
-#define ULTRALISER_DATA_MORPHOLOGIES_ASTROCYTE_MORPHOLOGY_H
+#pragma once
 
 #include <data/morphologies/Morphology.h>
 #include <data/morphologies/EndfootPatch.hh>
@@ -196,5 +195,3 @@ private:
 AstrocyteMorphology* readAstrocyteMorphology(std::string& morphologyPath);
 
 }
-
-#endif // ULTRALISER_DATA_MORPHOLOGIES_ASTROCYTE_MORPHOLOGY_H

@@ -20,8 +20,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef VASCULATURE_VMV_READER_H
-#define VASCULATURE_VMV_READER_H
+#pragma once
 
 #include <data/morphologies/h5/H5Sample.hh>
 #include <data/morphologies/h5/VasculatureH5Section.hh>
@@ -112,5 +111,3 @@ private:
 };
 
 }
-
-#endif // VASCULATURE_VMV_READER_H

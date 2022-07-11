@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ARGUMENTS_ARGUMENT_PARSER_H
-#define ULTRALISER_ARGUMENTS_ARGUMENT_PARSER_H
+#pragma once
 
 #include "Argument.h"
 
@@ -160,5 +159,3 @@ private:
 };
 
 }
-
-#endif // ULTRALISER_ARGUMENTS_ARGUMENT_PARSER_H

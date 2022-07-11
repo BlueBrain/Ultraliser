@@ -30,8 +30,7 @@
  * to the original repository at < https://github.com/MarcoAttene/MeshFix-V2.1>.
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_STRUCTURES_LIST_H
-#define ULTRALISER_DATA_STRUCTURES_LIST_H
+#pragma once
 
 #include <common/Common.h>
 
@@ -409,5 +408,4 @@ public :
 #define FOR_EACH_NODE_CIRCULAR(l, m, n)                                         \
     for ((n) = (m); ; (n) = ((n) != (l).tail())?((n)->next()):((l).head()))
 }
-#endif // ULTRALISER_DATA_STRUCTURES_LIST_H
 

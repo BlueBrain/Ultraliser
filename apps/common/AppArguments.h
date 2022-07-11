@@ -19,8 +19,7 @@
  * Boston, MA 02110-1301 USA.
  **************************************************************************************************/
 
-#ifndef APPARGUMENTS_H
-#define APPARGUMENTS_H
+#pragma once
 
 #include <Ultraliser.h>
 #include <AppOptions.h>
@@ -204,5 +203,3 @@ private:
 };
 
 }
-
-#endif // APPARGUMENTS_H

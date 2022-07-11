@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_IMAGE_IMAGE_H
-#define ULTRALISER_DATA_IMAGE_IMAGE_H
+#pragma once
 
 #include <common/Common.h>
 #include <math/Vector.h>
@@ -195,5 +194,3 @@ private:
 };
 
 }
-
-#endif // ULTRALISER_DATA_IMAGE_IMAGE_H

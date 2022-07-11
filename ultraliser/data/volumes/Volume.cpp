@@ -20,6 +20,10 @@
  **************************************************************************************************/
 
 #include "Volume.h"
+#include <cstddef>
+#include <nrrdloader/NRRDLoader.h>
+#include <data/volumes/utilities/VolumeType.hh>
+#include <common/Headers.hh>
 #include <common/Common.h>
 #include <geometry/Intersection.h>
 #include <geometry/Utilities.h>
@@ -29,20 +33,83 @@
 #include <data/volumes/grids/VolumeGrid.h>
 #include <data/volumes/voxels/DMCVoxel.h>
 #include <data/volumes/grids/BitVolumeGrid.h>
-#include <data/volumes/grids/ByteVolumeGrid.h>
-#include <data/volumes/grids/VoxelGrid.h>
+#include <data/volumes/grids/UnsignedVolumeGrid.h>
 #include <data/volumes/grids/Grids.h>
 #include <data/meshes/simple/VolumeMesh.h>
 #include <data/meshes/simple/MeshOperations.h>
+#include <data/volumes/utilities/VolumeReader.h>
 
 namespace Ultraliser
 {
+
+Volume::Volume(const std::string &filePath)
+    : _pMin(Vector3f::ZERO)
+    , _pMax(Vector3f::ZERO)
+{
+    // Get the volume extension
+    auto extension = std::filesystem::path(filePath).extension().string();
+
+    // To lower for a single comparison
+    String::toLower(extension);
+
+    // Read the NRRD file
+    if (String::subStringFound(extension, NRRD_EXTENSION))
+    {
+        // Construct the grid
+        _createGrid(readNRRDVolumeFile(filePath));
+    }
+
+    // Read the HDR/IMG or HDR/BIN files
+    else if (String::subStringFound(extension, HEADER_EXTENSION))
+    {
+        // Construct the grid directly from the header file
+        _createGrid(filePath);
+    }
+
+    // Read the Ultraliser volume file
+    else if (String::subStringFound(extension, ULTRALISER_VOLUME_EXTENSION) ||
+             String::subStringFound(extension, ULTRALISER_BIN_VOLUME_EXTENSION))
+    {
+        // Read the volume data from the file and construct the volume grid
+        _createGrid(readUltraliserVolumeFile(filePath));
+    }
+
+    // Unrecognized format
+    else
+    {
+        LOG_ERROR("The input volume extenstion [%s] is NOT supported!", extension.c_str());
+    }
+
+    // Since we don't have any geometric bounds, use 1.0 for the voxel resolution
+    // TODO: The voxel resolution should be computed from the given bounds
+    _voxelSize = 1.f;
+
+    // If the bounds are zero, then adjust the scale based on the grid dimensions.
+    if (_pMin.isZero() and _pMax.isZero())
+    {
+        // pMin will be at the origin
+        _pMin = Vector3f::ZERO;
+
+        // pMax will be at the higher bound
+        _pMax.x() = 1.f * _grid->getWidth();
+        _pMax.y() = 1.f * _grid->getHeight();
+        _pMax.z() = 1.f * _grid->getDepth();
+
+        _scale = _pMax - _pMin;
+        _center = _pMin + (0.5f * _scale);
+    }
+
+    // Profiling
+    _surfaceVoxelizationTime = 0.0;
+    _solidVoxelizationTime = 0.0;
+    _addingVolumePassTime = 0.0;
+}
 
 Volume::Volume(const Vector3f& pMin,
                const Vector3f& pMax,
                const uint64_t &baseResolution,
                const float &expansionRatio,
-               const VolumeGrid::TYPE& gridType)
+               const VOLUME_TYPE& gridType)
     : _gridType(gridType)
     , _pMin(pMin)
     , _pMax(pMax)
@@ -63,70 +130,294 @@ Volume::Volume(const int64_t width,
                const int64_t depth,
                const Vector3f pMin,
                const Vector3f pMax,
-               const VolumeGrid::TYPE& gridType,
+               const VOLUME_TYPE& gridType,
                const float expansionRatio)
     : _gridType(gridType)
     , _pMin(pMin)
     , _pMax(pMax)
     , _expansionRatio(expansionRatio)
 {
-    _gridDimensions.v[0] = width;
-    _gridDimensions.v[1] = height;
-    _gridDimensions.v[2] = depth;
-
     // Since we don't have any geometric bounds, use 1.0 for the voxel resolution
     // TODO: The voxel resolution should be computed from the given bounds
     _voxelSize = 1.0;
 
     // Allocating the grid
-    _allocateGrid();
+    _allocateGrid(width, height, depth);
 }
 
-Volume::Volume(const std::string &prefix,
-               const VolumeGrid::TYPE& gridType)
-    : _gridType(gridType)
+void Volume::_createGrid(const NRRDVolumeData* volumeData)
 {
-    // Zero zero-padding
-    _expansionRatio = 0;
+    // Update the cente, scale and pMin and pMax accordingly
+    _center = volumeData->center;
+    _scale = volumeData->scale;
+    _pMin = _center - 0.5 * _scale;
+    _pMax = _center + 0.5 * _scale;
 
-    // Load the volume data
-    switch (gridType)
+    switch (volumeData->type)
     {
-    case VolumeGrid::TYPE::BIT:
-        _loadBinaryVolumeData(prefix);
-        break;
-    case VolumeGrid::TYPE::BYTE:
-        _loadByteVolumeData(prefix);
-        break;
+    case VOLUME_TYPE::BIT:
+    {
+        LOG_ERROR("Unimplemented Volume::_createGrid(const NRRDVolumeData* volumeData)");
+    } break;
+
+    case VOLUME_TYPE::UI8:
+    {
+        // Create the grid and update the type
+        _gridType = VOLUME_TYPE::UI8;
+        _grid = new VolumeGridU8(volumeData->width, volumeData->height, volumeData->depth,
+                                 volumeData->data->asBytes().data());
+    } break;
+
+    case VOLUME_TYPE::UI16:
+    {
+        // Create the grid and update the type
+        _gridType = VOLUME_TYPE::UI16;
+        _grid = new VolumeGridU16(volumeData->width, volumeData->height, volumeData->depth,
+                                  volumeData->data->asUnsingedShorts().data());
+    } break;
+
+    case VOLUME_TYPE::UI32:
+    {
+        // Create the grid and update the type
+        _gridType = VOLUME_TYPE::UI32;
+        _grid = new VolumeGridU32(volumeData->width, volumeData->height, volumeData->depth,
+                                  volumeData->data->asUnsignedIntegers().data());
+    } break;
+
+    case VOLUME_TYPE::UI64:
+    {
+        // Create the grid and update the type
+        _gridType = VOLUME_TYPE::UI64;
+        _grid = new VolumeGridU64(volumeData->width, volumeData->height, volumeData->depth,
+                                  volumeData->data->asUnsignedLongs().data());
+    } break;
+
+    case VOLUME_TYPE::F32:
+    {
+        // Create the grid and update the type
+        _gridType = VOLUME_TYPE::F32;
+        _grid = new VolumeGridF32(volumeData->width, volumeData->height, volumeData->depth,
+                                  volumeData->data->asFloats().data());
+
+    } break;
+
+    case VOLUME_TYPE::F64:
+    {
+        _gridType = VOLUME_TYPE::F64;
+        _grid = new VolumeGridF64(volumeData->width, volumeData->height, volumeData->depth,
+                                  volumeData->data->asDoubles().data());
+    } break;
 
     default:
-        break;
-    }
+    {
+        LOG_ERROR("Undefined volume format");
 
-    // TODO: Adjust the pMin and pMax here based on a unit cube
+    } break;
+    }
 }
 
-void Volume::_allocateGrid()
+void Volume::_createGrid(const std::string& hdrFilePath)
+{
+    // Get the volume meta data from the header file
+    const auto volumeData = readHeaderFile(hdrFilePath);
+
+    // Obtain the .img or .bin file path from the prefix and the file type
+    std::string parentPath = std::filesystem::path(hdrFilePath).parent_path().string();
+    std::string rawFileName = std::filesystem::path(hdrFilePath).stem();
+    std::string rawFilePath = parentPath + "/" + rawFileName;
+
+    switch (volumeData->type)
+    {
+    case VOLUME_TYPE::BIT:
+    {
+        // Get the raw file path
+        rawFilePath += BINARY_EXTENSION;
+        // std::string data = readRawFile(rawFilePath);
+
+        std::vector<uint8_t> data = readRawFileToByteVector(rawFilePath);
+        std::cout << rawFilePath << std::endl;
+
+        _grid = new BitVolumeGrid(volumeData->width, volumeData->height, volumeData->depth,
+                                   new BitArray(data.data(), volumeData->width * volumeData->height * volumeData->depth));
+
+        // Update the grid type
+        _gridType = VOLUME_TYPE::BIT;
+
+    } break;
+
+    case VOLUME_TYPE::UI8:
+    {
+        // Get the raw file path
+        rawFilePath += RAW_EXTENSION;
+        std::string data = readRawFile(rawFilePath);
+
+        _grid = new VolumeGridU8(volumeData->width, volumeData->height, volumeData->depth,
+                                 Array::convertStringTo8UIArray(data));
+
+        // Update the grid type
+        _gridType = VOLUME_TYPE::UI8;
+
+    } break;
+
+    case VOLUME_TYPE::UI16:
+    {
+        // Get the raw file path
+        rawFilePath += RAW_EXTENSION;
+        std::string data = readRawFile(rawFilePath);
+
+        _grid = new VolumeGridU16(volumeData->width, volumeData->height, volumeData->depth,
+                                  Array::convertStringTo16UIArray(data));
+
+        // Update the grid type
+        _gridType = VOLUME_TYPE::UI16;
+
+    } break;
+
+    case VOLUME_TYPE::UI32:
+    {
+        // Get the raw file path
+        rawFilePath += RAW_EXTENSION;
+        std::string data = readRawFile(rawFilePath);
+
+        _grid = new VolumeGridU32(volumeData->width, volumeData->height, volumeData->depth,
+                                  Array::convertStringTo32UIArray(data));
+
+        // Update the grid type
+        _gridType = VOLUME_TYPE::UI32;
+    } break;
+
+    case VOLUME_TYPE::UI64:
+    {
+        // Get the raw file path
+        rawFilePath += RAW_EXTENSION;
+        std::string data = readRawFile(rawFilePath);
+
+        _grid = new VolumeGridU64(volumeData->width, volumeData->height, volumeData->depth,
+                                  Array::convertStringTo64UIArray(data));
+
+        // Update the grid type
+        _gridType = VOLUME_TYPE::UI64;
+    } break;
+
+    case VOLUME_TYPE::F32:
+    case VOLUME_TYPE::F64:
+    default:
+    {
+        LOG_ERROR("Unimplemented volume format");
+    } break;
+    }
+}
+
+void Volume::_createGrid(const UltraliserVolumeData* volumeData)
+{
+    switch (volumeData->type)
+    {
+    case VOLUME_TYPE::BIT:
+    {
+        // Create the grid and update the type
+        _gridType = VOLUME_TYPE::BIT;
+        _grid = new BitVolumeGrid(volumeData->width, volumeData->height, volumeData->depth,
+                                  Ultraliser::Array::convertStringToBitArray(
+                                      volumeData->data,
+                                      volumeData->width * volumeData->height * volumeData->depth));
+    } break;
+
+    case VOLUME_TYPE::UI8:
+    {
+        // Create the grid and update the type
+        _gridType = VOLUME_TYPE::UI8;
+        _grid = new VolumeGridU8(volumeData->width, volumeData->height, volumeData->depth,
+                                 Ultraliser::Array::convertStringTo8UIArray(volumeData->data));
+
+    } break;
+
+    case VOLUME_TYPE::UI16:
+    {
+        // Create the grid and update the type
+        _gridType = VOLUME_TYPE::UI16;
+        _grid = new VolumeGridU16(volumeData->width, volumeData->height, volumeData->depth,
+                                 Ultraliser::Array::convertStringTo16UIArray(volumeData->data));
+    } break;
+
+    case VOLUME_TYPE::UI32:
+    {
+        // Create the grid and update the type
+        _gridType = VOLUME_TYPE::UI32;
+        _grid = new VolumeGridU8(volumeData->width, volumeData->height, volumeData->depth,
+                                 Ultraliser::Array::convertStringTo32UIArray(volumeData->data));
+
+    } break;
+
+    case VOLUME_TYPE::UI64:
+    {
+        // Create the grid and update the type
+        _gridType = VOLUME_TYPE::UI64;
+        _grid = new VolumeGridU8(volumeData->width, volumeData->height, volumeData->depth,
+                                 Ultraliser::Array::convertStringTo64UIArray(volumeData->data));
+
+    } break;
+
+    case VOLUME_TYPE::F32:
+    {
+        // Create the grid and update the type
+        _gridType = VOLUME_TYPE::F32;
+    } break;
+
+    case VOLUME_TYPE::F64:
+    {
+
+    } break;
+
+    default:
+    {
+        LOG_ERROR("Undefined volume format");
+
+    } break;
+    }
+}
+
+void Volume::_allocateGrid(const size_t &width, const size_t &height, const size_t &depth)
 {
     // Create the grid
     switch (_gridType)
     {
-    case VolumeGrid::TYPE::BIT:
+    case VOLUME_TYPE::BIT:
     {
-        _grid = new BitVolumeGrid(_gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
-        break;
-    }
-    case VolumeGrid::TYPE::BYTE:
-    {
-        _grid = new ByteVolumeGrid(_gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
-        break;
-    }
+        _grid = new BitVolumeGrid(width, height, depth);
+    } break;
 
-    case VolumeGrid::TYPE::VOXEL:
+    case VOLUME_TYPE::UI8:
     {
-        _grid = new VoxelGrid(_gridDimensions.v[0], _gridDimensions.v[1], _gridDimensions.v[2]);
+        _grid = new VolumeGridU8(width, height, depth);
+    } break;
+
+    case VOLUME_TYPE::UI16:
+    {
+        _grid = new VolumeGridU16(width, height, depth);
+    } break;
+
+    case VOLUME_TYPE::UI32:
+    {
+        _grid = new VolumeGridU32(width, height, depth);
+    } break;
+
+    case VOLUME_TYPE::UI64:
+    {
+        _grid = new VolumeGridU64(width, height, depth);
+    } break;
+
+    case VOLUME_TYPE::F32:
+    {
+        _grid = new VolumeGridF32(width, height, depth);
+    } break;
+
+    case VOLUME_TYPE::F64:
+    {
+        _grid = new VolumeGridF64(width, height, depth);
+    }  break;
+
+    default:
         break;
-    }
     }
 }
 
@@ -152,56 +443,18 @@ void Volume::_createGrid(void)
     _voxelSize = boundingBoxSize[_largestDimensionIdx] / (1.f * _baseResolution);
 
     // Compute the volume dimensions based on the current voxel size
-    _gridDimensions.v[0] = F2UI64(std::round(boundingBoxSize[0] / _voxelSize));
-    _gridDimensions.v[1] = F2UI64(std::round(boundingBoxSize[1] / _voxelSize));
-    _gridDimensions.v[2] = F2UI64(std::round(boundingBoxSize[2] / _voxelSize));
+    auto width = F2UI64(std::round(boundingBoxSize[0] / _voxelSize));
+    auto height = F2UI64(std::round(boundingBoxSize[1] / _voxelSize));
+    auto depth = F2UI64(std::round(boundingBoxSize[2] / _voxelSize));
 
     LOG_SUCCESS("Volume Dimenions [ %d x %d x %d ] : [ %f x %f x %f ]",
-                _gridDimensions.v[0] , _gridDimensions.v[1] , _gridDimensions.v[2],
+                width, height, depth,
                 boundingBoxSize[0], boundingBoxSize[1], boundingBoxSize[2]);
 
     // Allocating the grid
-    _allocateGrid();
+    _allocateGrid(width, height, depth);
 }
 
-void Volume::_loadHeaderData(const std::string &prefix)
-{
-    const std::string filePath = prefix + std::string(".hdr");
-
-    // Open the header file
-    std::ifstream hdrFileStream(filePath.c_str());
-
-    // Volume dimensions
-    hdrFileStream >> _gridDimensions.v[0];
-    hdrFileStream >> _gridDimensions.v[1];
-    hdrFileStream >> _gridDimensions.v[2];
-
-    // Close the stream
-    hdrFileStream.close();
-}
-
-void Volume::_loadByteVolumeData(const std::string &prefix)
-{
-    // Load the header data of the volume including the dimensions and the size
-    _loadHeaderData(prefix);
-
-    // We can safely allocate the grid after loading the data from teh header
-    _allocateGrid();
-
-    // Load the data from the file in the grid
-    _grid->loadByteVolumeData(prefix);
-}
-
-void Volume::_loadBinaryVolumeData(const std::string &prefix)
-{
-    _loadHeaderData(prefix);
-
-    // Allocate the grid with the loaded dimensions
-    _allocateGrid();
-
-    // Load the data from the file in the grid
-    _grid->loadBinaryVolumeData(prefix);
-}
 
 void Volume::surfaceVoxelization(Mesh* mesh,
                                  const bool& verbose,
@@ -213,8 +466,8 @@ void Volume::surfaceVoxelization(Mesh* mesh,
     TIMER_SET;
 
     if (verbose)
-        LOG_STATUS("Creating Volume Shell [%d x %d x %d]",
-                   _gridDimensions[0], _gridDimensions[1], _gridDimensions[2]);
+        LOG_STATUS("Creating Volume Shell [%zu x %zu x %zu]",
+                   _grid->getWidth(), _grid->getHeight(), _grid->getDepth());
     if (parallel)
         _rasterizeParallel(mesh, _grid);
     else
@@ -533,7 +786,7 @@ void Volume::surfaceVoxelization(const std::string &inputDirectory,
     TIMER_SET;
 
     LOG_STATUS("Creating Volume Shell [%d x %d x %d]",
-               _gridDimensions[0], _gridDimensions[1], _gridDimensions[2]);
+               _grid->getWidth(), _grid->getHeight(), _grid->getDepth());
     uint64_t processedMeshCount = 0;
     LOOP_STARTS("Rasterization");
     PROGRESS_SET;
@@ -822,7 +1075,7 @@ void Volume::_floodFillAlongXYZ(VolumeGrid *grid)
     // Create the grid
     switch (_gridType)
     {
-    case VolumeGrid::TYPE::BIT:
+    case VOLUME_TYPE::BIT:
     {
         xGrid = new BitVolumeGrid(static_cast< BitVolumeGrid* >(grid));
         yGrid = new BitVolumeGrid(static_cast< BitVolumeGrid* >(grid));
@@ -830,18 +1083,32 @@ void Volume::_floodFillAlongXYZ(VolumeGrid *grid)
 
     } break;
 
-    case VolumeGrid::TYPE::BYTE:
+    case VOLUME_TYPE::UI8:
     {
-        xGrid = new ByteVolumeGrid(static_cast< ByteVolumeGrid* >(grid));
-        yGrid = new ByteVolumeGrid(static_cast< ByteVolumeGrid* >(grid));
-        zGrid = new ByteVolumeGrid(static_cast< ByteVolumeGrid* >(grid));
+        xGrid = new UnsignedVolumeGrid<uint8_t>(static_cast< UnsignedVolumeGrid<uint8_t>* >(grid));
+        yGrid = new UnsignedVolumeGrid<uint8_t>(static_cast< UnsignedVolumeGrid<uint8_t>* >(grid));
+        zGrid = new UnsignedVolumeGrid<uint8_t>(static_cast< UnsignedVolumeGrid<uint8_t>* >(grid));
     } break;
 
-    case VolumeGrid::TYPE::VOXEL:
+    case VOLUME_TYPE::UI16:
     {
-        xGrid = new VoxelGrid(static_cast< VoxelGrid* >(grid));
-        yGrid = new VoxelGrid(static_cast< VoxelGrid* >(grid));
-        zGrid = new VoxelGrid(static_cast< VoxelGrid* >(grid));
+        xGrid = new UnsignedVolumeGrid<uint16_t>(static_cast< UnsignedVolumeGrid<uint16_t>* >(grid));
+        yGrid = new UnsignedVolumeGrid<uint16_t>(static_cast< UnsignedVolumeGrid<uint16_t>* >(grid));
+        zGrid = new UnsignedVolumeGrid<uint16_t>(static_cast< UnsignedVolumeGrid<uint16_t>* >(grid));
+    } break;
+
+    case VOLUME_TYPE::UI32:
+    {
+        xGrid = new UnsignedVolumeGrid<uint32_t>(static_cast< UnsignedVolumeGrid<uint32_t>* >(grid));
+        yGrid = new UnsignedVolumeGrid<uint32_t>(static_cast< UnsignedVolumeGrid<uint32_t>* >(grid));
+        zGrid = new UnsignedVolumeGrid<uint32_t>(static_cast< UnsignedVolumeGrid<uint32_t>* >(grid));
+    } break;
+
+    case VOLUME_TYPE::UI64:
+    {
+        xGrid = new UnsignedVolumeGrid<uint64_t>(static_cast< UnsignedVolumeGrid<uint64_t>* >(grid));
+        yGrid = new UnsignedVolumeGrid<uint64_t>(static_cast< UnsignedVolumeGrid<uint64_t>* >(grid));
+        zGrid = new UnsignedVolumeGrid<uint64_t>(static_cast< UnsignedVolumeGrid<uint64_t>* >(grid));
     } break;
     }
 
@@ -973,7 +1240,8 @@ bool Volume::_testTriangleCubeIntersection(Mesh* mesh, uint64_t triangleIdx, con
 bool Volume::_testSampleCubeIntersection(Sample* sample, const GridIndex& voxel)
 {
     // Voxel half size
-    float voxelHalfSize = _voxelSize * 0.5f;    
+    float voxelHalfSize = _voxelSize * 0.5f;
+
     // Get the center of the voxel
     Vector3f voxelCenter;
     voxelCenter[0] = _pMin[0] + (voxel[0] * _voxelSize) + voxelHalfSize;
@@ -1253,33 +1521,44 @@ void Volume::project(const std::string prefix,
 }
 
 void Volume::writeVolumes(const std::string &prefix,
-                          const bool& binaryFormat,
-                          const bool& rawFormat,
-                          const bool &nrrdFormat) const
+                          const bool& bitFormat, const bool &unsignedFormat, const bool &floatFormat,
+                          const bool& nrrdFormat, const bool& rawFormat) const
 {
-    if (binaryFormat || rawFormat || nrrdFormat)
+    if (bitFormat || unsignedFormat || floatFormat || nrrdFormat || rawFormat)
     {
         // Start the timer
         TIMER_SET;
 
         LOG_TITLE("Writing Volumes");
 
-        if (binaryFormat)
+        if (bitFormat)
         {
-            LOG_STATUS("Bit Volume");
-            _grid->writeBIN(prefix);
+            LOG_SUCCESS("Bit Volume (1-bit per voxel in .HDR/.BIN files)");
+            _grid->writeBitVolume(prefix);
         }
 
-        if (rawFormat)
+        if (unsignedFormat)
         {
-            LOG_STATUS("Byte Volume");
-            _grid->writeRAW(prefix);
+            LOG_SUCCESS("Bit Volume (1-bit per voxel in .HDR/.BIN files)");
+            _grid->writeUnsignedVolume(prefix);
+        }
+
+        if (floatFormat)
+        {
+            LOG_SUCCESS("Bit Volume (1-bit per voxel in .HDR/.BIN files)");
+            _grid->writeFloatVolume(prefix);
         }
 
         if (nrrdFormat)
         {
-            LOG_STATUS("NRRD Volume");
-            _grid->writeNRRD(prefix);
+            LOG_SUCCESS("NRRD Raw Volume in .nrrd file");
+            _grid->writeNRRDVolume(prefix);
+        }
+
+        if (rawFormat)
+        {
+            LOG_SUCCESS("Raw Volume (1, 2, 3 or 4-bytes per voxel in .HDR/.IMG files)");
+            _grid->writeRAWVolume(prefix);
         }
 
         // Statictics
@@ -1742,13 +2021,13 @@ uint8_t Volume::getByte(const uint64_t index) const
     return _grid->getByte(index);
 }
 
-uint8_t Volume::getValue(const uint64_t index) const
-{
-    if (_grid->isFilled(index))
-        return 255;
-    else
-        return 0;
-}
+//uint8_t Volume::getValue(const uint64_t index) const
+//{
+//    if (_grid->isFilled(index))
+//        return 255;
+//    else
+//        return 0;
+//}
 
 uint8_t Volume::getConfirmedValue(const int64_t &x,
                                   const int64_t &y,
@@ -1764,14 +2043,60 @@ uint8_t Volume::getConfirmedValue(const int64_t &x,
 }
 
 
-uint8_t Volume::getValue(const int64_t &x,
-                         const int64_t &y,
-                         const int64_t &z) const
+//uint8_t Volume::getValue(const int64_t &x,
+//                         const int64_t &y,
+//                         const int64_t &z) const
+//{
+//    if (_grid->isFilled(x, y, z))
+//        return 255;
+//    else
+//        return 0;
+//}
+
+
+
+
+uint8_t Volume::getValueUI8(const int64_t &x,
+                            const int64_t &y,
+                            const int64_t &z) const
 {
-    if (_grid->isFilled(x, y, z))
-        return 255;
-    else
-        return 0;
+    return _grid->getValueUI8(x, y, z);
+}
+
+uint16_t Volume::getValueUI16(const int64_t &x,
+                              const int64_t &y,
+                              const int64_t &z) const
+{
+    return _grid->getValueUI16(x, y, z);
+}
+
+uint32_t Volume::getValueUI32(const int64_t &x,
+                              const int64_t &y,
+                              const int64_t &z) const
+{
+    return _grid->getValueUI32(x, y, z);
+}
+
+uint64_t Volume::getValueUI64(const int64_t &x,
+                              const int64_t &y,
+                              const int64_t &z) const
+{
+    return _grid->getValueUI64(x, y, z);
+}
+
+float Volume::getValueF32(const int64_t &x,
+                          const int64_t &y,
+                          const int64_t &z) const
+{
+    return _grid->getValueF32(x, y, z);
+}
+
+double Volume::getValueF64(const int64_t &x,
+                           const int64_t &y,
+                           const int64_t &z) const
+{
+    return _grid->getValueF64(x, y, z);
+
 }
 
 uint8_t Volume::getByte(const int64_t &x,
@@ -1791,15 +2116,15 @@ void Volume::fillVoxel(const int64_t &x,
                        const int64_t &z)
 {
 
-    if (x - 1 < 0 || x > _gridDimensions[0])
+    if (x - 1 < 0 || x > _grid->getWidth())
     {
         return;
     }
-    if (y - 1 < 0 || y > _gridDimensions[1])
+    if (y - 1 < 0 || y > _grid->getHeight())
     {
         return;
     }
-    if (z - 1 < 0 || z > _gridDimensions[2])
+    if (z - 1 < 0 || z > _grid->getDepth())
     {
         return;
     }
@@ -1878,7 +2203,7 @@ uint64_t Volume::computeNumberNonZeroVoxels(void) const
 
 std::string Volume::getFormatString() const
 {
-    return VolumeGrid::getTypeString(_gridType);
+    return _grid->getTypeString(_gridType);
 }
 
 float Volume::computeVolume() const
@@ -1987,27 +2312,27 @@ void Volume::addVolumePass(const Volume* volume)
 
 void Volume::addVolume(const std::string &volumePrefix)
 {
-    Volume* volume = new Volume(volumePrefix, VolumeGrid::TYPE::BYTE);
+//    Volume* volume = new Volume(volumePrefix, VOLUME_TYPE::UI8);
 
-    // If the volume dimensions are not similar to this one
-    // then, print an ERROR ...
-    if (!(getWidth() == volume->getWidth() &&
-          getHeight() == volume->getHeight() &&
-          getDepth() == volume->getDepth()))
-    {
-        LOG_ERROR("The dimensions of the two volumes don't match");
-        return;
-    }
+//    // If the volume dimensions are not similar to this one
+//    // then, print an ERROR ...
+//    if (!(getWidth() == volume->getWidth() &&
+//          getHeight() == volume->getHeight() &&
+//          getDepth() == volume->getDepth()))
+//    {
+//        LOG_ERROR("The dimensions of the two volumes don't match");
+//        return;
+//    }
 
-    // Loop over the volume elements byte-by-byte and add
-    // them to the corresponding one in this voume
-    for (size_t i = 0; i < volume->getNumberBytes(); ++i)
-    {
-        addByte(i, volume->getByte(i));
-    }
+//    // Loop over the volume elements byte-by-byte and add
+//    // them to the corresponding one in this voume
+//    for (size_t i = 0; i < volume->getNumberBytes(); ++i)
+//    {
+//        addByte(i, volume->getByte(i));
+//    }
 
-    // Release the gird to save some memory
-    delete volume;
+//    // Release the gird to save some memory
+//    delete volume;
 }
 
 uint64_t Volume::getNumberBytes(void) const
@@ -2038,37 +2363,201 @@ Volume::~Volume()
     delete _grid;
 }
 
+
 Volume* Volume::constructIsoValueVolume(const Volume* volume,
-                                        const uint8_t& isoValue,
-                                        const int64_t &padding)
+                                        const size_t& isoValue)
 {
-    Vector3f pMin(0.f), pMax(1.f);
+    // Create the iso-volume
+    Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),
+                                   volume->getPMin(), volume->getPMax(),
+                                   VOLUME_TYPE::BIT);
 
-    pMax.x() *= volume->getWidth();
-    pMax.y() *= volume->getHeight();
-    pMax.z() *= volume->getDepth();
+    LOG_STATUS("Constructing Iso Volume from a Single Value [%zu]", isoValue);
+    for (size_t x = 0; x < volume->getWidth(); ++x)
+    {
+        LOOP_PROGRESS(x, volume->getWidth());
+        for (size_t y = 0; y < volume->getHeight(); ++y)
+        {
+            for (size_t z = 0; z < volume->getDepth(); ++z)
+            {
+                if (volume->getValueUI64(x, y, z) == isoValue)
+                {
+                    isoVolume->fill(x, y, z);
+                }
+                else
+                {
+                    isoVolume->clear(x, y, z);
+                }
+            }
+        }
+    }
+    LOOP_DONE;
 
-    Volume* isoVolume = new Volume(volume->getWidth() + padding,
-                                   volume->getHeight() + padding,
-                                   volume->getDepth() + padding,
-                                   pMin, pMax, VolumeGrid::TYPE::BIT);
+    // Return the resulting iso-volume
+    return isoVolume;
+}
+
+Volume* Volume::constructVolumeWithMinimumIsoValue(const Volume* volume,
+                                                   const size_t& minIsoValue)
+{
+    // Create the iso-volume
+    Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),
+                                   volume->getPMin(), volume->getPMax(),
+                                   VOLUME_TYPE::BIT);
+
+    LOG_STATUS("Constructing Iso Volume with Minimum Value [%zu]", minIsoValue);
+    for (size_t x = 0; x < volume->getWidth(); ++x)
+    {
+        LOOP_PROGRESS(x, volume->getWidth());
+        for (size_t y = 0; y < volume->getHeight(); ++y)
+        {
+            for (size_t z = 0; z < volume->getDepth(); ++z)
+            {
+                if (volume->getValueUI64(x, y, z) >= minIsoValue)
+                {
+                    isoVolume->fill(x, y, z);
+                }
+                else
+                {
+                    isoVolume->clear(x, y, z);
+                }
+            }
+        }
+    }
+    LOOP_DONE;
+
+    // Return the resulting iso-volume
+    return isoVolume;
+}
+
+Volume* Volume::constructVolumeWithMaximumIsoValue(const Volume* volume,
+                                                   const size_t& minIsoValue)
+{
+    // Create the iso-volume
+    Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),
+                                   volume->getPMin(), volume->getPMax(),
+                                   VOLUME_TYPE::BIT);
+
+    LOG_STATUS("Constructing Iso Volume with Minimum Value [%zu]", minIsoValue);
+    for (size_t x = 0; x < volume->getWidth(); ++x)
+    {
+        LOOP_PROGRESS(x, volume->getWidth());
+        for (size_t y = 0; y < volume->getHeight(); ++y)
+        {
+            for (size_t z = 0; z < volume->getDepth(); ++z)
+            {
+                if (volume->getValueUI64(x, y, z) <= minIsoValue)
+                {
+                    isoVolume->fill(x, y, z);
+                }
+                else
+                {
+                    isoVolume->clear(x, y, z);
+                }
+            }
+        }
+    }
+    LOOP_DONE;
+
+    // Return the resulting iso-volume
+    return isoVolume;
+}
+
+Volume* Volume::constructVolumeWithIsoRange(const Volume* volume,
+                                            const size_t& minIsoValue,
+                                            const size_t& maxIsoValue)
+{
+    // Create the iso-volume
+    Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),
+                                   volume->getPMin(), volume->getPMax(),
+                                   VOLUME_TYPE::BIT);
+
+    LOG_STATUS("Constructing Iso Volume with Range [%zu - %zu]", minIsoValue, maxIsoValue);
+    for (size_t x = 0; x < volume->getWidth(); ++x)
+    {
+        LOOP_PROGRESS(x, volume->getWidth());
+        for (size_t y = 0; y < volume->getHeight(); ++y)
+        {
+            for (size_t z = 0; z < volume->getDepth(); ++z)
+            {
+                if (volume->getValueUI64(x, y, z) <= maxIsoValue &&
+                        volume->getValueUI64(x, y, z) >= minIsoValue)
+                {
+                    isoVolume->fill(x, y, z);
+                }
+                else
+                {
+                    isoVolume->clear(x, y, z);
+                }
+            }
+        }
+    }
+    LOOP_DONE;
+
+    // Return the resulting iso-volume
+    return isoVolume;
+}
+
+Volume* Volume::constructNonZeroVolume(const Volume* volume)
+{
+    // Create the iso-volume
+    Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),
+                                   volume->getPMin(), volume->getPMax(),
+                                   VOLUME_TYPE::BIT);
+
+    LOG_STATUS("Constructing Full Range Iso Volume");
+    for (size_t x = 0; x < volume->getWidth(); ++x)
+    {
+        LOOP_PROGRESS(x, volume->getWidth());
+        for (size_t y = 0; y < volume->getHeight(); ++y)
+        {
+            for (size_t z = 0; z < volume->getDepth(); ++z)
+            {
+                if (volume->getValueUI64(x, y, z) > 0)
+                {
+                    isoVolume->fill(x, y, z);
+                }
+                else
+                {
+                    isoVolume->clear(x, y, z);
+                }
+            }
+        }
+    }
+    LOOP_DONE;
+
+    // Return the resulting iso-volume
+    return isoVolume;
+}
+
+Volume* Volume::constructIsoValuesVolume(const Volume* volume,
+                                         const std::vector< uint64_t > &isoValues)
+{
+    // Create the iso-volume
+    Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),
+                                   volume->getPMin(), volume->getPMax(),
+                                   VOLUME_TYPE::BIT);
 
     LOG_STATUS("Constructing Iso Volume");
     for (int64_t x = 0; x < volume->getWidth(); ++x)
     {
         LOOP_PROGRESS(x, volume->getWidth());
-        for (int64_t y = 0; y < volume->getHeight(); ++y)
+        for (size_t y = 0; y < volume->getHeight(); ++y)
         {
-            for (int64_t z = 0; z < volume->getDepth(); ++z)
+            for (size_t z = 0; z < volume->getDepth(); ++z)
             {
-                int64_t xIso = x + F2I64(padding / 2.f);
-                int64_t yIso = y + F2I64(padding / 2.f);
-                int64_t zIso = z + F2I64(padding / 2.f);
-
-                if (volume->getByte(x, y, z) == isoValue)
-                    isoVolume->fill(xIso, yIso, zIso);
-                else
-                    isoVolume->clear(xIso, yIso, zIso);
+                for (size_t iv = 0; iv < isoValues.size(); ++iv)
+                {
+                    const auto &voxelValue = volume->getValueUI64(x, y, z);
+                    if (std::find(isoValues.begin(), isoValues.end(), voxelValue) != isoValues.end())
+                    {
+                        isoVolume->fill(x, y, z);
+                    }
+                    else
+                    {
+                        isoVolume->clear(x, y, z);
+                    }
+                }
             }
         }
     }
@@ -2077,66 +2566,60 @@ Volume* Volume::constructIsoValueVolume(const Volume* volume,
     return isoVolume;
 }
 
-Volume* Volume::constructFullRangeVolume(const Volume* volume, const int64_t &padding)
+std::vector<uint64_t> Volume::createHistogram(const Volume* volume,
+                                              const VOLUME_TYPE& type)
 {
-    Vector3f pMin(0.f), pMax(1.f);
-
-    pMax.x() *= volume->getWidth();
-    pMax.y() *= volume->getHeight();
-    pMax.z() *= volume->getDepth();
-
-    Volume* isoVolume = new Volume(volume->getWidth() + padding,
-                                   volume->getHeight() + padding,
-                                   volume->getDepth() + padding,
-                                   pMin, pMax, VolumeGrid::TYPE::BYTE);
-
-    LOG_STATUS("Constructing Iso Volume");
-    for (int64_t x = 0; x < volume->getWidth(); ++x)
+    uint64_t histogramWidth;
+    switch (type)
     {
-        LOOP_PROGRESS(x, volume->getWidth());
-        for (int64_t y = 0; y < volume->getHeight(); ++y)
-        {
-            for (int64_t z = 0; z < volume->getDepth(); ++z)
-            {
-                int64_t xIso = x + F2I64(padding / 2.f);
-                int64_t yIso = y + F2I64(padding / 2.f);
-                int64_t zIso = z + F2I64(padding / 2.f);
+    case VOLUME_TYPE::UI8:
+    {
+        histogramWidth = std::numeric_limits<uint8_t>::max();
+    } break;
 
-                if (volume->getByte(x, y, z) > 0)
-                {
-                    isoVolume->fill(xIso, yIso, zIso);
-                }
-                else
-                {
-                    isoVolume->clear(xIso, yIso, zIso);
-                }
+    case VOLUME_TYPE::UI16:
+    {
+        histogramWidth = std::numeric_limits<uint16_t>::max();
+    } break;
 
-            }
-        }
+    case VOLUME_TYPE::UI32:
+    {
+        histogramWidth = std::numeric_limits<uint32_t>::max();
+    } break;
+
+    case VOLUME_TYPE::UI64:
+    {
+        histogramWidth = std::numeric_limits<uint64_t>::max();
+    } break;
+
+    case VOLUME_TYPE::BIT:
+    {
+        LOG_ERROR("Histograms CANNOT be computed to a bit volume!");
     }
-    LOOP_DONE;
 
-    return isoVolume;
-}
+    case VOLUME_TYPE::F32:
+    case VOLUME_TYPE::F64:
+    default:
+        LOG_ERROR("Histograms CANNOT be computed to float volumes!");
+        break;
+    }
 
-std::vector<uint64_t> Volume::createHistogram(const Volume* volume)
-{
     // Allocation
-    std::vector<uint64_t> histogram;
-    histogram.resize(256);
+    std::vector< size_t > histogram;
+    histogram.resize(histogramWidth);
 
     // Initialization
-    for (uint64_t i = 0; i < 256; ++i)
+    for (size_t i = 0; i < histogramWidth; ++i)
         histogram[i] = 0;
 
-    for (int64_t x = 0; x < volume->getWidth(); ++x)
+    for (size_t x = 0; x < volume->getWidth(); ++x)
     {
         LOOP_PROGRESS(x, volume->getWidth());
-        for (int64_t y = 0; y < volume->getHeight(); ++y)
+        for (size_t y = 0; y < volume->getHeight(); ++y)
         {
-            for (int64_t z = 0; z < volume->getDepth(); ++z)
+            for (size_t z = 0; z < volume->getDepth(); ++z)
             {
-                histogram[volume->getByte(x, y, z)] += 1;
+                histogram[volume->getValueUI64(x, y, z)] += 1;
             }
         }
     }
@@ -2148,7 +2631,7 @@ std::vector<uint64_t> Volume::createHistogram(const Volume* volume)
 Volume* Volume::constructFromTiffMask(
         const std::string &maskDirectory,
         const int64_t &maskWidth, const int64_t &maskHeight,
-        const Ultraliser::VolumeGrid::TYPE& gridType)
+        const Ultraliser::VOLUME_TYPE& gridType)
 {
     // Set the timer
     TIMER_SET;

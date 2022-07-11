@@ -22,6 +22,7 @@
 #include <Ultraliser.h>
 #include <AppCommon.h>
 #include <AppArguments.h>
+#include <nrrdloader/NRRDLoader.h>
 
 namespace Ultraliser
 {
@@ -30,11 +31,10 @@ AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
     std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This tool reconstructs a watertight mesh from a given volume."
-              "The volume is given in .img/.hdr format."
-              "The reconstructed mesh can be optimized to create a mesh with "
-              "nicer topology and less tessellation.");
-
+              "ultraVolume2Mesh reconstructs a watertight mesh from a given volume."
+              "The volume can be a .NRRD file, a RAW file in .HDR/.IMG or an Ulrraliser-specific "
+              "volume in .UVOL or .UVOLB. The reconstructed mesh is optimized to create clean "
+              "topology and less tessellation.");
 
     args->addInputVolumeArguments();
     args->addInputVolumeParametersArguments();
@@ -52,27 +52,12 @@ AppOptions* parseArguments(const int& argc , const char** argv)
 
     LOG_TITLE("Creating Context");
 
-    /// Validate the arguments
-    // Try to make the output directory
-    mkdir(options->outputDirectory.c_str(), 0777);
-    if (!Ultraliser::Directory::exists(options->outputDirectory))
-    {
-        LOG_ERROR("The directory [ %s ] does NOT exist!", options->outputDirectory.c_str());
-    }
-
-    // Exporting formats, at least one of them must be there
-    if (!(options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL))
-    {
-        LOG_ERROR("The user must specify at least one output format of the "
-                  "mesh to export: [--export-obj-mesh, --export-ply-mesh, "
-                  "                 --export-off-mesh, --export-stl-mesh]");
-    }
-
-    // If no prefix is given, use the file name
-    if (options->prefix == NO_DEFAULT_VALUE)
-    {
-        options->prefix = Ultraliser::File::getName(options->inputVolumePath);
-    }
+    // Verify the arguments after parsing them and extracting the application options.
+    options->verifyOutputDirectoryArgument();
+    options->verifyMeshExportArguments();
+    options->verifyIsoSurfaceExtractionArgument();
+    options->verifyIsoOptionArgument();
+    options->verifyVolumePrefixArgument();
 
     // Initialize context
     options->initializeContext();
@@ -87,39 +72,75 @@ void run(int argc , const char** argv)
     auto options = parseArguments(argc, argv);
 
     // Construct a volume from the file
-    Ultraliser::Volume* loadedVolume = new Ultraliser::Volume(
-                options->inputVolumePath, Ultraliser::VolumeGrid::TYPE::BYTE);
+    Volume* loadedVolume = new Ultraliser::Volume(options->inputVolumePath);
 
-    std::stringstream prefix;
-    if (options->fullRangeIsoValue)
-        prefix << options->outputPrefix;
-    else
-        prefix << options->outputPrefix << "-" << options->isoValue;
+    // Compute the projection of the loaded volume (used for verification)
+    if (options->projectXY || options->projectXZ || options->projectZY)
+    {
+        loadedVolume->project(options->projectionPrefix + "-in",
+                              options->projectXY, options->projectXZ, options->projectZY,
+                              options->projectColorCoded);
+    }
 
+    // Compute the projection of the histogram
     if (options->writeHistogram)
     {
         // Create the histogram
-        std::vector<uint64_t> histogram = Ultraliser::Volume::createHistogram(loadedVolume);
+        std::vector<uint64_t> histogram = Volume::createHistogram(loadedVolume,
+                                                                  loadedVolume->getType());
 
         // Write the histogram to a file
-        const std::string path = prefix.str() + std::string(".histogram");
+        const std::string path = options->outputPrefix + HISTOGRAM_EXTENSION;
         File::writeIntegerDistributionToFile(path, histogram);
     }
 
-    // Construct a volume that will be used for the mesh reconstruction
+    // Construct the iso-volume that will be used for the mesh reconstruction
     Ultraliser::Volume* volume;
-    if (options->fullRangeIsoValue)
+    if (options->isoOption == ISOVALUE_STRING)
     {
-        // Construct a bit volume with a specific iso value
-        volume = Ultraliser::Volume::constructFullRangeVolume(
-                    loadedVolume, options->zeroPaddingVoxels);
+        // Construct a volume with a specific iso value
+        volume = Volume::constructIsoValueVolume(loadedVolume, options->isoValue);
+    }
+    else if (options->isoOption == ISOVALUES_STRING)
+    {
+        // Parse the iso-values from the file into a list
+        const std::vector< uint64_t > isoValues = File::parseIsovaluesFile(options->isovaluesFile);
+
+        // Construct a volume with a list of values
+        volume = Volume::constructIsoValuesVolume(loadedVolume, isoValues);
+    }
+    else if (options->isoOption == MIN_ISOVALUE_STRING)
+    {
+        // Construct a volume with a minimum value
+        volume = Volume::constructVolumeWithMinimumIsoValue(loadedVolume, options->minIsoValue);
+    }
+    else if (options->isoOption == MAX_ISOVALUE_STRING)
+    {
+        // Construct a volume with a maximum value
+        volume = Volume::constructVolumeWithMaximumIsoValue(loadedVolume, options->maxIsoValue);
+    }
+    else if (options->isoOption == ISOVALUE_RANGE_STRING)
+    {
+        // Construct a volume with a given range
+        volume = Volume::constructVolumeWithIsoRange(loadedVolume,
+                                                     options->minIsoValue, options->maxIsoValue);
+    }
+    else if (options->isoOption == NON_ZERO_STRING)
+    {
+        // Construct a volume containing all the non-zero voxels of the loaded volume
+        volume = Volume::constructNonZeroVolume(loadedVolume);
     }
     else
     {
-        // Construct a bit volume with a specific iso value
-        volume = Ultraliser::Volume::constructIsoValueVolume(
-                    loadedVolume, I2UI8(options->isoValue), options->zeroPaddingVoxels);
+        LOG_ERROR("The selected isooption [%s] is NOT valid.", options->isoOption.c_str());
     }
+
+    Vector3f scale;
+    scale.x() = loadedVolume->getScale().x(); //loadedVolume->getWidth();
+    scale.y() = loadedVolume->getScale().y(); // loadedVolume->getHeight();
+    scale.z() = loadedVolume->getScale().z(); // loadedVolume->getDepth();
+
+    Vector3f center = loadedVolume->getCenter();
 
     // Free the loaded volume
     delete loadedVolume;
@@ -134,15 +155,16 @@ void run(int argc , const char** argv)
     // Extract the mesh from the volume again
     auto reconstructedMesh = reconstructMeshFromVolume(volume, options);
 
+    /*
+    reconstructedMesh->scale(scale.x(), scale.y(), scale.z());
+    reconstructedMesh->translate(center);
+*/
     // If a scale factor is given, not 1.0, scale the mesh, otherwise avoid the expensive operation
     if (!(isEqual(options->xScaleFactor, 1.f) &&
           isEqual(options->xScaleFactor, 1.f) &&
           isEqual(options->xScaleFactor, 1.f)))
     {
-        // Scale the mesh
-        reconstructedMesh->scale(options->xScaleFactor,
-                                 options->yScaleFactor,
-                                 options->zScaleFactor);
+        reconstructedMesh->scale(options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
     }
 
     // Free the voulme
@@ -172,6 +194,3 @@ int main(int argc , const char** argv)
 
     ULTRALISER_DONE;
 }
-
-
-

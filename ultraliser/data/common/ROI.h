@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_COMMON_ROI_H
-#define ULTRALISER_DATA_COMMON_ROI_H
+#pragma once
 
 #include <geometry/Geometry.h>
 
@@ -70,5 +69,3 @@ public:
 typedef std::vector< ROI* > ROIs;
 
 }
-
-#endif // ULTRALISER_DATA_COMMON_ROI_H

@@ -30,8 +30,7 @@
  * to the original repository at < https://github.com/MarcoAttene/MeshFix-V2.1>.
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MESHES_ADVANCED_PRIMITIVES_H
-#define ULTRALISER_DATA_MESHES_ADVANCED_PRIMITIVES_H
+#pragma once
 
 #include <data/meshes/advanced/primitives/AdvancedPoint.h>
 #include <data/meshes/advanced/primitives/AdvancedVertex.h>
@@ -39,7 +38,3 @@
 #include <data/meshes/advanced/primitives/AdvancedTriangle.h>
 #include <data/meshes/advanced/primitives/AdcancedIndexedTriangle.hh>
 #include <data/meshes/advanced/primitives/AdvancedIndexedMesh.hh>
-
-
-
-#endif // ULTRALISER_DATA_MESHES_ADVANCED_PRIMITIVES_H

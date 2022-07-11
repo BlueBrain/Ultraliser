@@ -22,8 +22,7 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_ALGORITHMS_SIMULATION_MESH_H
-#define ULTRALISER_ALGORITHMS_SIMULATION_MESH_H
+#pragma once
 
 #include "StiffnessMatrix.h"
 
@@ -110,5 +109,3 @@ typedef std::vector<MeshPtr> Meshes;
 
 }
 }
-
-#endif  // ULTRALISER_ALGORITHMS_SIMULATION_MESH_H

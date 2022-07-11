@@ -221,6 +221,7 @@ void log(const LOG_LEVEL& logLevel,
                lineNumber,
                functionName.c_str(),
                logMessage);
+        exit(EXIT_SUCCESS);
 
 #endif
             break;

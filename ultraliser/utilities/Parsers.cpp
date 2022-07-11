@@ -55,7 +55,6 @@ float parseFloat(std::ifstream& fileStream)
     fileStream.read(buffer, 4);
 
     float* floatPtr = (float*) buffer;
-    std::cout << *floatPtr << " ";
     return *floatPtr;
 }
 

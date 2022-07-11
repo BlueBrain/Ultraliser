@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_COMMON_RGB_COLOR_HH
-#define ULTRALISER_DATA_COMMON_RGB_COLOR_HH
+#pragma once
 
 #include <math/Math.h>
 
@@ -34,6 +33,4 @@ namespace Ultraliser
 typedef Vector3f RGBColor;
 
 }
-
-#endif // ULTRALISER_DATA_COMMON_RGB_COLOR_HH
 

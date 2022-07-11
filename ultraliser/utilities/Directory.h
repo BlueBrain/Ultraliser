@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_UTILITIES_DIRECTORY_H
-#define ULTRALISER_UTILITIES_DIRECTORY_H
+#pragma once
 
 #include <common/Common.h>
 #include <arguments/Arguments.h>
@@ -79,5 +78,3 @@ bool exists(std::string path);
 
 }
 }
-
-#endif // DIRECTORY_H

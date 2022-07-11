@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_COMMON_OPENMP_HH
-#define ULTRALISER_COMMON_OPENMP_HH
+#pragma once
 
 #ifdef ULTRALISER_USE_OPENMP
 #include <omp.h>
@@ -31,5 +30,3 @@
 #else
 #define OMP_PARALLEL_FOR
 #endif
-
-#endif // ULTRALISER_COMMON_OPENMP_HH

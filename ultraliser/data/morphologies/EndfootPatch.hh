@@ -20,8 +20,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_ENDFOOTPATCH_HH
-#define ULTRALISER_DATA_MORPHOLOGIES_ENDFOOTPATCH_HH
+#pragma once
 
 #include <geometry/Geometry.h>
 #include <data/morphologies/Sample.h>
@@ -79,9 +78,10 @@ public:
  */
 typedef std::vector<EndfootPatch*> EndfootPatches;
 
+/**
+ * @brief EndfeetPatches
+ */
 typedef std::vector<EndfootPatches> EndfeetPatches;
 
 
 }
-
-#endif // ULTRALISER_DATA_MORPHOLOGIES_ENDFOOTPATCH_HH

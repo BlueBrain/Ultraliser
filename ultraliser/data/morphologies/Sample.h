@@ -20,8 +20,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_DATA_MORPHOLOGIES_SAMPLE_H
-#define ULTRALISER_DATA_MORPHOLOGIES_SAMPLE_H
+#pragma once
 
 #include <geometry/Geometry.h>
 
@@ -130,6 +129,4 @@ typedef Samples Path;
  * Each path in the list is a list of connected samples with type Samples or std::vector<Sample>.
  */
 typedef std::vector< Path > Paths;
-
 }
-#endif // ULTRALISER_DATA_MORPHOLOGIES_SAMPLE_H

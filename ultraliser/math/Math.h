@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_MATH_MATH_H
-#define ULTRALISER_MATH_MATH_H
+#pragma once
 
 #include <math/Constants.h>
 #include <math/Matrix2f.h>
@@ -34,5 +33,3 @@
 #include <math/EigenVector.h>
 #include <math/Functions.h>
 #include <math/Macros.h>
-
-#endif // ULTRALISER_MATH_MATH_H

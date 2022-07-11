@@ -163,39 +163,76 @@ void AppArguments::addInputVolumeArguments()
 
 void AppArguments::addInputVolumeParametersArguments()
 {
+    std::string info = "The --iso-option can be one of the following options: ";
+    info += "[(value), values, min, max, range, nonzero] ";
+    info += "* If --iso-option=value is selected, the value is defined by the option "
+            "--iso-value=[VALUE] ";
+    info += "* If --iso-option=values is selected, the values are loaded from a given ASCII file "
+            "as a space-separated list of values. The ASCII file is given using the option "
+            "--iso-values-file=[ISO_VALUES_FILE]. Note that the values don't have to be a "
+            "continuous range.";
+    info += "* If --iso-option=min is selected, all the range above or equal to a given value will "
+            "be used to segment the volume. The minimum value is defined by the option "
+            "--min-value=[VALUE].";
+    info += "* If --iso-option=max is selected, all the range below or equal to a given value will "
+            "be used to segment the volume. The maximum value is defined by the option "
+            "--max-value=[VALUE].";
+    info += "* If the --iso-option=range is selected, then all the values between two values will "
+            "be used to segment the volume. The minimum and maximum values will be defined by the "
+            "options --min-value=[VALUE] and --max-value=[VALUE].";
+    info += "* If the --iso-option=nonzero is selected, then all the non-zero voxels will be used "
+            "to calculate the iso-volume.";
+
+    Argument isoOption(
+                "--iso-option",
+                ARGUMENT_TYPE::STRING,
+                info,
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "value");
+    _args->addArgument(&isoOption);
+    _options->isoOption = _args->getStringValue(&isoOption);
+
     Argument isoValue(
                 "--iso-value",
                 ARGUMENT_TYPE::INTEGER,
-                "The iso value where the volume will get segmented. Default 127.",
+                "The iso-value where the volume will get segmented. Default 1.",
                 ARGUMENT_PRESENCE::OPTIONAL,
-                "127");
+                "1");
     _args->addArgument(&isoValue);
     _options->isoValue = _args->getIntegrValue(&isoValue);
 
-    Argument fullRangeIsoValue(
-                "--full-range-iso-value",
-                ARGUMENT_TYPE::BOOL,
-                "If the voxel contains any value other than zero, then use it."
-                "If this option is set the --iso-value option is ignored.");
-    _args->addArgument(&fullRangeIsoValue);
-    _options->fullRangeIsoValue = _args->getBoolValue(&fullRangeIsoValue);
+    Argument minIsoValue(
+                "--min-value",
+                ARGUMENT_TYPE::INTEGER,
+                "The minimum value used to segment the volume. Default 1.",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "1");
+    _args->addArgument(&minIsoValue);
+    _options->minIsoValue = _args->getIntegrValue(&minIsoValue);
+
+    Argument maxIsoValue(
+                "--max-value",
+                ARGUMENT_TYPE::INTEGER,
+                "The maximum value used to segment the volume. Default 255.",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "255");
+    _args->addArgument(&maxIsoValue);
+    _options->minIsoValue = _args->getIntegrValue(&maxIsoValue);
+
+    Argument isovaluesFile(
+                "--isovalues-file",
+                ARGUMENT_TYPE::STRING,
+                "A file containing a list of values to extract the volume.",
+                ARGUMENT_PRESENCE::OPTIONAL);
+    _args->addArgument(&isovaluesFile);
+    _options->isovaluesFile = _args->getStringValue(&isovaluesFile);
 
     Argument writeHistogram(
                 "--write-histogram",
                 ARGUMENT_TYPE::BOOL,
                 "Write the histogram of the volume into a text file.");
     _args->addArgument(&writeHistogram);
-    _options->writeHistogram = _args->getBoolValue(&isoValue);
-
-    Argument zeroPaddingVoxels(
-                "--zero-paddgin-voxels",
-                ARGUMENT_TYPE::INTEGER,
-                "The number of zero-padding voxels that will be appended to "
-                "the volume to avoid any clipping artifacts, default 0",
-                ARGUMENT_PRESENCE::OPTIONAL,
-                "0");
-    _args->addArgument(&zeroPaddingVoxels);
-    _options->zeroPaddingVoxels = _args->getIntegrValue(&zeroPaddingVoxels);
+    _options->writeHistogram = _args->getBoolValue(&writeHistogram);
 }
 
 void AppArguments::addOutputArguments()
@@ -339,23 +376,43 @@ void AppArguments::addVolumeExportArguments()
     Argument exportBitVolume(
                 "--export-bit-volume",
                 ARGUMENT_TYPE::BOOL,
-                "Export a bit volume, where each voxel is stored in a single bit."
-                "The resulting volume files are: .img file (data) and .hdr file (meta-data)");
+                "Export an Ultraliser-specific bit volume, where each voxel is stored in 1 bit. "
+                "The header and data are stored in a single file with the extention .vol.");
     _args->addArgument(&exportBitVolume);
     _options->exportBitVolume = _args->getBoolValue(&exportBitVolume);
 
-    Argument exportByteVolume(
+    Argument exportUnsignedVolume(
+                "--export-unsigned-volume",
+                ARGUMENT_TYPE::BOOL,
+                "Export an Ultraliser-specific unsigned volume, where each voxel is stored either "
+                "in 1, 2, 3 or 4 bytes depending on the type of the volume. "
+                "The data and header are stored in a single file with the extention .vol.");
+    _args->addArgument(&exportUnsignedVolume);
+    _options->exportUnsignedVolume = _args->getBoolValue(&exportUnsignedVolume);
+
+    Argument exportFloatVolume(
+                "--export-float-volume",
+                ARGUMENT_TYPE::BOOL,
+                "Export an Ultraliser-specific float volume, where each voxel is stored in float. "
+                "The data and header are stored in a single file with the extention .vol.");
+    _args->addArgument(&exportFloatVolume);
+    _options->exportFloatVolume = _args->getBoolValue(&exportFloatVolume);
+
+    Argument exportRawVolume(
                 "--export-raw-volume",
                 ARGUMENT_TYPE::BOOL,
-                "Export a raw volume, where each voxel is stored in a single byte."
-                "The resulting volume files are: .img file (data) and .hdr file (meta-data)");
-    _args->addArgument(&exportByteVolume);
-    _options->exportByteVolume = _args->getBoolValue(&exportByteVolume);
+                "Export a raw volume, where each voxel is stored in 1, 2, 3 or 4 bytes depending "
+                "on the volume type."
+                "The resulting files are: .img file (contains data) and .hdr file (meta-data)");
+    _args->addArgument(&exportRawVolume);
+    _options->exportRawVolume = _args->getBoolValue(&exportRawVolume);
 
     Argument exportNRRDVolume(
                 "--export-nrrd-volume",
                 ARGUMENT_TYPE::BOOL,
-                "Export an NRRD volume that is compatible with VTK.");
+                "Export a .nrrd volume that is compatible with VTK and can be loaded with "
+                "Paraview for visualization purposes."
+                "The resulting file contains the header and the data.");
     _args->addArgument(&exportNRRDVolume);
     _options->exportNRRDVolume = _args->getBoolValue(&exportNRRDVolume);
 

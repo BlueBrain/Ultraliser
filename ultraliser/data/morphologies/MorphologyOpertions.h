@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef MORPHOLOGYOPERTIONS_H
-#define MORPHOLOGYOPERTIONS_H
+#pragma once
 
 #include <data/morphologies/Sample.h>
 #include <data/morphologies/Section.h>
@@ -65,5 +64,3 @@ float computeSegmentSurfaceArea(const Sample* sample1, const Sample* sample2);
 float computeSegmentVolume(const Sample* sample1, const Sample* sample2);
 
 }
-
-#endif // MORPHOLOGYOPERTIONS_H

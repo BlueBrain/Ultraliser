@@ -19,8 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#ifndef ULTRALISER_UTILITIES_STRINGS_H
-#define ULTRALISER_UTILITIES_STRINGS_H
+#pragma once
 
 #include <common/Common.h>
 
@@ -97,7 +96,17 @@ bool sameString(std::string s1, std::string s2);
  */
 void removeExtraSpaces(std::string &inputString);
 
-}
-}
+/**
+ * @brief toLower
+ * @param inputString
+ */
+void toLower(std::string &inputString);
 
-#endif // ULTRALISER_UTILITIES_STRINGS_H
+/**
+ * @brief toUpper
+ * @param inputString
+ */
+void toUpper(std::string &inputString);
+
+}
+}
