@@ -23,4 +23,4 @@
 
 #include <data/volumes/grids/Grids.h>
 #include <data/volumes/voxels/Voxels.h>
-#include <data/volumes/utilities/Utilities.h>
+#include <data/volumes/utilities/VolumeUtilities.h>
