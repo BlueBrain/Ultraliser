@@ -585,9 +585,9 @@ void AppArguments::addLaplacianOperatorArguments()
                 "--laplacian-iterations",
                 ARGUMENT_TYPE::INTEGER,
                 "Number of iterations to smooth the reconstructed mesh with Laplacian filter. "
-                "Default 3.",
+                "Default 10.",
                 ARGUMENT_PRESENCE::OPTIONAL,
-                "3");
+                "10");
     _args->addArgument(&laplacianIterations);
     _options->laplacianIterations = _args->getIntegrValue(&laplacianIterations);
 }
