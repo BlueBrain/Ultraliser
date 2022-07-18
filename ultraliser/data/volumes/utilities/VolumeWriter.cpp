@@ -12,27 +12,29 @@ void writeNRRD(const std::string &prefix, const BitVolumeGrid* grid)
 
     // Open the file in write mode
     std::string fileName = prefix + std::string(NRRD_EXTENSION);
+    LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
+
     FILE* fptr= fopen(fileName.c_str(), "w");
 
     // Header
     fprintf(fptr, "NRRD0001\n");
-    fprintf(fptr, "content: \"Volume\"\n");
-    fprintf(fptr, "type: unsigned char\n");
+    fprintf(fptr, "content: Volume\n");
+    fprintf(fptr, "type: uint16\n");
     fprintf(fptr, "dimension: 3\n");
-    fprintf(fptr, "sizes: %zux%zux%zu\n", grid->getWidth(), grid->getHeight(), grid->getDepth());
+    // fprintf(fptr, "space dimension: 3\n");
+    fprintf(fptr, "sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
+            grid->getWidth(), grid->getHeight(), grid->getDepth());
     fprintf(fptr, "spacings: 1 1 1\n");
+    fprintf(fptr, "endian: little\n");
     fprintf(fptr, "encoding: raw\n");
 
-    LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
-
     LOOP_STARTS("Writing Voxels (1 Byte per voxel)");
-    const size_t numberVoxels = grid->getWidth() * grid->getHeight() * grid->getDepth();
-    for (size_t i = 0; i < numberVoxels; ++i)
+    for (uint64_t i = 0; i < grid->getNumberVoxels(); ++i)
     {
-        LOOP_PROGRESS_FRACTION(i, numberVoxels);
-
-        uint8_t value = grid->isFilled(i) ? FILLED_UI8_VOXEL_VALUE : EMPTY_VOXEL_VALUE;
-        fputc(value, fptr);
+        LOOP_PROGRESS(i, grid->getNumberVoxels());
+        uint16_t value = grid->isFilled(i) ? FILLED_UI8_VOXEL_VALUE : EMPTY_VOXEL_VALUE;
+        // fputc(value, fptr);
+        fwrite(&value, 2, 1, fptr);
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);

@@ -346,10 +346,10 @@ public:
     uint64_t volumeResolution;
 
     /**
-     * @brief autoResolution
+     * @brief scaledResolution
      * Sets the resolution of the volume based on mesh dimensions.
      */
-    bool autoResolution = false;
+    bool scaledResolution = false;
 
     /**
      * @brief voxelsPerMicron

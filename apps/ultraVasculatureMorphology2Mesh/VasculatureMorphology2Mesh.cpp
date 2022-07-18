@@ -86,7 +86,7 @@ void run(int argc , const char** argv)
 
     // Calculate the volume resolution based on the largest dimension in the morphology
     uint64_t resolution;
-    if (options->autoResolution)
+    if (options->scaledResolution)
         resolution = uint64_t(options->voxelsPerMicron * largestDimension);
     else
         resolution = options->volumeResolution;

@@ -36,7 +36,7 @@ Volume* createVolumeGrid(Mesh *mesh, const AppOptions* options)
     const float largestDimension = meshBoundingBox.getLargestDimension();
 
     uint64_t resolution;
-    if (options->autoResolution)
+    if (options->scaledResolution)
         resolution = uint64_t(options->voxelsPerMicron * largestDimension);
     else
         resolution = options->volumeResolution;

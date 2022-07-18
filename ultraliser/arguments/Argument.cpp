@@ -79,7 +79,7 @@ void Argument::validateCurrentOptionalArguments(const std::string &argvString)
         _optionalSet = false;
     }
 
-    // If the count is 1, then it is valud
+    // If the count is 1, then it is valid
     if (count == 1 && _presence == ARGUMENT_PRESENCE::OPTIONAL)
     {
         // The optional argument is set, use the given value
@@ -111,7 +111,7 @@ bool Argument::isValid(const std::string &argvString)
         return true;
     }
 
-    // If the count is 1, then it is valud
+    // If the count is 1, then it is valid
     if (count == 1 && _presence == ARGUMENT_PRESENCE::OPTIONAL)
     {
         // The optional argument is set, use the given value

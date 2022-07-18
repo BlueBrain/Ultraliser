@@ -47,6 +47,7 @@ include_directories("/usr/include")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+
 # Installation directories
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
@@ -69,6 +70,40 @@ OPTION(ENABLE_PROGRESS_BAR "Disable the progress bar to gain performance" ON)
 if(ENABLE_PROGRESS_BAR)
   add_definitions(-DENABLE_PROGRESS_BAR)
 endif()
+
+# Dependencies
+message("*****************************************************************************************")
+message("* Dependencies Verification")
+if(ULTRALISER_USE_OPENMP)
+    message("   * OpenMP OK")
+else(ULTRALISER_USE_OPENMP)
+    message("   * OpenMP NOT INSTALLED")
+endif(ULTRALISER_USE_OPENMP)
+
+if(ULTRALISER_USE_H5)
+    message("   * HDF5 OK")
+else(ULTRALISER_USE_H5)
+    message("   * HDF5 NOT INSTALLED!")
+endif(ULTRALISER_USE_H5)
+
+if(ULTRALISER_USE_TIFF)
+    message("   * TIFF OK")
+else(ULTRALISER_USE_TIFF)
+    message("   * TIFF NOT INSTALLED!")
+endif(ULTRALISER_USE_TIFF)
+
+if(ULTRALISER_USE_EIGEN3)
+    message("   * EIGEN3 OK")
+else(ULTRALISER_USE_EIGEN3)
+    message("   * EIGEN3 NOT INSTALLED!")
+endif(ULTRALISER_USE_EIGEN3)
+
+if(ULTRALISER_USE_ZLIB AND ULTRALISER_USE_BZIP2)
+    message("   * BZIP2 and ZLIB2 OK")
+else(ULTRALISER_USE_ZLIB AND ULTRALISER_USE_BZIP2)
+    message("   * BZIP2 & ZLIB2 NOT INSTALLED!")
+endif(ULTRALISER_USE_ZLIB AND ULTRALISER_USE_BZIP2)
+message("*****************************************************************************************")
 
 # NRRD library, from Brayns
 add_subdirectory(externals)

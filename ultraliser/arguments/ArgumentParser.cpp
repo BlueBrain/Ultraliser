@@ -153,7 +153,9 @@ void ArgumentParser::_validateCurrentArguments()
 void ArgumentParser::_evaluateArguments()
 {
     for (auto argument: _arguments)
+    {
         argument->evaluate(_argvString);
+    }
 }
 
 void ArgumentParser::parse()

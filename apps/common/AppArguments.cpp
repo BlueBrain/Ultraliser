@@ -39,7 +39,8 @@ void AppArguments::addInputMeshArguments()
                 "--mesh",
                 ARGUMENT_TYPE::STRING,
                 "The absolute path to the input mesh. "
-                "Supported mesh types: .OBJ, .PLY, .STL, .OFF, .H5",
+                "Supported mesh types: .OBJ, .PLY, .STL, .OFF, .H5"
+                "The .H5 meshes are specified by the MICrONS Explorer.",
                 ARGUMENT_PRESENCE::MANDATORY);
     _args->addArgument(&inputMesh);
     _options->inputMeshPath = _args->getStringValue(&inputMesh);
@@ -50,7 +51,8 @@ void AppArguments::addInputMeshesDirectoryArguments()
     Argument inputMeshesDirectory(
                 "--input-directory",
                 ARGUMENT_TYPE::STRING,
-                "The absolute path to the directory where the input meshes are located.",
+                "The absolute path to the directory where a group of input meshes are located to "
+                "be loaded in Ultraliser to create an alternative output watertight mesh.",
                 ARGUMENT_PRESENCE::MANDATORY);
     _args->addArgument(&inputMeshesDirectory);
     _options->inputMeshesDirectory = _args->getStringValue(&inputMeshesDirectory);
@@ -311,12 +313,12 @@ void AppArguments::addVoxelizationArguments()
     _args->addArgument(&volumeResolution);
     _options->volumeResolution = _args->getUnsignedIntegrValue(&volumeResolution);
 
-    Argument autoResolution(
-                "--auto-resolution",
+    Argument scaledResolution(
+                "--scaled-resolution",
                 ARGUMENT_TYPE::BOOL,
                 "Sets the resolution of the volume based on the mesh dimensions.");
-    _args->addArgument(&autoResolution);
-    _options->autoResolution = _args->getBoolValue(&autoResolution);
+    _args->addArgument(&scaledResolution);
+    _options->scaledResolution = _args->getBoolValue(&scaledResolution);
 
     Argument voxelsPerMicron(
                 "--voxels-per-micron",

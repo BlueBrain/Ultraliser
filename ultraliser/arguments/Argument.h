@@ -152,8 +152,7 @@ private:
     const std::string _help;
 
     /**
-     * @brief _type    // Exit
-    exit(0);
+     * @brief _type
      */
     const ARGUMENT_TYPE _type;
 

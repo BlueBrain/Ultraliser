@@ -118,7 +118,7 @@ void reconstructMeshWithVolumeReconstruction(const std::vector< std::string >& m
     float largestDimension = inputBB.getLargestDimension();
 
     uint64_t resolution;
-    if (options->autoResolution)
+    if (options->scaledResolution)
         resolution = uint64_t(options->voxelsPerMicron * largestDimension);
     else
         resolution = options->volumeResolution;

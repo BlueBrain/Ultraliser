@@ -1533,25 +1533,25 @@ void Volume::writeVolumes(const std::string &prefix,
 
         if (bitFormat)
         {
-            LOG_SUCCESS("Bit Volume (1-bit per voxel in .HDR/.BIN files)");
+            LOG_SUCCESS("Bit Volume (1-bit per voxel)");
             _grid->writeBitVolume(prefix);
         }
 
         if (unsignedFormat)
         {
-            LOG_SUCCESS("Bit Volume (1-bit per voxel in .HDR/.BIN files)");
+            LOG_SUCCESS("Unsigned Volume");
             _grid->writeUnsignedVolume(prefix);
         }
 
         if (floatFormat)
         {
-            LOG_SUCCESS("Bit Volume (1-bit per voxel in .HDR/.BIN files)");
+            LOG_SUCCESS("Float Volume");
             _grid->writeFloatVolume(prefix);
         }
 
         if (nrrdFormat)
         {
-            LOG_SUCCESS("NRRD Raw Volume in .nrrd file");
+            LOG_SUCCESS("NRRD Raw Volume in .NRRD file");
             _grid->writeNRRDVolume(prefix);
         }
 

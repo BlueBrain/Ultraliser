@@ -1,5 +1,5 @@
 ####################################################################################################
-# Copyright (c) 2016 - 2021
+# Copyright (c) 2016 - 2022
 # Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
 #
 # Author(s)
@@ -27,11 +27,11 @@
 find_package( BZip2 REQUIRED )
 
 if(BZIP2_FOUND)
-    message(STATUS "Found ZLIB: ${BZIP2_INCLUDE_DIR}, ${BZIP2_LIBRARIES}")
+    message(STATUS "Found BZip2: ${BZIP2_INCLUDE_DIR}, ${BZIP2_LIBRARIES}")
     include_directories(${BZIP2_INCLUDE_DIR})
     link_libraries(${BZIP2_LIBRARIES})
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DULTRALISER_USE_ZLIB")
-    #set(ULTRALISER_USE_ZLIB TRUE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DULTRALISER_USE_BZIP2")
+    set(ULTRALISER_USE_BZIP2 TRUE)
 else(BZIP2_FOUND)
     message(STATUS "BZip2 NOT Found")
 endif(BZIP2_FOUND)
