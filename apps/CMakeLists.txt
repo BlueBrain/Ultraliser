@@ -27,7 +27,7 @@
 if(${ULTRALISER_USE_TIFF})
     add_subdirectory(ultraMask2Mesh)
 else(${ULTRALISER_USE_TIFF})
-    message(STATUS "ultraMask2Mesh will not be compiled. Missing TIFF!")
+    message(STATUS "ultraMask2Mesh will not be compiled. Missing the TIFF library!")
 endif(${ULTRALISER_USE_TIFF})
 
 # ultraMesh2Mesh
@@ -61,15 +61,14 @@ else(${ULTRALISER_USE_H5})
     message(STATUS "ultraH5MeshConverter will not be compiled. Missing H5!")
 endif(${ULTRALISER_USE_H5})
 
-# ultraVasculatureMorphology2Mesh
-if(${ULTRALISER_USE_H5})
-    add_subdirectory(ultraVasculatureMorphology2Mesh)
-    add_subdirectory(ultraAstroMorpho2Mesh)
-else(${ULTRALISER_USE_H5})
-    message(STATUS "ultraVasculatureMorphology2Mesh will not be compiled. Missing H5!")
-endif(${ULTRALISER_USE_H5})
+# ultraVessMorpho2Mesh
+add_subdirectory(ultraVessMorpho2Mesh)
+
+# ultraAstroMorpho2Mesh
+add_subdirectory(ultraAstroMorpho2Mesh)
 
 # ultraNeuroMorpho2Mesh
 add_subdirectory(ultraNeuroMorpho2Mesh)
 
+# ultraSampleVascularMorphology
 add_subdirectory(ultraSampleVascularMorphology)

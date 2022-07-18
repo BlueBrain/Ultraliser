@@ -24,7 +24,7 @@
 ####################################################################################################
 
 # Application name
-set(APP_NAME ultraVasculatureMorphology2Mesh)
+set(APP_NAME ultraVessMorpho2Mesh)
 
 # Add the current directory to include directories
 include_directories(${CMAKE_BINARY_DIR}/include)
