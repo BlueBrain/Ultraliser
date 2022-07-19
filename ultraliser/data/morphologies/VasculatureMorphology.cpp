@@ -145,11 +145,16 @@ VasculatureMorphology* readVascularMorphology(std::string& morphologyPath)
     if (String::subStringFound(morphologyPath, std::string(".h5")) ||
             String::subStringFound(morphologyPath, std::string(".H5")))
     {
+#ifdef ULTRALISER_USE_H5
         // Read the file
         auto reader = std::make_unique<VasculatureH5Reader>(morphologyPath);
 
         // Get a pointer to the morphology to start using it
         return reader->getMorphology();
+#else
+        LOG_ERROR("Ultraliser compiled with NO support to read .H5 morphologies!");
+        return nullptr;
+#endif
     }
     else if (String::subStringFound(morphologyPath, std::string(".vmv")) ||
              String::subStringFound(morphologyPath, std::string(".VMV")))

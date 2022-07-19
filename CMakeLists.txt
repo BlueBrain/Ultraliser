@@ -71,12 +71,13 @@ if(ENABLE_PROGRESS_BAR)
 endif()
 
 # Dependencies
+message("")
 message("*****************************************************************************************")
 message("* Dependencies Verification")
 if(ULTRALISER_USE_OPENMP)
     message("   * OpenMP        OK")
 else(ULTRALISER_USE_OPENMP)
-    message("   * OpenMP        NOT INSTALLED")
+    message("   * OpenMP        NOT AVAILABLE!")
 endif(ULTRALISER_USE_OPENMP)
 
 if(ULTRALISER_USE_H5)
@@ -132,13 +133,14 @@ else(ULTRALISER_USE_ZLIB AND
      ULTRALISER_USE_BZIP2 AND
      ULTRALISER_USE_GLM AND
      ULTRALISER_USE_FMT)
-    message("   * NRRD Deps.    NOT INSTALLED!")
+    message("   * NRRD Deps.    NOT AVAILABLE! nrrdLoader will NOT be compiled.")
     set(ULTRALISER_USE_NRRD FALSE)
 endif(ULTRALISER_USE_ZLIB AND
       ULTRALISER_USE_BZIP2 AND
       ULTRALISER_USE_GLM AND
       ULTRALISER_USE_FMT)
 message("*****************************************************************************************")
+message("")
 
 # Extenral libraries, mainly the NRRD library, from Brayns
 add_subdirectory(externals)

@@ -22,7 +22,6 @@
 #include <Ultraliser.h>
 #include <AppCommon.h>
 #include <AppArguments.h>
-#include <nrrdloader/NRRDLoader.h>
 
 namespace Ultraliser
 {

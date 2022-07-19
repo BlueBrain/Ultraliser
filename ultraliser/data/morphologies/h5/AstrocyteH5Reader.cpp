@@ -20,6 +20,8 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
+#ifdef ULTRALISER_USE_H5
+
 #include "AstrocyteH5Reader.h"
 #include <common/Common.h>
 #include <data/morphologies/EndfootPatch.hh>
@@ -294,3 +296,5 @@ void AstrocyteH5Reader::_constructEndfeet()
 }
 
 }
+
+#endif

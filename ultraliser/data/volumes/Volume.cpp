@@ -21,7 +21,6 @@
 
 #include "Volume.h"
 #include <cstddef>
-#include <nrrdloader/NRRDLoader.h>
 #include <data/volumes/utilities/VolumeType.hh>
 #include <common/Headers.hh>
 #include <common/Common.h>
@@ -39,6 +38,10 @@
 #include <data/meshes/simple/MeshOperations.h>
 #include <data/volumes/utilities/VolumeReader.h>
 
+#ifdef ULTRALISER_USE_NRRD
+#include <nrrdloader/NRRDLoader.h>
+#endif
+
 namespace Ultraliser
 {
 
@@ -55,8 +58,12 @@ Volume::Volume(const std::string &filePath)
     // Read the NRRD file
     if (String::subStringFound(extension, NRRD_EXTENSION))
     {
+#ifdef ULTRALISER_USE_NRRD
         // Construct the grid
         _createGrid(readNRRDVolumeFile(filePath));
+#else
+        LOG_ERROR("NRRD support is missing due to unavailable dependencies!");
+#endif
     }
 
     // Read the HDR/IMG or HDR/BIN files
@@ -145,6 +152,7 @@ Volume::Volume(const int64_t width,
     _allocateGrid(width, height, depth);
 }
 
+#ifdef ULTRALISER_USE_NRRD
 void Volume::_createGrid(const NRRDVolumeData* volumeData)
 {
     // Update the cente, scale and pMin and pMax accordingly
@@ -215,6 +223,7 @@ void Volume::_createGrid(const NRRDVolumeData* volumeData)
     } break;
     }
 }
+#endif
 
 void Volume::_createGrid(const std::string& hdrFilePath)
 {
@@ -2633,6 +2642,7 @@ Volume* Volume::constructFromTiffMask(
         const int64_t &maskWidth, const int64_t &maskHeight,
         const Ultraliser::VOLUME_TYPE& gridType)
 {
+#ifdef ULTRALISER_USE_TIFF
     // Set the timer
     TIMER_SET;
 
@@ -2692,6 +2702,10 @@ Volume* Volume::constructFromTiffMask(
 
     // Return a pointer to the mask volume
     return maskVolume;
+#else
+    LOG_ERROR("Ultraliser compiled with NO support to read .TIFF stacks!");
+    return nullptr;
+#endif
 }
 
 Volume::SOLID_VOXELIZATION_AXIS Volume::getSolidvoxelizationAxis(const std::string &argumentString)

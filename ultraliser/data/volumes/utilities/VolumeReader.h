@@ -27,12 +27,14 @@ std::string readRawFile(const std::string& filePath);
  */
 std::vector< uint8_t > readRawFileToByteVector(const std::string& filePath);
 
+#ifdef ULTRALISER_USE_NRRD
 /**
  * @brief readNRRDVolumeFile
  * @param filePath
  * @return
  */
 NRRDVolumeData* readNRRDVolumeFile(const std::string& filePath);
+#endif
 
 /**
  * @brief UltraliserVolumeData

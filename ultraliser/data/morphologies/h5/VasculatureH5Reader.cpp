@@ -20,6 +20,8 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
+#ifdef ULTRALISER_USE_H5
+
 #include "VasculatureH5Reader.h"
 #include <iostream>
 
@@ -117,7 +119,7 @@ void VasculatureH5Reader::_readConnectivity()
     // Close the dataset
     connectivityDataSet.close();
 }
-
-
-
 }
+
+#endif
+

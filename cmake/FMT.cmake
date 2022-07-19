@@ -33,7 +33,7 @@ find_path(fmt_INCLUDE_DIR "fmt/format.h"
     PATHS ${fmt_HEADER_SEARCH_DIRS}
 )
 
-if(NOT ${fmt_INCLUDE_DIR})
+if(fmt_INCLUDE_DIR)
     message(STATUS "Found fmt: ${fmt_INCLUDE_DIR}")
     add_definitions(-DFMT_HEADER_ONLY)
     set(fmt_INCLUDE_DIRS ${fmt_INCLUDE_DIR})
@@ -41,9 +41,9 @@ if(NOT ${fmt_INCLUDE_DIR})
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DULTRALISER_USE_FMT")
     set(ULTRALISER_USE_FMT TRUE)
-else(NOT ${fmt_INCLUDE_DIR})
+else(fmt_INCLUDE_DIR)
     message (STATUS "FMT NOT Found")
     set(ULTRALISER_USE_FMT FALSE)
-endif(NOT ${fmt_INCLUDE_DIR})
+endif(fmt_INCLUDE_DIR)
 
 

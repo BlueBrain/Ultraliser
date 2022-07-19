@@ -20,6 +20,8 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
+#ifdef ULTRALISER_USE_H5
+
 #pragma once
 
 #include <string>
@@ -103,3 +105,7 @@ private:
 };
 
 }
+
+#endif
+
+

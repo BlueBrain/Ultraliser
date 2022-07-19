@@ -1,7 +1,10 @@
 #include "VolumeReader.h"
 #include <common/Headers.hh>
 #include <utilities/String.h>
+
+#ifdef ULTRALISER_USE_NRRD
 #include <nrrdloader/NRRDLoader.h>
+#endif
 
 namespace Ultraliser
 {
@@ -102,6 +105,7 @@ std::string readRawFile(const std::string& filePath)
     return token;
 }
 
+#ifdef ULTRALISER_USE_NRRD
 NRRDVolumeData* readNRRDVolumeFile(const std::string& filePath)
 {
     // Load the volume
@@ -167,6 +171,8 @@ NRRDVolumeData* readNRRDVolumeFile(const std::string& filePath)
     // Return the volume data
     return volumeData;
 }
+#endif
+
 
 UltraliserVolumeData *readUltraliserVolumeFile(const std::string &filePath)
 {

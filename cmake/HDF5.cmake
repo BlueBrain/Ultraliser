@@ -24,7 +24,7 @@
 ####################################################################################################
 
 # HDF5
-find_package(HDF5 COMPONENTS CXX HL REQUIRED)
+find_package(HDF5 COMPONENTS CXX HL)
 
 if(HDF5_FOUND)
     message(STATUS "Found HDF5: ${HDF5_INCLUDE_DIRS}, ${HDF5_LIBRARIES}")

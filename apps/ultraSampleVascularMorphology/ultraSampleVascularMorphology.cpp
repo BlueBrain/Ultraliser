@@ -22,8 +22,6 @@
 #include <Ultraliser.h>
 #include <AppCommon.h>
 #include <AppArguments.h>
-#include <hdf5.h>
-#include "H5Cpp.h"
 
 namespace Ultraliser
 {

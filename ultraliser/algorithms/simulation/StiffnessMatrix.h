@@ -33,6 +33,7 @@ namespace Ultraliser
 {
 namespace Simulation
 {
+
 /**
  * @brief The StiffnessMatrix class
  */

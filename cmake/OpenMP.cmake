@@ -27,6 +27,7 @@
 find_package(OpenMP)
 
 if(OPENMP_FOUND)
+
     # OpenMP flags
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -35,6 +36,7 @@ if(OPENMP_FOUND)
     # Ultaliser OpenMP
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DULTRALISER_USE_OPENMP")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DULTRALISER_USE_OPENMP")
+    set(ULTRALISER_USE_OPENMP TRUE)
     message(STATUS "Found OpenMP " ${OpenMP_C_FLAGS} ", "
                                    ${OpenMP_CXX_FLAGS}, ", "
                                    ${OpenMP_CXX_LIBRARIES})
@@ -42,4 +44,5 @@ if(OPENMP_FOUND)
     link_libraries(${OpenMP_CXX_LIBRARIES})
 else(OPENMP_FOUND)
     message(STATUS "OpenMP NOT Found")
+    set(ULTRALISER_USE_OPENMP FALSE)
 endif(OPENMP_FOUND)

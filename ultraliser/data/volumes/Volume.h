@@ -628,12 +628,25 @@ private:
      */
     void _createGrid(void);
 
+    /**
+     * @brief _createGrid
+     * @param headerFilePath
+     */
     void _createGrid(const std::string& headerFilePath);
 
+    /**
+     * @brief _createGrid
+     * @param volumeData
+     */
     void _createGrid(const UltraliserVolumeData* volumeData);
 
+#ifdef ULTRALISER_USE_NRRD
+    /**
+     * @brief _createGrid
+     * @param volumeData
+     */
     void _createGrid(const NRRDVolumeData* volumeData);
-
+#endif
 
     /**
      * @brief _clampIndex

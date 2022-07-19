@@ -3,7 +3,10 @@
 #include <common/Headers.hh>
 #include <geometry/Geometry.h>
 #include <data/volumes/utilities/VolumeType.hh>
+
+#ifdef ULTRALISER_USE_NRRD
 #include <nrrdloader/DataMangler.h>
+#endif
 
 namespace Ultraliser
 {
@@ -45,6 +48,7 @@ struct VolumeData
     VOLUME_TYPE type;
 };
 
+#ifdef ULTRALISER_USE_NRRD
 /**
  * @brief The NRRDVolumeData struct
  */
@@ -73,6 +77,7 @@ struct NRRDVolumeData : VolumeData
      */
     libNRRD::IDataMangler* data;
 };
+#endif
 
 /**
  * @brief The VolumeData struct
