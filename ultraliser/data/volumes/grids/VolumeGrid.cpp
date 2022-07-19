@@ -692,7 +692,7 @@ uint32_t VolumeGrid::getValueUI32(const int64_t &x, const int64_t &y, const int6
         return getValueUI32(index);
 }
 
-size_t VolumeGrid::getValueUI64(const int64_t &x, const int64_t &y, const int64_t &z) const
+uint64_t VolumeGrid::getValueUI64(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
     size_t index = mapToIndex(x, y, z, outlier);

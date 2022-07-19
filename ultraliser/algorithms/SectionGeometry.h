@@ -116,7 +116,7 @@ public:
      * @param numVertices
      * Number of the vertices of the cross section geometry.
      */
-    CrossSectionGeometry(uint64_t numVertices);
+    CrossSectionGeometry(size_t numVertices);
     
     /**
      * @brief CrossSectionGeometry
@@ -130,7 +130,7 @@ public:
      * @param radius
      * The radius of the cross section geometry.
      */
-    CrossSectionGeometry(uint64_t numVertices,
+    CrossSectionGeometry(size_t numVertices,
                          const Vector3f& position,
                          const Vector3f& orientation,
                          float radius);

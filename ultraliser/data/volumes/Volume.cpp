@@ -1119,6 +1119,12 @@ void Volume::_floodFillAlongXYZ(VolumeGrid *grid)
         yGrid = new UnsignedVolumeGrid<uint64_t>(static_cast< UnsignedVolumeGrid<uint64_t>* >(grid));
         zGrid = new UnsignedVolumeGrid<uint64_t>(static_cast< UnsignedVolumeGrid<uint64_t>* >(grid));
     } break;
+
+    case VOLUME_TYPE::F32:
+    case VOLUME_TYPE::F64:
+    {
+        LOG_ERROR("_floodFillAlongXYZ CANNOT be applied to Float Grids!");
+    } break;
     }
 
     // Flood fill along the three axes
@@ -2180,7 +2186,7 @@ void  Volume::clear(const u_int64_t& index)
     _grid->clearVoxel(index);
 }
 
-uint64_t Volume::computeNumberNonZeroVoxels(void) const
+size_t Volume::computeNumberNonZeroVoxels(void) const
 {
     return _grid->computeNumberNonZeroVoxels();
 }
@@ -2319,7 +2325,7 @@ void Volume::addVolume(const std::string &volumePrefix)
 //    delete volume;
 }
 
-uint64_t Volume::getNumberBytes(void) const
+size_t Volume::getNumberBytes(void) const
 {
     return _grid->getNumberBytes();
 }

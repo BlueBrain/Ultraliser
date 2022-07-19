@@ -188,7 +188,7 @@ public:
      * @brief fillVoxel
      * @param index
      */
-    virtual void fillVoxel(const uint64_t &index)= 0;
+    virtual void fillVoxel(const size_t &index)= 0;
 
     /**
      * @brief clearVoxel
@@ -423,7 +423,7 @@ public:
      * @param axis
      * @param padding
      */
-    void floodFillSliceAlongAxis(const int64_t &x, const AXIS &axis, const uint64_t &padding = 0);
+    void floodFillSliceAlongAxis(const int64_t &x, const AXIS &axis, const size_t &padding = 0);
 
     /**
      * @brief getByte
