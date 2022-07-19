@@ -36,7 +36,7 @@ template<typename T>
 class StringCast
 {
 public:
-    static T cast(std::string_view token)
+    static T cast(std::string_view)
     {
         throw std::runtime_error("Not implemented");
     }

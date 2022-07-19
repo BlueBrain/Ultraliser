@@ -49,8 +49,6 @@ install(FILES ${NRRD_LIB} DESTINATION include)
 
 # Link the libraries
 target_link_libraries(${NRRD_LIB} PRIVATE ${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES})
-target_link_libraries(${NRRD_LIB} PUBLIC fmt)
-
 target_include_directories(${NRRD_LIB} PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>"
     "$<INSTALL_INTERFACE:include>")

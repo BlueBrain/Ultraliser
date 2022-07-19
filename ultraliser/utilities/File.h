@@ -131,7 +131,7 @@ void writeFloatDistributionToFile(const std::string &filePath, std::vector<float
  * @param filePath
  * @param distribution
  */
-void writeIntegerDistributionToFile(const std::string &filePath, std::vector<uint64_t> distribution);
+void writeIntegerDistributionToFile(const std::string &filePath, std::vector<size_t> distribution);
 
 /**
  * @brief getNumberLinesInFile

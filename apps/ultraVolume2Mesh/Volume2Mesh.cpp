@@ -85,7 +85,7 @@ void run(int argc , const char** argv)
     if (options->writeHistogram)
     {
         // Create the histogram
-        std::vector<uint64_t> histogram = Volume::createHistogram(loadedVolume,
+        std::vector< size_t > histogram = Volume::createHistogram(loadedVolume,
                                                                   loadedVolume->getType());
 
         // Write the histogram to a file

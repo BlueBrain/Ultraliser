@@ -2575,8 +2575,8 @@ Volume* Volume::constructIsoValuesVolume(const Volume* volume,
     return isoVolume;
 }
 
-std::vector<uint64_t> Volume::createHistogram(const Volume* volume,
-                                              const VOLUME_TYPE& type)
+std::vector<size_t> Volume::createHistogram(const Volume* volume,
+                                            const VOLUME_TYPE& type)
 {
     uint64_t histogramWidth;
     switch (type)

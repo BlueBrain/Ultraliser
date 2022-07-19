@@ -402,7 +402,7 @@ void writeFloatDistributionToFile(const std::string &filePath,
 }
 
 void writeIntegerDistributionToFile(const std::string &filePath,
-                                    std::vector<uint64_t> distribution)
+                                    std::vector<size_t> distribution)
 {
     std::ofstream outputStream(filePath.c_str());
     if (!outputStream.good())

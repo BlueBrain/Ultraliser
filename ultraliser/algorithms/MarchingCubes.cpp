@@ -254,7 +254,9 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
             int edges = MC_EDGE_TABLE[mcVoxel->cubeIndex];
 
             // An array of the unique indices per case
-            std::array< uint64_t, 12 > uniqueIndices;
+            uint64_t uniqueIndices[12];
+            for (size_t idx = 0; idx < 12; ++idx)
+                uniqueIndices[idx] = 0;
 
             // Generate vertices and avoid DUPLICATE vertices!
             if(edges & 0x040)
@@ -461,7 +463,7 @@ void MarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangle
     uint64_t size = ((sizeX) * (sizeY) * (sizeZ) * 3);
 
     // Mesh shared indices list
-    uint64_t* sharedIndices = new size_t[size];
+    size_t* sharedIndices = new size_t[size];
 
     // For computations and indexing ...
     const uint64_t z3 = sizeZ * 3;
@@ -511,7 +513,9 @@ void MarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangle
                 int edges = MC_EDGE_TABLE[cubeIndex];
 
                 // An array of the unique indices per case
-                std::array< uint64_t, 12 > uniqueIndices;
+                uint64_t uniqueIndices[12];
+                for (size_t idx = 0; idx < 12; ++idx)
+                    uniqueIndices[idx] = 0;
 
                 // Generate vertices and avoid DUPLICATE vertices!
                 if(edges & 0x040)

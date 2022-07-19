@@ -563,7 +563,7 @@ public:
      * @return
      * Histogram array.
      */
-    static std::vector<uint64_t> createHistogram(const Volume* volume, const VOLUME_TYPE &type);
+    static std::vector<size_t> createHistogram(const Volume* volume, const VOLUME_TYPE &type);
 
     /**
      * @brief getVoxelBoundingBox
