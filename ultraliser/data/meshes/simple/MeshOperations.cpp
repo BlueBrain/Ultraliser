@@ -252,161 +252,44 @@ void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& trian
                 triangle[2] = faceVertices[2] - 1;
                 triangles.push_back(triangle);
             }
-
-            // Four vertices, and two triangles
-            else if (faceVertices.size() == 4)
-            {
-                Triangle triangle;
-
-                // First triangle
-                triangle[0] = faceVertices[0] - 1;
-                triangle[1] = faceVertices[1] - 1;
-                triangle[2] = faceVertices[2] - 1;
-                triangles.push_back(triangle);
-
-                // Second triangle
-                triangle[0] = faceVertices[2] - 1;
-                triangle[1] = faceVertices[3] - 1;
-                triangle[2] = faceVertices[0] - 1;
-                triangles.push_back(triangle);
-            }
-
-            // Five vertices, and three triangles
-            else if (faceVertices.size() == 5)
-            {
-                Triangle triangle;
-
-                // First triangle
-                triangle[0] = faceVertices[0] - 1;
-                triangle[1] = faceVertices[1] - 1;
-                triangle[2] = faceVertices[2] - 1;
-                triangles.push_back(triangle);
-
-                // Second triangle
-                triangle[0] = faceVertices[2] - 1;
-                triangle[1] = faceVertices[3] - 1;
-                triangle[2] = faceVertices[4] - 1;
-                triangles.push_back(triangle);
-
-                // Third triangle
-                triangle[0] = faceVertices[4] - 1;
-                triangle[1] = faceVertices[0] - 1;
-                triangle[2] = faceVertices[2] - 1;
-                triangles.push_back(triangle);
-            }
-
-            // Six vertices, and four triangles
-            else if (faceVertices.size() == 6)
-            {
-                Triangle triangle;
-
-                // First triangle
-                triangle[0] = faceVertices[0] - 1;
-                triangle[1] = faceVertices[1] - 1;
-                triangle[2] = faceVertices[2] - 1;
-                triangles.push_back(triangle);
-
-                // Second triangle
-                triangle[0] = faceVertices[2] - 1;
-                triangle[1] = faceVertices[3] - 1;
-                triangle[2] = faceVertices[4] - 1;
-                triangles.push_back(triangle);
-
-                // Third triangle
-                triangle[0] = faceVertices[4] - 1;
-                triangle[1] = faceVertices[5] - 1;
-                triangle[2] = faceVertices[0] - 1;
-                triangles.push_back(triangle);
-
-                // Fourth triangle
-                triangle[0] = faceVertices[2] - 1;
-                triangle[1] = faceVertices[4] - 1;
-                triangle[2] = faceVertices[0] - 1;
-                triangles.push_back(triangle);
-            }
-
-            // Seven vertices, and five triangles
-            else if (faceVertices.size() == 7)
-            {
-                Triangle triangle;
-
-                // First triangle
-                triangle[0] = faceVertices[0] - 1;
-                triangle[1] = faceVertices[1] - 1;
-                triangle[2] = faceVertices[2] - 1;
-                triangles.push_back(triangle);
-
-                // Second triangle
-                triangle[0] = faceVertices[2] - 1;
-                triangle[1] = faceVertices[3] - 1;
-                triangle[2] = faceVertices[4] - 1;
-                triangles.push_back(triangle);
-
-                // Third triangle
-                triangle[0] = faceVertices[4] - 1;
-                triangle[1] = faceVertices[5] - 1;
-                triangle[2] = faceVertices[6] - 1;
-                triangles.push_back(triangle);
-
-                // Fourth triangle
-                triangle[0] = faceVertices[5] - 1;
-                triangle[1] = faceVertices[0] - 1;
-                triangle[2] = faceVertices[4] - 1;
-                triangles.push_back(triangle);
-
-                // Fifth triangle
-                triangle[0] = faceVertices[0] - 1;
-                triangle[1] = faceVertices[2] - 1;
-                triangle[2] = faceVertices[4] - 1;
-                triangles.push_back(triangle);
-            }
-
-            // Eight vertices, and six triangles
-            else if (faceVertices.size() == 8)
-            {
-                Triangle triangle;
-
-                // First triangle
-                triangle[0] = faceVertices[0] - 1;
-                triangle[1] = faceVertices[1] - 1;
-                triangle[2] = faceVertices[2] - 1;
-                triangles.push_back(triangle);
-
-                // Second triangle
-                triangle[0] = faceVertices[2] - 1;
-                triangle[1] = faceVertices[3] - 1;
-                triangle[2] = faceVertices[4] - 1;
-                triangles.push_back(triangle);
-
-                // Third triangle
-                triangle[0] = faceVertices[4] - 1;
-                triangle[1] = faceVertices[5] - 1;
-                triangle[2] = faceVertices[6] - 1;
-                triangles.push_back(triangle);
-
-                // Fourth triangle
-                triangle[0] = faceVertices[6] - 1;
-                triangle[1] = faceVertices[7] - 1;
-                triangle[2] = faceVertices[0] - 1;
-                triangles.push_back(triangle);
-
-                // Fifth triangle
-                triangle[0] = faceVertices[0] - 1;
-                triangle[1] = faceVertices[2] - 1;
-                triangle[2] = faceVertices[4] - 1;
-                triangles.push_back(triangle);
-
-                // Sixth triangle
-                triangle[0] = faceVertices[0] - 1;
-                triangle[1] = faceVertices[6] - 1;
-                triangle[2] = faceVertices[4] - 1;
-                triangles.push_back(triangle);
-            }
-
-            // Otherwise, cannot handle
             else
             {
-                LOG_ERROR("\nThe mesh [%s] has faces with N-gons (N > 8)!", filePath.c_str());
+                // Compute the center of mass of the polygon
+                Vertex center(0.);
+                for (size_t iVertex = 0; iVertex < faceVertices.size(); ++iVertex)
+                {
+                    center += vertices[faceVertices[iVertex] - 1];
+                }
+                center /= faceVertices.size();
+
+                // Append the new vertex to the vertices list, and keep its index
+                vertices.push_back(center);
+                size_t centerIndex = vertices.size() - 1;
+
+                // Compute the triangles
+                for (size_t iVertex = 0; iVertex < faceVertices.size() - 1; iVertex += 1)
+                {
+                    int64_t v0 = centerIndex;
+                    int64_t v1 = faceVertices[iVertex] - 1;
+                    int64_t v2 = faceVertices[iVertex + 1] - 1;
+
+                    Triangle triangle;
+                    triangle[0] = v0;
+                    triangle[1] = v1;
+                    triangle[2] = v2;
+                    triangles.push_back(triangle);
+                }
+
+                // Adding the last triangle
+                int64_t v0 = centerIndex;
+                int64_t v1 = faceVertices[faceVertices.size() - 1] - 1;
+                int64_t v2 = faceVertices[0] - 1;
+
+                Triangle triangle;
+                triangle[0] = v0;
+                triangle[1] = v1;
+                triangle[2] = v2;
+                triangles.push_back(triangle);
             }
         }
 

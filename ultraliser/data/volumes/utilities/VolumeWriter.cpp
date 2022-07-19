@@ -22,8 +22,7 @@ void writeNRRD(const std::string &prefix, const BitVolumeGrid* grid)
     fprintf(fptr, "type: uint16\n");
     fprintf(fptr, "dimension: 3\n");
     // fprintf(fptr, "space dimension: 3\n");
-    fprintf(fptr, "sizes: %zu %zu %zu\n",
-            grid->getWidth(), grid->getHeight(), grid->getDepth());
+    fprintf(fptr, "sizes: %zu %zu %zu\n", grid->getWidth(), grid->getHeight(), grid->getDepth());
     fprintf(fptr, "spacings: 1 1 1\n");
     fprintf(fptr, "endian: little\n");
     fprintf(fptr, "encoding: raw\n");
