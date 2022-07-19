@@ -42,9 +42,9 @@ void savePPMLuminanceImage(const std::string &imageName,
     fprintf(image, "P6\n%ld %ld\n255\n", width, height);
 
     size_t index = 0;
-    for (int64_t i = 0; i < width; ++i)
+    for (size_t i = 0; i < width; ++i)
     {
-        for (int64_t j = 0; j < height; ++j)
+        for (size_t j = 0; j < height; ++j)
         {
             uint8_t color[3];
             size_t index1D = (width * height) - index;
@@ -73,9 +73,9 @@ void savePPMLuminanceImage(const std::string &imageName,
     fprintf(image, "P6\n%ld %ld\n65535\n", width, height);
 
     size_t index = 0;
-    for (int64_t i = 0; i < width; ++i)
+    for (size_t i = 0; i < width; ++i)
     {
-        for (int64_t j = 0; j < height; ++j)
+        for (size_t j = 0; j < height; ++j)
         {
             uint16_t color[3];
             size_t index1D = (width * height) - index;
@@ -104,9 +104,9 @@ void savePPMColoredImage(const std::string &imageName,
     fprintf(image, "P6\n%ld %ld\n255\n", width, height);
 
     size_t index = 0;
-    for (int64_t i = 0; i < width; ++i)
+    for (size_t i = 0; i < width; ++i)
     {
-        for (int64_t j = 0; j < height; ++j)
+        for (size_t j = 0; j < height; ++j)
         {
             Vector3f normalizeColor = imageData[(width * height) - index] * 255.0;
 
@@ -137,9 +137,9 @@ void savePPMColoredImage(const std::string &imageName,
     fprintf(image, "P6\n%ld %ld\n255\n", width, height);
 
     size_t index = 0;
-    for (int64_t i = 0; i < width; ++i)
+    for (size_t i = 0; i < width; ++i)
     {
-        for (int64_t j = 0; j < height; ++j)
+        for (size_t j = 0; j < height; ++j)
         {
             Vector4f normalizeColor = imageData[I2UI64(width * height) - index] * 255.0;
 
@@ -165,9 +165,9 @@ void saveBrainbowImage(const std::string &imageName,
     Vector4f* rgbImage = new Vector4f[width * height];
 
     size_t index = 0;
-    for (int64_t j = 0; j < height; ++j)
+    for (size_t j = 0; j < height; ++j)
     {
-        for (int64_t i = 0; i < width; ++i)
+        for (size_t i = 0; i < width; ++i)
         {
             Vector4f color = imageData[(width * height)] * 255.0;
 
