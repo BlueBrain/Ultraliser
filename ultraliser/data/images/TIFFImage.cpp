@@ -116,7 +116,7 @@ void TiffImage::readImage()
                 // Process raster data
                 // Write data in vector member so we can do with it what we want
                 uint32_t *rasterPrint = raster;
-                for ( int32_t n = 0; n < numberPixels; ++n)
+                for (int32_t n = 0; n < numberPixels; ++n)
                 {
                     uint32_t r, g, b, a;
                     r = TIFFGetR(*rasterPrint);
@@ -127,11 +127,11 @@ void TiffImage::readImage()
                     uint32_t value;
                     if (r > 0 || g > 0 || b > 0)
                     {
-                        value = rgbaFloatToInt(255,255,255,255);
+                        value = rgbaFloatToInt(255, 255, 255, 255);
                     }
                     else
                     {
-                        value = rgbaFloatToInt(r,g,b,a);
+                        value = rgbaFloatToInt(r, g, b, a);
                     }
 
                     _imageBuffer.push_back(value);

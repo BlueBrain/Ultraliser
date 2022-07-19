@@ -409,8 +409,7 @@ void TaggedVolume::writeNRRDVolume(const std::string &prefix) const
     fprintf(fptr, "content: \"Volume\"\n");
     fprintf(fptr, "type: unsigned char\n");
     fprintf(fptr, "dimension: 3\n");
-    fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
-            getWidth(), getHeight(), getDepth());
+    fprintf(fptr,"sizes: %zu %zu %zu \n", getWidth(), getHeight(), getDepth());
     fprintf(fptr, "spacings: 1 1 1\n");
     fprintf(fptr, "encoding: raw\n");
 
@@ -1170,9 +1169,9 @@ void TaggedVolume::printVolumeStats(const std::string &reference,
                      F2D(_pMax.x()), F2D(_pMax.y()), F2D(_pMax.z()));
         }
 
-        fprintf(info, "\t* Resolution            | [%d] x [%d] x [%d] \n",
-                 I2I32(getWidth()), I2I32(getHeight()), I2I32(getDepth()));
-        fprintf(info, "\t* Number of Voxels      | %" PRIu64 " \n",
+        fprintf(info, "\t* Resolution            | [%zu] x [%zu] x [%zu] \n",
+                getWidth(), getHeight(), getDepth());
+        fprintf(info, "\t* Number of Voxels      | %zu \n",
                 getNumberVoxels());
         fprintf(info, "\t* Volume Format         | Byte \n");
         fprintf(info, "\t* Size in Memory        | %sBytes \n",

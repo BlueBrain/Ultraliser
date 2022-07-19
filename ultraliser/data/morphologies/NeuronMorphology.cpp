@@ -245,6 +245,10 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
                     case APICAL:
                         newSection->setType(NEURON_APICAL_DENDRITE);
                         break;
+
+                    case SOMA:
+                    case UNKNOWN_SAMPLE:
+                        break;
                     }
                     _sections.push_back(newSection);
                     _firstSections.push_back(newSection);

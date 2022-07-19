@@ -2239,7 +2239,7 @@ void Volume::printStats(const std::string &reference, const std::string *prefix)
 
         fprintf(info, "\t* Resolution            | [%d] x [%d] x [%d] \n",
                  I2I32(getWidth()), I2I32(getHeight()), I2I32(getDepth()));
-        fprintf(info, "\t* Number of Voxels      | %" PRIu64 " \n",
+        fprintf(info, "\t* Number of Voxels      | %zu\n",
                 getNumberVoxels());
         fprintf(info, "\t* Volume Format         | %s \n",
                  getFormatString().c_str());

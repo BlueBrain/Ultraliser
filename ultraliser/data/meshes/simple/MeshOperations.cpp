@@ -761,7 +761,7 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
 
     // Got the first line, that has the data of the mesh
     size_t numberVertices, numberTriangles, numberEdges;
-    if (sscanf(line, "%" PRIu64 " %" PRIu64 " %" PRIu64 "",
+    if (sscanf(line, "%zu %zu %zu",
                &numberVertices, &numberTriangles, &numberEdges) < 3)
     {
         LOG_ERROR("The mesh file [ %s ] is corrupted!", filePath.c_str());
@@ -815,8 +815,7 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
 
         // Scan the triangle data
         size_t i1, i2, i3, i4;
-        if (fscanf(filePointer,"%" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "",
-                   &i4, &i1, &i2, &i3) == 4)
+        if (fscanf(filePointer,"%zu %zu %zu %zu", &i4, &i1, &i2, &i3) == 4)
         {
             if (i1 < 0 || i2 < 0 || i3 < 0 || i4 < 3 ||
                 i1 > (numberVertices - 1) || i2 > (numberVertices - 1) || i3 > (numberVertices - 1))
@@ -839,7 +838,7 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
                 i2 = i3;
                 if (j < i4)
                 {
-                    if (fscanf(filePointer, "%" PRIu64 "", &i3) != 1)
+                    if (fscanf(filePointer, "%zu", &i3) != 1)
                     {
                         LOG_ERROR("Could not read indexes for face [ %" PRIu64 "]", i);
                     }
@@ -1172,7 +1171,7 @@ void exportPLY(const std::string &prefix,
     }
 
     // Vertex count
-    fprintf(filePointer, "element vertex %" PRIu64 "", numberVertices);
+    fprintf(filePointer, "element vertex %zu", numberVertices);
     fprintf(filePointer, "\n");
 
     fprintf(filePointer, "property float x");
@@ -1183,7 +1182,7 @@ void exportPLY(const std::string &prefix,
     fprintf(filePointer, "\n");
 
     // Triangle count
-    fprintf(filePointer, "element face %" PRIu64 "", numberTriangles);
+    fprintf(filePointer, "element face %zu", numberTriangles);
     fprintf(filePointer, "\n");
     fprintf(filePointer, "property list uchar int vertex_indices");
     fprintf(filePointer, "\n");
@@ -1231,7 +1230,8 @@ void exportPLY(const std::string &prefix,
             LOOP_PROGRESS(i, numberTriangles);
 
             // Preprend with 3 for the edges (triangle and not quad mesh)
-            fprintf(filePointer, "3 %ld %ld %ld", triangles[i][0], triangles[i][1], triangles[i][2]);
+            fprintf(filePointer, "3 %" PRId64 "%" PRId64 "%" PRId64 "",
+                    triangles[i][0], triangles[i][1], triangles[i][2]);
             fprintf(filePointer, "\n");
         }
         LOOP_DONE;

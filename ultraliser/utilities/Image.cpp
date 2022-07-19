@@ -125,8 +125,8 @@ void savePPMColoredImage(const std::string &imageName,
 
 void savePPMColoredImage(const std::string &imageName,
                          const Vector4f* imageData,
-                         const int64_t &width,
-                         const int64_t &height)
+                         const size_t &width,
+                         const size_t &height)
 {
     // Make the file
     std::stringstream imageStream;
@@ -134,7 +134,7 @@ void savePPMColoredImage(const std::string &imageName,
     FILE* image = fopen(imageStream.str().c_str(), "wb");
 
     // Add the header
-    fprintf(image, "P6\n%ld %ld\n255\n", width, height);
+    fprintf(image, "P6\n%zu %zu\n255\n", width, height);
 
     size_t index = 0;
     for (size_t i = 0; i < width; ++i)

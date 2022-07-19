@@ -67,8 +67,7 @@ void AdvancedMesh::importOFF(const std::string &filePath)
 
     // Got the first line, that has the data of the mesh
     size_t numberVertices, numberTriangles, numberEdges;
-    if (sscanf(line, "%" PRIu64 " %" PRIu64 " %" PRIu64 "",
-               &numberVertices, &numberTriangles, &numberEdges) < 3)
+    if (sscanf(line, "%zu %zu %zu", &numberVertices, &numberTriangles, &numberEdges) < 3)
     {
         LOG_ERROR("The mesh file [ %s ] is corrupted!", filePath.c_str());
     }

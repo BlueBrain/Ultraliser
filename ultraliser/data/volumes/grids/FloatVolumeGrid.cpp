@@ -193,8 +193,7 @@ void FloatVolumeGrid<T>::writeBitVolume(const std::string &prefix) const
     // Header
     /// NOTE: The header specifies a single bit per voxel and volume dimensions
     fprintf(fptr, "1bit\n");
-    fprintf(fptr,"sizes: %" PRId64 " %" PRId64 " %" PRId64 "\n",
-            getWidth(), getHeight(), getDepth());
+    fprintf(fptr,"sizes: %zu %zu %zu\n", getWidth(), getHeight(), getDepth());
 
     // Create a BitArray
     auto binData = std::make_unique< BitArray >(_numberVoxels);
