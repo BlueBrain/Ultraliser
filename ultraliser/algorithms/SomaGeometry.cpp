@@ -99,7 +99,7 @@ Simulation::MeshPtr SomaGeometry::_loadIcosphereGeometry()
     nodes.resize(IcosphereVerticesSize);
 
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < nodes.size(); ++i)
+    for (size_t i = 0; i < nodes.size(); ++i)
     {
         Vector3f position(IcosphereVertices[i * 3 + 0],
                           IcosphereVertices[i * 3 + 1],
@@ -112,7 +112,7 @@ Simulation::MeshPtr SomaGeometry::_loadIcosphereGeometry()
     tetrahedra.resize(IcosphereTetsIndicesSize);
 
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < tetrahedra.size(); ++i)
+    for (size_t i = 0; i < tetrahedra.size(); ++i)
     {
         auto node0 = nodes[IcosphereTetsIndices[i * 4 + 0]];
         auto node1 = nodes[IcosphereTetsIndices[i * 4 + 1]];
@@ -121,19 +121,19 @@ Simulation::MeshPtr SomaGeometry::_loadIcosphereGeometry()
         tetrahedra[i] = new Simulation::Tetrahedron(node0, node1, node2, node3);
     }
 
-    std::set<uint64_t> uniqueIndices;
-    for (uint64_t i = 0; i < IcosphereTrianglesIndicesSize; ++i)
+    std::set< size_t > uniqueIndices;
+    for (size_t i = 0; i < IcosphereTrianglesIndicesSize; ++i)
     {
         uniqueIndices.insert(IcosphereTrianglesIndices[i*3]);
         uniqueIndices.insert(IcosphereTrianglesIndices[i*3+1]);
         uniqueIndices.insert(IcosphereTrianglesIndices[i*3+2]);
     }
-    std::vector<uint64_t> indices(uniqueIndices.begin(), uniqueIndices.end());
+    std::vector< size_t > indices(uniqueIndices.begin(), uniqueIndices.end());
 
     Simulation::Nodes& surfaceNodes = mesh->surfaceNodes;
     surfaceNodes.resize(indices.size());
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < surfaceNodes.size(); ++i)
+    for (size_t i = 0; i < surfaceNodes.size(); ++i)
     {
         surfaceNodes[i] = nodes[indices[i]];
     }
@@ -157,7 +157,7 @@ void SomaGeometry::_nodesToVertices(Simulation::Nodes& nodes)
 
     // Reassign nodes indices
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < numVertices; ++i)
+    for (size_t i = 0; i < numVertices; ++i)
     {
         auto node = vecNodes[i];
         node->index = i;
@@ -169,7 +169,7 @@ void SomaGeometry::_nodesToVertices(Simulation::Nodes& nodes)
     triangles = new Triangle[numTriangles];
 
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < numTriangles; ++i)
+    for (size_t i = 0; i < numTriangles; ++i)
     {
         triangles[i] = Triangle(nodes[IcosphereTrianglesIndices[i * 3 + 0]]->index,
                                 nodes[IcosphereTrianglesIndices[i * 3 + 1]]->index,
@@ -201,8 +201,8 @@ void SomaGeometry::_computeNeuritesNodes(Simulation::MeshPtr mesh,
 
         // Check nodes within the neurite radius and add the nodes to neurite nodes
         float minDistance = std::numeric_limits<float>::max();
-        uint64_t minDistanceId = 0;
-        for (uint64_t j = 0; j < mesh->surfaceNodes.size(); ++j)
+        size_t minDistanceId = 0;
+        for (size_t j = 0; j < mesh->surfaceNodes.size(); ++j)
         {
             if (nodeAssigned[j]) continue;
             auto node = mesh->surfaceNodes[j];

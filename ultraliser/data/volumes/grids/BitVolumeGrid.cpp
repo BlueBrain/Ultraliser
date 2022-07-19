@@ -58,59 +58,59 @@ BitVolumeGrid::BitVolumeGrid(const BitVolumeGrid *inputGrid) : VolumeGrid(*input
     *_data = *inputGrid->getGridData();
 }
 
-uint64_t BitVolumeGrid::getNumberBytes() const
+size_t BitVolumeGrid::getNumberBytes() const
 {
     return _data->getNumberBytes();
 }
 
-uint8_t BitVolumeGrid::getValueUI8(const uint64_t &index) const
+uint8_t BitVolumeGrid::getValueUI8(const size_t &index) const
 {
     if (_data->bit(index))
         return uint8_t(1);
     return 0;
 }
 
-uint16_t BitVolumeGrid::getValueUI16(const uint64_t &index) const
+uint16_t BitVolumeGrid::getValueUI16(const size_t &index) const
 {
     if (_data->bit(index))
         return uint16_t(1);
     return 0;
 }
 
-uint32_t BitVolumeGrid::getValueUI32(const uint64_t &index) const
+uint32_t BitVolumeGrid::getValueUI32(const size_t &index) const
 {
     if (_data->bit(index))
         return uint32_t(1);
     return 0;
 }
 
-uint64_t BitVolumeGrid::getValueUI64(const uint64_t &index) const
+uint64_t BitVolumeGrid::getValueUI64(const size_t &index) const
 {
     if (_data->bit(index))
         return uint64_t(255);
     return 0;
 }
 
-float BitVolumeGrid::getValueF32(const uint64_t &index) const
+float BitVolumeGrid::getValueF32(const size_t &index) const
 {
     if (_data->bit(index))
         return 1.f;
     return 0.f;
 }
 
-double BitVolumeGrid::getValueF64(const uint64_t &index) const
+double BitVolumeGrid::getValueF64(const size_t &index) const
 {
     if (_data->bit(index))
         return 1.0;
     return 0.0;
 }
 
-uint8_t BitVolumeGrid::getByte(uint64_t index) const
+uint8_t BitVolumeGrid::getByte(size_t index) const
 {
     return _data->getByte(index);
 }
 
-void BitVolumeGrid::addByte(const uint64_t &index, const uint8_t &byte)
+void BitVolumeGrid::addByte(const size_t &index, const uint8_t &byte)
 {
     _data->addByte(index, byte);
 }
@@ -120,22 +120,22 @@ void BitVolumeGrid::clear()
     _data->clearAll();
 }
 
-void BitVolumeGrid::fillVoxel(const uint64_t &index)
+void BitVolumeGrid::fillVoxel(const size_t &index)
 {
     _data->setBit(index);
 }
 
-void BitVolumeGrid::clearVoxel(const uint64_t &index)
+void BitVolumeGrid::clearVoxel(const size_t &index)
 {
     _data->clearBit(index);
 }
 
-bool BitVolumeGrid::isFilled(const uint64_t &index) const
+bool BitVolumeGrid::isFilled(const size_t &index) const
 {
     return _data->bit(index);
 }
 
-bool BitVolumeGrid::isEmpty(const uint64_t &index) const
+bool BitVolumeGrid::isEmpty(const size_t &index) const
 {
     return !_data->bit(index);
 }

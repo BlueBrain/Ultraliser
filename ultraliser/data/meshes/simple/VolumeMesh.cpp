@@ -3,7 +3,7 @@
 namespace Ultraliser
 {
 
-VolumeMesh::VolumeMesh(const uint64_t numberVertices, const uint64_t numberTriangles)
+VolumeMesh::VolumeMesh(const size_t numberVertices, const size_t numberTriangles)
 {
     vertices.resize(numberVertices);
     triangles.resize(numberTriangles);
@@ -12,19 +12,19 @@ VolumeMesh::VolumeMesh(const uint64_t numberVertices, const uint64_t numberTrian
 void VolumeMesh::append(const VolumeMesh* inputMesh)
 {
     // Vertex offset is the number of vertices in the current mesh
-    uint64_t vertexCountOffset = vertices.size();
+    size_t vertexCountOffset = vertices.size();
 
     // Number of triangles in the current mesh
-    uint64_t triangleCountOffset = triangles.size();
+    size_t triangleCountOffset = triangles.size();
 
     // Expand and append the vertices and the triangles of the new mesh
     vertices.insert(vertices.end(), inputMesh->vertices.begin(), inputMesh->vertices.end());
     triangles.insert(triangles.end(), inputMesh->triangles.begin(), inputMesh->triangles.end());
 
     // Offset the new vertices to account for the addivity
-    for (uint64_t i = triangleCountOffset; i < triangles.size(); ++i)
+    for (size_t i = triangleCountOffset; i < triangles.size(); ++i)
     {
-        for(uint64_t j = 0; j < 3; ++j)
+        for (size_t j = 0; j < 3; ++j)
         {
             triangles[i][j] += vertexCountOffset;
         }
@@ -88,7 +88,7 @@ void VolumeMesh::computeBoundingBox(Vector3f& pMinIn, Vector3f& pMaxIn)
     Vector3f pMin(std::numeric_limits<float>::max());
     Vector3f pMax(std::numeric_limits<float>::lowest());
 
-    for (uint64_t i = 0; i < vertices.size(); ++i)
+    for (size_t i = 0; i < vertices.size(); ++i)
     {
         Vertex vertex = vertices[i];
         for (int iDim = 0; iDim < DIMENSIONS; ++iDim)
@@ -117,7 +117,7 @@ void VolumeMesh::centerAtOrigin(void)
     Vector3f center = pMin + (0.5 * boundingBoxSize);
 
     // Shift the vertices to the origin to center the mesh
-    for (uint64_t i = 0; i < vertices.size(); ++i)
+    for (size_t i = 0; i < vertices.size(); ++i)
     {
         vertices[i] -= center;
     }
@@ -125,7 +125,7 @@ void VolumeMesh::centerAtOrigin(void)
 
 void VolumeMesh::rotate(const Matrix4f& matrix)
 {
-    for (uint64_t i = 0; i < vertices.size(); ++i)
+    for (size_t i = 0; i < vertices.size(); ++i)
     {
         Vector4f result = matrix * Vector4f(vertices[i]);
         vertices[i] = Vector3f(result.x(), result.y(), result.z());
@@ -134,7 +134,7 @@ void VolumeMesh::rotate(const Matrix4f& matrix)
 
 void VolumeMesh::transform(const Matrix4f& matrix)
 {
-    for (uint64_t i = 0; i < vertices.size(); ++i)
+    for (size_t i = 0; i < vertices.size(); ++i)
     {
         Vector4f result = matrix * Vector4f(vertices[i], 1.0);
         vertices[i] = Vector3f(result.x(), result.y(), result.z());
@@ -143,7 +143,7 @@ void VolumeMesh::transform(const Matrix4f& matrix)
 
 void VolumeMesh::translate(const Vector3f& to)
 {
-    for (uint64_t i = 0; i < vertices.size(); ++i)
+    for (size_t i = 0; i < vertices.size(); ++i)
     {
         vertices[i] += to;
     }
@@ -151,7 +151,7 @@ void VolumeMesh::translate(const Vector3f& to)
 
 void VolumeMesh::uniformScale(const float factor)
 {
-    for (uint64_t i = 0; i < vertices.size(); ++i)
+    for (size_t i = 0; i < vertices.size(); ++i)
     {
         vertices[i] *= factor;
     }
@@ -159,7 +159,7 @@ void VolumeMesh::uniformScale(const float factor)
 
 void VolumeMesh::scale(const float x, const float y, const float z)
 {
-    for (uint64_t i = 0; i < vertices.size(); ++i)
+    for (size_t i = 0; i < vertices.size(); ++i)
     {
         vertices[i].x() *= x;
         vertices[i].y() *= y;
@@ -169,7 +169,7 @@ void VolumeMesh::scale(const float x, const float y, const float z)
 
 void VolumeMesh::scale(const Vector3f& factor)
 {
-    for (uint64_t i = 0; i < vertices.size(); ++i)
+    for (size_t i = 0; i < vertices.size(); ++i)
     {
         vertices[i].x() *= factor.x();
         vertices[i].y() *= factor.y();

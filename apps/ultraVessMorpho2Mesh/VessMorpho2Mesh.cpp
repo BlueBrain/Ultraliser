@@ -85,9 +85,9 @@ void run(int argc , const char** argv)
     float largestDimension = inputBB.getLargestDimension();
 
     // Calculate the volume resolution based on the largest dimension in the morphology
-    uint64_t resolution;
+    size_t resolution;
     if (options->scaledResolution)
-        resolution = uint64_t(options->voxelsPerMicron * largestDimension);
+        resolution = static_cast< size_t >(options->voxelsPerMicron * largestDimension);
     else
         resolution = options->volumeResolution;
     LOG_WARNING("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);

@@ -27,14 +27,13 @@ namespace Ultraliser
 
 float getRandomAngle(void)
 {
-    return static_cast < float >(std::rand()) /
-            (static_cast < float >(RAND_MAX / 360.0));
+    return static_cast < float >(std::rand()) / (static_cast < float >(RAND_MAX / 360.0));
 }
 
-uint64_t getRandomInt(const uint64_t &min,
-                      const uint64_t &max)
+size_t getRandomInt(const size_t &min,
+                      const size_t &max)
 {
-    return min + (I2UI64(rand()) % (max - min + 1));
+    return min + (static_cast< size_t >(rand()) % (max - min + 1));
 }
 
 float getRandomFloat(const float min, const float max)

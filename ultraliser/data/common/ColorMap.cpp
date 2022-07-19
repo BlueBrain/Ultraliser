@@ -35,10 +35,10 @@ Vector3f getRGBColorF(const float& value,
                       const std::string &colorMap)
 {
     // The color map length, it will be always 256
-    const uint64_t colorMapLength = 256;
+    const size_t colorMapLength = 256;
 
     // Get the index of the color map
-    const uint64_t colorMapIndex = F2UI64((colorMapLength - 1) *
+    const size_t colorMapIndex = F2UI64((colorMapLength - 1) *
                                           (value - minValue) / (maxValue - minValue));
 
     // Return the corresponding color from the selected color map

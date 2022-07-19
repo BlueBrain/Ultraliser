@@ -53,7 +53,7 @@ NeuronMorphology* NeuronSWCReader::getMorphology()
 void NeuronSWCReader::_readSamples(const std::string &swcMorphologyFilePath)
 {
     _samples.clear();
-    std::unordered_map<uint64_t, NeuronSWCSample*> samplesMap;
+    std::unordered_map< size_t, NeuronSWCSample* > samplesMap;
     try
     {
         std::ifstream swcFile(swcMorphologyFilePath.c_str());

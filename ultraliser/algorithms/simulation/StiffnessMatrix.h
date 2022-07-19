@@ -161,8 +161,8 @@ private:
      * @param triplets
      * Triplets 
      */
-    static void _addMatrixToTriplets(uint64_t rowIndex,
-                                     uint64_t colIndex,
+    static void _addMatrixToTriplets(size_t rowIndex,
+                                     size_t colIndex,
                                      const Eigen::Matrix3f& matrix,
                                      std::vector<Eigen::Triplet<float>>& triplets);
 
@@ -177,7 +177,7 @@ private:
      * @param triplets
      * Triplets 
      */
-    static void _addIdentityValueToTriplets(uint64_t index,
+    static void _addIdentityValueToTriplets(size_t index,
                                             double value,
                                             std::vector<Eigen::Triplet<float>>& triplets);
 
@@ -194,7 +194,7 @@ public:
      * @param vec
      * Eigen::VectorXf 
      */
-    static void addVec3ToVec(uint64_t index,
+    static void addVec3ToVec(size_t index,
                              Vector3f& vec3,
                              Eigen::VectorXf& vec);
 

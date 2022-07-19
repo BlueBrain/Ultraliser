@@ -58,8 +58,7 @@ Mesh::Mesh()
     _neighborList = nullptr;
 }
 
-Mesh::Mesh(const uint64_t &numVertices,
-           const uint64_t &numTriangles)
+Mesh::Mesh(const size_t &numVertices, const size_t &numTriangles)
 {
     // Initialization of public member variables
     _numberVertices = numVertices;
@@ -73,7 +72,7 @@ Mesh::Mesh(const uint64_t &numVertices,
     _neighborList = nullptr;
 }
 
-Mesh::Mesh(const Samples& samples, const uint64_t& bevelSides)
+Mesh::Mesh(const Samples& samples, const size_t& bevelSides)
 {
     // Construct the section geometry from the samples
     SectionGeometry sectionGeometry(samples, bevelSides);
@@ -98,12 +97,12 @@ Mesh::Mesh(Vertices vertices, Triangles triangles)
     const Triangle* triangleData = triangles.data();
 
 
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         this->_vertices[i] = vertexData[i];
     }
 
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
         this->_triangles[i] = triangleData[i];
     }
@@ -157,14 +156,14 @@ const Triangle* Mesh::getTriangles() const
     return _triangles;
 }
 
-void Mesh::getTriangleBoundingBox(const uint64_t& triangleIndex,
+void Mesh::getTriangleBoundingBox(const size_t &triangleIndex,
                                   Vector3f& pMin, Vector3f& pMax) const
 {
     pMin = Vector3f(std::numeric_limits<float>::max());
     pMax = Vector3f(std::numeric_limits<float>::lowest());
 
     Triangle triangle = getTriangles()[triangleIndex];
-    for (uint64_t vertexIndex = 0; vertexIndex < 3; ++vertexIndex)
+    for (size_t vertexIndex = 0; vertexIndex < 3; ++vertexIndex)
     {
         Vector3f vertex = getVertices()[triangle[vertexIndex]];
         for (int iDim = 0; iDim < DIMENSIONS; ++iDim)
@@ -185,7 +184,7 @@ void Mesh::computeBoundingBox(Vector3f& pMinIn, Vector3f& pMaxIn)
     Vector3f pMin(std::numeric_limits<float>::max());
     Vector3f pMax(std::numeric_limits<float>::lowest());
 
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         Vertex vertex = _vertices[i];
         for (int iDim = 0; iDim < DIMENSIONS; ++iDim)
@@ -244,7 +243,7 @@ void Mesh::centerAtOrigin(void)
     Vector3f center = pMin + (0.5 * boundingBoxSize);
 
     // Shift the vertices to the origin to center the mesh
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         _vertices[i] -= center;
     }
@@ -252,7 +251,7 @@ void Mesh::centerAtOrigin(void)
 
 void Mesh::rotate(const Matrix4f& matrix)
 {
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         Vector4f result = matrix * Vector4f(_vertices[i]);
         _vertices[i] = Vector3f(result.x(), result.y(), result.z());
@@ -261,7 +260,7 @@ void Mesh::rotate(const Matrix4f& matrix)
 
 void Mesh::transform(const Matrix4f& matrix)
 {
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         Vector4f result = matrix * Vector4f(_vertices[i], 1.0);
         _vertices[i] = Vector3f(result.x(), result.y(), result.z());
@@ -271,7 +270,7 @@ void Mesh::transform(const Matrix4f& matrix)
 void Mesh::translate(const Vector3f& to)
 {
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         _vertices[i] += to;
     }
@@ -280,7 +279,7 @@ void Mesh::translate(const Vector3f& to)
 void Mesh::uniformScale(const float factor)
 {
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         _vertices[i] *= factor;
     }
@@ -289,7 +288,7 @@ void Mesh::uniformScale(const float factor)
 void Mesh::scale(const float x, const float y, const float z)
 {
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         _vertices[i].x() *= x;
         _vertices[i].y() *= y;
@@ -300,51 +299,51 @@ void Mesh::scale(const float x, const float y, const float z)
 void Mesh::append(const Mesh* inputMesh)
 {
     // Vertex offset is the number of vertices in the current mesh
-    uint64_t vertexCountOffset = _numberVertices;
+    size_t vertexCountOffset = _numberVertices;
 
     // Number of triangles in the current mesh
-    uint64_t triangleCountOffset = _numberTriangles;
+    size_t triangleCountOffset = _numberTriangles;
 
     // New number of vertices
-    uint64_t newNumberVertices = vertexCountOffset + inputMesh->getNumberVertices();
+    size_t newNumberVertices = vertexCountOffset + inputMesh->getNumberVertices();
 
     // New number of triangles
-    uint64_t newNumberTriangles = triangleCountOffset + inputMesh->getNumberTriangles();
+    size_t newNumberTriangles = triangleCountOffset + inputMesh->getNumberTriangles();
 
     Vector3f* newVertices = new Vector3f[newNumberVertices];
     Triangle* newTriangles = new Triangle[newNumberTriangles];
 
     // Current mesh vertices
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         newVertices[i] = _vertices[i];
     }
 
     // Input mesh vertices
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < inputMesh->getNumberVertices(); ++i)
+    for (size_t i = 0; i < inputMesh->getNumberVertices(); ++i)
     {
         newVertices[_numberVertices + i] = inputMesh->getVertices()[i];
     }
 
     // Current mesh triangles
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
         newTriangles[i] = _triangles[i];
     }
 
     // Input mesh triangles
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < inputMesh->getNumberTriangles(); ++i)
+    for (size_t i = 0; i < inputMesh->getNumberTriangles(); ++i)
     {
         newTriangles[_numberTriangles + i] = inputMesh->getTriangles()[i];
     }
 
     // Offset the new vertices to account for the addivity
     OMP_PARALLEL_FOR
-    for (uint64_t i = triangleCountOffset; i < newNumberTriangles; ++i)
+    for (size_t i = triangleCountOffset; i < newNumberTriangles; ++i)
     {
         newTriangles[i][0] += vertexCountOffset;
         newTriangles[i][1] += vertexCountOffset;
@@ -429,10 +428,10 @@ void Mesh::import(const std::string &fileName, const bool &verbose)
     Vector3f* tempVertices = loadedVertices.data();
     Triangle* tempTriangles = loadedTriangles.data();
 
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
         _vertices[i] = tempVertices[i];
 
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
         _triangles[i] = tempTriangles[i];
 
     // Statistics
@@ -440,8 +439,7 @@ void Mesh::import(const std::string &fileName, const bool &verbose)
     if (verbose) LOG_STATS(GET_TIME_SECONDS);
 }
 
-Mesh* Mesh::instanciate(const uint64_t &numVertices,
-                        const uint64_t &numTriangles)
+Mesh* Mesh::instanciate(const size_t &numVertices, const size_t &numTriangles)
 {
     // Initialization of public member variables
     Mesh* instance = new Mesh(numVertices, numTriangles);
@@ -455,19 +453,17 @@ double Mesh::getDefaultOptimizationTime() const
     return _optimizationTime;
 }
 
-uint64_t Mesh::getNumberVertices() const
+size_t Mesh::getNumberVertices() const
 {
     return _numberVertices;
 }
 
-uint64_t Mesh::getNumberTriangles() const
+size_t Mesh::getNumberTriangles() const
 {
     return _numberTriangles;
 }
 
-float Mesh::_cotangentAngle(const Vector3f& pivot,
-                            const Vector3f& a,
-                            const Vector3f& b)
+float Mesh::_cotangentAngle(const Vector3f& pivot, const Vector3f& a, const Vector3f& b)
 {
     const auto pA = (a - pivot).normalized();
     const auto pB = (b - pivot).normalized();
@@ -485,7 +481,7 @@ void Mesh::_computeNeighborhoods(Mesh& mesh,
     vertexNeighbors.resize(mesh.getNumberVertices());
     faceNeighbors.resize(mesh.getNumberVertices());
 
-    for(uint64_t i = 0; i < mesh.getNumberTriangles(); ++i)
+    for(size_t i = 0; i < mesh.getNumberTriangles(); ++i)
     {
         const auto& face = mesh._triangles[i];
 
@@ -505,7 +501,7 @@ void Mesh::_computeNeighborhoods(Mesh& mesh,
 }
 
 Vector3f Mesh::_computeKernel(Mesh& mesh,
-                              const uint64_t vertexIndex,
+                              const size_t vertexIndex,
                               Neighbors& verticesN,
                               Neighbors& facesN)
 {
@@ -535,7 +531,7 @@ float Mesh::_computeCotangentWeight(Mesh& mesh,
                                     const uint32_t neighborIndex,
                                     Neighbors& faceN)
 {
-    uint64_t edge1 = 0, edge2 = 0;
+    size_t edge1 = 0, edge2 = 0;
     bool firstFound = false, secondFound = false;
     for(const auto & nvFace : faceN)
     {
@@ -581,7 +577,7 @@ float Mesh::_computeCotangentWeight(Mesh& mesh,
 }
 
 Vertex Mesh::_smoothVertex(Mesh& mesh,
-                           const uint64_t vertexIndex,
+                           const size_t vertexIndex,
                            const Vector3f kernel,
                            const float param)
 {
@@ -629,7 +625,7 @@ void Mesh::applyLaplacianSmooth(const uint32_t& numIterations,
     for(uint32_t i = 0; i < numIterations; ++i)
     {
         #pragma omp parallel for
-        for(uint64_t v = 0; v < _numberVertices; ++v)
+        for (size_t v = 0; v < _numberVertices; ++v)
         {
             const Vector3f kernel = _computeKernel(*this, v, vertexN[v], faceN[v]);
             smoothedVertices[v] = _smoothVertex(*this, v, kernel, smoothLambda);
@@ -637,13 +633,13 @@ void Mesh::applyLaplacianSmooth(const uint32_t& numIterations,
 
         // Update vertices
         #pragma omp parallel for
-        for(uint64_t v = 0; v < _numberVertices; ++v)
+        for (size_t v = 0; v < _numberVertices; ++v)
         {
             _vertices[v] = smoothedVertices[v];
         }
 
         #pragma omp parallel for
-        for(uint64_t v = 0; v < _numberVertices; ++v)
+        for (size_t v = 0; v < _numberVertices; ++v)
         {
             const Vector3f kernel =_computeKernel(*this, v, vertexN[v], faceN[v]);
             smoothedVertices[v] = _smoothVertex(*this, v, kernel, inflateMu);
@@ -651,7 +647,7 @@ void Mesh::applyLaplacianSmooth(const uint32_t& numIterations,
 
         // Update vertices
         #pragma omp parallel for
-        for(uint64_t v = 0; v < _numberVertices; ++v)
+        for (size_t v = 0; v < _numberVertices; ++v)
         {
             _vertices[v] = smoothedVertices[v];
         }
@@ -678,7 +674,7 @@ void Mesh::shrinkOrInflateSurface(const Neighborhood& vertexNeighbours,
     auto newVertices = std::make_unique< Vertex[] >(_numberVertices);
 
     // For every vertex in the vertex list
-    for (uint64_t i = 0; i < _numberVertices; i++)
+    for (size_t i = 0; i < _numberVertices; i++)
     {
         // Operate on a vertex
         Vector3f vertex;
@@ -705,7 +701,7 @@ void Mesh::shrinkOrInflateSurface(const Neighborhood& vertexNeighbours,
     }
 }
 
-void Mesh::smoothSurface(uint64_t numIterations)
+void Mesh::smoothSurface(size_t numIterations)
 {
     // If no iterations, return
     if (numIterations < 1)
@@ -720,7 +716,7 @@ void Mesh::smoothSurface(uint64_t numIterations)
 
     // Shrink/Inflate the surface using a tic-toe approach
     LOOP_STARTS("Smoothing")
-    for (uint64_t i = 0; i < numIterations; ++i)
+    for (size_t i = 0; i < numIterations; ++i)
     {
         shrinkOrInflateSurface(vertexNeighbours, faceNeighbours, true);
         shrinkOrInflateSurface(vertexNeighbours, faceNeighbours, false);
@@ -872,12 +868,12 @@ void Mesh::updateData(Vertices vertices, Triangles triangles)
     const Triangle* triangleData = triangles.data();
 
 
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         this->_vertices[i] = vertexData[i];
     }
 
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
         this->_triangles[i] = triangleData[i];
     }

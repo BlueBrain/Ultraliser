@@ -134,7 +134,7 @@ protected :
      * @brief _lNumElements
      * Number of elements in the list
      */
-    uint64_t _lNumElements;
+    size_t _lNumElements;
 
 public :
 
@@ -211,7 +211,7 @@ public :
      * Gets the number of elements. O(1).
      * @return
      */
-    uint64_t numberElements() const { return _lNumElements; }
+    size_t numberElements() const { return _lNumElements; }
 
     /**
      * @brief appendHead

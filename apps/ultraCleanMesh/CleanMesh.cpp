@@ -123,9 +123,9 @@ void run(int argc , const char** argv)
         if (inputBB.z > largestDimension)
             largestDimension = inputBB.z;
 
-        uint64_t resolution;
+        size_t resolution;
         if (options->scaledResolution)
-            resolution = uint64_t(options->voxelsPerMicron * largestDimension);
+            resolution = static_cast< size_t >(options->voxelsPerMicron * largestDimension);
         else
             resolution = options->volumeResolution;
         LOG_WARNING("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);
@@ -152,8 +152,8 @@ void run(int argc , const char** argv)
 
     Ultraliser::Vertex* vertexArray;
     Ultraliser::Triangle* triangleArray;
-    uint64_t numberVertices;
-    uint64_t numberTriangles;
+    size_t numberVertices;
+    size_t numberTriangles;
     inputMesh->getVerticesAndTrianglesArray(vertexArray, triangleArray,
                                             numberVertices, numberTriangles);
 
@@ -161,9 +161,9 @@ void run(int argc , const char** argv)
     {
         // Construct the optimization mesh
         Ultraliser::Mesh* optimizationMesh = new Ultraliser::Mesh(numberVertices, numberTriangles);
-        for (uint64_t i = 0; i < numberVertices; ++i)
+        for (size_t i = 0; i < numberVertices; ++i)
             optimizationMesh->_vertices[i] = vertexArray[i];
-        for (uint64_t i = 0; i < numberTriangles; ++i)
+        for (size_t i = 0; i < numberTriangles; ++i)
             optimizationMesh->_triangles[i] = triangleArray[i];
 
         optimizationMesh->optimizeAdaptively(options->optimizationIterations,

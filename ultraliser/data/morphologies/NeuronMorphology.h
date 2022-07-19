@@ -65,7 +65,7 @@ public:
      * @param apicalBrachOrder
      * Depth of the sections to keep in morphology apical dendrites
      */
-    void trim(uint64_t axonBranchOrder, uint64_t basalBranchOrder, uint64_t apicalBranchOrder);
+    void trim(size_t axonBranchOrder, size_t basalBranchOrder, size_t apicalBranchOrder);
 
     /**
      * @brief getSomaSamples

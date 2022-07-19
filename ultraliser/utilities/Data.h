@@ -31,7 +31,7 @@ namespace Ultraliser
  * @param size
  * @return
  */
-std::string formatSize(const uint64_t &size);
+std::string formatSize(const size_t &size);
 
 }
 

@@ -32,9 +32,9 @@ namespace Ultraliser
 {
 
 template <class T>
-FloatVolumeGrid<T>::FloatVolumeGrid(const uint64_t &width,
-                                    const uint64_t &height,
-                                    const uint64_t &depth,
+FloatVolumeGrid<T>::FloatVolumeGrid(const size_t &width,
+                                    const size_t &height,
+                                    const size_t &depth,
                                     const bool &preAllocateMemory)
     : VolumeGrid(width, height, depth)
 {
@@ -58,7 +58,7 @@ FloatVolumeGrid<T>::FloatVolumeGrid(const FloatVolumeGrid* inputGrid)
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberVoxels; ++i)
+    for (size_t i = 0; i < _numberVoxels; ++i)
     {
         _data[i] = inputData[i];
     }
@@ -67,7 +67,7 @@ FloatVolumeGrid<T>::FloatVolumeGrid(const FloatVolumeGrid* inputGrid)
 
 
 template <class T>
-uint64_t FloatVolumeGrid<T>::getNumberBytes() const
+size_t FloatVolumeGrid<T>::getNumberBytes() const
 {
     if (typeid (T) == typeid (float))
         return _numberVoxels * 4;
@@ -79,47 +79,47 @@ uint64_t FloatVolumeGrid<T>::getNumberBytes() const
 }
 
 template <class T>
-uint8_t FloatVolumeGrid<T>::getValueUI8(const uint64_t &index) const
+uint8_t FloatVolumeGrid<T>::getValueUI8(const size_t &index) const
 {
     LOG_ERROR("FloatVolumeGrid<T>::getValueUI8 Unimplemented!");
     return 0;
 }
 
 template <class T>
-uint16_t FloatVolumeGrid<T>::getValueUI16(const uint64_t &index) const
+uint16_t FloatVolumeGrid<T>::getValueUI16(const size_t &index) const
 {
     LOG_ERROR("FloatVolumeGrid<T>::getValueUI16 Unimplemented!");
     return 0;
 }
 
 template <class T>
-uint32_t FloatVolumeGrid<T>::getValueUI32(const uint64_t &index) const
+uint32_t FloatVolumeGrid<T>::getValueUI32(const size_t &index) const
 {
     LOG_ERROR("FloatVolumeGrid<T>::getValueUI32 Unimplemented!");
     return 0;
 }
 
 template <class T>
-uint64_t FloatVolumeGrid<T>::getValueUI64(const uint64_t &index) const
+uint64_t FloatVolumeGrid<T>::getValueUI64(const size_t &index) const
 {
     LOG_ERROR("FloatVolumeGrid<T>::getValueUI64 Unimplemented!");
     return 0;
 }
 
 template <class T>
-float FloatVolumeGrid<T>::getValueF32(const uint64_t &index) const
+float FloatVolumeGrid<T>::getValueF32(const size_t &index) const
 {
     return static_cast< float >(_data[index]);
 }
 
 template <class T>
-double FloatVolumeGrid<T>::getValueF64(const uint64_t &index) const
+double FloatVolumeGrid<T>::getValueF64(const size_t &index) const
 {
     return static_cast< double >(_data[index]);
 }
 
 template <class T>
-uint8_t FloatVolumeGrid<T>::getByte(uint64_t index) const
+uint8_t FloatVolumeGrid<T>::getByte(size_t index) const
 {
     // Cannot be implemented
     LOG_ERROR("FloatVolumeGrid<T>::getByte() Unimplemented!");
@@ -127,7 +127,7 @@ uint8_t FloatVolumeGrid<T>::getByte(uint64_t index) const
 }
 template <class T>
 
-void FloatVolumeGrid<T>::addByte(const uint64_t &index, const uint8_t &byte)
+void FloatVolumeGrid<T>::addByte(const size_t &index, const uint8_t &byte)
 {
     // Cannot be implemented
     LOG_ERROR("FloatVolumeGrid<T>::addByte Unimplemented!");
@@ -139,30 +139,30 @@ void FloatVolumeGrid<T>::clear()
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberVoxels; ++i)
+    for (size_t i = 0; i < _numberVoxels; ++i)
         _data[i] = 0.f;
 }
 
 template <class T>
-void FloatVolumeGrid<T>::fillVoxel(const uint64_t &index)
+void FloatVolumeGrid<T>::fillVoxel(const size_t &index)
 {
     _data[index] = 1.;
 }
 
 template <class T>
-void FloatVolumeGrid<T>::clearVoxel(const uint64_t &index)
+void FloatVolumeGrid<T>::clearVoxel(const size_t &index)
 {
     _data[index] = 0.;
 }
 
 template <class T>
-bool FloatVolumeGrid<T>::isFilled(const uint64_t &index) const
+bool FloatVolumeGrid<T>::isFilled(const size_t &index) const
 {
     return _data[index] > 0.;
 }
 
 template <class T>
-bool FloatVolumeGrid<T>::isEmpty(const uint64_t &index) const
+bool FloatVolumeGrid<T>::isEmpty(const size_t &index) const
 {
     return _data[index] == 0.;
 }
@@ -201,7 +201,7 @@ void FloatVolumeGrid<T>::writeBitVolume(const std::string &prefix) const
 
     // Fill the BitArray
     LOOP_STARTS("Filling the BitArray");
-    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    for (size_t voxel = 0; voxel < _numberVoxels; voxel += 8)
     {
         LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
         if (_data[voxel])
@@ -218,12 +218,12 @@ void FloatVolumeGrid<T>::writeBitVolume(const std::string &prefix) const
 
 
     LOOP_STARTS("Writing Voxels (1 Bit per Voxel)");
-    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    for (size_t voxel = 0; voxel < _numberVoxels; voxel += 8)
     {
         LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
 
         uint8_t value = 0;
-        for (uint64_t i = 0; i < 8; ++i)
+        for (size_t i = 0; i < 8; ++i)
         {
             if (binData->bit(voxel + i))
                 value |= 1 << i;
@@ -275,7 +275,7 @@ void FloatVolumeGrid<T>::_allocateMemory()
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberVoxels; ++i)
+    for (size_t i = 0; i < _numberVoxels; ++i)
         _data[i] = static_cast<T>(0);
 }
 

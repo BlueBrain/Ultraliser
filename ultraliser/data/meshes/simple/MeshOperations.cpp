@@ -175,8 +175,8 @@ void importOBJ(const std::string &filePath, Vertices& vertices, Triangles& trian
     // Parse the file
     TIMER_RESET;
     if (verbose) LOOP_STARTS("Loading Data")
-    uint64_t progress = 0;
-    for (uint64_t lineNumber = 0; lineNumber < numberLines; ++lineNumber)
+    size_t progress = 0;
+    for (size_t lineNumber = 0; lineNumber < numberLines; ++lineNumber)
     {
         if (verbose) LOOP_PROGRESS_FRACTION(progress, numberLines);
 
@@ -446,7 +446,7 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
     // Start streaming the file
     std::stringstream stream(line);
     stream >> token >> token;
-    uint64_t numberVertices;
+    size_t numberVertices;
     stream >> numberVertices;
 
     // Textures are not always there
@@ -467,7 +467,7 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
 
     std::stringstream lineStream(line);
     lineStream >> token >> token;
-    uint64_t numberTriangles;
+    size_t numberTriangles;
     lineStream >> numberTriangles;
     while (true)
     {
@@ -487,7 +487,7 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
 
     // Reading the vertices
     if (verbose) LOOP_STARTS("Loading Vertices");
-    for (uint64_t i = 0; i < numberVertices; ++i)
+    for (size_t i = 0; i < numberVertices; ++i)
     {
         if (verbose) LOOP_PROGRESS_FRACTION(i, numberVertices);
 
@@ -509,7 +509,7 @@ void importPLY(const std::string &filePath, Vertices& vertices, Triangles& trian
 
     // Read the triangles
     if (verbose) LOOP_STARTS("Loading Triangles");
-    for (uint64_t i = 0; i < numberTriangles; ++i)
+    for (size_t i = 0; i < numberTriangles; ++i)
     {
         if (verbose) LOOP_PROGRESS_FRACTION(i, numberTriangles);
 
@@ -619,7 +619,7 @@ void importSTL(const std::string &filePath, Vertices& vertices, Triangles& trian
         int numberElements = 0;
         if (fread(&numberElements, 4, 1, filePointer)) { /* NOTHING TO DO */ }
 
-        uint64_t vertexIndex = 0;
+        size_t vertexIndex = 0;
         for (int i = 0; i < numberElements; ++i)
         {
             // Unexpected end of file
@@ -667,7 +667,7 @@ void importSTL(const std::string &filePath, Vertices& vertices, Triangles& trian
         bool v1Flag = false, v2Flag = false, v3Flag = false;
 
         // THe index that will be used to track the vertices.
-        uint64_t vertexIndex = 0;
+        size_t vertexIndex = 0;
 
         // Proceed with ASCII encoding
         char *line;
@@ -760,7 +760,7 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
     } while (line[0] == '#' || line[0] == '\0' || !sscanf(line, "%256s", streamData));
 
     // Got the first line, that has the data of the mesh
-    uint64_t numberVertices, numberTriangles, numberEdges;
+    size_t numberVertices, numberTriangles, numberEdges;
     if (sscanf(line, "%" PRIu64 " %" PRIu64 " %" PRIu64 "",
                &numberVertices, &numberTriangles, &numberEdges) < 3)
     {
@@ -785,7 +785,7 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
     // For all the vertices
     TIMER_RESET;
     if (verbose) LOOP_STARTS("Loading Vertices");
-    for (uint64_t i = 0; i < numberVertices; ++i)
+    for (size_t i = 0; i < numberVertices; ++i)
     {
         LOOP_PROGRESS(i, numberVertices);
 
@@ -809,12 +809,12 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
     bool triangulate = false;
     TIMER_RESET;
     if (verbose) LOOP_STARTS("Loading Triangles");
-    for (uint64_t i = 0; i < numberTriangles; ++i)
+    for (size_t i = 0; i < numberTriangles; ++i)
     {
          LOOP_PROGRESS(i, numberTriangles);
 
         // Scan the triangle data
-        uint64_t i1, i2, i3, i4;
+        size_t i1, i2, i3, i4;
         if (fscanf(filePointer,"%" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "",
                    &i4, &i1, &i2, &i3) == 4)
         {
@@ -824,7 +824,7 @@ void importOFF(const std::string &filePath, Vertices& vertices, Triangles& trian
                 LOG_ERROR("Invalid index at face [ %" PRIu64 "]!", i);
             }
 
-            for (uint64_t j = 3; j <= i4; j++)
+            for (size_t j = 3; j <= i4; j++)
             {
                 if (i1 == i2 || i2 == i3 || i3 == i1)
                 {
@@ -935,9 +935,9 @@ void importH5(const std::string &filePath, Vertices& vertices, Triangles& triang
 
 void exportOBJ(const std::string &prefix,
                const Vertex *vertices,
-               const uint64_t &numberVertices,
+               const size_t &numberVertices,
                const Triangle* triangles,
-               const uint64_t &numberTriangles)
+               const size_t &numberTriangles)
 {
     // Open the file
     std::string fileName = prefix + OBJ_EXTENSION;
@@ -954,7 +954,7 @@ void exportOBJ(const std::string &prefix,
 
     // Write the vertices
     LOOP_STARTS("Writing Vertices");
-    for (uint64_t i = 0; i < numberVertices; ++i)
+    for (size_t i = 0; i < numberVertices; ++i)
     {
         LOOP_PROGRESS_FRACTION(i, numberVertices);
 
@@ -972,7 +972,7 @@ void exportOBJ(const std::string &prefix,
     TIMER_RESET;
 
     LOOP_STARTS("Writing Triangles");
-    for (uint64_t i = 0; i < numberTriangles; ++i)
+    for (size_t i = 0; i < numberTriangles; ++i)
     {
         LOOP_PROGRESS_FRACTION(i, numberTriangles);
         stream << OBJ_FACE_FLAG << SPACE
@@ -994,9 +994,9 @@ void exportOBJ(const std::string &prefix,
 
 void exportOFF(const std::string &prefix,
                const Vertex *vertices,
-               const uint64_t &numberVertices,
+               const size_t &numberVertices,
                const Triangle* triangles,
-               const uint64_t &numberTriangles)
+               const size_t &numberTriangles)
 {
     // Open a stream to write the data
     std::string fileName = prefix + OFF_EXTENSION;
@@ -1022,7 +1022,7 @@ void exportOFF(const std::string &prefix,
     outputStream << std::scientific;
     outputStream << std::setprecision(9);
     TIMER_SET;
-    for (uint64_t i = 0; i < numberVertices; i++)
+    for (size_t i = 0; i < numberVertices; i++)
     {
         LOOP_PROGRESS_FRACTION(i, numberVertices);
 
@@ -1036,7 +1036,7 @@ void exportOFF(const std::string &prefix,
     // Write the indices
     LOOP_STARTS("Writing Triangles");
     TIMER_RESET;
-    for (uint64_t i = 0; i < numberTriangles; i++)
+    for (size_t i = 0; i < numberTriangles; i++)
     {
         LOOP_PROGRESS(i, numberTriangles);
 
@@ -1055,9 +1055,9 @@ void exportOFF(const std::string &prefix,
 
 void exportSTL(const std::string &prefix,
                const Vertex *vertices,
-               const uint64_t &,
+               const size_t &,
                const Triangle* triangles,
-               const uint64_t &numberTriangles)
+               const size_t &numberTriangles)
 {
     // Open a stream to write the data
     std::string fileName = prefix + STL_EXTENSION;
@@ -1079,7 +1079,7 @@ void exportSTL(const std::string &prefix,
     // Write the indices
     LOOP_STARTS("Writing Vertices and Triangles");
     TIMER_SET;
-    for (uint64_t i = 0; i < numberTriangles; ++i)
+    for (size_t i = 0; i < numberTriangles; ++i)
     {
         LOOP_PROGRESS(i, numberTriangles);
 
@@ -1135,9 +1135,9 @@ void exportSTL(const std::string &prefix,
 
 void exportPLY(const std::string &prefix,
                const Vertex *vertices,
-               const uint64_t &numberVertices,
+               const size_t &numberVertices,
                const Triangle* triangles,
-               const uint64_t &numberTriangles,
+               const size_t &numberTriangles,
                bool writeASCII)
 {
     // Start the timer
@@ -1190,11 +1190,11 @@ void exportPLY(const std::string &prefix,
     fprintf(filePointer, "end_header");
     fprintf(filePointer, "\n");
 
-    uint64_t progress = 0;
+    size_t progress = 0;
     if (writeASCII)
     {
         LOOP_STARTS("Writing Vertices");
-        for (uint64_t i = 0; i < numberVertices; i++)
+        for (size_t i = 0; i < numberVertices; i++)
         {
             LOOP_PROGRESS_FRACTION(i, numberVertices);
             fprintf(filePointer, "%f %f %f", vertices[i].x(), vertices[i].y(), vertices[i].z());
@@ -1206,7 +1206,7 @@ void exportPLY(const std::string &prefix,
     else
     {
         LOOP_STARTS("Writing Vertices");
-        for (uint64_t i = 0; i < numberVertices; i++)
+        for (size_t i = 0; i < numberVertices; i++)
         {
             LOOP_PROGRESS_FRACTION(i, numberVertices);
 
@@ -1226,7 +1226,7 @@ void exportPLY(const std::string &prefix,
         progress = 0;
         TIMER_RESET;
         LOOP_STARTS("Writing Triangles");
-        for (uint64_t i = 0; i < numberTriangles; i++)
+        for (size_t i = 0; i < numberTriangles; i++)
         {
             LOOP_PROGRESS(i, numberTriangles);
 
@@ -1242,7 +1242,7 @@ void exportPLY(const std::string &prefix,
         progress = 0;
         TIMER_RESET;
         LOOP_STARTS("Writing Triangles");
-        for (uint64_t i = 0; i < numberTriangles; i++)
+        for (size_t i = 0; i < numberTriangles; i++)
         {
             LOOP_PROGRESS(i, numberTriangles);
 

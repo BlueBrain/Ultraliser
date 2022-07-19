@@ -358,7 +358,7 @@ AdvancedVertex *AdvancedMesh::checkGeometry(const float& requiredMinDihedralAngl
     {
         jqSort((void **) vertexArray, _vertices.numberElements(), xyzCompare);
 
-        for (uint64_t i = 0; i < (_vertices.numberElements() - 1); ++i)
+        for (size_t i = 0; i < (_vertices.numberElements() - 1); ++i)
         {
             vertex1 = ((AdvancedVertex *) vertexArray[i]);
             vertex2 = ((AdvancedVertex *) vertexArray[i + 1]);
@@ -392,7 +392,7 @@ AdvancedVertex *AdvancedMesh::checkGeometry(const float& requiredMinDihedralAngl
     {
         jqSort((void **)edgeArray, _edges.numberElements(), lexEdgeCompare);
 
-        for (uint64_t i = 0; i < (_edges.numberElements() - 1); ++i)
+        for (size_t i = 0; i < (_edges.numberElements() - 1); ++i)
         {
             if (!lexEdgeCompare(edgeArray[i], edgeArray[i + 1]))
             {
@@ -664,7 +664,7 @@ bool AdvancedMesh::rebuildConnectivity(bool fixMeshConnectivity)
     // At this point the mesh should no longer have duplicated vertices, but may have duplicated edges
     AdvancedTriangle *triangle;
     ExtendedVertex **extendedVertex = new ExtendedVertex *[_vertices.numberElements()];
-    uint64_t i = 0;
+    size_t i = 0;
     FOR_EACH_VERTEX(vertex, iNode)
     {
         vertex->e0 = nullptr;
@@ -673,7 +673,7 @@ bool AdvancedMesh::rebuildConnectivity(bool fixMeshConnectivity)
         i++;
     }
 
-    uint64_t numberTriangles = _triangles.numberElements();
+    size_t numberTriangles = _triangles.numberElements();
     int *triangles = new int[numberTriangles * 3];
     i = 0;
     FOR_EACH_TRIANGLE(triangle, iNode)
@@ -700,7 +700,7 @@ bool AdvancedMesh::rebuildConnectivity(bool fixMeshConnectivity)
             createIndexedTriangle(extendedVertex, v1, v2, v3);
     }
 
-    for (uint64_t j=0; j < _vertices.numberElements(); ++j)
+    for (size_t j = 0; j < _vertices.numberElements(); ++j)
     {
         delete(extendedVertex[j]);
     }
@@ -720,7 +720,7 @@ int AdvancedMesh::removeDuplicatedTriangles()
     Node *node;
     AdvancedPoint point;
 
-    uint64_t i = 0;
+    size_t i = 0;
     FOR_EACH_EDGE(edge, node)
     {
         if (!edge->isOnBoundary() &&
@@ -1070,7 +1070,7 @@ int AdvancedMesh::removeSmallestComponents()
     while (iNode != nullptr);
 
     // Get the number of components in the mesh
-    uint64_t numberComponents = components.numberElements();
+    size_t numberComponents = components.numberElements();
 
     int numberElements = 0, largestNumber = 0;
     FOR_EACH_NODE(components, iNode)
@@ -1548,7 +1548,7 @@ bool AdvancedMesh::ensureWatertightness()
     return isMeshClean || (numberBoundaryEdges > 0);
 }
 
-bool AdvancedMesh::cleanMesh(uint64_t maxIterations, int innerLoops)
+bool AdvancedMesh::cleanMesh(size_t maxIterations, int innerLoops)
 {
     LOG_STATUS("Cleaning Mesh");
 
@@ -1563,7 +1563,7 @@ bool AdvancedMesh::cleanMesh(uint64_t maxIterations, int innerLoops)
     invertSelection();
 
     bool intersectionRemovalFlag, degeneracyRemovalFlag;
-    for (uint64_t n = 0; n < maxIterations; ++n)
+    for (size_t n = 0; n < maxIterations; ++n)
     {
         LOG_STATUS("Removing Self Intersections [%d]", n);
 

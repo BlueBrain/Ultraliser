@@ -273,7 +273,7 @@ void AdvancedMesh::_closeLoadingSession(FILE *file, int loadedFaces,
     // Delete the extended vertices
     if (var != nullptr)
     {
-        for (uint64_t i = 0; i < _vertices.numberElements(); ++i)
+        for (size_t i = 0; i < _vertices.numberElements(); ++i)
             delete(var[i]);
         free(var);
     }

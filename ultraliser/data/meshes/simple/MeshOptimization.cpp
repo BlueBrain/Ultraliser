@@ -67,7 +67,7 @@ void Mesh::_resetVertexMarkers()
     }
 
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         _vertexMarkers[i] = 0;
     }
@@ -79,7 +79,7 @@ void Mesh::_destroyNeighborlist()
     {
         // Release the single neighbors
         // OMP_PARALLEL_FOR
-        for (uint64_t i = 0; i < _numberVertices; ++i)
+        for (size_t i = 0; i < _numberVertices; ++i)
         {
             NeighborTriangle* firstNGR = nullptr;
             NeighborTriangle* auxNGR = nullptr;
@@ -108,7 +108,7 @@ void Mesh::_createNeighbourList()
     NeighborTriangle **neighborList = new NeighborTriangle*[_numberVertices];
 
     // Initialize the neighbor list
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
         neighborList[i] = nullptr;
 
     // Start the timer
@@ -117,7 +117,7 @@ void Mesh::_createNeighbourList()
     LOOP_STARTS("Creating Neighbour List");
     PROGRESS_SET;
     // OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
         PROGRESS_UPDATE;
         LOOP_PROGRESS(PROGRESS, _numberTriangles);
@@ -161,7 +161,7 @@ void Mesh::_createNeighbourList()
     // Order the neighbors so they are connected counter clockwise
     TIMER_RESET;
     LOOP_STARTS("Ordering Vertices");
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         LOOP_PROGRESS(i, _numberVertices);
 
@@ -241,13 +241,13 @@ void Mesh::_selectVerticesInROI(const ROIs& regions)
     LOOP_STARTS("Labeling Vertices");
     PROGRESS_SET;
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         // Get the vertex
         const auto& vertex = _vertices[i];
 
         // Make sure that you cover all the regions
-        for (uint64_t j = 0; j < regions.size(); ++j)
+        for (size_t j = 0; j < regions.size(); ++j)
         {
             const auto region = regions[j];
 
@@ -266,8 +266,8 @@ void Mesh::_selectVerticesInROI(const ROIs& regions)
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
 
-    uint64_t numberSelectedVertices = 0;
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    size_t numberSelectedVertices = 0;
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         if (_vertexMarkers[i] == 1)
         {
@@ -279,11 +279,11 @@ void Mesh::_selectVerticesInROI(const ROIs& regions)
                 numberSelectedVertices, regions.size());
 }
 
-void Mesh::optimizeAdapttivelyWithROI(const uint64_t &optimizationIterations,
-                                       const uint64_t &smoothingIterations,
-                                       const float &flatCoarseFactor,
-                                       const float &denseFactor,
-                                       const ROIs &regions)
+void Mesh::optimizeAdapttivelyWithROI(const size_t &optimizationIterations,
+                                      const size_t &smoothingIterations,
+                                      const float &flatCoarseFactor,
+                                      const float &denseFactor,
+                                      const ROIs &regions)
 {
     LOG_TITLE("Adaptive Mesh Optimization (ROI)");
 
@@ -692,7 +692,7 @@ void Mesh::computeAngles(float* computedMinAngle, float* computedMaxAngle,
     int64_t smallNumber = 0;
     int64_t largeNumber = 0;
 
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
         const int64_t a = _triangles[i][0];
         const int64_t b = _triangles[i][1];
@@ -1699,7 +1699,7 @@ void Mesh::smoothNormals()
 
     // Normal smooth all vertices
     LOOP_STARTS("Smoothing Normals");
-    for (uint64_t n = 0; n < _numberVertices; n++)
+    for (size_t n = 0; n < _numberVertices; n++)
     {
         LOOP_PROGRESS(n, _numberVertices);
 
@@ -1760,7 +1760,7 @@ bool Mesh::smooth(const int64_t &maxMinAngle, const int64_t &minMaxAngle,
         // Smooth all vertices
         if (flipEdges)
         {
-            for (uint64_t index = 0; index < _numberVertices; index++)
+            for (size_t index = 0; index < _numberVertices; index++)
             {
                 // Move the vertex along the surface and flip the edge
                 moveVertexAlongSurface(index);
@@ -1769,7 +1769,7 @@ bool Mesh::smooth(const int64_t &maxMinAngle, const int64_t &minMaxAngle,
         }
         else
         {
-            for (uint64_t index = 0; index < _numberVertices; index++)
+            for (size_t index = 0; index < _numberVertices; index++)
             {
                 // Move only the vertex along the edge
                 moveVertexAlongSurface(index);
@@ -1809,7 +1809,7 @@ bool Mesh::smooth(const int64_t &maxMinAngle, const int64_t &minMaxAngle,
     return smoothed;
 }
 
-void Mesh::subdivideTriangleAtCentroid(const uint64_t& triangleIndex,
+void Mesh::subdivideTriangleAtCentroid(const size_t &triangleIndex,
                                        std::vector< Vector3f >& vertexList,
                                        std::vector< Triangle >& triangleList)
 {
@@ -1828,7 +1828,7 @@ void Mesh::subdivideTriangleAtCentroid(const uint64_t& triangleIndex,
     vertexList.push_back(centroid);
 
     // Get the new vertex index
-    const uint64_t vertexIndex = _numberVertices + vertexList.size() - 1;
+    const size_t vertexIndex = _numberVertices + vertexList.size() - 1;
 
     // Create three new triangles
     Triangle t0, t1, t2;
@@ -1842,16 +1842,16 @@ void Mesh::subdivideTriangleAtCentroid(const uint64_t& triangleIndex,
     triangleList.push_back(t2);
 }
 
-void Mesh::subdivideTriangleAtEdges(const uint64_t& triangleIndex,
+void Mesh::subdivideTriangleAtEdges(const size_t &triangleIndex,
                                     std::vector< Vector3f >& vertexList,
                                     std::vector< Triangle >& triangleList)
 {
     // Get the triangle
     const Triangle& t = _triangles[triangleIndex];
 
-    const uint64_t& v0Index = t[0];
-    const uint64_t& v1Index = t[1];
-    const uint64_t& v2Index = t[2];
+    const size_t& v0Index = t[0];
+    const size_t& v1Index = t[1];
+    const size_t& v2Index = t[2];
 
     // Geth the vertices of the triangles
     const Vector3f& v0 = _vertices[v0Index];
@@ -1869,9 +1869,9 @@ void Mesh::subdivideTriangleAtEdges(const uint64_t& triangleIndex,
     vertexList.push_back(v5);
 
     // Get the new vertex index
-    const uint64_t v3Index = _numberVertices + vertexList.size() - 3;
-    const uint64_t v4Index = _numberVertices + vertexList.size() - 2;
-    const uint64_t v5Index = _numberVertices + vertexList.size() - 1;
+    const size_t v3Index = _numberVertices + vertexList.size() - 3;
+    const size_t v4Index = _numberVertices + vertexList.size() - 2;
+    const size_t v5Index = _numberVertices + vertexList.size() - 1;
 
     // Create three new triangles
     Triangle t0, t1, t2, t3;
@@ -1903,7 +1903,7 @@ void Mesh::subdivideTriangleAtEdges(const uint64_t& triangleIndex,
     triangleList.push_back(t3);
 }
 
-void Mesh::refineSelectedTriangles(const std::vector< uint64_t >& trianglesIndices)
+void Mesh::refineSelectedTriangles(const std::vector< size_t > &trianglesIndices)
 {
     // Starting the timer
     TIMER_SET;
@@ -1919,7 +1919,7 @@ void Mesh::refineSelectedTriangles(const std::vector< uint64_t >& trianglesIndic
 
     // Initialize them to false
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < triangleMarkers.size(); ++i)
+    for (size_t i = 0; i < triangleMarkers.size(); ++i)
         triangleMarkers[i] = false;
 
     // Create the vectors
@@ -1927,13 +1927,13 @@ void Mesh::refineSelectedTriangles(const std::vector< uint64_t >& trianglesIndic
     std::vector< Triangle > triangles;
 
     // Keeps track on the number of divided triangles
-    uint64_t numberDividedTriangles = 0;
+    size_t numberDividedTriangles = 0;
 
     // For the moment, it refines all the triangles, but we will use it to only refine the
     // selected triangles.
     LOOP_STARTS("Refine Selected Triangles")
     LOOP_PROGRESS(0, 5);
-    for (uint64_t i = 0; i < trianglesIndices.size(); ++i)
+    for (size_t i = 0; i < trianglesIndices.size(); ++i)
     {
         // If the triangle has been visited before, then skip it
         if (triangleMarkers[trianglesIndices[i]])
@@ -1950,11 +1950,11 @@ void Mesh::refineSelectedTriangles(const std::vector< uint64_t >& trianglesIndic
     }
 
     // Compute the total number of vertices in the subdivided mesh
-    const uint64_t totalNumberVertices = _numberVertices + vertices.size();
+    const size_t totalNumberVertices = _numberVertices + vertices.size();
 
     // Compute the total number of MANIFOLD triangles in the subdivided mesh
-    const uint64_t numberManifoldTriangles = _numberTriangles - numberDividedTriangles;
-    const uint64_t totalNumberTriangles = numberManifoldTriangles + triangles.size();
+    const size_t numberManifoldTriangles = _numberTriangles - numberDividedTriangles;
+    const size_t totalNumberTriangles = numberManifoldTriangles + triangles.size();
 
     // Allocate the new arrays
     Vector3f* newVertices = new Vector3f[totalNumberVertices];
@@ -1962,7 +1962,7 @@ void Mesh::refineSelectedTriangles(const std::vector< uint64_t >& trianglesIndic
 
     LOOP_PROGRESS(1, 5);
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         newVertices[i] = _vertices[i];
     }
@@ -1971,7 +1971,7 @@ void Mesh::refineSelectedTriangles(const std::vector< uint64_t >& trianglesIndic
 
     LOOP_PROGRESS(2, 5);
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < vertices.size(); ++i)
+    for (size_t i = 0; i < vertices.size(); ++i)
     {
         newVertices[_numberVertices + i] = vertices[i];
     }
@@ -1981,13 +1981,13 @@ void Mesh::refineSelectedTriangles(const std::vector< uint64_t >& trianglesIndic
 
     LOOP_PROGRESS(3, 5);
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < triangles.size(); ++i)
+    for (size_t i = 0; i < triangles.size(); ++i)
     {
         newTriangles[i] = triangles[i];
     }
 
     LOOP_PROGRESS(4, 5);
-    uint64_t tIndex = 0, nIndex = 0;
+    size_t tIndex = 0, nIndex = 0;
     while (true)
     {
         tIndex++;
@@ -2029,10 +2029,10 @@ void Mesh::refineROIs(const ROIs& regions)
     LOG_STATUS("Refining Mesh Surface - ROI");
 
     // Selected triangles
-    std::vector< uint64_t > trianglesIndices;
+    std::vector< size_t > trianglesIndices;
 
     // Select the triangles that are located within the ROI
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
         // Get the triangle
         const auto& triangle = _triangles[i];
@@ -2042,7 +2042,7 @@ void Mesh::refineROIs(const ROIs& regions)
         const auto v1 = _vertices[triangle[1]];
         const auto v2 = _vertices[triangle[2]];
 
-        for (uint64_t j = 0; j < regions.size(); ++j)
+        for (size_t j = 0; j < regions.size(); ++j)
         {
             const auto region = regions[j];
             if (isTriangleInSphere(v0, v1, v2, region->center, region->radius))
@@ -2114,7 +2114,7 @@ void Mesh::refine()
     int64_t edgeNumber = 0;
 
     // Copy the vertices of the original mesh to the new mesh
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         refinedMesh->_vertices[i].x()= _vertices[i].x();
         refinedMesh->_vertices[i].y()= _vertices[i].y();
@@ -2122,7 +2122,7 @@ void Mesh::refine()
     }
 
     // Copy the triangles of the original mesh to the new mesh
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
         refinedMesh->_triangles[i]= _triangles[i];
     }
@@ -2177,7 +2177,7 @@ void Mesh::refine()
     // Iterate over faces and add information of the refined face
     int64_t localVertices[3], additionalLocalVertices[3];
 
-    for (uint64_t i = 0; i < refinedMesh->_numberTriangles; ++i)
+    for (size_t i = 0; i < refinedMesh->_numberTriangles; ++i)
     {
         localVertices[0] = refinedMesh->_triangles[i][0];
         localVertices[1] = refinedMesh->_triangles[i][1];
@@ -2263,8 +2263,8 @@ bool Mesh::coarse(const float& coarseRate,
 
     LOG_STATUS("Coarsing Mesh [%d]", iteration + 1);
 
-    const uint64_t initialNumberVertices = _numberVertices;
-    const uint64_t initialNumberTriangles = _numberTriangles;
+    const size_t initialNumberVertices = _numberVertices;
+    const size_t initialNumberTriangles = _numberTriangles;
 
     // Check if neighborlist is created, otherwise create it
     if (_neighborList == nullptr)
@@ -2285,7 +2285,7 @@ bool Mesh::coarse(const float& coarseRate,
 
         LOOP_STARTS("Computing Edges");
         TIMER_RESET;
-        for (uint64_t i = 0; i < _numberTriangles; ++i)
+        for (size_t i = 0; i < _numberTriangles; ++i)
         {
             LOOP_PROGRESS(i, _numberTriangles);
 
@@ -2336,7 +2336,7 @@ bool Mesh::coarse(const float& coarseRate,
     // This number will be reduced later if any coarsening happens
     TIMER_RESET;
     LOOP_STARTS("Removing Vertices");
-    uint64_t vertexNumber = _numberVertices;
+    size_t vertexNumber = _numberVertices;
     for (int64_t n = 0; n < UI2I64(_numberVertices); ++n)
     {
         LOOP_PROGRESS(n, _numberVertices);
@@ -2721,7 +2721,7 @@ bool Mesh::coarse(const float& coarseRate,
     _numberVertices = startIndex;
 
     startIndex = 0;
-    for (uint64_t n = 0; n < _numberTriangles; n++)
+    for (size_t n = 0; n < _numberTriangles; n++)
     {
         const int64_t a = _triangles[n][0];
         const int64_t b = _triangles[n][1];
@@ -2744,7 +2744,7 @@ bool Mesh::coarse(const float& coarseRate,
         }
     }
     _numberTriangles = startIndex;
-    for (uint64_t i = 0; i < _numberVertices; ++i)
+    for (size_t i = 0; i < _numberVertices; ++i)
     {
         NeighborTriangle* firstNGR = _neighborList[i];
 
@@ -2762,8 +2762,8 @@ bool Mesh::coarse(const float& coarseRate,
         }
     }
 
-    uint64_t numberRemovedVertices = initialNumberVertices - _numberVertices;
-    uint64_t numberRemovedTriangles = initialNumberTriangles - _numberTriangles;
+    size_t numberRemovedVertices = initialNumberVertices - _numberVertices;
+    size_t numberRemovedTriangles = initialNumberTriangles - _numberTriangles;
     LOG_DETAIL("Removed Vertices: [ %s ], Removed Triangles: [ %s ]",
                FORMAT(numberRemovedVertices),
                FORMAT(numberRemovedTriangles));
@@ -2804,8 +2804,8 @@ void Mesh::coarseFlat(const float& flatnessRate,
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Mesh::optimizeAdaptively(const uint64_t &optimizationIterations,
-                              const uint64_t &smoothingIterations,
+void Mesh::optimizeAdaptively(const size_t &optimizationIterations,
+                              const size_t &smoothingIterations,
                               const float &flatFactor,
                               const float &denseFactor)
 {
@@ -2849,7 +2849,7 @@ void Mesh::optimizeAdaptively(const uint64_t &optimizationIterations,
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Mesh::optimize(const uint64_t &optimizationIterations,
+void Mesh::optimize(const size_t &optimizationIterations,
                     const int64_t &smoothingIterations,
                     const float& denseFactor)
 {
@@ -2934,8 +2934,8 @@ void Mesh::removeFloatingFaces()
     // For all the triangles, if they have zero surface area, then they must
     // be removed
     Triangles triangles;
-    std::vector< uint64_t > vertexIndex;
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    std::vector< size_t > vertexIndex;
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
         Triangle t = _triangles[i];
         const float triangleArea = computeTriangleSurfaceArea(
@@ -2950,7 +2950,7 @@ void Mesh::removeFloatingFaces()
     // Delete the old triangles list
     delete _triangles;
 
-    const uint64_t removedFaces = _numberTriangles - triangles.size();
+    const size_t removedFaces = _numberTriangles - triangles.size();
     if (removedFaces > 0)
     {
         LOG_WARNING("Removing [%d] floating faces", removedFaces);
@@ -2958,7 +2958,7 @@ void Mesh::removeFloatingFaces()
         // Create the new list
         _triangles = new Triangle[triangles.size()];
 
-        for (uint64_t i = 0; i < triangles.size(); ++i)
+        for (size_t i = 0; i < triangles.size(); ++i)
             _triangles[i] = triangles[i];
         _numberTriangles = triangles.size();
     }

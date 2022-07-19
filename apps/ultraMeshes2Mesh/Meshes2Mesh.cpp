@@ -73,7 +73,7 @@ void reconstructMeshWithJointOperation(const std::vector< std::string >& meshFil
     Mesh* jointMesh = new Mesh();
 
     LOOP_STARTS("Merging Meshes")
-    for (uint64_t i = 0; i < meshFiles.size(); ++i)
+    for (size_t i = 0; i < meshFiles.size(); ++i)
     {
         // Load the mesh
         std::string meshPath = options->inputMeshesDirectory + "/" + meshFiles[i];
@@ -117,9 +117,9 @@ void reconstructMeshWithVolumeReconstruction(const std::vector< std::string >& m
     // Get the largest dimension
     float largestDimension = inputBB.getLargestDimension();
 
-    uint64_t resolution;
+    size_t resolution;
     if (options->scaledResolution)
-        resolution = uint64_t(options->voxelsPerMicron * largestDimension);
+        resolution = static_cast< size_t >(options->voxelsPerMicron * largestDimension);
     else
         resolution = options->volumeResolution;
     LOG_SUCCESS("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);

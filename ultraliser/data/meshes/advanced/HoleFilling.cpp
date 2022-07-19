@@ -110,7 +110,7 @@ int AdvancedMesh::TriangulateHole(AdvancedEdge *edge, AdvancedPoint *normal)
     double angle, currentAngle;
 
     // Number of triangles created
-    uint64_t numberTriangles = 0;
+    size_t numberTriangles = 0;
 
     vertex = edge->v1;
     do
@@ -206,7 +206,7 @@ int AdvancedMesh::TriangulateHole(AdvancedEdge *edge, List *vertexList)
     AdvancedVertex *vertex, *v1, *v2;
     double angle, currentAngle;
 
-    uint64_t numberTriangles = 0, numberEdges;
+    size_t numberTriangles = 0, numberEdges;
 
     vertex = edge->v1;
 
@@ -268,7 +268,7 @@ int AdvancedMesh::TriangulateHole(AdvancedEdge *edge, List *vertexList)
     }
 
 
-    uint64_t i;
+    size_t i;
     AdvancedPoint triangleNormal;
 
     for (i = 0, node = _triangles.head(); i < numberTriangles; i++, node = node->next())
@@ -665,12 +665,12 @@ void AdvancedMesh::fillHole(AdvancedEdge *edge, bool refine)
         refineSelectedHolePatches((AdvancedTriangle *)_triangles.head()->data);
 }
 
-uint64_t AdvancedMesh::fillHoles(const uint64_t minNumberBoundaryEdges,
-                                 const bool refinePatches)
+size_t AdvancedMesh::fillHoles(const size_t minNumberBoundaryEdges,
+                               const bool refinePatches)
 {
     TIMER_SET;
 
-    uint64_t numberEdges = minNumberBoundaryEdges;
+    size_t numberEdges = minNumberBoundaryEdges;
     if (numberEdges == 0)
         numberEdges = _edges.numberElements();
 
@@ -712,9 +712,9 @@ uint64_t AdvancedMesh::fillHoles(const uint64_t minNumberBoundaryEdges,
         }
     }
 
-    uint64_t grd = 0;
-    uint64_t tbds = 0;
-    // uint64_t pct = 100;
+    size_t grd = 0;
+    size_t tbds = 0;
+    // size_t pct = 100;
 
     // A list of all the boundary edges in the mesh.
     List boundaries;
@@ -974,7 +974,7 @@ int AdvancedMesh::refineSelectedHolePatches(AdvancedTriangle *inputTriangulation
                 dv2 > sigma && dv2 > v2Sigma &&
                 dv3 > sigma && dv3 > v3Sigma)
             {
-                const uint64_t numberTriangles = _triangles.numberElements();
+                const size_t numberTriangles = _triangles.numberElements();
                 vertex = splitTriangle(triangle,&triangleCenter,1);
                 totalNumberTriangles += (_triangles.numberElements() - numberTriangles);
 

@@ -35,17 +35,17 @@ AnimSystem::AnimSystem(float dt)
     /// EMPTY CONSTRUCTOR
 }
 
-void AnimSystem::animate(MeshPtr mesh, uint64_t iterations)
+void AnimSystem::animate(MeshPtr mesh, size_t iterations)
 {
-    for (uint64_t it = 0; it < iterations; it++)
+    for (size_t it = 0; it < iterations; it++)
     {
         // Solve finite element method system with implicit approach
-        uint64_t size = mesh->nodes.size() * 3;
+        size_t size = mesh->nodes.size() * 3;
         Eigen::VectorXf u(size);
         Eigen::VectorXf mv(size);
         Eigen::VectorXf v_1(size);
         Eigen::VectorXf b(size);    
-        for (uint64_t i = 0; i < size / 3; ++i)
+        for (size_t i = 0; i < size / 3; ++i)
         {
             auto node = mesh->nodes[i];
             Vector3f uVec = node->position - node->initPosition();
@@ -58,7 +58,7 @@ void AnimSystem::animate(MeshPtr mesh, uint64_t iterations)
 
         // Update nodes velocity and position applying an symplectic integration scheme
         OMP_PARALLEL_FOR
-        for (uint64_t i = 0; i < mesh->nodes.size(); ++i)
+        for (size_t i = 0; i < mesh->nodes.size(); ++i)
         {
             auto node = mesh->nodes[i];
             if (!node->fixed)
@@ -69,7 +69,7 @@ void AnimSystem::animate(MeshPtr mesh, uint64_t iterations)
     }
 }
 
-void AnimSystem::animate(Meshes meshes, uint64_t iterations)
+void AnimSystem::animate(Meshes meshes, size_t iterations)
 {
     for (auto mesh : meshes)
     {
@@ -80,7 +80,7 @@ void AnimSystem::animate(Meshes meshes, uint64_t iterations)
 void AnimSystem::setZeroForce(Nodes& nodes)
 {
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < nodes.size(); ++i)
+    for (size_t i = 0; i < nodes.size(); ++i)
     {
         nodes[i]->force = Vector3f::ZERO;
     }

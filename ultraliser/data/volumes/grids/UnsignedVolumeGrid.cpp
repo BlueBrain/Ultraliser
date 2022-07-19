@@ -46,9 +46,9 @@ UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const size_t &width,
 }
 
 template <class T>
-UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const uint64_t &width,
-                                          const uint64_t &height,
-                                          const uint64_t &depth,
+UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const size_t &width,
+                                          const size_t &height,
+                                          const size_t &depth,
                                           const bool &preAllocateMemory)
     : VolumeGrid(width, height, depth)
 {
@@ -60,16 +60,16 @@ UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const uint64_t &width,
 }
 
 template <class T>
-UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const uint64_t &width,
-                                          const uint64_t &height,
-                                          const uint64_t &depth,
+UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const size_t &width,
+                                          const size_t &height,
+                                          const size_t &depth,
                                           std::vector<T> &data)
     : VolumeGrid(width, height, depth)
 {
     _allocateMemory();
 
     // Update the data
-    for (uint64_t i = 0; i < _numberVoxels; ++i)
+    for (size_t i = 0; i < _numberVoxels; ++i)
         _data[i] =  data[i];
 }
 
@@ -87,7 +87,7 @@ UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const UnsignedVolumeGrid* inputGrid)
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberVoxels; ++i)
+    for (size_t i = 0; i < _numberVoxels; ++i)
     {
         _data[i] = inputData[i];
     }
@@ -95,7 +95,7 @@ UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const UnsignedVolumeGrid* inputGrid)
 
 
 template <class T>
-uint64_t UnsignedVolumeGrid<T>::getNumberBytes() const
+size_t UnsignedVolumeGrid<T>::getNumberBytes() const
 {
     if (typeid (T) == typeid (uint8_t))
     {
@@ -121,7 +121,7 @@ uint64_t UnsignedVolumeGrid<T>::getNumberBytes() const
 }
 
 template <class T>
-uint8_t UnsignedVolumeGrid<T>::getValueUI8(const uint64_t &index) const
+uint8_t UnsignedVolumeGrid<T>::getValueUI8(const size_t &index) const
 {
     if (typeid (T) == typeid (uint8_t))
     {
@@ -135,7 +135,7 @@ uint8_t UnsignedVolumeGrid<T>::getValueUI8(const uint64_t &index) const
 }
 
 template <class T>
-uint16_t UnsignedVolumeGrid<T>::getValueUI16(const uint64_t &index) const
+uint16_t UnsignedVolumeGrid<T>::getValueUI16(const size_t &index) const
 {
     if (typeid (T) == typeid (uint8_t))
     {
@@ -153,7 +153,7 @@ uint16_t UnsignedVolumeGrid<T>::getValueUI16(const uint64_t &index) const
 }
 
 template <class T>
-uint32_t UnsignedVolumeGrid<T>::getValueUI32(const uint64_t &index) const
+uint32_t UnsignedVolumeGrid<T>::getValueUI32(const size_t &index) const
 {
     if (typeid (T) == typeid (uint8_t) || typeid (T) == typeid (uint16_t))
     {
@@ -171,25 +171,25 @@ uint32_t UnsignedVolumeGrid<T>::getValueUI32(const uint64_t &index) const
 }
 
 template <class T>
-uint64_t UnsignedVolumeGrid<T>::getValueUI64(const uint64_t &index) const
+uint64_t UnsignedVolumeGrid<T>::getValueUI64(const size_t &index) const
 {
     return static_cast< uint64_t >(_data[index]);
 }
 
 template <class T>
-float UnsignedVolumeGrid<T>::getValueF32(const uint64_t &index) const
+float UnsignedVolumeGrid<T>::getValueF32(const size_t &index) const
 {
     return static_cast< float >(_data[index]);
 }
 
 template <class T>
-double UnsignedVolumeGrid<T>::getValueF64(const uint64_t &index) const
+double UnsignedVolumeGrid<T>::getValueF64(const size_t &index) const
 {
     return static_cast< double >(_data[index]);
 }
 
 template <class T>
-uint8_t UnsignedVolumeGrid<T>::getByte(uint64_t index) const
+uint8_t UnsignedVolumeGrid<T>::getByte(size_t index) const
 {
     if (typeid (T) == typeid (uint8_t))
     {
@@ -203,7 +203,7 @@ uint8_t UnsignedVolumeGrid<T>::getByte(uint64_t index) const
 }
 template <class T>
 
-void UnsignedVolumeGrid<T>::addByte(const uint64_t &index, const uint8_t &byte)
+void UnsignedVolumeGrid<T>::addByte(const size_t &index, const uint8_t &byte)
 {
     if (typeid (T) == typeid (uint8_t))
     {
@@ -218,30 +218,30 @@ void UnsignedVolumeGrid<T>::addByte(const uint64_t &index, const uint8_t &byte)
 template <class T>
 void UnsignedVolumeGrid<T>::clear()
 {
-    for (int64_t i = 0; i < _numberVoxels; ++i)
+    for (size_t i = 0; i < _numberVoxels; ++i)
         _data[i] = static_cast<T>(0);
 }
 
 template <class T>
-void UnsignedVolumeGrid<T>::fillVoxel(const uint64_t &index)
+void UnsignedVolumeGrid<T>::fillVoxel(const size_t &index)
 {
     _data[index] = 255;
 }
 
 template <class T>
-void UnsignedVolumeGrid<T>::clearVoxel(const uint64_t &index)
+void UnsignedVolumeGrid<T>::clearVoxel(const size_t &index)
 {
     _data[index] = static_cast<T>(0);
 }
 
 template <class T>
-bool UnsignedVolumeGrid<T>::isFilled(const uint64_t &index) const
+bool UnsignedVolumeGrid<T>::isFilled(const size_t &index) const
 {
     return _data[index] > 0;
 }
 
 template <class T>
-bool UnsignedVolumeGrid<T>::isEmpty(const uint64_t &index) const
+bool UnsignedVolumeGrid<T>::isEmpty(const size_t &index) const
 {
     return _data[index] == 0;
 }
@@ -256,7 +256,7 @@ void UnsignedVolumeGrid<T>::andWithAnotherGrid(VolumeGrid *anotherGrid)
 #ifdef ULTRALISER_USE_OPENMP
 #pragma omp parallel for
 #endif
-    for (uint64_t voxel = 0; voxel < _numberVoxels; ++voxel)
+    for (size_t voxel = 0; voxel < _numberVoxels; ++voxel)
     {
         _data[voxel] &= inputGridData[voxel];
     }
@@ -272,7 +272,7 @@ void UnsignedVolumeGrid<T>::orWithAnotherGrid(VolumeGrid *anotherGrid)
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t voxel = 0; voxel < _numberVoxels; ++voxel)
+    for (size_t voxel = 0; voxel < _numberVoxels; ++voxel)
     {
         _data[voxel] |= inputGridData[voxel];
     }
@@ -298,7 +298,7 @@ void UnsignedVolumeGrid<T>::writeBitVolume(const std::string &prefix) const
 
     // Fill the BitArray
     LOOP_STARTS("Filling the BitArray");
-    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    for (size_t voxel = 0; voxel < _numberVoxels; voxel += 8)
     {
         LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
         if (_data[voxel])
@@ -315,12 +315,12 @@ void UnsignedVolumeGrid<T>::writeBitVolume(const std::string &prefix) const
 
 
     LOOP_STARTS("Writing Voxels (1 Bit per Voxel)");
-    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
+    for (size_t voxel = 0; voxel < _numberVoxels; voxel += 8)
     {
         LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
 
         uint8_t value = 0;
-        for (uint64_t i = 0; i < 8; ++i)
+        for (size_t i = 0; i < 8; ++i)
         {
             if (binData->bit(voxel + i))
                 value |= 1 << i;

@@ -69,7 +69,7 @@ void run(int argc , const char** argv)
     std::vector < Ultraliser::AdvancedMesh* > partitions = inputMesh->splitPartitions();
 
     // Export the partitions
-    for (uint64_t i = 0; i < partitions.size(); ++i)
+    for (size_t i = 0; i < partitions.size(); ++i)
     {
         // Export the repaired mesh
         std::stringstream filePrefix;

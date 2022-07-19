@@ -41,9 +41,9 @@ NeuronMorphology::NeuronMorphology(const H5Samples& h5Samples, const H5Sections&
     _constructMorphologyFromH5(h5Samples, h5Sections);
 }
 
-void NeuronMorphology::trim(uint64_t axonBranchOrder,
-                            uint64_t basalBranchOrder,
-                            uint64_t apicalBranchOrder)
+void NeuronMorphology::trim(size_t axonBranchOrder,
+                            size_t basalBranchOrder,
+                            size_t apicalBranchOrder)
 {
     Sections newSections;
     Sections newFirstSections;
@@ -53,7 +53,7 @@ void NeuronMorphology::trim(uint64_t axonBranchOrder,
  
     for (uint8_t i = 0; i < _firstSections.size(); ++i)
     {
-        uint64_t maxDepth = 0;
+        size_t maxDepth = 0;
         switch (_firstSections[i]->getType())
         {
         case NEURON_AXON:
@@ -71,7 +71,7 @@ void NeuronMorphology::trim(uint64_t axonBranchOrder,
             break;
         }
         
-        std::stack<std::pair<Section*, uint64_t>> sectionStack;
+        std::stack<std::pair< Section*, size_t > > sectionStack;
         if (maxDepth > 0)
         {        
             sectionStack.push(std::make_pair(_firstSections[i], 0));
@@ -92,7 +92,7 @@ void NeuronMorphology::trim(uint64_t axonBranchOrder,
 
             if (depth < maxDepth)
             {
-                uint64_t index = newSections.size();
+                size_t index = newSections.size();
                 section->setIndex(index);
                 section->clearChildrenIndices();
                 newSections.push_back(section);
@@ -184,7 +184,7 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
     // Construct the samples and the sections list from the tree structure
     std::stack< NeuronSWCSample* > samplesStack;
     std::stack< Section* > sectionStack;
-    uint64_t sectionId = 0;
+    size_t sectionId = 0;
 
     // The first sample is always the SOMA
     samplesStack.push(swcSamples[0]);
@@ -393,7 +393,7 @@ void NeuronMorphology::_constructMorphologyFromH5(const H5Samples& h5Samples,
     _sections.push_back(somaSection);
 
     // The soma is located at index 0, but we will consider it a section for indexing!
-    for (uint64_t i = 1; i < h5Sections.size() - 1; ++i)
+    for (size_t i = 1; i < h5Sections.size() - 1; ++i)
     {
         // Current section index
         const auto sectionIndex = i;
@@ -409,7 +409,7 @@ void NeuronMorphology::_constructMorphologyFromH5(const H5Samples& h5Samples,
 
         // Construct a list of samples
         Samples samples;
-        for (uint64_t s = firstPointIdx; s <= lastPointIdx; s++)
+        for (size_t s = firstPointIdx; s <= lastPointIdx; s++)
         {
             // Create the sample
             Sample* sample =
@@ -457,10 +457,10 @@ void NeuronMorphology::_constructMorphologyFromH5(const H5Samples& h5Samples,
     }
 
     // Build the tree (add the children indices) from the linear list
-    for (uint64_t i = 1; i < _sections.size(); ++i)
+    for (size_t i = 1; i < _sections.size(); ++i)
     {
         // Get parent index
-        uint64_t parentSectionIndex = _sections[i]->getParentIndices()[0];
+        size_t parentSectionIndex = _sections[i]->getParentIndices()[0];
 
         // Update the choldren list
         _sections[parentSectionIndex]->addChildIndex(_sections[i]->getIndex());

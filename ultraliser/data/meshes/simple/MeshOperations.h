@@ -151,9 +151,9 @@ void importH5(const std::string &filePath, Vertices& vertices, Triangles& triang
  */
 void exportOBJ(const std::string &prefix,
                const Vertex* vertices,
-               const uint64_t &numberVertices,
+               const size_t &numberVertices,
                const Triangle* triangles,
-               const uint64_t &numberTriangles);
+               const size_t &numberTriangles);
 
 /**
  * @brief exportToOFF
@@ -165,9 +165,9 @@ void exportOBJ(const std::string &prefix,
  */
 void exportOFF(const std::string &prefix,
                const Vertex* vertices,
-               const uint64_t &numberVertices,
+               const size_t &numberVertices,
                const Triangle* triangles,
-               const uint64_t &numberTriangles);
+               const size_t &numberTriangles);
 
 /**
  * @brief exportToSTL
@@ -179,9 +179,9 @@ void exportOFF(const std::string &prefix,
  */
 void exportSTL(const std::string &prefix,
                const Vertex *vertices,
-               const uint64_t &numberVertices,
+               const size_t &numberVertices,
                const Triangle* triangles,
-               const uint64_t &numberTriangles);
+               const size_t &numberTriangles);
 
 /**
  * @brief exportPLY
@@ -194,9 +194,9 @@ void exportSTL(const std::string &prefix,
  */
 void exportPLY(const std::string &prefix,
                const Vertex *vertices,
-               const uint64_t &numberVertices,
+               const size_t &numberVertices,
                const Triangle* triangles,
-               const uint64_t &numberTriangles,
+               const size_t &numberTriangles,
                bool writeASCII = false);
 
 }

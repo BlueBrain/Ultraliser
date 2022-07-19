@@ -826,7 +826,7 @@ T absMax(const std::vector< T >& v)
 template< class T >
 bool contains(const std::vector< T >& a, T e)
 {
-    for(uint64_t i = 0; i < a.size(); ++i)
+    for (size_t i = 0; i < a.size(); ++i)
     {
         if(a[i] == e)
         {
@@ -845,7 +845,7 @@ bool contains(const std::vector< T >& a, T e)
 template< class T >
 void addunique(std::vector< T >& a, T e)
 {
-    for(uint64_t i = 0; i < a.size(); ++i)
+    for (size_t i = 0; i < a.size(); ++i)
     {
         if(a[i] == e) return;
     }
@@ -864,7 +864,7 @@ void insert(std::vector< T >& a, uint64_t index, T e)
 {
     a.push_back(a.back());
 
-    for(uint64_t i = a.size() - 1; i > index; --i)
+    for (size_t i = a.size() - 1; i > index; --i)
     {
         a[i] = a[i - 1];
     }
@@ -880,7 +880,7 @@ void insert(std::vector< T >& a, uint64_t index, T e)
 template< class T >
 void erase(std::vector< T >& a, uint64_t index)
 {
-    for(uint64_t i = index; i < a.size() - 1; ++i)
+    for (size_t i = index; i < a.size() - 1; ++i)
     {
         a[i] = a[i + 1];
     }
@@ -896,7 +896,7 @@ void erase(std::vector< T >& a, uint64_t index)
 template< class T >
 void erase_swap(std::vector< T >& a, uint64_t index)
 {
-    for(uint64_t i = index; i < a.size() - 1; ++i)
+    for (size_t i = index; i < a.size() - 1; ++i)
         swap(a[i], a[i + 1]);
     a.pop_back();
 }
@@ -933,7 +933,7 @@ void eraseUnorderedSwap(std::vector< T >& a, uint64_t index)
 template< class T >
 void findAndEraseUnordered(std::vector< T >& a, const T& doomedElement)
 {
-    for(uint64_t i = 0; i < a.size(); ++i)
+    for (size_t i = 0; i < a.size(); ++i)
     {
         if(a[i] == doomedElement)
         {
@@ -954,7 +954,7 @@ void replaceOnce(std::vector< T >& a,
                  const T& oldElement,
                  const T& newElement)
 {
-    for(uint64_t i = 0; i < a.size(); ++i)
+    for (size_t i = 0; i < a.size(); ++i)
     {
         if(a[i] == oldElement)
         {

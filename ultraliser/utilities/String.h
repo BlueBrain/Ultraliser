@@ -81,7 +81,7 @@ std::vector< std::string > split(std::string string, char delimiter);
  * @return
  */
 std::string formatStringToMultiLine(const std::string &input,
-                                    const uint64_t limit = 60,
+                                    const size_t limit = 60,
                                     const bool &aligned = false);
 
 bool sameString(char *a, char *b);

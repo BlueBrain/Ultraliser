@@ -35,7 +35,7 @@ struct MCVoxel
      * @param k
      * @param mcIndex
      */
-    MCVoxel(const int64_t& i, const int64_t& j, const int64_t& k, uint64_t mcIndex, double* v)
+    MCVoxel(const int64_t& i, const int64_t& j, const int64_t& k, size_t mcIndex, double* v)
     {
         x = i; y = j; z = k;
         cubeIndex = mcIndex;
@@ -71,7 +71,7 @@ struct MCVoxel
     /**
      * @brief cubeIndex
      */
-    uint64_t cubeIndex;
+    size_t cubeIndex;
 
     /**
      * @brief v

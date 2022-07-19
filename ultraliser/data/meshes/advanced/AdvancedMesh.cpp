@@ -112,7 +112,7 @@ AdvancedMesh::AdvancedMesh(Vertices vertices, Triangles triangles)
     Node* node;
 
     // Fill the _vertices list
-    for(uint64_t i = 0; i < vertices.size(); ++i)
+    for (size_t i = 0; i < vertices.size(); ++i)
         _vertices.appendTail(
                 newVertex(vertices[i].x(), vertices[i].y(), vertices[i].z()));
 
@@ -138,7 +138,7 @@ AdvancedMesh::AdvancedMesh(Vertices vertices, Triangles triangles)
     // Set the faces
     TIMER_RESET;
     LOOP_STARTS("Creating Face List");
-    for(uint64_t i = 0; i < triangles.size(); ++i)
+    for (size_t i = 0; i < triangles.size(); ++i)
     {
         LOOP_PROGRESS_FRACTION(i, triangles.size());
 
@@ -168,9 +168,9 @@ AdvancedMesh::AdvancedMesh(Vertices vertices, Triangles triangles)
 }
 
 AdvancedMesh::AdvancedMesh(const Vertex *vertices,
-                           const uint64_t &numberVertices,
+                           const size_t &numberVertices,
                            const Ultraliser::Triangle *triangles,
-                           const uint64_t &numberTriangles)
+                           const size_t &numberTriangles)
 {
     LOG_TITLE("Building an Advanced Mesh");
     LOG_STATUS("Cloning");
@@ -183,7 +183,7 @@ AdvancedMesh::AdvancedMesh(const Vertex *vertices,
     Node* node;
 
     // Fill the _vertices list
-    for(uint64_t i = 0; i < numberVertices; ++i)
+    for (size_t i = 0; i < numberVertices; ++i)
         _vertices.appendTail(newVertex(vertices[i].x(), vertices[i].y(), vertices[i].z()));
 
     // TODO: Use OpenMP to fill and delete
@@ -207,7 +207,7 @@ AdvancedMesh::AdvancedMesh(const Vertex *vertices,
     TIMER_RESET;
     LOOP_COUNTER_RESET;
     LOOP_STARTS("Creating Face List");
-    for(uint64_t i = 0; i < numberTriangles; ++i)
+    for (size_t i = 0; i < numberTriangles; ++i)
     {
         Ultraliser::Triangle triangle = triangles[i];
         if (createIndexedTriangle(vertexList, triangle[0], triangle[1], triangle[2])) { /* NOTHING */ }
@@ -220,7 +220,7 @@ AdvancedMesh::AdvancedMesh(const Vertex *vertices,
     {
         TIMER_RESET;
         LOOP_STARTS("Cleaning Extended Data");
-        for (uint64_t i = 0; i < numberVertices; ++i)
+        for (size_t i = 0; i < numberVertices; ++i)
             delete(vertexList[i]);
         free(vertexList);
 
@@ -741,7 +741,7 @@ void AdvancedMesh::toSimpleMesh(Mesh* mesh)
     float *auxVertices = new float[I2UI64(_vertices.numberElements())];
 
     // Construct the faces from the vertices
-    uint64_t i = 0;
+    size_t i = 0;
     FOR_EACH_VERTEX(vertex, node)
     {
         auxVertices[i++] = D2F(vertex->x);
@@ -794,7 +794,7 @@ Mesh* AdvancedMesh::toSimpleMesh() const
     float *auxVertices = new float[I2UI64(_vertices.numberElements())];
 
     // Construct the faces from the vertices
-    uint64_t i = 0;
+    size_t i = 0;
     FOR_EACH_VERTEX(vertex, node)
     {
         auxVertices[i++] = D2F(vertex->x);
@@ -1359,9 +1359,9 @@ void AdvancedMesh::removeSelectedTriangles()
     removeUnlinkedElements();
 }
 
-uint64_t AdvancedMesh::getNumberBoundaryEdges()
+size_t AdvancedMesh::getNumberBoundaryEdges()
 {
-    uint64_t numberBoundaryEdges = 0;
+    size_t numberBoundaryEdges = 0;
     Node* node;
     AdvancedEdge* edge;
 
@@ -1390,7 +1390,7 @@ int AdvancedMesh::selectTrianglesWithWrongDihedralAngles(const float& minDihedra
     float angle = 0;
     // Mark the boundary triangles only
     TIMER_SET;
-    uint64_t counter = 0;
+    size_t counter = 0;
     LOOP_STARTS("Selecting Boundary Edges");
     FOR_EACH_EDGE(edge, node)
     {
@@ -1458,7 +1458,7 @@ int AdvancedMesh::selectBoundaryTriangles()
 
     // Mark the boundary triangles only
     TIMER_SET;
-    uint64_t counter = 0;
+    size_t counter = 0;
     LOOP_STARTS("Selecting Boundary Edges");
     FOR_EACH_EDGE(edge, node)
     {
@@ -1679,7 +1679,7 @@ void AdvancedMesh::invertSelection(AdvancedTriangle* inputTriangles)
     else
     {
         TIMER_SET;
-        uint64_t counter = 0;
+        size_t counter = 0;
         LOOP_STARTS("Inverting Selection");
         FOR_EACH_TRIANGLE(triangle, node)
         {
@@ -2193,7 +2193,7 @@ bool AdvancedMesh::isSelectionSimple(List *selectionList)
     List bdr, top(triangle);
     MARK_VISIT2(triangle);
 
-    uint64_t numberElements = 0;
+    size_t numberElements = 0;
 
     while (top.numberElements())
     {
@@ -2258,7 +2258,7 @@ bool AdvancedMesh::isSelectionSimple(List *selectionList)
         MARK_VISIT(iEdge);
     }
 
-    uint64_t numberEdges;
+    size_t numberEdges;
     numberElements = 0;
     iEdge = e0 = (AdvancedEdge*)bdr.head()->data;
     AdvancedVertex* v = iEdge->v1;
@@ -3964,11 +3964,11 @@ AdvancedIndexedMesh AdvancedMesh::_buildIndexedMesh(AdvancedMesh& mesh)
     tempMesh._vertices.resize(mesh._vertices.numberElements());
 
     AdvancedVertex** vertices = (AdvancedVertex **)mesh._vertices.toArray();
-    const uint64_t numVertices = mesh._vertices.numberElements();
+    const size_t numVertices = mesh._vertices.numberElements();
 
-    std::unordered_map<const AdvancedVertex*, uint64_t> vertexMap;
+    std::unordered_map<const AdvancedVertex*, size_t> vertexMap;
 
-    for(uint64_t i = 0; i < numVertices; i++)
+    for (size_t i = 0; i < numVertices; i++)
     {
         vertexMap[vertices[i]] = i;
         tempMesh._vertices[i] = vertices[i];
@@ -3976,9 +3976,9 @@ AdvancedIndexedMesh AdvancedMesh::_buildIndexedMesh(AdvancedMesh& mesh)
 
     const AdvancedTriangle** triangles = (const AdvancedTriangle **)mesh._triangles.toArray();
 
-    const uint64_t numFaces = mesh._triangles.numberElements();
+    const size_t numFaces = mesh._triangles.numberElements();
 
-    for (uint64_t i = 0; i < numFaces; i++)
+    for (size_t i = 0; i < numFaces; i++)
     {
         const AdvancedTriangle* tri = triangles[i];
         const AdvancedVertex* v1 = tri->v1();
@@ -4002,12 +4002,12 @@ void AdvancedMesh::_computeNeighborhoods(AdvancedIndexedMesh& mesh,
                                          Neighborhood& vertexNeighbors,
                                          Neighborhood& faceNeighbors)
 {
-    const uint64_t numV = mesh._vertices.size();
+    const size_t numV = mesh._vertices.size();
 
     vertexNeighbors.resize(numV);
     faceNeighbors.resize(numV);
 
-    for(uint64_t i = 0; i < mesh._triangles.size(); i++)
+    for (size_t i = 0; i < mesh._triangles.size(); i++)
     {
         const AdvancedIndexedTriangle & face = mesh._triangles[i];
 
@@ -4125,7 +4125,7 @@ AdvancedVertex AdvancedMesh::_smoothVertex(AdvancedIndexedMesh& mesh,
     return newVertex;
 }
 
-void AdvancedMesh::applyLaplacianSmooth(const uint64_t &numIterations,
+void AdvancedMesh::applyLaplacianSmooth(const size_t &numIterations,
                                         const float &smoothLambda,
                                         const float &inflateMu)
 {
@@ -4140,7 +4140,7 @@ void AdvancedMesh::applyLaplacianSmooth(const uint64_t &numIterations,
     _computeNeighborhoods(mesh, vertexN, faceN);
 
     std::vector<AdvancedVertex> smoothedVertices(mesh._vertices.size());
-    for(uint64_t i = 0; i < numIterations; ++i)
+    for (size_t i = 0; i < numIterations; ++i)
     {
         // Store vertices updates in separate vector to allow for parallel processing
         #pragma omp parallel for
@@ -4162,8 +4162,8 @@ void AdvancedMesh::applyLaplacianSmooth(const uint64_t &numIterations,
 
 void AdvancedMesh::getVerticesAndTrianglesArray(Vertex *& vertexArray,
                                                 Triangle *& triangleArray,
-                                                uint64_t& numberVertices,
-                                                uint64_t& numberTriangles) const
+                                                size_t& numberVertices,
+                                                size_t& numberTriangles) const
 {
     // Generic
     Node *node;
@@ -4176,7 +4176,7 @@ void AdvancedMesh::getVerticesAndTrianglesArray(Vertex *& vertexArray,
     triangleArray = new Triangle[numberTriangles];
 
     // Write vertices
-    uint64_t i = 0;
+    size_t i = 0;
     FOR_EACH_VERTEX(vertex, node)
     {
         vertexArray[i++] = Vertex(vertex->x, vertex->y, vertex->z);
@@ -4226,8 +4226,8 @@ void AdvancedMesh::writeDistributions(const std::string &reference, const std::s
     // Get the data
     Vertex *vertexArray;
     Triangle *triangleArray;
-    uint64_t numberVertices;
-    uint64_t numberTriangles;
+    size_t numberVertices;
+    size_t numberTriangles;
     getVerticesAndTrianglesArray(vertexArray, triangleArray, numberVertices, numberTriangles);
 
     // Write the distributions

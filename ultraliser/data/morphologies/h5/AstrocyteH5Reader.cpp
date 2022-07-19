@@ -105,7 +105,7 @@ void AstrocyteH5Reader::_readSamples()
 
     // Translate the samples to the global coordinates
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < _skeletonSamples.size(); ++i)
+    for (size_t i = 0; i < _skeletonSamples.size(); ++i)
     {
         _skeletonSamples[i].x += _coordinates.x();
         _skeletonSamples[i].y += _coordinates.y();
@@ -256,7 +256,7 @@ void AstrocyteH5Reader::_readEndfeetPatches()
 
 void AstrocyteH5Reader::_constructEndfeet()
 {
-    for (uint64_t i = 0; i < _endfeetTrianglesIndices.size(); ++i)
+    for (size_t i = 0; i < _endfeetTrianglesIndices.size(); ++i)
     {
         // Get the triangle indices
         const auto firstTriangleIndex = _endfeetTrianglesIndices[i].firstIndex;
@@ -266,12 +266,12 @@ void AstrocyteH5Reader::_constructEndfeet()
         EndfootPatches endfootPatches;
 
         // Create the triangles
-        for (uint64_t j = 0; j < _endfeetTriangles.size() -1 ; ++j)
+        for (size_t j = 0; j < _endfeetTriangles.size() -1 ; ++j)
         {
             // Get the incides of the vertices of the triangle
-            uint64_t v0 = _endfeetTriangles[j].x();
-            uint64_t v1 = _endfeetTriangles[j].y();
-            uint64_t v2 = _endfeetTriangles[j].z();
+            size_t v0 = _endfeetTriangles[j].x();
+            size_t v1 = _endfeetTriangles[j].y();
+            size_t v2 = _endfeetTriangles[j].z();
 
             // Get the corresponding H5 sample
             H5Sample &s0 = _endfeetSamples.at(v0);

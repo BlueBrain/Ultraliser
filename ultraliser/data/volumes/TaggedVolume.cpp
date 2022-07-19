@@ -29,7 +29,7 @@ namespace Ultraliser
 
 TaggedVolume::TaggedVolume(const Vector3f& pMin,
                            const Vector3f& pMax,
-                           const uint64_t &baseResolution,
+                           const size_t &baseResolution,
                            const float &voxelPadding)
     : _pMin(pMin)
     , _pMax(pMax)
@@ -81,9 +81,9 @@ TaggedVolume::TaggedVolume(const Vector3f& pMin,
     _createLabelingColorMap();
 }
 
-TaggedVolume::TaggedVolume(const uint64_t width,
-                           const uint64_t height,
-                           const uint64_t depth,
+TaggedVolume::TaggedVolume(const size_t width,
+                           const size_t height,
+                           const size_t depth,
                            Vector3f pMin, Vector3f pMax)
     : _width(width)
     , _height(height)
@@ -116,43 +116,41 @@ int32_t TaggedVolume::getLargestDimension(const Vector3f& dimensions)
     return index;
 }
 
-void TaggedVolume::updateColormap(const uint64_t&)
+void TaggedVolume::updateColormap(const size_t&)
 {
 
 }
 
-uint8_t TaggedVolume::getTag(const uint64_t &index) const
+uint8_t TaggedVolume::getTag(const size_t &index) const
 {
     return _data[index];
 }
 
-void TaggedVolume::setTag(const uint64_t &index, const uint8_t& tag)
+void TaggedVolume::setTag(const size_t &index, const uint8_t& tag)
 {
     _data[index] = tag;
 }
 
-uint8_t TaggedVolume::getTag(const uint64_t &x,
-                             const uint64_t &y,
-                             const uint64_t &z) const
+uint8_t TaggedVolume::getTag(const size_t &x, const size_t &y, const size_t &z) const
 {
     return getTag(mapToIndex(x, y, z));
 }
 
-void TaggedVolume::setTag(const uint64_t &x,
-                          const uint64_t &y,
-                          const uint64_t &z,
+void TaggedVolume::setTag(const size_t &x,
+                          const size_t &y,
+                          const size_t &z,
                           const uint8_t tag)
 {
     setTag(mapToIndex(x, y, z), tag);
 }
 
-uint64_t TaggedVolume::computeNumberNonZeroVoxelsPerSlice(uint64_t z) const
+size_t TaggedVolume::computeNumberNonZeroVoxelsPerSlice(size_t z) const
 {
-    uint64_t numberNonZeroVoxels = 0;
+    size_t numberNonZeroVoxels = 0;
 
-    for (uint64_t i = 0; i < getWidth(); i++)
+    for (size_t i = 0; i < getWidth(); i++)
     {
-        for (uint64_t j = 0; j < getHeight(); j++)
+        for (size_t j = 0; j < getHeight(); j++)
         {
             if (_data[mapToIndex(i, j, z)] > 0)
             {
@@ -164,18 +162,18 @@ uint64_t TaggedVolume::computeNumberNonZeroVoxelsPerSlice(uint64_t z) const
     return numberNonZeroVoxels;
 }
 
-uint64_t TaggedVolume::computeNumberNonZeroVoxels(void) const
+size_t TaggedVolume::computeNumberNonZeroVoxels(void) const
 {
     // Starts the timer
     TIMER_SET;
 
-    uint64_t numberNonZeroVoxels = 0;
-    uint64_t* numberNonZeroVoxelsPerSlice = new uint64_t[I2UI64(getDepth())];
+    size_t numberNonZeroVoxels = 0;
+    size_t* numberNonZeroVoxelsPerSlice = new size_t[getDepth()];
 
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < getDepth(); i++)
+    for (size_t i = 0; i < getDepth(); i++)
         numberNonZeroVoxelsPerSlice[i] = 0;
 
     LOOP_STARTS("Computing Filled Voxels")
@@ -183,7 +181,7 @@ uint64_t TaggedVolume::computeNumberNonZeroVoxels(void) const
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < getDepth(); ++i)
+    for (size_t i = 0; i < getDepth(); ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         #pragma omp atomic
@@ -198,7 +196,7 @@ uint64_t TaggedVolume::computeNumberNonZeroVoxels(void) const
                 computeNumberNonZeroVoxelsPerSlice(i);
     }
 
-    for (uint64_t i = 0; i < getDepth(); i++)
+    for (size_t i = 0; i < getDepth(); i++)
     {
         numberNonZeroVoxels += numberNonZeroVoxelsPerSlice[i];
     }
@@ -214,7 +212,7 @@ uint64_t TaggedVolume::computeNumberNonZeroVoxels(void) const
 float TaggedVolume::computeVolume3()
 {
     // Compute the number of non zero voxels
-    const uint64_t numberNonZeroVoxels = computeNumberNonZeroVoxels();
+    const size_t numberNonZeroVoxels = computeNumberNonZeroVoxels();
 
     // Get the voxel volume in units3
     // TODO: Update when you have the bounding box data
@@ -224,9 +222,9 @@ float TaggedVolume::computeVolume3()
     return voxelVolume * numberNonZeroVoxels;
 }
 
-uint64_t TaggedVolume::mapToIndex(const uint64_t &x,
-                                  const uint64_t &y,
-                                  const uint64_t &z) const
+size_t TaggedVolume::mapToIndex(const size_t &x,
+                                const size_t &y,
+                                const size_t &z) const
 {
     if (x >= _width  || y >= _height ||z >= _depth)
     {
@@ -244,10 +242,10 @@ void TaggedVolume::addVolume(const Volume* volume, const uint8_t& index)
 
     LOOP_STARTS("Adding Volume");
 #ifdef ULTRALISER_USE_OPENMP
-    uint64_t progress = 0;
+    size_t progress = 0;
     #pragma omp parallel for
 #endif
-    for (uint64_t k = 0; k < _depth; ++k)
+    for (size_t k = 0; k < _depth; ++k)
     {
 
 #ifdef ULTRALISER_USE_OPENMP
@@ -260,9 +258,9 @@ void TaggedVolume::addVolume(const Volume* volume, const uint8_t& index)
         LOOP_PROGRESS(k, _depth);
 #endif
 
-        for (uint64_t i = 0; i < _width; i++)
+        for (size_t i = 0; i < _width; i++)
         {
-            for (uint64_t j = 0; j < _height; j++)
+            for (size_t j = 0; j < _height; j++)
             {
                 if (volume->isFilled(i, j, k))
                     _data[mapToIndex(i, j, k)] = index;
@@ -291,7 +289,7 @@ void TaggedVolume::_allocateVolume(void)
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberVoxels; i++)
+    for (size_t i = 0; i < _numberVoxels; i++)
         _data[i] = 0;
 }
 
@@ -322,7 +320,7 @@ void TaggedVolume::writeRAWVolume(const std::string &prefix) const
     LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
 
     LOOP_STARTS("Writing Voxels (1 Byte)");
-    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel++)
+    for (size_t voxel = 0; voxel < _numberVoxels; voxel++)
     {
         LOOP_PROGRESS_FRACTION(voxel, _numberVoxels);
         image << _data[voxel];
@@ -353,7 +351,7 @@ void TaggedVolume::writeBIN(const std::string &prefix) const
     for (u_int64_t voxel = 0; voxel < _numberVoxels; voxel += 8)
     {
         uint8_t value = 0;
-        for (uint64_t i = 0; i < 8; ++i)
+        for (size_t i = 0; i < 8; ++i)
         {
             if (_data[voxel + i])
             {
@@ -385,7 +383,7 @@ void TaggedVolume::writeASCII(const std::string &prefix) const
     LOG_STATUS("Exporting Volume [ %s ]", fileName.c_str());
 
     LOOP_STARTS("Writing Voxels (1 Bit)");
-    for (uint64_t voxel = 0; voxel < _numberVoxels; voxel++)
+    for (size_t voxel = 0; voxel < _numberVoxels; voxel++)
     {
         image << uint32_t(_data[voxel]);
     }
@@ -481,7 +479,7 @@ void TaggedVolume::projectXY(const std::string &prefix, const bool &projectColor
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for schedule(dynamic, 1)
 #endif
-    for (uint64_t i = 0; i < getWidth() * getHeight(); i++)
+    for (size_t i = 0; i < getWidth() * getHeight(); i++)
     {
         normalizedProjection[i] = 0;
         projection[i] = 0.0;
@@ -489,10 +487,10 @@ void TaggedVolume::projectXY(const std::string &prefix, const bool &projectColor
 
     LOOP_STARTS("XY Projection");
 #ifdef ULTRALISER_USE_OPENMP
-    uint64_t progress = 0;
+    size_t progress = 0;
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < getWidth(); i++)
+    for (size_t i = 0; i < getWidth(); i++)
     {
 
 #ifdef ULTRALISER_USE_OPENMP
@@ -505,9 +503,9 @@ void TaggedVolume::projectXY(const std::string &prefix, const bool &projectColor
         LOOP_PROGRESS(i, getWidth());
 #endif
 
-        for (uint64_t k = 0; k < getDepth(); k++)
+        for (size_t k = 0; k < getDepth(); k++)
         {
-            for (uint64_t j = 0; j < getHeight(); j++)
+            for (size_t j = 0; j < getHeight(); j++)
             {
                 bool bit = _data[mapToIndex(i, j, k)] > 0;
                 if (bit) projection[i + getWidth() * j] += 1.0;
@@ -521,7 +519,7 @@ void TaggedVolume::projectXY(const std::string &prefix, const bool &projectColor
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for schedule(dynamic, 1)
 #endif
-    for (uint64_t i = 0; i < getWidth() * getHeight(); i++)
+    for (size_t i = 0; i < getWidth() * getHeight(); i++)
     {
         if (projection[i] > maxValue)
             maxValue = projection[i];
@@ -530,7 +528,7 @@ void TaggedVolume::projectXY(const std::string &prefix, const bool &projectColor
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for schedule(dynamic, 1)
 #endif
-    for (uint64_t i = 0; i < getWidth() * getHeight(); i++)
+    for (size_t i = 0; i < getWidth() * getHeight(); i++)
     {
         double pixelValue = 255.0 * projection[i] / maxValue;
         normalizedProjection[i] = uint8_t(pixelValue);
@@ -570,7 +568,7 @@ void TaggedVolume::projectZY(const std::string &prefix, const bool &projectColor
 #ifdef ULTRALISER_USE_OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
 #endif
-    for (uint64_t i = 0; i < getDepth() * getHeight(); i++)
+    for (size_t i = 0; i < getDepth() * getHeight(); i++)
     {
         normalizedProjection[i] = 0;
         projection[i] = 0.0;
@@ -578,10 +576,10 @@ void TaggedVolume::projectZY(const std::string &prefix, const bool &projectColor
 
     LOOP_STARTS("ZY Projection");
 #ifdef ULTRALISER_USE_OPENMP
-    uint64_t progress = 0;
+    size_t progress = 0;
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < getWidth(); i++)
+    for (size_t i = 0; i < getWidth(); i++)
     {
 
 #ifdef ULTRALISER_USE_OPENMP
@@ -594,9 +592,9 @@ void TaggedVolume::projectZY(const std::string &prefix, const bool &projectColor
         LOOP_PROGRESS(i, getWidth());
 #endif
 
-        for (uint64_t k = 0; k < getDepth(); k++)
+        for (size_t k = 0; k < getDepth(); k++)
         {
-            for (uint64_t j = 0; j < getHeight(); j++)
+            for (size_t j = 0; j < getHeight(); j++)
             {
                 bool bit = _data[mapToIndex(i, j, k)] > 0;
                 if (bit) projection[k + getDepth() * j] += 1.0;
@@ -610,7 +608,7 @@ void TaggedVolume::projectZY(const std::string &prefix, const bool &projectColor
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for schedule(dynamic, 1)
 #endif
-    for (uint64_t i = 0; i < getDepth() * getHeight(); i++)
+    for (size_t i = 0; i < getDepth() * getHeight(); i++)
     {
         if (projection[i] > maxValue)
             maxValue = projection[i];
@@ -619,7 +617,7 @@ void TaggedVolume::projectZY(const std::string &prefix, const bool &projectColor
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for schedule(dynamic, 1)
 #endif
-    for (uint64_t i = 0; i < getDepth() * getHeight(); i++)
+    for (size_t i = 0; i < getDepth() * getHeight(); i++)
     {
         double pixelValue = 255.0 * projection[i] / maxValue;
         normalizedProjection[i] = uint8_t(pixelValue);
@@ -666,7 +664,7 @@ void TaggedVolume::writeStackXY(const std::string &outputDirectory,
 #ifdef ULTRALISER_USE_OPENMP
 #pragma omp parallel for
 #endif
-    for (uint64_t z = 0; z < getDepth(); ++z)
+    for (size_t z = 0; z < getDepth(); ++z)
     {
 
 #ifdef ULTRALISER_USE_OPENMP
@@ -682,11 +680,11 @@ void TaggedVolume::writeStackXY(const std::string &outputDirectory,
         // Create a slice
         auto slice = std::make_unique<Image>(getWidth(), getHeight());
 
-        for (uint64_t i = 0; i < getWidth(); i++)
+        for (size_t i = 0; i < getWidth(); i++)
         {
-            for (uint64_t j = 0; j < getHeight(); j++)
+            for (size_t j = 0; j < getHeight(); j++)
             {
-                uint64_t index = mapToIndex(i, j, z);
+                size_t index = mapToIndex(i, j, z);
 
                 if (_data[index] > 0)
                     slice->setPixelColor(i , j, WHITE);
@@ -723,7 +721,7 @@ void TaggedVolume::writeStackZY(const std::string &outputDirectory,
 #ifdef ULTRALISER_USE_OPENMP
 #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < getWidth(); ++i)
+    for (size_t i = 0; i < getWidth(); ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         #pragma omp atomic
@@ -737,11 +735,11 @@ void TaggedVolume::writeStackZY(const std::string &outputDirectory,
 
         auto slice = std::make_unique<Image>(getDepth(), getHeight());
 
-        for (uint64_t z = 0; z < getDepth(); z++)
+        for (size_t z = 0; z < getDepth(); z++)
         {
-            for (uint64_t j = 0; j < getHeight(); j++)
+            for (size_t j = 0; j < getHeight(); j++)
             {
-                uint64_t index = mapToIndex(i, j, z);
+                size_t index = mapToIndex(i, j, z);
 
                 if (_data[index] > 0)
                     slice->setPixelColor(z , getHeight() - j - 1, WHITE);
@@ -790,7 +788,7 @@ void TaggedVolume::composeBrainbowXY(const std::string &prefix,
 #ifdef ULTRALISER_USE_OPENMP
 #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < getWidth(); i++)
+    for (size_t i = 0; i < getWidth(); i++)
     {
 #ifdef ULTRALISER_USE_OPENMP
         #pragma omp atomic
@@ -802,9 +800,9 @@ void TaggedVolume::composeBrainbowXY(const std::string &prefix,
 #endif
             LOOP_PROGRESS(progress, getWidth());
 
-        for (uint64_t k = 0; k < getDepth(); ++k)
+        for (size_t k = 0; k < getDepth(); ++k)
         {
-            for (uint64_t j = 0; j < getHeight(); j++)
+            for (size_t j = 0; j < getHeight(); j++)
             {
                 const uint8_t voxelTag = _data[mapToIndex(i, j, k)];
 
@@ -854,7 +852,7 @@ void TaggedVolume::composeBrainbowZY(const std::string &prefix,
 #ifdef ULTRALISER_USE_OPENMP
 #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < getWidth(); i++)
+    for (size_t i = 0; i < getWidth(); i++)
     {
 #ifdef ULTRALISER_USE_OPENMP
         #pragma omp atomic
@@ -866,9 +864,9 @@ void TaggedVolume::composeBrainbowZY(const std::string &prefix,
 #endif
             LOOP_PROGRESS(progress, getWidth());
 
-        for (uint64_t k = 0; k < getDepth(); ++k)
+        for (size_t k = 0; k < getDepth(); ++k)
         {
-            for (uint64_t j = 0; j < getHeight(); j++)
+            for (size_t j = 0; j < getHeight(); j++)
             {
                 const uint8_t voxelTag = _data[mapToIndex(i, j, k)];
 
@@ -940,7 +938,7 @@ void TaggedVolume::composeLabeledImageXY(const std::string &prefix,
 #ifdef ULTRALISER_USE_OPENMP
 #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < getWidth(); i++)
+    for (size_t i = 0; i < getWidth(); i++)
     {
 #ifdef ULTRALISER_USE_OPENMP
         #pragma omp atomic
@@ -952,9 +950,9 @@ void TaggedVolume::composeLabeledImageXY(const std::string &prefix,
 #endif
             LOOP_PROGRESS(progress, getWidth());
 
-        for (uint64_t k = 0; k < getDepth(); ++k)
+        for (size_t k = 0; k < getDepth(); ++k)
         {
-            for (uint64_t j = 0; j < getHeight(); j++)
+            for (size_t j = 0; j < getHeight(); j++)
             {
                 const uint8_t voxelTag = _data[mapToIndex(i, j, k)];
 
@@ -981,9 +979,9 @@ void TaggedVolume::composeLabeledImageXY(const std::string &prefix,
 #ifdef ULTRALISER_USE_OPENMP
 #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < getWidth(); i++)
+    for (size_t i = 0; i < getWidth(); i++)
     {
-        for (uint64_t j = 0; j < getHeight(); j++)
+        for (size_t j = 0; j < getHeight(); j++)
         {
             projection[i + getWidth() * j] =
                     projection[i + getWidth() * j] / maxValue;
@@ -1021,7 +1019,7 @@ void TaggedVolume::composeLabeledImageZY(const std::string &prefix,
 #ifdef ULTRALISER_USE_OPENMP
 #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < getWidth(); i++)
+    for (size_t i = 0; i < getWidth(); i++)
     {
 #ifdef ULTRALISER_USE_OPENMP
         #pragma omp atomic
@@ -1033,9 +1031,9 @@ void TaggedVolume::composeLabeledImageZY(const std::string &prefix,
 #endif
             LOOP_PROGRESS(progress, getWidth());
 
-        for (uint64_t k = 0; k < getDepth(); ++k)
+        for (size_t k = 0; k < getDepth(); ++k)
         {
-            for (uint64_t j = 0; j < getHeight(); j++)
+            for (size_t j = 0; j < getHeight(); j++)
             {
                 const uint8_t voxelTag = _data[mapToIndex(i, j, k)];
 
@@ -1063,9 +1061,9 @@ void TaggedVolume::composeLabeledImageZY(const std::string &prefix,
 #ifdef ULTRALISER_USE_OPENMP
 #pragma omp parallel for
 #endif
-    for (uint64_t k = 0; k < getDepth(); ++k)
+    for (size_t k = 0; k < getDepth(); ++k)
     {
-        for (uint64_t j = 0; j < getHeight(); j++)
+        for (size_t j = 0; j < getHeight(); j++)
         {
             projection[k + getDepth() * j] =
                     projection[k + getDepth() * j] / maxValue;
@@ -1112,11 +1110,11 @@ Volume* TaggedVolume::getPlainVolume()
                                      UI2I64(_height),
                                      UI2I64(_depth),
                                      _pMin, _pMax);
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
 #pragma omp parallel for
 #endif
-    for (uint64_t z = 0; z < getDepth(); ++z)
+    for (size_t z = 0; z < getDepth(); ++z)
     {
 
 #ifdef ULTRALISER_USE_OPENMP
@@ -1129,11 +1127,11 @@ Volume* TaggedVolume::getPlainVolume()
 #endif
             LOOP_PROGRESS(progress, getDepth());
 
-        for (uint64_t i = 0; i < getWidth(); i++)
+        for (size_t i = 0; i < getWidth(); i++)
         {
-            for (uint64_t j = 0; j < getHeight(); j++)
+            for (size_t j = 0; j < getHeight(); j++)
             {
-                uint64_t index = mapToIndex(i, j, z);
+                size_t index = mapToIndex(i, j, z);
                 if (_data[index] > 0)
                     plainVolume->fill(index);
             }

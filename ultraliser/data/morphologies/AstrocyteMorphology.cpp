@@ -60,11 +60,11 @@ AstrocyteMorphology::AstrocyteMorphology(Samples& samples, EndfeetPatches& endfe
     }    
 
     // Extend the bounding box based on endfeet patches as well
-    for (uint64_t i = 0; i < _endfeetPatches.size(); ++i)
+    for (size_t i = 0; i < _endfeetPatches.size(); ++i)
     {
         const EndfootPatches patches = _endfeetPatches[i];
 
-        for (uint64_t j = 0; j < patches.size(); ++j)
+        for (size_t j = 0; j < patches.size(); ++j)
         {
             const EndfootPatch* patch = patches[j];
 
@@ -161,11 +161,11 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
     }
 
     // Extend the bounding box based on endfeet patches as well
-    for (uint64_t i = 0; i < _endfeetPatches.size(); ++i)
+    for (size_t i = 0; i < _endfeetPatches.size(); ++i)
     {
         const EndfootPatches patches = _endfeetPatches[i];
 
-        for (uint64_t j = 0; j < patches.size(); ++j)
+        for (size_t j = 0; j < patches.size(); ++j)
         {
             const EndfootPatch* patch = patches[j];
 
@@ -224,7 +224,7 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
     _sections.push_back(somaSection);
 
     // The soma is located at index 0, but we will consider it a section for indexing!
-    for (uint64_t i = 1; i < h5Sections.size() - 1; ++i)
+    for (size_t i = 1; i < h5Sections.size() - 1; ++i)
     {
         // Current section index
         const auto sectionIndex = i;
@@ -240,7 +240,7 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
 
         // Construct a list of samples
         Samples samples;
-        for (uint64_t s = firstPointIdx; s <= lastPointIdx; s++)
+        for (size_t s = firstPointIdx; s <= lastPointIdx; s++)
         {
             // Create the sample
             Sample* sample =
@@ -288,10 +288,10 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
     }
 
     // Build the tree (add the children indices) from the linear list
-    for (uint64_t i = 1; i < _sections.size(); ++i)
+    for (size_t i = 1; i < _sections.size(); ++i)
     {
         // Get parent index
-        uint64_t parentSectionIndex = _sections[i]->getParentIndices()[0];
+        size_t parentSectionIndex = _sections[i]->getParentIndices()[0];
 
         // Update the choldren list
         _sections[parentSectionIndex]->addChildIndex(_sections[i]->getIndex());

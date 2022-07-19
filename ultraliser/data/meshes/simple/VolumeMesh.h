@@ -41,7 +41,7 @@ public:
      * @param numberVertices
      * @param numberTriangles
      */
-    VolumeMesh(const uint64_t numberVertices, const uint64_t numberTriangles);
+    VolumeMesh(const size_t numberVertices, const size_t numberTriangles);
 
     /**
      * @brief append

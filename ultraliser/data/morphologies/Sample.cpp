@@ -25,7 +25,7 @@
 namespace Ultraliser
 {
 
-Sample::Sample(const Vector3f &position, const float &radius, const uint64_t &index)
+Sample::Sample(const Vector3f &position, const float &radius, const size_t &index)
     : _position(position)
     , _radius(radius)
     , _index(index)
@@ -43,12 +43,12 @@ float Sample::getRadius() const
     return _radius;
 }
 
-uint64_t Sample::getIndex() const
+size_t Sample::getIndex() const
 {
     return _index;
 }
 
-void Sample::setIndex(const uint64_t index)
+void Sample::setIndex(const size_t index)
 {
     _index = index;
 }

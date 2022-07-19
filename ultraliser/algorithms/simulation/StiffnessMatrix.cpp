@@ -63,18 +63,18 @@ void StiffnessMatrix::_compute(Nodes& nodes,
 
     _KMatrices kMatrices(tetrahedra.size());
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < nodes.size(); ++i) nodes[i]->index = i;
+    for (size_t i = 0; i < nodes.size(); ++i) nodes[i]->index = i;
 
     // Compute tetrahedra stiffness matrices
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < tetrahedra.size(); ++i)
+    for (size_t i = 0; i < tetrahedra.size(); ++i)
         _computeTetrahedron(tetrahedra[i], kMatrices[i], D);
 
     // Compute stiffness matrices triplets
     std::vector<Eigen::Triplet<float>> kTriplets;
     std::vector<Eigen::Triplet<float>> aTriplets;
     _computeTriplets(tetrahedra, kMatrices, dt2, kTriplets, aTriplets);
-    for (uint64_t i = 0; i < nodes.size(); ++i)
+    for (size_t i = 0; i < nodes.size(); ++i)
         _addIdentityValueToTriplets(i, nodes[i]->mass, aTriplets);
 
     // Compute stiffness matrices
@@ -147,13 +147,13 @@ void StiffnessMatrix::_computeTriplets(Tetrahedra& tetrahedra,
                                        std::vector<Eigen::Triplet<float>>& kTriplets, 
                                        std::vector<Eigen::Triplet<float>>& aTriplets)
 {
-    for (uint64_t i = 0; i < tetrahedra.size(); ++i)
+    for (size_t i = 0; i < tetrahedra.size(); ++i)
     {
         auto tet = tetrahedra[i];
-        uint64_t id0 = tet->node0->index;
-        uint64_t id1 = tet->node1->index;
-        uint64_t id2 = tet->node2->index;
-        uint64_t id3 = tet->node3->index;
+        size_t id0 = tet->node0->index;
+        size_t id1 = tet->node1->index;
+        size_t id2 = tet->node2->index;
+        size_t id3 = tet->node3->index;
 
         // row 0
         Eigen::Matrix3f k = kMatrices[i].k00;
@@ -226,33 +226,33 @@ void StiffnessMatrix::_computeTriplets(Tetrahedra& tetrahedra,
     }
 }
 
-void StiffnessMatrix::_addMatrixToTriplets(uint64_t rowIndex,
-                                           uint64_t colIndex,
+void StiffnessMatrix::_addMatrixToTriplets(size_t rowIndex,
+                                           size_t colIndex,
                                            const Eigen::Matrix3f& matrix,
                                            std::vector<Eigen::Triplet<float>>& triplets)
 {
     rowIndex *= 3;
     colIndex *= 3;
-    for (uint64_t i = 0; i < 3; ++i)
-        for (uint64_t j = 0; j < 3; ++j)
+    for (size_t i = 0; i < 3; ++i)
+        for (size_t j = 0; j < 3; ++j)
             triplets.push_back(Eigen::Triplet<float>(rowIndex + i, colIndex + j, matrix(i, j)));
 }
 
-void StiffnessMatrix::_addIdentityValueToTriplets(uint64_t index,
+void StiffnessMatrix::_addIdentityValueToTriplets(size_t index,
                                                   double value,
                                                   std::vector<Eigen::Triplet<float>>& triplets)
 {
     index *= 3;
-    for (uint64_t i = 0; i < 3; ++i)
+    for (size_t i = 0; i < 3; ++i)
         triplets.push_back(Eigen::Triplet<float>(index + i, index + i, value));
 }
 
-void StiffnessMatrix::addVec3ToVec(uint64_t index,
+void StiffnessMatrix::addVec3ToVec(size_t index,
                                    Vector3f& vec3,
                                    Eigen::VectorXf& vec)
 {
     index *= 3;
-    for (uint64_t i = 0; i < 3; ++i)
+    for (size_t i = 0; i < 3; ++i)
         vec[index + i] = vec3[i];
 }
 

@@ -76,7 +76,7 @@ struct Resolution
  * Film resolution.
  */
 Resolution computeFilmResolution(PROJECTION projection,
-                                 uint64_t baseResolution,
+                                 size_t baseResolution,
                                  Vector3f pMin,
                                  Vector3f pMax);
 

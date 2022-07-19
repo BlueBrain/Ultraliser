@@ -72,7 +72,7 @@ public:
      * @brief getNumberPixels
      * @return
      */
-    uint64_t getNumberPixels() const { return _numberPixels; }
+    size_t getNumberPixels() const { return _numberPixels; }
 
     /**
      * @brief mapToIndex
@@ -80,7 +80,7 @@ public:
      * @param y
      * @return
      */
-    uint64_t mapToIndex(const int64_t &x,
+    size_t mapToIndex(const int64_t &x,
                         const int64_t &y) const
     {
 
@@ -112,7 +112,7 @@ public:
      * @param index
      * @param color
      */
-    void setPixelColor(const uint64_t &index, const PIXEL_COLOR& color)
+    void setPixelColor(const size_t &index, const PIXEL_COLOR& color)
     {
         _data[ index ] = color;
     }
@@ -135,7 +135,7 @@ public:
      * @param index
      * @return
      */
-    PIXEL_COLOR getPixelColor(const uint64_t &index) const
+    PIXEL_COLOR getPixelColor(const size_t &index) const
     {
         return PIXEL_COLOR(_data[ index ]);
     }
@@ -185,12 +185,12 @@ private:
     /**
      * @brief _numberPixels
      */
-    uint64_t _numberPixels;
+    size_t _numberPixels;
 
     /**
      * @brief _data
      */
-    u_int8_t* _data;
+    uint8_t* _data;
 };
 
 }

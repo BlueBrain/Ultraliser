@@ -72,8 +72,8 @@ void Spring::computeForce()
 
 size_t SpringHash::operator()(const SpringPtr spring) const
 {
-    uint64_t id0 = spring->node0->index;
-    uint64_t id1 = spring->node1->index;
+    size_t id0 = spring->node0->index;
+    size_t id1 = spring->node1->index;
 
     if (id1 > id0)
         std::swap(id1, id0);
@@ -83,10 +83,10 @@ size_t SpringHash::operator()(const SpringPtr spring) const
 
 bool SpringEqual::operator()(const SpringPtr spring0, const SpringPtr spring1) const
 {
-    uint64_t id00 = spring0->node0->index;
-    uint64_t id01 = spring0->node1->index;
-    uint64_t id10 = spring1->node0->index;
-    uint64_t id11 = spring1->node1->index;
+    size_t id00 = spring0->node0->index;
+    size_t id01 = spring0->node1->index;
+    size_t id10 = spring1->node0->index;
+    size_t id11 = spring1->node1->index;
 
     if (id01 > id00)
         std::swap(id00, id01);

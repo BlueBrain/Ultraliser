@@ -46,7 +46,7 @@ public:
      * @param numberOfSides
      * Per sample geometry number of sides
      */
-    SectionGeometry(const Samples& samples, uint64_t numberOfSides);
+    SectionGeometry(const Samples& samples, size_t numberOfSides);
 
     /**
      * @brief CrossSectionGeometry
@@ -58,8 +58,8 @@ public:
      * @param samplesPerSegment
      * number of samples per polyline segment
      */
-    SectionGeometry(const Samples& samples, uint64_t numberOfSides,
-                    uint64_t samplesPerSegment);
+    SectionGeometry(const Samples& samples, size_t numberOfSides,
+                    size_t samplesPerSegment);
 
     /**
      * @brief CrossSectionGeometry
@@ -71,8 +71,7 @@ public:
      * @param pSamplesPerSegment
      * numbers vector of samples per polyline segment
      */
-    SectionGeometry(const Samples& samples, uint64_t numberOfSides,
-                    uint64_t* pSamplesPerSegment);
+    SectionGeometry(const Samples& samples, size_t numberOfSides, size_t* pSamplesPerSegment);
     
     virtual ~SectionGeometry();
 
@@ -88,7 +87,7 @@ public:
      * @brief numVertices
      * Number of vertices of the section geometry.
      */
-    uint64_t numVertices;
+    size_t numVertices;
 
     /**
      * @brief triangles
@@ -100,7 +99,7 @@ public:
      * @brief numTriangles
      * Number of triangles of the section geometry.
      */
-    uint64_t numTriangles;
+    size_t numTriangles;
     
 };
 

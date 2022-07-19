@@ -85,7 +85,7 @@ public:
      * @return
      * Returns the nummber of memory bytes of the volume grid.
      */
-    uint64_t getNumberBytes() const override;
+    size_t getNumberBytes() const override;
 
     /**
      * @brief getValueUI8
@@ -96,7 +96,7 @@ public:
      * @return
      * The value of the voxel as an 8-bit integer.
      */
-    uint8_t getValueUI8(const uint64_t &index) const override;
+    uint8_t getValueUI8(const size_t &index) const override;
 
     /**
      * @brief getValueUI16
@@ -107,7 +107,7 @@ public:
      * @return
      * The value of the voxel as a 16-bit integer.
      */
-    uint16_t getValueUI16(const uint64_t &index) const override;
+    uint16_t getValueUI16(const size_t &index) const override;
 
     /**
      * @brief getValueUI32
@@ -118,7 +118,7 @@ public:
      * @return
      * The value of the voxel as a 32-bit integer.
      */
-    uint32_t getValueUI32(const uint64_t &index) const override;
+    uint32_t getValueUI32(const size_t &index) const override;
 
     /**
      * @brief getValueUI64
@@ -128,7 +128,7 @@ public:
      * @return
      * The value of the voxel as a 64-bit integer.
      */
-    uint64_t getValueUI64(const uint64_t &index) const override;
+    uint64_t getValueUI64(const size_t &index) const override;
 
     /**
      * @brief getValueF32
@@ -138,7 +138,7 @@ public:
      * @return
      * The value of the voxel as a single-precision float.
      */
-    float getValueF32(const uint64_t &index) const override;
+    float getValueF32(const size_t &index) const override;
 
     /**
      * @brief getValueF64
@@ -148,21 +148,21 @@ public:
      * @return
      * The value of the voxel as a double-precision float.
      */
-    double getValueF64(const uint64_t &index) const override;
+    double getValueF64(const size_t &index) const override;
 
     /**
      * @brief getByte
      * @param index
      * @return
      */
-    uint8_t getByte(uint64_t index) const override;
+    uint8_t getByte(size_t index) const override;
 
     /**
      * @brief addByte
      * @param index
      * @param byte
      */
-    void addByte(const uint64_t &index, const uint8_t &byte) override;
+    void addByte(const size_t &index, const uint8_t &byte) override;
 
     /**
      * @brief clear
@@ -173,27 +173,27 @@ public:
      * @brief fillVoxel
      * @param index
      */
-    void fillVoxel(const uint64_t &index) override;
+    void fillVoxel(const size_t &index) override;
 
     /**
      * @brief clearVoxel
      * @param index
      */
-    void clearVoxel(const uint64_t &index) override;
+    void clearVoxel(const size_t &index) override;
 
     /**
      * @brief isFilled
      * @param index
      * @return
      */
-    bool isFilled(const uint64_t &index) const override;
+    bool isFilled(const size_t &index) const override;
 
     /**
      * @brief isEmpty
      * @param index
      * @return
      */
-    bool isEmpty(const uint64_t &index) const override;
+    bool isEmpty(const size_t &index) const override;
 
     /**
      * @brief andWithAnotherGrid

@@ -49,7 +49,7 @@ public:
      * @param isoValue
      */
     DualMarchingCubes(Volume* volume,
-                      const uint64_t isoValue = DEFAULT_ISO_VALUE,
+                      const size_t isoValue = DEFAULT_ISO_VALUE,
                       const bool &generateManifold = true);
 
     /**
@@ -197,7 +197,7 @@ private:
     /**
      * @brief _isoValue
      */
-    const uint64_t _isoValue;
+    const size_t _isoValue;
 
     /**
      * @brief _generateManifold

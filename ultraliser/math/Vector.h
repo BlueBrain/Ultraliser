@@ -40,7 +40,7 @@ namespace Ultraliser
  * Arithmetic operators are appropriately overloaded, and functions are defined
  * for additional operations (such as dot-products, norms, cross-products, etc.)
  */
-template< uint64_t N, class T >
+template< size_t N, class T >
 struct Vec
 {
 public:
@@ -66,7 +66,7 @@ public:
      */
     explicit Vec< N, T >(T value)
     {
-        for (uint64_t i = 0; i < N; ++i)
+        for (size_t i = 0; i < N; ++i)
         {
             v[i] = value;
         }
@@ -79,7 +79,7 @@ public:
     template< class S>
     explicit Vec< N, T >(const S* source)
     {
-        for (uint64_t i = 0; i < N; ++i)
+        for (size_t i = 0; i < N; ++i)
         {
             v[i] = static_cast<T>(source[i]);
         }
@@ -92,7 +92,7 @@ public:
     template < class S >
     explicit Vec< N, T >(const Vec< N,S>& source)
     {
-        for (uint64_t i = 0; i < N; ++i)
+        for (size_t i = 0; i < N; ++i)
         {
             v[i] = static_cast<T>(source[i]);
         }
@@ -206,7 +206,7 @@ public:
      */
     bool nonZero(void) const
     {
-        for (uint64_t i = 0; i < N; ++i)
+        for (size_t i = 0; i < N; ++i)
         {
             if(v[i])
             {
@@ -259,7 +259,7 @@ public:
      */
     Vec< N, T > operator+= (const Vec< N, T >& w)
     {
-        for (uint64_t i = 0; i < N; ++i)
+        for (size_t i = 0; i < N; ++i)
         {
             v[i] +=w [i];
         }
@@ -286,7 +286,7 @@ public:
      */
     Vec< N, T > operator-= (const Vec< N, T >& w)
     {
-        for (uint64_t i = 0; i < N; ++i)
+        for (size_t i = 0; i < N; ++i)
         {
             v[i] -= w[i];
         }
@@ -300,7 +300,7 @@ public:
     Vec< N, T > operator-(void) const
     {
         Vec< N, T > negative;
-        for (uint64_t i = 0; i < N; ++i)
+        for (size_t i = 0; i < N; ++i)
         {
             negative.v[i] = -v[i];
         }
@@ -326,7 +326,7 @@ public:
      */
     Vec< N, T > operator*= (T a)
     {
-        for (uint64_t i = 0; i < N; ++i)
+        for (size_t i = 0; i < N; ++i)
         {
             v[i] *= a;
         }
@@ -352,7 +352,7 @@ public:
      */
     Vec< N, T > operator*= (const Vec< N, T >& w)
     {
-        for (uint64_t i = 0; i < N; ++i)
+        for (size_t i = 0; i < N; ++i)
         {
             v[i] *= w.v[i];
         }
@@ -367,7 +367,7 @@ public:
     Vec< N, T > operator*(const Vec< N, T >& w) const
     {
         Vec< N, T > componentWiseProduct;
-        for (uint64_t i = 0; i < N; ++i)
+        for (size_t i = 0; i < N; ++i)
         {
             componentWiseProduct[i] = v[i] * w.v[i];
         }
@@ -381,7 +381,7 @@ public:
      */
     Vec< N, T > operator/= (T a)
     {
-        for (uint64_t i = 0; i < N; ++i)
+        for (size_t i = 0; i < N; ++i)
         {
             v[i] /= a;
         }
@@ -456,7 +456,7 @@ template< uint64_t N, class T >
 T mag2(const Vec< N, T >& a)
 {
     T l = sqr(a.v[0]);
-    for (uint64_t i = 1; i < N; ++i)
+    for (size_t i = 1; i < N; ++i)
     {
         l += sqr(a.v[i]);
     }
@@ -484,7 +484,7 @@ template< uint64_t N, class T >
 inline T dist2(const Vec< N, T >& a, const Vec< N, T >& b)
 { 
     T d = sqr(a.v[0] - b.v[0]);
-    for (uint64_t i = 1; i < N; ++i)
+    for (size_t i = 1; i < N; ++i)
     {
         d += sqr(a.v[i] - b.v[i]);
     }
@@ -533,7 +533,7 @@ template< uint64_t N, class T >
 inline T infnorm(const Vec< N, T >& a)
 {
     T d = std::fabs(a.v[0]);
-    for (uint64_t i = 1; i < N; ++i)
+    for (size_t i = 1; i < N; ++i)
     {
         d = max(std::fabs(a.v[i]), d);
     }
@@ -547,7 +547,7 @@ inline T infnorm(const Vec< N, T >& a)
 template< uint64_t N, class T >
 void zero(Vec< N, T >& a)
 { 
-    for (uint64_t i = 0; i < N; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
         a.v[i] = 0;
     }
@@ -563,7 +563,7 @@ template< uint64_t N, class T >
 std::ostream &operator<<(std::ostream& out, const Vec< N, T >& v)
 {
     out << v.v[0];
-    for (uint64_t i = 1; i < N; ++i)
+    for (size_t i = 1; i < N; ++i)
     {
         out << ' ' << v.v[i];
     }
@@ -580,7 +580,7 @@ template< uint64_t N, class T >
 std::istream &operator>>(std::istream& in, Vec< N, T >& v)
 {
     in >> v.v[0];
-    for (uint64_t i = 1; i < N; ++i)
+    for (size_t i = 1; i < N; ++i)
     {
         in >> v.v[i];
     }
@@ -648,7 +648,7 @@ template< uint64_t N, class T >
 inline T min(const Vec< N, T >& a)
 {
     T m = a.v[0];
-    for (uint64_t i = 1; i < N; ++i)
+    for (size_t i = 1; i < N; ++i)
     {
         if(a.v[i] < m)
         {
@@ -668,7 +668,7 @@ template< uint64_t N, class T >
 inline Vec< N, T > minUnion(const Vec< N, T >& a, const Vec< N, T >& b)
 {
     Vec< N, T > m;
-    for (uint64_t i = 0; i < N; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
         (a.v[i] < b.v[i]) ? m.v[i] = a.v[i] : m.v[i] = b.v[i];
     }
@@ -685,7 +685,7 @@ template< uint64_t N, class T >
 inline Vec< N, T > maxUnion(const Vec< N, T >& a, const Vec< N, T >& b)
 {
     Vec< N, T > m;
-    for (uint64_t i = 0; i < N; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
         (a.v[i] > b.v[i]) ? m.v[i] = a.v[i] : m.v[i] = b.v[i];
     }
@@ -701,7 +701,7 @@ template< uint64_t N, class T >
 inline T max(const Vec< N, T >& a)
 {
     T m = a.v[0];
-    for (uint64_t i = 1; i < N; ++i)
+    for (size_t i = 1; i < N; ++i)
     {
         if(a.v[i] > m)
         {
@@ -721,7 +721,7 @@ template< uint64_t N, class T >
 inline T dot(const Vec< N, T >& a, const Vec< N, T >& b)
 {
     T d = a.v[0] * b.v[0];
-    for (uint64_t i = 1; i < N; ++i)
+    for (size_t i = 1; i < N; ++i)
     {
         d += a.v[i] * b.v[i];
     }
@@ -807,7 +807,7 @@ template< uint64_t N, class T >
 inline uint32_t sdfHash(const Vec< N, T >& a)
 {
     uint32_t h = a.v[0];
-    for (uint64_t i = 1; i < N; ++i)
+    for (size_t i = 1; i < N; ++i)
     {
         h = sdfHash(h ^ a.v[i]);
     }
@@ -894,7 +894,7 @@ template< uint64_t N, class T >
 inline Vec< N, int32_t > round(const Vec< N, T >& a)
 { 
     Vec< N, int32_t > rounded;
-    for (uint64_t i = 0; i < N; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
         rounded.v[i] = lround(a.v[i]);
     }
@@ -910,7 +910,7 @@ template< uint64_t N, class T >
 inline Vec< N, int32_t > floor(const Vec< N, T >& a)
 { 
     Vec< N, int32_t > rounded;
-    for (uint64_t i = 0; i < N; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
         rounded.v[i] = static_cast<int32_t>(floor(a.v[i]));
     }
@@ -926,7 +926,7 @@ template< uint64_t N, class T >
 inline Vec< N, int32_t > ceil(const Vec< N, T >& a)
 { 
     Vec< N, int32_t > rounded;
-    for (uint64_t i = 0; i < N; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
         rounded.v[i] = static_cast<int32_t>(ceil(a.v[i]));
     }
@@ -942,7 +942,7 @@ template< uint64_t N, class T >
 inline Vec< N, T > fabs(const Vec< N, T >& a)
 { 
     Vec< N, T > result;
-    for (uint64_t i = 0; i < N; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
         result.v[i] = fabs(a.v[i]);
     }
@@ -962,7 +962,7 @@ inline void minMax(const Vec< N, T >& x0,
                    Vec< N, T >& xMin,
                    Vec< N, T >& xMax)
 {
-    for (uint64_t i = 0; i < N; ++i)
+    for (size_t i = 0; i < N; ++i)
         minMax(x0.v[i], x1.v[i], xMin.v[i], xMax.v[i]);
 }
 
@@ -980,7 +980,7 @@ inline void minMax(const Vec< N, T >& x0,
                    const Vec< N, T >& x2,
                    Vec< N, T >& xMin, Vec< N, T >& xMax)
 {
-    for (uint64_t i = 0; i < N; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
         minMax(x0.v[i], x1.v[i], x2.v[i], xMin.v[i], xMax.v[i]);
     }
@@ -1002,7 +1002,7 @@ inline void minMax(const Vec< N, T >& x0,
                    const Vec< N, T >& x3,
                    Vec< N, T >& xMin, Vec< N, T >& xMax)
 {
-    for (uint64_t i = 0; i < N; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
         minMax(x0.v[i], x1.v[i], x2.v[i], x3.v[i], xMin.v[i], xMax.v[i]);
     }
@@ -1027,7 +1027,7 @@ inline void minMax(const Vec< N, T >& x0,
                    Vec< N, T >& xMin,
                    Vec< N, T >& xMax)
 {
-    for (uint64_t i = 0; i < N; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
         minMax(x0.v[i], x1.v[i], x2.v[i], x3.v[i], x4.v[i],
                xMin.v[i], xMax.v[i]);
@@ -1055,7 +1055,7 @@ inline void minMax(const Vec< N, T >& x0,
                    Vec< N, T >& xMin,
                    Vec< N, T >& xMax)
 {
-    for (uint64_t i = 0; i < N; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
         minMax(x0.v[i], x1.v[i], x2.v[i],
                x3.v[i], x4.v[i], x5.v[i],
@@ -1074,7 +1074,7 @@ inline void updateMinMax(const Vec< N, T >& x,
                          Vec< N, T >& xMin,
                          Vec< N, T >& xMax)
 {
-    for (uint64_t i = 0; i < N; ++i)
+    for (size_t i = 0; i < N; ++i)
         updateMinMax(x[i], xMin[i], xMax[i]);
 }
 

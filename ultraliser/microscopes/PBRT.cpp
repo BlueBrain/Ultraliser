@@ -30,7 +30,7 @@ namespace PBRT
 {
 
 PBRT::Resolution computeFilmResolution(PBRT::PROJECTION projection,
-                                       uint64_t baseResolution,
+                                       size_t baseResolution,
                                        Vector3f pMin, Vector3f pMax)
 {
     Resolution resolution;

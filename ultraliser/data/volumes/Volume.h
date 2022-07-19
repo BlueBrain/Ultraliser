@@ -75,7 +75,7 @@ public:
      */
     Volume(const Vector3f& pMin,
            const Vector3f& pMax,
-           const uint64_t &baseResolution = 512,
+           const size_t &baseResolution = 512,
            const float &expansionRatio = 0.0,
            const VOLUME_TYPE& gridType = VOLUME_TYPE::BIT);
 
@@ -101,12 +101,10 @@ public:
      * @param index
      * @return
      */
-    uint8_t getByte(const uint64_t index) const;
+    uint8_t getByte(const size_t index) const;
 
 
-    uint8_t getConfirmedValue(const int64_t &x,
-                                      const int64_t &y,
-                                      const int64_t &z) const;
+    uint8_t getConfirmedValue(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
     uint8_t getValueUI8(const int64_t &x,
                         const int64_t &y,
@@ -159,7 +157,7 @@ public:
      * @param index
      * @param byte
      */
-    void addByte(const uint64_t &index, const uint8_t byte);
+    void addByte(const size_t &index, const uint8_t byte);
 
     /**
      * @brief clear
@@ -357,13 +355,13 @@ public:
      * @brief getNumberVoxels
      * @return
      */
-    uint64_t getNumberVoxels(void) const;
+    size_t getNumberVoxels(void) const;
 
     /**
      * @brief computeNumberNonZeroVoxels
      * @return
      */
-    uint64_t computeNumberNonZeroVoxels(void) const;
+    size_t computeNumberNonZeroVoxels(void) const;
 
     /**
      * @brief computeVolume
@@ -375,7 +373,7 @@ public:
      * @brief getNumberBytes
      * @return
      */
-    uint64_t getNumberBytes(void) const;
+    size_t getNumberBytes(void) const;
 
     /**
      * @brief getSurfaceVoxelizationTime
@@ -422,7 +420,7 @@ public:
      * @param z
      * @return
      */
-    uint64_t mapToIndex(const int64_t &x,
+    size_t mapToIndex(const int64_t &x,
                         const int64_t &y,
                         const int64_t &z,
                         bool &outlier) const;
@@ -553,7 +551,7 @@ public:
 
 
     static Volume* constructIsoValuesVolume(const Volume* volume,
-                                            const std::vector<uint64_t> &isoValues);
+                                            const std::vector< size_t > &isoValues);
 
     /**
      * @brief createHistogram
@@ -654,7 +652,7 @@ private:
      * @param dimension
      * @return
      */
-    uint64_t _clampIndex(uint64_t idx, uint64_t dimension);
+    size_t _clampIndex(size_t idx, size_t dimension);
 
     /**
      * @brief _getBoundingBox
@@ -664,7 +662,7 @@ private:
      * @param tMax
      */
     void _getBoundingBox(Mesh* mesh ,
-                         uint64_t i, int64_t *tMin, int64_t *tMax);
+                         size_t i, int64_t *tMin, int64_t *tMax);
 
     /**
      * @brief _getBoundingBox
@@ -766,7 +764,7 @@ private:
      * @return
      */
     bool _testTriangleCubeIntersection(Mesh* mesh,
-                                       uint64_t tIdx,
+                                       size_t tIdx,
                                        const GridIndex& voxel);
 
     /**
@@ -844,7 +842,7 @@ private:
      * @brief _baseResolution
      * Base resolution of the volume.
      */
-    uint64_t _baseResolution;
+    size_t _baseResolution;
 
     /**
      * @brief _largestDimensionIdx

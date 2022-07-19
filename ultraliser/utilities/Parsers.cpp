@@ -138,8 +138,8 @@ void parseFaces(std::string line, Triangles& actualTriangles)
 
 
     // Read the number of vertices forming the face
-    uint64_t numberVertices = I2UI64(std::atoi(tokens[0].c_str()));
-    for (uint64_t i = 0; i < numberVertices - 2; i++)
+    size_t numberVertices = std::atoi(tokens[0].c_str());
+    for (size_t i = 0; i < numberVertices - 2; i++)
     {
         Triangle triangle;
         triangle[0] = std::atoi(tokens[1].c_str());

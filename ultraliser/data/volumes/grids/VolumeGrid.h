@@ -94,7 +94,7 @@ public:
      * @param height
      * @param depth
      */
-    VolumeGrid(const uint64_t &width, const uint64_t &height, const uint64_t &depth);
+    VolumeGrid(const size_t &width, const size_t &height, const size_t &depth);
 
     virtual ~VolumeGrid();
 
@@ -110,7 +110,7 @@ public:
      * @return
      * The dimension of the volume along a given axis.
      */
-    uint64_t getDimension(const uint64_t &i) const;
+    size_t getDimension(const size_t &i) const;
 
     /**
      * @brief mapToIndex
@@ -124,8 +124,7 @@ public:
      * @return
      * The one-dimensional index of the data from a three-dimensional voxels.
      */
-    uint64_t mapToIndex(const uint64_t &x, const uint64_t &y, const uint64_t &z,
-                        bool &outlier) const;
+    size_t mapToIndex(const size_t &x, const size_t &y, const size_t &z, bool &outlier) const;
 
     /**
      * @brief getWidth
@@ -133,7 +132,7 @@ public:
      * @return
      * The width of the volume.
      */
-    uint64_t getWidth() const;
+    size_t getWidth() const;
 
     /**
      * @brief getHeight
@@ -141,7 +140,7 @@ public:
      * @return
      * The height of the volume.
      */
-    uint64_t getHeight() const;
+    size_t getHeight() const;
 
     /**
      * @brief getDepth
@@ -149,7 +148,7 @@ public:
      * @return
      * The depth of the volume.
      */
-    uint64_t getDepth() const;
+    size_t getDepth() const;
 
     /**
      * @brief getNumberVoxels
@@ -157,7 +156,7 @@ public:
      * @return
      * The number of voxels in the volume.
      */
-    uint64_t getNumberVoxels() const;
+    size_t getNumberVoxels() const;
 
     /**
      * @brief getNumberBytes
@@ -165,7 +164,7 @@ public:
      * @return
      * The number of bytes used to store the volume data.
      */
-    virtual uint64_t getNumberBytes() const = 0;
+    virtual size_t getNumberBytes() const = 0;
 
     /**
      * @brief clear
@@ -203,14 +202,14 @@ public:
      * @brief clearVoxel
      * @param index
      */
-    virtual void clearVoxel(const uint64_t &index) = 0;
+    virtual void clearVoxel(const size_t &index) = 0;
 
     /**
      * @brief isFilled
      * @param index
      * @return
      */
-    virtual bool isFilled(const uint64_t &index) const = 0;
+    virtual bool isFilled(const size_t &index) const = 0;
 
     /**
      * @brief isFilled
@@ -226,7 +225,7 @@ public:
      * @param index
      * @return
      */
-    virtual bool isEmpty(const uint64_t &index) const = 0;
+    virtual bool isEmpty(const size_t &index) const = 0;
 
     /**
      * @brief isEmpty
@@ -258,7 +257,7 @@ public:
      * @return
      * The value of the voxel as an 8-bit integer.
      */
-    virtual uint8_t getValueUI8(const uint64_t &index) const = 0;
+    virtual uint8_t getValueUI8(const size_t &index) const = 0;
 
     /**
      * @brief getValueUI16
@@ -269,7 +268,7 @@ public:
      * @return
      * The value of the voxel as a 16-bit integer.
      */
-    virtual uint16_t getValueUI16(const uint64_t &index) const = 0;
+    virtual uint16_t getValueUI16(const size_t &index) const = 0;
 
     /**
      * @brief getValueUI32
@@ -280,7 +279,7 @@ public:
      * @return
      * The value of the voxel as a 32-bit integer.
      */
-    virtual uint32_t getValueUI32(const uint64_t &index) const = 0;
+    virtual uint32_t getValueUI32(const size_t &index) const = 0;
 
     /**
      * @brief getValueUI64
@@ -290,7 +289,7 @@ public:
      * @return
      * The value of the voxel as a 64-bit integer.
      */
-    virtual uint64_t getValueUI64(const uint64_t &index) const = 0;
+    virtual uint64_t getValueUI64(const size_t &index) const = 0;
 
     /**
      * @brief getValueF32
@@ -300,7 +299,7 @@ public:
      * @return
      * The value of the voxel as a single-precision float.
      */
-    virtual float getValueF32(const uint64_t &index) const = 0;
+    virtual float getValueF32(const size_t &index) const = 0;
 
     /**
      * @brief getValueF64
@@ -310,7 +309,7 @@ public:
      * @return
      * The value of the voxel as a double-precision float.
      */
-    virtual double getValueF64(const uint64_t &index) const = 0;
+    virtual double getValueF64(const size_t &index) const = 0;
 
     /**
      * @brief getValueUI8
@@ -418,15 +417,6 @@ public:
                          const PROJECTION &projection,
                          const bool &projectColorCoded) const;
 
-
-
-
-
-
-
-
-
-
     /**
      * @brief floodFillSliceAlongAxis
      * @param x
@@ -435,37 +425,32 @@ public:
      */
     void floodFillSliceAlongAxis(const int64_t &x, const AXIS &axis, const uint64_t &padding = 0);
 
-
-
-
     /**
      * @brief getByte
      * @param index
      * @return
      */
-    virtual uint8_t getByte(uint64_t index) const = 0;
+    virtual uint8_t getByte(size_t index) const = 0;
 
     /**
      * @brief addByte
      * @param index
      * @param byte
      */
-    virtual void addByte(const uint64_t &index, const uint8_t &byte) = 0;
+    virtual void addByte(const size_t &index, const uint8_t &byte) = 0;
 
     /**
      * @brief computeNumberNonZeroVoxelsPerSlice
      * @param z
      * @return
      */
-    virtual uint64_t computeNumberNonZeroVoxelsPerSlice(int64_t z) const;
+    virtual size_t computeNumberNonZeroVoxelsPerSlice(int64_t z) const;
 
     /**
      * @brief computeNumberNonZeroVoxels
      * @return
      */
-    virtual uint64_t computeNumberNonZeroVoxels() const;
-
-
+    virtual size_t computeNumberNonZeroVoxels() const;
 
     /**
      * @brief writeBitVolume

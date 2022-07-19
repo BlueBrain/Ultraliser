@@ -184,7 +184,7 @@ void IntersectionCell::selectIntersections(bool justProper)
     }
 }
 
-uint64_t AdvancedMesh::getNumberSelfIntersectingFaces()
+size_t AdvancedMesh::getNumberSelfIntersectingFaces()
 {
     // Generic
     AdvancedTriangle* triangle;

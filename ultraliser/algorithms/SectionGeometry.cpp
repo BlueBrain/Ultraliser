@@ -25,16 +25,16 @@
 namespace Ultraliser
 {
 
-SectionGeometry::SectionGeometry(const Samples& samples, uint64_t numberOfSides)
+SectionGeometry::SectionGeometry(const Samples& samples, size_t numberOfSides)
 {
-    uint64_t numSamples = samples.size();
+    size_t numSamples = samples.size();
 
     if (numSamples > 1)
     {
 
     // Tangent computation
     Vector3f tangents[numSamples];
-    for (uint64_t i = 0; i < numSamples; ++i)
+    for (size_t i = 0; i < numSamples; ++i)
     {
         Vector3f tangent;
         if (i == 0)
@@ -48,10 +48,10 @@ SectionGeometry::SectionGeometry(const Samples& samples, uint64_t numberOfSides)
 
     // Per sample geometry generation
     std::vector<Vertex> newVertices;
-    uint64_t numNewSamples = 0;
+    size_t numNewSamples = 0;
     CrossSectionGeometry csg(numberOfSides);
     const float rollOffset = M_PI / numberOfSides;
-    for (uint64_t i = 0; i < numSamples - 1; ++i) 
+    for (size_t i = 0; i < numSamples - 1; ++i) 
     {
         // Linear interpolation per section
         Vector3f pos0 = samples[i]->getPosition();
@@ -104,39 +104,39 @@ SectionGeometry::SectionGeometry(const Samples& samples, uint64_t numberOfSides)
     // Primitives assembly 
     numTriangles = numberOfSides * numNewSamples * 2;
     triangles = new Triangle[numTriangles];
-    for (uint64_t i = 0; i < numNewSamples - 1; ++i) 
+    for (size_t i = 0; i < numNewSamples - 1; ++i) 
     {
-        for (uint64_t j = 0; j < numberOfSides; ++j) 
+        for (size_t j = 0; j < numberOfSides; ++j) 
         {
-            uint64_t index0 = i * numberOfSides + j;
-            uint64_t index1 = i * numberOfSides + ((j + 1) % numberOfSides);
-            uint64_t index2 = (i + 1) * numberOfSides + j;
-            uint64_t index3 = (i + 1) * numberOfSides + ((j + 1) % numberOfSides);
+            size_t index0 = i * numberOfSides + j;
+            size_t index1 = i * numberOfSides + ((j + 1) % numberOfSides);
+            size_t index2 = (i + 1) * numberOfSides + j;
+            size_t index3 = (i + 1) * numberOfSides + ((j + 1) % numberOfSides);
             triangles[(i * numberOfSides + j) * 2] = Vec3i_64(index0, index1, index2);
             triangles[(i * numberOfSides + j) * 2 + 1] = Vec3i_64(index1, index3, index2);
         }
     }
 
     // Cap first and last samples
-    uint64_t index0 = numVertices - 2;
+    size_t index0 = numVertices - 2;
     for (unsigned int i = 0; i < numberOfSides; ++i)
     {
-        uint64_t index2 = i;
-        uint64_t index1 = (i + 1) % numberOfSides;
+        size_t index2 = i;
+        size_t index1 = (i + 1) % numberOfSides;
         triangles[numberOfSides * (numNewSamples - 1) * 2 + i] = Vec3i_64(index0, index1, index2);
     }
     index0 = numVertices - 1;
     for (unsigned int i = 0; i < numberOfSides; ++i)
     {
-        uint64_t index1 = ((numNewSamples - 1)* numberOfSides) + i;
-        uint64_t index2 = ((numNewSamples - 1)* numberOfSides) + (i + 1) % numberOfSides;
+        size_t index1 = ((numNewSamples - 1)* numberOfSides) + i;
+        size_t index2 = ((numNewSamples - 1)* numberOfSides) + (i + 1) % numberOfSides;
         triangles[numberOfSides*((numNewSamples - 1) * 2 + 1) + i] = 
             Vec3i_64(index0, index1, index2);
     }
     }
 }
 
-CrossSectionGeometry::CrossSectionGeometry(uint64_t numVertices)
+CrossSectionGeometry::CrossSectionGeometry(size_t numVertices)
     : numVertices(numVertices)
     , _position(Vector3f(0.0f, 0.0f, 0.0f))
     , _orientation(Vector3f(0.0f, 0.0f, 1.0f))
@@ -146,14 +146,14 @@ CrossSectionGeometry::CrossSectionGeometry(uint64_t numVertices)
     // Construct the vertices list
     vertices = new Vertex[numVertices];
     const float angleInc = 2 * ULTRALISER_PIF / numVertices;
-    for (uint64_t i = 0; i < numVertices; ++i)
+    for (size_t i = 0; i < numVertices; ++i)
     {
         const float angle = angleInc * i;
         vertices[i] = Vertex(cos(angle), sin(angle), 0.0f);
     }
 }
 
-CrossSectionGeometry::CrossSectionGeometry(uint64_t numVertices,
+CrossSectionGeometry::CrossSectionGeometry(size_t numVertices,
                                            const Vector3f& position,
                                            const Vector3f& orientation,
                                            float radius)
@@ -180,7 +180,7 @@ CrossSectionGeometry::~CrossSectionGeometry()
 void CrossSectionGeometry::setPosition(const Vector3f& position)
 {
     const Vector3f posInc = position - _position;
-    for (uint64_t i = 0; i < numVertices; i++)
+    for (size_t i = 0; i < numVertices; i++)
     {
         vertices[i] += posInc;
     }
@@ -190,7 +190,7 @@ void CrossSectionGeometry::setPosition(const Vector3f& position)
 void CrossSectionGeometry::setOrientation(const Vector3f& orientation)
 {
     const Quat4f q = Quat4f::fromTwoVectors(_orientation, orientation);
-    for (uint64_t i = 0; i < numVertices; ++i)
+    for (size_t i = 0; i < numVertices; ++i)
     {
         vertices[i] = q.rotate(vertices[i] - _position) + _position;
     }
@@ -200,7 +200,7 @@ void CrossSectionGeometry::setOrientation(const Vector3f& orientation)
 void CrossSectionGeometry::setRadius(const float& radius)
 {
     const float radiusRatio = radius / _radius;
-    for (uint64_t i = 0; i < numVertices; ++i)
+    for (size_t i = 0; i < numVertices; ++i)
     {
         vertices[i] = (vertices[i] - _position) * radiusRatio + _position;
     }
@@ -213,7 +213,7 @@ void CrossSectionGeometry::setRoll(const float& roll)
     Quat4f q;
     q.setAxisAngle(rollDiff, _orientation);
     
-    for (uint64_t i = 0; i < numVertices; ++i)
+    for (size_t i = 0; i < numVertices; ++i)
     {
         vertices[i] = q.rotate(vertices[i] - _position) + _position;
     }
@@ -228,7 +228,7 @@ void CrossSectionGeometry::setPositionOrientationRadius(const Vector3f& position
     const Quat4f q = Quat4f::fromTwoVectors(_orientation, orientation);
     const float radiusRatio = radius / _radius;
 
-    for (uint64_t i = 0; i < numVertices; ++i)
+    for (size_t i = 0; i < numVertices; ++i)
     {
         vertices[i] = q.rotate(vertices[i] - _position) * radiusRatio + position;
     }

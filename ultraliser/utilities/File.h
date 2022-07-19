@@ -37,7 +37,7 @@ namespace File
  * @param numberTags
  * @return
  */
-std::vector < Vector4f > parseColorMap(const std::string &filePath, const uint64_t numberTags);
+std::vector < Vector4f > parseColorMap(const std::string &filePath, const size_t numberTags);
 
 /**
  * @brief parseSomaPositions
@@ -75,7 +75,7 @@ void parseBoundsFile(std::string boundsFile, Vector3f& pMin, Vector3f& pMax);
  * @param filePath
  * @return
  */
-std::vector< uint64_t > parseIsovaluesFile(const std::string &filePath);
+std::vector< size_t > parseIsovaluesFile(const std::string &filePath);
 
 /**
  * @brief parseVolumeList
@@ -139,7 +139,7 @@ void writeIntegerDistributionToFile(const std::string &filePath, std::vector<siz
  * @param fileName
  * @return
  */
-uint64_t getNumberLinesInFile(const std::string & fileName);
+size_t getNumberLinesInFile(const std::string & fileName);
 
 /**
  * @brief readLineFromFile

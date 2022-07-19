@@ -43,7 +43,7 @@ struct H5Section
     /**
      * @brief sectionType
      */
-    uint64_t sectionType;
+    size_t sectionType;
 
     /**
      * @brief parentIndex

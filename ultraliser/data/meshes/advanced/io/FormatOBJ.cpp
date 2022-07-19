@@ -52,7 +52,7 @@ void AdvancedMesh::importOBJ(const std::string &fileName)
     Node* node;
 
     // Fill the _vertices list
-    for(uint64_t i = 0; i < vertices.size(); ++i)
+    for (size_t i = 0; i < vertices.size(); ++i)
     {
         _vertices.appendTail(newVertex(F2D(vertices[i].x()),
                                        F2D(vertices[i].y()),
@@ -79,7 +79,7 @@ void AdvancedMesh::importOBJ(const std::string &fileName)
     TIMER_RESET;
     LOOP_COUNTER_RESET;
     LOOP_STARTS("Creating Face List");
-    for(uint64_t i = 0; i < triangles.size(); ++i)
+    for (size_t i = 0; i < triangles.size(); ++i)
     {
         LOOP_PROGRESS_FRACTION(i, triangles.size());
 
@@ -95,7 +95,7 @@ void AdvancedMesh::importOBJ(const std::string &fileName)
     // Remove the extended vertices
     if (vertexList != nullptr)
     {
-        for (uint64_t i = 0; i < vertices.size(); ++i)
+        for (size_t i = 0; i < vertices.size(); ++i)
         {
             delete(vertexList[i]);
         }
@@ -130,8 +130,8 @@ void AdvancedMesh::exportOBJ(const std::string &filePath)
     AdvancedVertex *vertex;
 
     // Write vertices
-    uint64_t progress = 0;
-    uint64_t numberVertices = _vertices.numberElements();
+    size_t progress = 0;
+    size_t numberVertices = _vertices.numberElements();
     LOOP_STARTS("Writing Vertices")
     FOR_EACH_VERTEX(vertex, node)
     {
@@ -150,7 +150,7 @@ void AdvancedMesh::exportOBJ(const std::string &filePath)
     float *auxVertices = new float[I2UI64(_vertices.numberElements())];
 
     // Construct the faces from the vertices
-    uint64_t i = 0;
+    size_t i = 0;
     FOR_EACH_VERTEX(vertex, node)
     {
         auxVertices[i++] = D2F(vertex->x);
@@ -164,7 +164,7 @@ void AdvancedMesh::exportOBJ(const std::string &filePath)
     }
 
     // Triangle data
-    uint64_t numberTriangles = _triangles.numberElements();
+    size_t numberTriangles = _triangles.numberElements();
     progress = 0;
     TIMER_RESET;
     LOOP_STARTS("Writing Triangles")

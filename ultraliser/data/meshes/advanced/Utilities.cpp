@@ -72,7 +72,7 @@ void loopRelaxOriginal(AdvancedVertex *vertex)
          // List of incident edges
         incidentEdges = vertex->getIncidentEdges();
 
-        const uint64_t k = incidentEdges->numberElements();
+        const size_t k = incidentEdges->numberElements();
         const double betaFactor = subSurfBetaLoop(k);
 
         FOR_EACH_VE_EDGE(incidentEdges, edge, node)

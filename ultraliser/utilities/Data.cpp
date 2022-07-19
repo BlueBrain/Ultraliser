@@ -24,7 +24,7 @@
 namespace Ultraliser
 {
 
-std::string formatSize(const uint64_t &size)
+std::string formatSize(const size_t &size)
 {
     std::stringstream stream;
 

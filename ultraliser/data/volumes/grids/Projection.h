@@ -39,8 +39,8 @@ namespace Ultraliser
  */
 void saveColorMappedProjection(const std::string &prefix,
                                const double* projection,
-                               const uint64_t &projectionWidth,
-                               const uint64_t &projectionHeight,
+                               const size_t &projectionWidth,
+                               const size_t &projectionHeight,
                                const double& minValue,
                                const double& maxValue,
                                const std::string &colorMap);
@@ -56,8 +56,8 @@ void saveColorMappedProjection(const std::string &prefix,
  */
 void saveColorMappedProjectionWithAllColorMaps(const std::string &prefix,
                                                const double *projection,
-                                               const uint64_t &projectionWidth,
-                                               const uint64_t &projectionHeight,
+                                               const size_t &projectionWidth,
+                                               const size_t &projectionHeight,
                                                const double &minValue,
                                                const double &maxValue);
 

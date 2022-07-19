@@ -37,7 +37,7 @@
 /**
  * @brief Neighbors
  */
-typedef std::unordered_set< uint64_t > Neighbors;
+typedef std::unordered_set< size_t > Neighbors;
 
 /**
  * @brief Neighborhood

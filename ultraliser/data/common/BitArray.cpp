@@ -26,7 +26,7 @@
 namespace Ultraliser
 {
 
-BitArray::BitArray(const uint64_t numBits)
+BitArray::BitArray(const size_t numBits)
     : _numBits(numBits)
 {
     // Allocate space for bit array
@@ -37,7 +37,7 @@ BitArray::BitArray(const uint64_t numBits)
     std::fill_n(_data, _numBytes, 0);
 }
 
-BitArray::BitArray(uint8_t *array, const uint64_t numBits)
+BitArray::BitArray(uint8_t *array, const size_t numBits)
     : _numBits(numBits)
 {
     _numBytes = BITS_TO_CHARS(numBits);
@@ -48,7 +48,7 @@ BitArray::BitArray(uint8_t *array, const uint64_t numBits)
 
 void BitArray::print(std::ostream &outStream)
 {
-    uint64_t size = BITS_TO_CHARS(_numBits);
+    size_t size = BITS_TO_CHARS(_numBits);
 
     outStream.width(2);
     outStream.fill('0');
@@ -56,7 +56,7 @@ void BitArray::print(std::ostream &outStream)
     // First byte
     outStream << std::uppercase << std::hex << I2UI64(_data[0]);
 
-    for (uint64_t i = 1; i < size; i++)
+    for (size_t i = 1; i < size; i++)
     {
         // Remaining bytes with a leading space
         outStream << " ";
@@ -73,9 +73,9 @@ void BitArray::writeBIN(const std::string &prefix)
     std::ofstream outStream;
     outStream.open(prefix.c_str());
 
-    uint64_t size = BITS_TO_CHARS(_numBits);
+    size_t size = BITS_TO_CHARS(_numBits);
 
-    for (uint64_t i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
         outStream << (_data[i]);
 
     outStream.close();
@@ -83,13 +83,13 @@ void BitArray::writeBIN(const std::string &prefix)
 
 void BitArray::setAll()
 {
-    uint64_t size = BITS_TO_CHARS(_numBits);
+    size_t size = BITS_TO_CHARS(_numBits);
 
     // Set bits in all bytes to 1
     std::fill_n(_data, size, UCHAR_MAX);
 
     // Zero any spare bits so increment and decrement are consistent
-    uint64_t bits = _numBits % CHAR_BIT;
+    size_t bits = _numBits % CHAR_BIT;
     if (bits != 0)
     {
         uint8_t mask = I2UI8(UCHAR_MAX << (CHAR_BIT - bits));
@@ -99,13 +99,13 @@ void BitArray::setAll()
 
 void BitArray::clearAll()
 {
-    uint64_t size = BITS_TO_CHARS(_numBits);
+    size_t size = BITS_TO_CHARS(_numBits);
 
     // Set bits in all bytes to 0
     std::fill_n(_data, size, 0);
 }
 
-void BitArray::setBit(const uint64_t bit)
+void BitArray::setBit(const size_t bit)
 {
     if (_numBits <= bit)
         return; // Bit out of range
@@ -113,7 +113,7 @@ void BitArray::setBit(const uint64_t bit)
     _data[BIT_CHAR(bit)] |= BIT_IN_CHAR(bit);
 }
 
-void BitArray::clearBit(const uint64_t bit)
+void BitArray::clearBit(const size_t bit)
 {
     // Bit out of range
     if (_numBits <= bit)
@@ -126,28 +126,28 @@ void BitArray::clearBit(const uint64_t bit)
     _data[BIT_CHAR(bit)] &= mask;
 }
 
-BitArrayIndex BitArray::operator()(const uint64_t bit)
+BitArrayIndex BitArray::operator()(const size_t bit)
 {
     BitArrayIndex result(this, bit);
     return result;
 }
 
-bool BitArray::operator[](const uint64_t bit) const
+bool BitArray::operator[](const size_t bit) const
 {
     return((_data[BIT_CHAR(bit)] & BIT_IN_CHAR(bit)) != 0);
 }
 
-bool BitArray::bit(const uint64_t index) const
+bool BitArray::bit(const size_t index) const
 {
     return((_data[BIT_CHAR(index)] & BIT_IN_CHAR(index)) != 0);
 }
 
-uint8_t BitArray::getByte(const uint64_t index) const
+uint8_t BitArray::getByte(const size_t index) const
 {
     return _data[index];
 }
 
-void BitArray::addByte(const uint64_t index, const uint8_t byte)
+void BitArray::addByte(const size_t index, const uint8_t byte)
 {
     _data[index] |= byte;
 }
@@ -230,7 +230,7 @@ BitArray BitArray::operator|(const BitArray &other) const
     return result;
 }
 
-BitArray BitArray::operator<<(const uint64_t count) const
+BitArray BitArray::operator<<(const size_t count) const
 {
     BitArray result(this->_numBits);
     result = *this;
@@ -239,7 +239,7 @@ BitArray BitArray::operator<<(const uint64_t count) const
     return result;
 }
 
-BitArray BitArray::operator>>(const uint64_t count) const
+BitArray BitArray::operator>>(const size_t count) const
 {
     BitArray result(this->_numBits);
     result = *this;
@@ -374,7 +374,7 @@ BitArray& BitArray::operator&=(const BitArray &src)
         return *this;
 
     // AND array one uint8_t at a time
-    for (uint64_t i = 0; i < BITS_TO_CHARS(_numBits); i++)
+    for (size_t i = 0; i < BITS_TO_CHARS(_numBits); i++)
         _data[i] = _data[i] & src._data[i];
 
     return *this;
@@ -387,7 +387,7 @@ BitArray& BitArray::operator^=(const BitArray &src)
         return *this;
 
     // XOR array one uint8_t at a time
-    for (uint64_t i = 0; i < BITS_TO_CHARS(_numBits); i++)
+    for (size_t i = 0; i < BITS_TO_CHARS(_numBits); i++)
         _data[i] = _data[i] ^ src._data[i];
 
     return *this;
@@ -395,14 +395,14 @@ BitArray& BitArray::operator^=(const BitArray &src)
 
 BitArray& BitArray::operator|=(const BitArray &src)
 {
-    uint64_t size = BITS_TO_CHARS(_numBits);
+    size_t size = BITS_TO_CHARS(_numBits);
 
     // Don't do assignment with different array sizes
     if (_numBits != src._numBits)
         return *this;
 
     // OR array one uint8_t at a time
-    for (uint64_t i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
         _data[i] = _data[i] | src._data[i];
 
     return *this;
@@ -415,11 +415,11 @@ BitArray& BitArray::Not()
         return *this;
 
     // NOT array one uint8_t at a time
-    for (uint64_t i = 0; i < BITS_TO_CHARS(_numBits); i++)
+    for (size_t i = 0; i < BITS_TO_CHARS(_numBits); i++)
         _data[i] = ~_data[i];
 
     // Zero any spare bits so increment and decrement are consistent
-    uint64_t bits = _numBits % CHAR_BIT;
+    size_t bits = _numBits % CHAR_BIT;
     if (bits != 0)
     {
         uint8_t mask = I2UI8(UCHAR_MAX << (CHAR_BIT - bits));
@@ -429,7 +429,7 @@ BitArray& BitArray::Not()
     return *this;
 }
 
-BitArray& BitArray::operator<<=(const uint64_t shifts)
+BitArray& BitArray::operator<<=(const size_t shifts)
 {
     int chars = I2I32(shifts / CHAR_BIT); // Number of whole byte shifts
 
@@ -456,7 +456,7 @@ BitArray& BitArray::operator<<=(const uint64_t shifts)
     // Now we have at most CHAR_BIT - 1 bit shifts across the whole array
     for (int i = 0; i < I2I32(shifts % CHAR_BIT); i++)
     {
-        for (uint64_t j = 0; j < BIT_CHAR(_numBits - 1); j++)
+        for (size_t j = 0; j < BIT_CHAR(_numBits - 1); j++)
         {
             _data[j] <<= 1;
 
@@ -471,7 +471,7 @@ BitArray& BitArray::operator<<=(const uint64_t shifts)
     return *this;
 }
 
-BitArray& BitArray::operator>>=(const uint64_t shifts)
+BitArray& BitArray::operator>>=(const size_t shifts)
 {
     // Number of whole byte shifts
     int chars = I2I32(shifts / CHAR_BIT);
@@ -497,7 +497,7 @@ BitArray& BitArray::operator>>=(const uint64_t shifts)
     // Now we have at most CHAR_BIT - 1 bit shifts across the whole array
     for (int i = 0; i < I2I32(shifts % CHAR_BIT); i++)
     {
-        for (uint64_t j = BIT_CHAR(_numBits - 1); j > 0; j--)
+        for (size_t j = BIT_CHAR(_numBits - 1); j > 0; j--)
         {
             _data[j] >>= 1;
 
@@ -521,7 +521,7 @@ BitArray& BitArray::operator>>=(const uint64_t shifts)
     return *this;
 }
 
-BitArrayIndex::BitArrayIndex(BitArray *array, const uint64_t index)
+BitArrayIndex::BitArrayIndex(BitArray *array, const size_t index)
 {
     _bitArray = array;
     _index = index;

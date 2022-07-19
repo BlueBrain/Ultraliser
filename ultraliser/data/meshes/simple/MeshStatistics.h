@@ -45,8 +45,8 @@ public:
      */
     MeshStatistics(Vertex* vertices,
                    Triangle* triangles,
-                   uint64_t numberVertices,
-                   uint64_t numberTriangles)
+                   size_t numberVertices,
+                   size_t numberTriangles)
         : _vertices(vertices)
         , _triangles(triangles)
         , _numberVertices(numberVertices)
@@ -157,12 +157,12 @@ private:
     /**
      * @brief _numberVertices
      */
-    const uint64_t _numberVertices;
+    const size_t _numberVertices;
 
     /**
      * @brief _numberTriangles
      */
-    const uint64_t _numberTriangles;
+    const size_t _numberTriangles;
 
     /**
      * @brief _surfaceAreaDistribution

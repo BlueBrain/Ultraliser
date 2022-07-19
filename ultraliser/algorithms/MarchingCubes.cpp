@@ -27,7 +27,7 @@ namespace Ultraliser
 {
 
 MarchingCubes::MarchingCubes(Volume* volume,
-                             const uint64_t _isoValue)
+                             const size_t _isoValue)
     : _volume(volume)
     , _isoValue(_isoValue)
 {
@@ -43,11 +43,11 @@ double interpolateIsoValue(double _isoValue, double f1, double f2, double t1, do
     return (t2 - t1) * (_isoValue - f1) / (f2 - f1) + t1;
 }
 
-uint64_t addSharedVertex(double x1, double y1, double z1,
-                         double c2,
-                         int axis, double f1, double f2,
-                         double _isoValue,
-                         Vertices& vertices)
+size_t addSharedVertex(double x1, double y1, double z1,
+                       double c2,
+                       int axis, double f1, double f2,
+                       double _isoValue,
+                       Vertices& vertices)
 {
     size_t vertexIndex = vertices.size();
 
@@ -138,7 +138,7 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
     TIMER_SET;
 
     // Polygons
-    std::vector< uint64_t > polygons;
+    std::vector< size_t > polygons;
 
     // Adding a little bit of extra voxels
     const int64_t extraVoxels = 2;
@@ -149,17 +149,17 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
     const int64_t maxY = _volume->getHeight() + maxValue;
     const int64_t maxZ = _volume->getDepth() + maxValue;
 
-    const uint64_t sizeX = maxX + extraVoxels;
-    const uint64_t sizeY = maxY + extraVoxels;
-    const uint64_t sizeZ = maxZ + extraVoxels;
+    const size_t sizeX = maxX + extraVoxels;
+    const size_t sizeY = maxY + extraVoxels;
+    const size_t sizeZ = maxZ + extraVoxels;
 
     // Total size
-    const uint64_t size = (sizeX * sizeY * sizeZ * 3);
+    const size_t size = (sizeX * sizeY * sizeZ * 3);
 
     // Mesh shared indices list
-    uint64_t* sharedIndices;
+    size_t* sharedIndices;
     try {
-        sharedIndices = new uint64_t[size];
+        sharedIndices = new size_t[size];
 
     }  catch (...) {
         LOG_ERROR("Cannot allocate required memory for the Marching Cubes implementation!");
@@ -171,8 +171,8 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
     volumeMCVoxels.resize(sizeX);
 
     // For computations and indexing ...
-    const uint64_t z3 = sizeZ * 3;
-    const uint64_t yz3 = sizeY * z3;
+    const size_t z3 = sizeZ * 3;
+    const size_t yz3 = sizeY * z3;
 
     LOOP_STARTS("Searching Filled Voxels");
     PROGRESS_SET;
@@ -180,7 +180,7 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
     for (int64_t i = minValue; i < maxX; ++i)
     {
         // Get a reference to the slice
-        MCVoxels& sliceMCVoxels = volumeMCVoxels[static_cast< uint64_t >(i + extraVoxels)];
+        MCVoxels& sliceMCVoxels = volumeMCVoxels[static_cast< size_t >(i + extraVoxels)];
 
         for (int64_t j = minValue; j < maxY; ++j)
         {
@@ -197,7 +197,7 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
                 v[7] = _volume->getValueUI64(i, j + 1, k + 1);
 
                 // Get the cube index
-                uint64_t cubeIndex = 0;
+                size_t cubeIndex = 0;
                 for (uint8_t l = 0; l < 8; ++l)
                     if (v[l] <= _isoValue)
                         cubeIndex |= 1 << l;
@@ -222,10 +222,10 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
     // Building the shared vertices
     TIMER_RESET;
     LOOP_STARTS("Building Shared Vertices - Parallel");
-    for (uint64_t ii = 0; ii < volumeMCVoxels.size(); ii++)
+    for (size_t ii = 0; ii < volumeMCVoxels.size(); ii++)
     {
         LOOP_PROGRESS(ii, volumeMCVoxels.size());
-        for (uint64_t jj = 0; jj < volumeMCVoxels[ii].size(); jj++)
+        for (size_t jj = 0; jj < volumeMCVoxels[ii].size(); jj++)
         {
             // Reference to the voxel
             MCVoxel* mcVoxel = volumeMCVoxels[ii][jj];
@@ -254,7 +254,7 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
             int edges = MC_EDGE_TABLE[mcVoxel->cubeIndex];
 
             // An array of the unique indices per case
-            uint64_t uniqueIndices[12];
+            size_t uniqueIndices[12];
             for (size_t idx = 0; idx < 12; ++idx)
                 uniqueIndices[idx] = 0;
 
@@ -411,7 +411,7 @@ void MarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &
 
             int64_t vertexIndex;
             int32_t* triangleTablePtr = MC_TRIANGLE_TABLE[mcVoxel->cubeIndex];
-            for(uint64_t tIndex = 0;
+            for (size_t tIndex = 0;
                 vertexIndex = triangleTablePtr[tIndex], vertexIndex != -1; ++tIndex)
             {
                 polygons.push_back(uniqueIndices[vertexIndex]);
@@ -444,7 +444,7 @@ void MarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangle
     TIMER_SET;
 
     // Polygons
-    std::vector< uint64_t > polygons;
+    std::vector< size_t > polygons;
 
     // Adding a little bit of extra voxels
     const int64_t extraVoxels = 5;
@@ -455,19 +455,19 @@ void MarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangle
     const int64_t maxY = _volume->getHeight() + maxValue;
     const int64_t maxZ = _volume->getDepth() + maxValue;
 
-    const uint64_t sizeX = maxX + extraVoxels;
-    const uint64_t sizeY = maxY + extraVoxels;
-    const uint64_t sizeZ = maxZ + extraVoxels;
+    const size_t sizeX = maxX + extraVoxels;
+    const size_t sizeY = maxY + extraVoxels;
+    const size_t sizeZ = maxZ + extraVoxels;
 
     // Total size
-    uint64_t size = ((sizeX) * (sizeY) * (sizeZ) * 3);
+    size_t size = ((sizeX) * (sizeY) * (sizeZ) * 3);
 
     // Mesh shared indices list
     size_t* sharedIndices = new size_t[size];
 
     // For computations and indexing ...
-    const uint64_t z3 = sizeZ * 3;
-    const uint64_t yz3 = sizeY * z3;
+    const size_t z3 = sizeZ * 3;
+    const size_t yz3 = sizeY * z3;
 
     // Delta between the voxels
     const float voxelSize = _volume->getVoxelSize();
@@ -504,7 +504,7 @@ void MarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangle
                 v[7] = _volume->getValueUI64(i, j + 1, k + 1);
 
                 // Get the cube index
-                uint64_t cubeIndex = 0;
+                size_t cubeIndex = 0;
                 for (uint8_t l = 0; l < 8; ++l)
                     if (v[l] <= _isoValue)
                         cubeIndex |= 1 << l;
@@ -513,7 +513,7 @@ void MarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangle
                 int edges = MC_EDGE_TABLE[cubeIndex];
 
                 // An array of the unique indices per case
-                uint64_t uniqueIndices[12];
+                size_t uniqueIndices[12];
                 for (size_t idx = 0; idx < 12; ++idx)
                     uniqueIndices[idx] = 0;
 
@@ -670,7 +670,7 @@ void MarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangle
 
                 int64_t vertexIndex;
                 int32_t* triangleTablePtr = MC_TRIANGLE_TABLE[cubeIndex];
-                for(uint64_t tIndex = 0;
+                for (size_t tIndex = 0;
                     vertexIndex = triangleTablePtr[tIndex], vertexIndex != -1; ++tIndex)
                 {
                     polygons.push_back(uniqueIndices[vertexIndex]);

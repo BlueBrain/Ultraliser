@@ -39,11 +39,11 @@ std::vector< float > MorphologyStatistics::computeSamplesRadiiDistribution() con
 
     TIMER_SET;
     LOOP_STARTS("Computing Samples Radii Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < samples.size(); ++i)
+    for (size_t i = 0; i < samples.size(); ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -72,11 +72,11 @@ std::vector< float > MorphologyStatistics::computeSectionAverageRadiiDistributio
 
     TIMER_SET;
     LOOP_STARTS("Computing Sections Average Radii Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < sections.size(); ++i)
+    for (size_t i = 0; i < sections.size(); ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -105,11 +105,11 @@ std::vector< float > MorphologyStatistics::computeNumberSamplesPerSectionDistrib
 
     TIMER_SET;
     LOOP_STARTS("Computing Number of Samples per Sections Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < sections.size(); ++i)
+    for (size_t i = 0; i < sections.size(); ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -137,7 +137,7 @@ std::vector< float > MorphologyStatistics::computeSegmentsLengthDistribution() c
 
     TIMER_SET;
     LOOP_STARTS("Computing Segments Length Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
     for (const auto section: sections)
     {
         LOOP_PROGRESS(progress++, sections.size());
@@ -159,11 +159,11 @@ std::vector< float > MorphologyStatistics::computeSectionsLengthDistribution() c
 
     TIMER_SET;
     LOOP_STARTS("Computing Sections Length Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < sections.size(); ++i)
+    for (size_t i = 0; i < sections.size(); ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -191,7 +191,7 @@ std::vector< float > MorphologyStatistics::computeSegmentsSurfaceAreaDistributio
 
     TIMER_SET;
     LOOP_STARTS("Computing Segments Surface Area Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
     for (const auto section: sections)
     {
         LOOP_PROGRESS(progress++, sections.size());
@@ -213,11 +213,11 @@ std::vector< float > MorphologyStatistics::computeSectionsSurfaceAreaDistributio
 
     TIMER_SET;
     LOOP_STARTS("Computing Sections Surface Area Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < sections.size(); ++i)
+    for (size_t i = 0; i < sections.size(); ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -245,7 +245,7 @@ std::vector< float > MorphologyStatistics::computeSegmentsVolumeDistribution() c
 
     TIMER_SET;
     LOOP_STARTS("Computing Segments Volume Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
     for (const auto section: sections)
     {
         LOOP_PROGRESS(progress++, sections.size());
@@ -267,11 +267,11 @@ std::vector< float > MorphologyStatistics::computeSectionsVolumeDistribution() c
 
     TIMER_SET;
     LOOP_STARTS("Computing Sections Volume Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < sections.size(); ++i)
+    for (size_t i = 0; i < sections.size(); ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)

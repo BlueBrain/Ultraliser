@@ -34,15 +34,15 @@ void MeshStatistics::computeSurfaceAreaDistribution()
 {
     // Resize
     _surfaceAreaDistribution.resize(_numberTriangles);
-    uint64_t validTriangleCount = 0;
+    size_t validTriangleCount = 0;
 
     TIMER_SET;
     LOOP_STARTS("Computing Surface Area Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -93,11 +93,11 @@ std::vector< float > MeshStatistics::computeTriangleAspectRatioDistribution() co
 
     TIMER_SET;
     LOOP_STARTS("Computing Aspect Ratio Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -131,11 +131,11 @@ MeshStatistics::computeTriangleRadiusRatioDistribution() const
 
     TIMER_SET;
     LOOP_STARTS("Computing Radius Ratio Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -169,11 +169,11 @@ std::vector< float > MeshStatistics::computeTriangleEdgeRatioDistribution() cons
 
     TIMER_SET;
     LOOP_STARTS("Computing Edge Ratio Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -207,11 +207,11 @@ std::vector< float > MeshStatistics::computeTriangleRadiusToEdgeRatioDistributio
 
     TIMER_SET;
     LOOP_STARTS("Computing Radius to Edge Ratio Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
         Triangle triangle = _triangles[i];
 
@@ -239,11 +239,11 @@ std::vector< float > MeshStatistics::computeTriangleMinAngleDistribution() const
 
     TIMER_SET;
     LOOP_STARTS("Computing Min Angle Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -277,11 +277,11 @@ std::vector< float > MeshStatistics::computeTriangleMaxAngleDistribution() const
 
     TIMER_SET;
     LOOP_STARTS("Computing Maximum Angle Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -315,11 +315,11 @@ std::vector< float > MeshStatistics::computeTriangleShapeDistribution() const
 
     TIMER_SET;
     LOOP_STARTS("Computing Triangle Shape Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -351,11 +351,11 @@ std::vector< float > MeshStatistics::computeTriangleShapeAndSizeDistribution() c
 
     TIMER_SET;
     LOOP_STARTS("Computing Triangle Shape & Size Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -389,11 +389,11 @@ std::vector< float > MeshStatistics::computeTriangleScaledJacobianDistribution()
 
     TIMER_SET;
     LOOP_STARTS("Computing Triangle Scaled Jacobian Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -425,11 +425,11 @@ std::vector< float > MeshStatistics::computeTriangleConditionNumberDistribution(
 
     TIMER_SET;
     LOOP_STARTS("Computing Triangle Condition Number Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -461,11 +461,11 @@ std::vector< float > MeshStatistics::computeTriangleDistortionDistribution() con
 
     TIMER_SET;
     LOOP_STARTS("Computing Triangle Distortion Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)
@@ -497,11 +497,11 @@ std::vector< float > MeshStatistics::computeTriangleRelativeSizeSquaredDistribut
 
     TIMER_SET;
     LOOP_STARTS("Computing Triangle Relative Size Distribution");
-    uint64_t progress = 0;
+    size_t progress = 0;
 #ifdef ULTRALISER_USE_OPENMP
     #pragma omp parallel for
 #endif
-    for (uint64_t i = 0; i < _numberTriangles; ++i)
+    for (size_t i = 0; i < _numberTriangles; ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
         if (omp_get_thread_num() == 0)

@@ -73,10 +73,7 @@ public:
      * @param v3
      * Third vertex
      */
-    AdvancedIndexedTriangle(const AdvancedTriangle *input,
-                    uint64_t v1,
-                    uint64_t v2,
-                    uint64_t v3)
+    AdvancedIndexedTriangle(const AdvancedTriangle *input, size_t v1, size_t v2, size_t v3)
         : _tri(input)
         , _v1(v1)
         , _v2(v2)
@@ -93,7 +90,7 @@ public:
      * @return
      * True or false
      */
-    bool containsVertex(const uint64_t vIndex) const
+    bool containsVertex(const size_t vIndex) const
     {
         return (_v1 == vIndex || _v2 == vIndex || _v3 == vIndex);
     }
@@ -110,19 +107,19 @@ public:
      * @brief _v1
      * First vertex
      */
-    const uint64_t _v1;
+    const size_t _v1;
 
     /**
      * @brief _v2
      * Second vertex
      */
-    const uint64_t _v2;
+    const size_t _v2;
 
     /**
      * @brief _v3
      * Third vertex
      */
-    const uint64_t _v3;
+    const size_t _v3;
 };
 
 }

@@ -73,22 +73,22 @@ void VasculatureMorphology::_constructSections()
     }
 
     // Construct the sections list
-    for (uint64_t i = 0; i < _h5Sections.size(); ++i)
+    for (size_t i = 0; i < _h5Sections.size(); ++i)
     {
         Section* section = new Section(i);
 
         // The initial sample always stays the same
-        const uint64_t startingSampleIndex = I2UI64(_h5Sections[i].firstSampleIndex);
+        const size_t startingSampleIndex = static_cast< size_t >(_h5Sections[i].firstSampleIndex);
 
         // The last sample is different
-        uint64_t endSampleIndex;
+        size_t endSampleIndex;
         if (i < _h5Sections.size() - 1)
             endSampleIndex = I2UI64(_h5Sections[i + 1].firstSampleIndex);
         else
             endSampleIndex = _h5Samples.size();
 
         // Add the samples to the section
-        for (uint64_t j = startingSampleIndex; j < endSampleIndex; ++j)
+        for (size_t j = startingSampleIndex; j < endSampleIndex; ++j)
             section->addSample(_samples[j]);
 
         // Append the reconstructed section to the list
@@ -98,7 +98,7 @@ void VasculatureMorphology::_constructSections()
 
 void VasculatureMorphology::_connectSections()
 {
-    for (uint64_t i = 0; i < _h5Connectivity.size(); ++i)
+    for (size_t i = 0; i < _h5Connectivity.size(); ++i)
     {
         // Get the parent section and add to it the index of a child section
         Section* parentSection = _sections[I2UI64(_h5Connectivity[i].parentSectionIndex)];
@@ -182,7 +182,7 @@ VasculatureMorphology* VasculatureMorphology::extractRegion(const Vector3f& cent
     // Construct a list to contain all the section that are located within the bounding box
     Sections regionSections;
 
-    for (uint64_t i = 0; i < _sections.size(); ++i)
+    for (size_t i = 0; i < _sections.size(); ++i)
     {
         // This is valid either for partially or totally located sections
         Sections subSections = getSubsectionsInBoundingBox(_sections.at(i),
@@ -191,7 +191,7 @@ VasculatureMorphology* VasculatureMorphology::extractRegion(const Vector3f& cent
         // The subSections list must at least have one element
         if (subSections.size() > 0)
         {
-            for (uint64_t j = 0; j < subSections.size(); ++j)
+            for (size_t j = 0; j < subSections.size(); ++j)
             {
                 // If the subSection has less than two samples, ignore it
                 if (subSections[j]->getSamples().size() > 1)
@@ -207,12 +207,12 @@ VasculatureMorphology* VasculatureMorphology::extractRegion(const Vector3f& cent
     // Construct a list to contain all the samples that are located within the bounding box
     Samples regionSamples;
 
-    uint64_t sampleIndex = 0;
-    for (uint64_t i = 0; i < regionSections.size(); ++i)
+    size_t sampleIndex = 0;
+    for (size_t i = 0; i < regionSections.size(); ++i)
     {
         Samples samples = regionSections[i]->getSamples();
 
-        for (uint64_t j = 0; j < samples.size(); ++j)
+        for (size_t j = 0; j < samples.size(); ++j)
         {
             samples[j]->setIndex(sampleIndex++);
             regionSamples.push_back(samples[j]);
@@ -250,7 +250,7 @@ void VasculatureMorphology::exportVascularMorphologyVMV(const std::string &prefi
     // Vertex list
     stream << NEW_LINE;
     stream  << "$VERT_LIST_BEGIN" << NEW_LINE;
-    for (uint64_t i = 0; i < _samples.size(); ++i)
+    for (size_t i = 0; i < _samples.size(); ++i)
     {
         auto pos = _samples[i]->getPosition();
         stream << _samples[i]->getIndex() + 1 << SPACE
@@ -262,10 +262,10 @@ void VasculatureMorphology::exportVascularMorphologyVMV(const std::string &prefi
     // Strand list
     stream << NEW_LINE;
     stream  << "$STRANDS_LIST_BEGIN" << NEW_LINE;
-    for (uint64_t i = 0; i < _sections.size(); ++i)
+    for (size_t i = 0; i < _sections.size(); ++i)
     {
         stream << i + 1 << SPACE;
-        for (uint64_t j = 0; j < _sections[i]->getSamples().size(); ++j)
+        for (size_t j = 0; j < _sections[i]->getSamples().size(); ++j)
         {
             stream << _sections[i]->getSamples()[j]->getIndex() + 1 << SPACE;
         }

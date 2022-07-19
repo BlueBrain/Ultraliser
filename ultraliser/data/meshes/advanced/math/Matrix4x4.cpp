@@ -93,9 +93,9 @@ Matrix4x4 Matrix4x4::operator*(const Matrix4x4& q) const
 {
     Matrix4x4 m;
 
-    for (uint64_t i = 0; i < 4; ++i)
+    for (size_t i = 0; i < 4; ++i)
     {
-        for (uint64_t j = 0; j < 4; ++j)
+        for (size_t j = 0; j < 4; ++j)
         {
             m.elements[i][j] = elements[i][0] * q.elements[0][j] +
                                elements[i][1] * q.elements[1][j] +

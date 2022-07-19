@@ -103,7 +103,7 @@ void run(int argc , const char** argv)
     else if (options->isoOption == ISOVALUES_STRING)
     {
         // Parse the iso-values from the file into a list
-        const std::vector< uint64_t > isoValues = File::parseIsovaluesFile(options->isovaluesFile);
+        const std::vector< size_t > isoValues = File::parseIsovaluesFile(options->isovaluesFile);
 
         // Construct a volume with a list of values
         volume = Volume::constructIsoValuesVolume(loadedVolume, isoValues);

@@ -254,7 +254,7 @@ std::vector<int32_t> TiffImage::hextToRGB(const std::string &hexVal)
     std::stringstream stringStream;
 
     int j = 0;
-    for (uint64_t i = 0 ; i < hexVal.length(); i = i + 2)
+    for (size_t i = 0 ; i < hexVal.length(); i = i + 2)
     {
         std::string rgbString;
         rgbString += hexVal[i];
@@ -276,9 +276,9 @@ std::string TiffImage::subtractHex(const std::string &hexValue)
     for (int64_t i = I2I64(hexValue.length()) - 1; i >= 0 ; --i)
     {
         // Get hex value when we subtract two other hex values
-        uint64_t posHexWhite = this->_hexadecimal.find(hexWhite[I2UI64(i)]);
-        uint64_t posHexval = this->_hexadecimal.find(hexValue[I2UI64(i)]);
-        uint64_t newPos = posHexWhite - posHexval;
+        size_t posHexWhite = this->_hexadecimal.find(hexWhite[I2UI64(i)]);
+        size_t posHexval = this->_hexadecimal.find(hexValue[I2UI64(i)]);
+        size_t newPos = posHexWhite - posHexval;
 
         // Use a std::stringstream otherwise there are strange side effects
         stringStream << _hexadecimal.at(newPos);

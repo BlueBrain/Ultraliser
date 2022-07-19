@@ -26,7 +26,7 @@
 namespace Ultraliser
 {
 
-Section::Section(const uint64_t &index)
+Section::Section(const size_t &index)
     : _index(index)
     , _type(UNKNOWN)
 {
@@ -43,17 +43,17 @@ void Section::setType(SECTION_TYPE type)
     _type = type;
 }
 
-uint64_t Section::getIndex() const
+size_t Section::getIndex() const
 {
     return _index;
 }
 
-void Section::setIndex(const uint64_t &index)
+void Section::setIndex(const size_t &index)
 {
     _index = index;
 }
 
-void Section::addParentIndex(const uint64_t index)
+void Section::addParentIndex(const size_t index)
 {
     _parentsIndices.push_back(index);
 }
@@ -63,7 +63,7 @@ void Section::clearParentsIndices()
     _parentsIndices.clear();
 }
 
-void Section::addChildIndex(const uint64_t index)
+void Section::addChildIndex(const size_t index)
 {
     _childrenIndices.push_back(index);
 }
@@ -98,12 +98,12 @@ Sample* Section::getLastSample() const
     return _samples.back();
 }
 
-std::vector< uint64_t > Section::getParentIndices() const
+std::vector< size_t > Section::getParentIndices() const
 {
     return _parentsIndices;
 }
 
-std::vector< uint64_t > Section::getChildrenIndices() const
+std::vector< size_t > Section::getChildrenIndices() const
 {
     return _childrenIndices;
 }
@@ -111,7 +111,7 @@ std::vector< uint64_t > Section::getChildrenIndices() const
 float Section::computeLength() const
 {
     auto sectionLength = 0.f;
-    for (uint64_t i = 0; i < _samples.size() - 1; ++i)
+    for (size_t i = 0; i < _samples.size() - 1; ++i)
     {
         sectionLength += computeSegmentLength(_samples[i], _samples[i + 1]);
     }
@@ -121,7 +121,7 @@ float Section::computeLength() const
 std::vector < float > Section:: computeSegmentsLengthDistribution() const
 {
     std::vector < float > distribution;
-    for (uint64_t i = 0; i < _samples.size() - 1; ++i)
+    for (size_t i = 0; i < _samples.size() - 1; ++i)
     {
         distribution.push_back(computeSegmentLength(_samples[i], _samples[i + 1]));
     }
@@ -131,7 +131,7 @@ std::vector < float > Section:: computeSegmentsLengthDistribution() const
 float Section::computeSurfaceArea() const
 {
     auto sectionSurfaceArea = 0.f;
-    for (uint64_t i = 0; i < _samples.size() - 1; ++i)
+    for (size_t i = 0; i < _samples.size() - 1; ++i)
     {
         sectionSurfaceArea += computeSegmentSurfaceArea(_samples[i], _samples[i + 1]);
     }
@@ -141,7 +141,7 @@ float Section::computeSurfaceArea() const
 std::vector < float > Section:: computeSegmentsSurfaceAreaDistribution() const
 {
     std::vector < float > distribution;
-    for (uint64_t i = 0; i < _samples.size() - 1; ++i)
+    for (size_t i = 0; i < _samples.size() - 1; ++i)
     {
         distribution.push_back(computeSegmentSurfaceArea(_samples[i], _samples[i + 1]));
     }
@@ -151,7 +151,7 @@ std::vector < float > Section:: computeSegmentsSurfaceAreaDistribution() const
 float Section::computeVolume() const
 {
     auto sectionVolume = 0.f;
-    for (uint64_t i = 0; i < _samples.size() - 1; ++i)
+    for (size_t i = 0; i < _samples.size() - 1; ++i)
     {
         sectionVolume += computeSegmentVolume(_samples[i], _samples[i + 1]);
     }
@@ -161,7 +161,7 @@ float Section::computeVolume() const
 std::vector < float > Section:: computeSegmentsVolumeDistribution() const
 {
     std::vector < float > distribution;
-    for (uint64_t i = 0; i < _samples.size() - 1; ++i)
+    for (size_t i = 0; i < _samples.size() - 1; ++i)
     {
         distribution.push_back(computeSegmentVolume(_samples[i], _samples[i + 1]));
     }
@@ -181,7 +181,7 @@ float Section::computeAverageRadius() const
 void Section::resampleUniformly(const float& step)
 {
     // Get the total number of samples in the section
-    const uint64_t numberSamples = _samples.size();
+    const size_t numberSamples = _samples.size();
 
     // If the section has less than two samples, return as it is not valid
     if (numberSamples < 2)
@@ -214,7 +214,7 @@ void Section::resampleUniformly(const float& step)
             direction.normalize();
 
             // This index will keep track on the current sample along the section
-            uint64_t index = 1;
+            size_t index = 1;
             while (true)
             {
                 // Compute the position of a new sample
@@ -258,9 +258,9 @@ void Section::resampleUniformly(const float& step)
         newSamples.push_back(_samples[0]);
 
         // This index will keep track on the current sample along the section
-        uint64_t index = 1;
+        size_t index = 1;
 
-        for (uint64_t i = 0; i < numberSamples - 2; ++i)
+        for (size_t i = 0; i < numberSamples - 2; ++i)
         {
             const auto sample0 = _samples[i];
             const auto sample1 = _samples[i + 1];
@@ -273,7 +273,7 @@ void Section::resampleUniformly(const float& step)
             const auto distance = (sample1->getPosition() - sample0->getPosition()).abs();
 
             // Proceed wiht the resampling
-            uint64_t perSegmentIndex = 1;
+            size_t perSegmentIndex = 1;
             while (true)
             {
                 // Compute the position of a new sample
@@ -315,7 +315,7 @@ void Section::resampleUniformly(const float& step)
 void Section::resampleAdaptively(const bool& relaxed)
 {
     // Get the total number of samples in the section
-    const uint64_t numberSamples = _samples.size();
+    const size_t numberSamples = _samples.size();
 
     // If the section has less than two samples, return as it is not valid
     if (numberSamples < 2)
@@ -357,7 +357,7 @@ void Section::resampleAdaptively(const bool& relaxed)
             direction.normalize();
 
             // This index will keep track on the current sample along the section
-            uint64_t index = 1;
+            size_t index = 1;
             while (true)
             {
                 // Get the current sample
@@ -408,10 +408,10 @@ void Section::resampleAdaptively(const bool& relaxed)
         newSamples.push_back(_samples[0]);
 
         // This index will keep track on the current sample along the section
-        uint64_t index = 1;
+        size_t index = 1;
 
         // On a per-segment basis
-        for (uint64_t i = 0; i < numberSamples - 2; ++i)
+        for (size_t i = 0; i < numberSamples - 2; ++i)
         {
             const auto sample0 = _samples[i];
             const auto sample1 = _samples[i + 1];
@@ -424,7 +424,7 @@ void Section::resampleAdaptively(const bool& relaxed)
             const auto distance = (sample1->getPosition() - sample0->getPosition()).abs();
 
             // Proceed wiht the resampling
-            uint64_t perSegmentIndex = 1;
+            size_t perSegmentIndex = 1;
             while (true)
             {
                 // Get the current sample

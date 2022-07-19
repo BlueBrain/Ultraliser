@@ -41,13 +41,13 @@ void savePPMLuminanceImage(const std::string &imageName,
     // Add the header
     fprintf(image, "P6\n%ld %ld\n255\n", width, height);
 
-    uint64_t index = 0;
+    size_t index = 0;
     for (int64_t i = 0; i < width; ++i)
     {
         for (int64_t j = 0; j < height; ++j)
         {
             uint8_t color[3];
-            uint64_t index1D = I2UI64(width * height) - index;
+            size_t index1D = I2UI64(width * height) - index;
             color[0] = imageData[index1D]; // R
             color[1] = imageData[index1D]; // G
             color[2] = imageData[index1D]; // B
@@ -72,13 +72,13 @@ void savePPMLuminanceImage(const std::string &imageName,
     // Add the header
     fprintf(image, "P6\n%ld %ld\n65535\n", width, height);
 
-    uint64_t index = 0;
+    size_t index = 0;
     for (int64_t i = 0; i < width; ++i)
     {
         for (int64_t j = 0; j < height; ++j)
         {
             uint16_t color[3];
-            uint64_t index1D = I2UI64(width * height) - index;
+            size_t index1D = I2UI64(width * height) - index;
             color[0] = imageData[index1D]; // R
             color[1] = imageData[index1D]; // G
             color[2] = imageData[index1D]; // B
@@ -103,7 +103,7 @@ void savePPMColoredImage(const std::string &imageName,
     // Add the header
     fprintf(image, "P6\n%ld %ld\n255\n", width, height);
 
-    uint64_t index = 0;
+    size_t index = 0;
     for (int64_t i = 0; i < width; ++i)
     {
         for (int64_t j = 0; j < height; ++j)
@@ -136,7 +136,7 @@ void savePPMColoredImage(const std::string &imageName,
     // Add the header
     fprintf(image, "P6\n%ld %ld\n255\n", width, height);
 
-    uint64_t index = 0;
+    size_t index = 0;
     for (int64_t i = 0; i < width; ++i)
     {
         for (int64_t j = 0; j < height; ++j)
@@ -164,7 +164,7 @@ void saveBrainbowImage(const std::string &imageName,
 
     Vector4f* rgbImage = new Vector4f[width * height];
 
-    uint64_t index = 0;
+    size_t index = 0;
     for (int64_t j = 0; j < height; ++j)
     {
         for (int64_t i = 0; i < width; ++i)

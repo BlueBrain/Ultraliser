@@ -25,9 +25,7 @@
 
 namespace Ultraliser
 {
-VolumeGrid::VolumeGrid(const uint64_t &width,
-                       const uint64_t &height,
-                       const uint64_t &depth)
+VolumeGrid::VolumeGrid(const size_t &width, const size_t &height, const size_t &depth)
 {
     // Dimensions
     _width = width;
@@ -54,28 +52,28 @@ void VolumeGrid::getDimensions(size_t& width, size_t& height, size_t& depth)
     depth = _depth;
 }
 
-uint64_t VolumeGrid::getWidth() const
+size_t VolumeGrid::getWidth() const
 {
     return _width;
 }
 
-uint64_t VolumeGrid::getHeight() const
+size_t VolumeGrid::getHeight() const
 {
     return _height;
 }
 
-uint64_t VolumeGrid::getDepth() const
+size_t VolumeGrid::getDepth() const
 {
     return _depth;
 }
 
-uint64_t VolumeGrid::getNumberVoxels() const
+size_t VolumeGrid::getNumberVoxels() const
 {
     return _numberVoxels;
 }
 
-uint64_t VolumeGrid::mapToIndex(const uint64_t &x, const uint64_t &y, const uint64_t &z,
-                                bool &outlier) const
+size_t VolumeGrid::mapToIndex(const size_t &x, const size_t &y, const size_t &z,
+                              bool &outlier) const
 {
     if(x >= getWidth()  || x < 0 || y >= getHeight() || y < 0 || z >= getDepth()  || z < 0)
     {
@@ -92,7 +90,7 @@ uint64_t VolumeGrid::mapToIndex(const uint64_t &x, const uint64_t &y, const uint
 void VolumeGrid::fillVoxel(const int64_t &x, const int64_t &y, const int64_t &z)
 {
     bool outlier;
-    uint64_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapToIndex(x, y, z, outlier);
     if (outlier)
         return;
     else
@@ -102,7 +100,7 @@ void VolumeGrid::fillVoxel(const int64_t &x, const int64_t &y, const int64_t &z)
 void VolumeGrid::clearVoxel(const int64_t &x, const int64_t &y, const int64_t &z)
 {
     bool outlier;
-    uint64_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapToIndex(x, y, z, outlier);
     if (outlier)
         return;
     else
@@ -112,7 +110,7 @@ void VolumeGrid::clearVoxel(const int64_t &x, const int64_t &y, const int64_t &z
 bool VolumeGrid::isFilled(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    uint64_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapToIndex(x, y, z, outlier);
     if (outlier)
         return false;
     else
@@ -122,14 +120,14 @@ bool VolumeGrid::isFilled(const int64_t &x, const int64_t &y, const int64_t &z) 
 bool VolumeGrid::isEmpty(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    uint64_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapToIndex(x, y, z, outlier);
     if (outlier)
         return true;
     else
         return isEmpty(index);
 }
 
-uint64_t VolumeGrid::getDimension(const uint64_t &i) const
+size_t VolumeGrid::getDimension(const size_t &i) const
 {
     switch (i)
     {
@@ -140,16 +138,16 @@ uint64_t VolumeGrid::getDimension(const uint64_t &i) const
     }
 }
 
-uint64_t VolumeGrid::computeNumberNonZeroVoxelsPerSlice(int64_t z) const
+size_t VolumeGrid::computeNumberNonZeroVoxelsPerSlice(int64_t z) const
 {
-    uint64_t numberNonZeroVoxels = 0;
+    size_t numberNonZeroVoxels = 0;
 
     for (int64_t i = 0; i < getWidth(); ++i)
     {
         for (int64_t j = 0; j < getHeight(); ++j)
         {
             bool outlier;
-            uint64_t index = mapToIndex(i, j, z, outlier);
+            size_t index = mapToIndex(i, j, z, outlier);
             bool filled = isFilled(index);
             if (filled && !outlier)
             {
@@ -164,7 +162,7 @@ uint64_t VolumeGrid::computeNumberNonZeroVoxelsPerSlice(int64_t z) const
 
 void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
                                          const AXIS &axis,
-                                         const uint64_t &padding)
+                                         const size_t &padding)
 {
     // Slice dimensions
     int64_t sliceWidth, sliceHeight, sliceSize;
@@ -228,7 +226,7 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
             for (int64_t j = 0; j < volumeHeight; ++j)
             {
                 bool outlier;
-                uint64_t index = mapToIndex(sliceIndex, i, j, outlier);
+                size_t index = mapToIndex(sliceIndex, i, j, outlier);
                 if (isFilled(index) && !outlier)
                     slice->setPixelColor(i + padding, j + padding, GRAY);
                 else
@@ -245,7 +243,7 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
             for (int64_t j = 0; j < volumeHeight; ++j)
             {
                 bool outlier;
-                uint64_t index = mapToIndex(i, sliceIndex, j, outlier);
+                size_t index = mapToIndex(i, sliceIndex, j, outlier);
                 if (isFilled(index) && !outlier)
                     slice->setPixelColor(i + padding, j + padding, GRAY);
                 else
@@ -262,7 +260,7 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
             for (int64_t j = 0; j < volumeHeight; ++j)
             {
                 bool outlier;
-                uint64_t index = mapToIndex(i, j, sliceIndex, outlier);
+                size_t index = mapToIndex(i, j, sliceIndex, outlier);
                 if (isFilled(index) && !outlier)
                     slice->setPixelColor(i + padding, j + padding, GRAY);
                 else
@@ -288,7 +286,7 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
             for (int64_t j = 0; j < volumeHeight; ++j)
             {
                 bool outlier;
-                uint64_t index = mapToIndex(sliceIndex, i, j, outlier);
+                size_t index = mapToIndex(sliceIndex, i, j, outlier);
                 if (slice->getPixelColor(i , j) == BLACK && !outlier)
                     clearVoxel(index);
                 else
@@ -304,7 +302,7 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
             for (int64_t j = 0; j < volumeHeight; ++j)
             {
                 bool outlier;
-                uint64_t index = mapToIndex(i, sliceIndex, j, outlier);
+                size_t index = mapToIndex(i, sliceIndex, j, outlier);
                 if (slice->getPixelColor(i , j) == BLACK && !outlier)
                     clearVoxel(index);
                 else
@@ -320,7 +318,7 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
             for (int64_t j = 0; j < volumeHeight; ++j)
             {
                 bool outlier;
-                uint64_t index = mapToIndex(i, j, sliceIndex, outlier);
+                size_t index = mapToIndex(i, j, sliceIndex, outlier);
                 if (slice->getPixelColor(i , j) == BLACK && !outlier)
                     clearVoxel(index);
                 else
@@ -534,13 +532,13 @@ void VolumeGrid::projectVolume(const std::string &prefix,
     }
 }
 
-uint64_t VolumeGrid::computeNumberNonZeroVoxels() const
+size_t VolumeGrid::computeNumberNonZeroVoxels() const
 {
     // Starts the timer
     TIMER_SET;
 
     // The total number of of non zero voxels that will be computed for the entire slice
-    uint64_t numberNonZeroVoxels = 0;
+    size_t numberNonZeroVoxels = 0;
 
     // Number of non-zero voxels for every slice along the volume
     auto numberNonZeroVoxelsPerSlice = std::make_unique< uint64_t []>(I2UI64(getDepth()));
@@ -667,7 +665,7 @@ std::string VolumeGrid::getTypeString(const VOLUME_TYPE& type)
 uint8_t VolumeGrid::getValueUI8(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    uint64_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapToIndex(x, y, z, outlier);
     if (outlier)
         return 0;
     else
@@ -677,7 +675,7 @@ uint8_t VolumeGrid::getValueUI8(const int64_t &x, const int64_t &y, const int64_
 uint16_t VolumeGrid::getValueUI16(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    uint64_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapToIndex(x, y, z, outlier);
     if (outlier)
         return 0;
     else
@@ -687,17 +685,17 @@ uint16_t VolumeGrid::getValueUI16(const int64_t &x, const int64_t &y, const int6
 uint32_t VolumeGrid::getValueUI32(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    uint64_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapToIndex(x, y, z, outlier);
     if (outlier)
         return 0;
     else
         return getValueUI32(index);
 }
 
-uint64_t VolumeGrid::getValueUI64(const int64_t &x, const int64_t &y, const int64_t &z) const
+size_t VolumeGrid::getValueUI64(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    uint64_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapToIndex(x, y, z, outlier);
     if (outlier)
         return 0;
     else
@@ -707,7 +705,7 @@ uint64_t VolumeGrid::getValueUI64(const int64_t &x, const int64_t &y, const int6
 float VolumeGrid::getValueF32(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    uint64_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapToIndex(x, y, z, outlier);
     if (outlier)
         return 0;
     else
@@ -717,7 +715,7 @@ float VolumeGrid::getValueF32(const int64_t &x, const int64_t &y, const int64_t 
 double VolumeGrid::getValueF64(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    uint64_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapToIndex(x, y, z, outlier);
     if (outlier)
         return 0;
     else

@@ -53,14 +53,14 @@ public:
      *
      * @param mesh
      */
-    void animate(MeshPtr mesh, uint64_t iterations = 1);
+    void animate(MeshPtr mesh, size_t iterations = 1);
 
     /**
      * @brief anim
      *
      * @param meshes
      */
-    void animate(Meshes meshes, uint64_t iterations = 1);
+    void animate(Meshes meshes, size_t iterations = 1);
 
     /**
      * @brief setZeroForce

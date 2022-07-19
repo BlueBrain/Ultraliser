@@ -89,18 +89,18 @@ void run(int argc, const char** argv)
 
     // Calculate the volume resolution based on the largest dimension in the
     // morphology
-    uint64_t resolution;
+    size_t resolution;
     if (options->scaledResolution)
     {
         const float minRadius = astrocyteMorphology->getSmallestRadiusInMorphology();
-        resolution =  uint64_t((2.0 / minRadius) * largestDimension);
+        resolution =  static_cast< size_t >((2.0 / minRadius) * largestDimension);
         LOG_WARNING("Mininum Radius [%f], Resolution [%d]", minRadius, resolution);
     }
     else
     {
         if (options->voxelsPerMicron > 0)
         {
-            resolution = uint64_t(options->voxelsPerMicron * largestDimension);
+            resolution = static_cast< size_t >(options->voxelsPerMicron * largestDimension);
         }
         else
         {

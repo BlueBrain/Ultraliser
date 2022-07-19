@@ -133,7 +133,7 @@ public:
      * @return
      * The number of segments in the morphology.
      */
-    uint64_t computeNumberSegments() const;
+    size_t computeNumberSegments() const;
 
     /**
      * @brief collectRegionsWithThinStructures
@@ -169,7 +169,7 @@ public:
     void computeMinMaxAvgSegmentLength(float& minSegmentLength,
                                        float& maxSegmentLength,
                                        float& avgSegmentLength,
-                                       const uint64_t &numberMorphologySegments) const;
+                                       const size_t &numberMorphologySegments) const;
 
     /**
      * @brief computeMinMaxAvgSegmentSurfaceArea
@@ -184,7 +184,7 @@ public:
     void computeMinMaxAvgSegmentSurfaceArea(float& minSegmentSurfaceArea,
                                             float& maxSegmentSurfaceArea,
                                             float& avgSegmentSurfaceArea,
-                                            const uint64_t& numberMorphologySegments) const;
+                                            const size_t& numberMorphologySegments) const;
 
     /**
      * @brief computeMinMaxAvgSegmentVolume
@@ -199,7 +199,7 @@ public:
     void computeMinMaxAvgSegmentVolume(float& minSegmentVolume,
                                        float& maxSegmentVolume,
                                        float& avgSegmentVolume,
-                                       const uint64_t &numberMorphologySegments) const;
+                                       const size_t &numberMorphologySegments) const;
 
     /**
      * @brief computeMinMaxAvgSectionLength

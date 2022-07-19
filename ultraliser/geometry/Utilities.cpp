@@ -145,9 +145,9 @@ bool isNbr(const Vec3i_64& a, const Vec3i_64& b, int64_t vert)
 //    std::vector< std::vector< int64_t > > trigList;
 //    trigList.resize(mesh.vertices.size());
 
-//    for (uint64_t i = 0; i < mesh.triangles.size(); ++i)
+//    for (size_t i = 0; i < mesh.triangles.size(); ++i)
 //    {
-//        for (uint64_t j = 0; j < DIMENSIONS; j++)
+//        for (size_t j = 0; j < DIMENSIONS; j++)
 //        {
 //            uint64_t vertexIdx = I2UI64(mesh.triangles[I2UI64(i)][I2I32(j)]);
 //            trigList[I2UI64(vertexIdx)].push_back(I2I64(i));
@@ -155,14 +155,14 @@ bool isNbr(const Vec3i_64& a, const Vec3i_64& b, int64_t vert)
 //    }
 
 //    adjMat.resize(mesh.triangles.size());
-//    for (uint64_t i = 0; i < mesh.vertices.size(); ++i)
+//    for (size_t i = 0; i < mesh.vertices.size(); ++i)
 //    {
 //        uint64_t nNumber = trigList[i].size();
 
-//        for (uint64_t j = 0; j < nNumber; j++)
+//        for (size_t j = 0; j < nNumber; j++)
 //        {
 //            int64_t tj = trigList[I2UI64(i)][I2UI64(j)];
-//            for (uint64_t k = (j + 1); k < nNumber; k++)
+//            for (size_t k = (j + 1); k < nNumber; k++)
 //            {
 //                int64_t tk = trigList[i][k];
 //                if (isNbr(mesh.triangles[I2UI64(tj)],

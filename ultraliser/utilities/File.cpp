@@ -29,9 +29,7 @@ namespace Ultraliser
 namespace File
 {
 
-std::vector< Vector4f >
-parseColorMap(const std::string &filePath,
-               const uint64_t numberTags)
+std::vector< Vector4f >parseColorMap(const std::string &filePath, const size_t numberTags)
 {
     std::vector< Vector4f > colormap;
     colormap.resize(numberTags);
@@ -253,7 +251,7 @@ void parseBoundsFile(std::string boundsFile, Vector3f& pMin, Vector3f& pMax)
     pMax.z() = S2F(tokens[5]);
 }
 
-std::vector< uint64_t > parseIsovaluesFile(const std::string &filePath)
+std::vector< size_t > parseIsovaluesFile(const std::string &filePath)
 {
     std::ifstream stream;
     stream.open(filePath.c_str());
@@ -272,8 +270,8 @@ std::vector< uint64_t > parseIsovaluesFile(const std::string &filePath)
           std::istream_iterator< std::string >(),
           std::back_inserter(tokens));
 
-    std::vector<uint64_t> isovalues;
-    for (uint64_t i = 0; i < tokens.size(); ++i)
+    std::vector<size_t> isovalues;
+    for (size_t i = 0; i < tokens.size(); ++i)
     {
         isovalues.push_back(atoll(tokens[i].c_str()));
     }
@@ -393,7 +391,7 @@ void writeFloatDistributionToFile(const std::string &filePath,
     if (!outputStream.good())
         LOG_ERROR("Cannot write file [ %s ]", filePath.c_str());
 
-    for (uint64_t i = 0; i < distribution.size(); i++)
+    for (size_t i = 0; i < distribution.size(); i++)
         if (distribution[i] > 0.f)
             outputStream << i << " " << distribution[i] << NEW_LINE;
 
@@ -408,7 +406,7 @@ void writeIntegerDistributionToFile(const std::string &filePath,
     if (!outputStream.good())
         LOG_ERROR("Cannot write file [ %s ]", filePath.c_str());
 
-    for (uint64_t i = 0; i < distribution.size(); i++)
+    for (size_t i = 0; i < distribution.size(); i++)
         if (distribution[i] > 0.f)
             outputStream << i << " " << distribution[i] << NEW_LINE;
 
@@ -416,10 +414,10 @@ void writeIntegerDistributionToFile(const std::string &filePath,
     outputStream.close();
 }
 
-uint64_t getNumberLinesInFile(const std::string & fileName)
+size_t getNumberLinesInFile(const std::string & fileName)
 {
     // NUmber of line in the file
-    uint64_t numberLines = 0;
+    size_t numberLines = 0;
 
     // Line-by-line
     std::string line;

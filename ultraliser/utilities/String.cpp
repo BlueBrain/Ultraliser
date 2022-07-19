@@ -70,15 +70,15 @@ std::vector< std::string > split(std::string string, char delimiter)
 }
 
 std::string formatStringToMultiLine(const std::string &input,
-                                    const uint64_t limit,
+                                    const size_t limit,
                                     const bool& aligned)
 {
     // Get a list of all the words in the help
     std::vector< std::string > words = String::split(input, ' ');
 
     std::string formated = "\t";
-    uint64_t currentPosition = 0;
-    for (uint64_t i = 0; i < words.size(); ++i)
+    size_t currentPosition = 0;
+    for (size_t i = 0; i < words.size(); ++i)
     {
         std::string word = words.at(i);
         if (currentPosition + word.size() < limit)

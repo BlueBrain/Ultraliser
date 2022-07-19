@@ -45,7 +45,7 @@ public:
      * @param index
      * Index of bit in array.
      */
-    BitArrayIndex(BitArray *array, const uint64_t index);
+    BitArrayIndex(BitArray *array, const size_t index);
 
 public:
     /**
@@ -68,7 +68,7 @@ private:
      * @brief _index
      * Index of bit in array.
      */
-    uint64_t _index;
+    size_t _index;
 };
 
 class BitArray
@@ -81,7 +81,7 @@ public:
      * storing the array. It Allocates vectory for array bits.
      * @param numBits Number of bits in the array.
      */
-    BitArray(const uint64_t numBits);
+    BitArray(const size_t numBits);
 
     /**
      * @brief BitArray
@@ -90,7 +90,7 @@ public:
      * @param array Vector to be copied.
      * @param numBits Number of bits in the array.
      */
-    BitArray(uint8_t* array, const uint64_t numBits);
+    BitArray(uint8_t* array, const size_t numBits);
 
     ~BitArray() { delete[] _data; }
 
@@ -119,14 +119,14 @@ public:
      * @brief size
      * @return
      */
-    uint64_t size() const { return _numBits; }
+    size_t size() const { return _numBits; }
 
     /**
      * @brief getNumberBytes
      * Total number of bytes in the array.
      * @return
      */
-    uint64_t getNumberBytes() const { return _numBytes; }
+    size_t getNumberBytes() const { return _numBytes; }
 
     /**
      * @brief setAll
@@ -152,7 +152,7 @@ public:
      * The specified bit will be set to 1.
      * @param bit The number of the bit to set.
      */
-    void setBit(const uint64_t bit);
+    void setBit(const size_t bit);
 
     /**
      * @brief clearBit
@@ -160,28 +160,28 @@ public:
      * The specified bit will be set to 0.
      * @param bit The number of the bit to clear.
      */
-    void clearBit(const uint64_t bit);
+    void clearBit(const size_t bit);
 
     /**
      * @brief bit
      * @param index
      * @return
      */
-    bool bit(const uint64_t index) const;
+    bool bit(const size_t index) const;
 
     /**
      * @brief getByte
      * @param index
      * @return
      */
-    uint8_t getByte(const uint64_t index) const;
+    uint8_t getByte(const size_t index) const;
 
     /**
      * @brief addByte
      * @param index
      * @param byte
      */
-    void addByte(const uint64_t index, const uint8_t byte);
+    void addByte(const size_t index, const uint8_t byte);
 
 public:
 
@@ -194,7 +194,7 @@ public:
      * @param bit Index of array bit.
      * @return
      */
-    BitArrayIndex operator()(const uint64_t bit);
+    BitArrayIndex operator()(const size_t bit);
 
     /**
      * @brief operator []
@@ -203,7 +203,7 @@ public:
      * @param bit Index of array bit.
      * @return The value of the specified bit.
      */
-    bool operator[](const uint64_t bit) const;
+    bool operator[](const size_t bit) const;
 
     /**
      * @brief operator ==
@@ -295,7 +295,7 @@ public:
      * @return Result of bitwise left shift.
      */
 
-    BitArray operator<<(const uint64_t count) const;
+    BitArray operator<<(const size_t count) const;
 
     /**
      * @brief operator >>
@@ -304,7 +304,7 @@ public:
      * @param count The number of bits to shift right.
      * @return Result of bitwise right shift.
      */
-    BitArray operator>>(const uint64_t count) const;
+    BitArray operator>>(const size_t count) const;
 
     /**
      * @brief operator ++
@@ -405,7 +405,7 @@ public:
      * @param shifts Number of bit positions to shift.
      * @return Reference to this array after shift.
      */
-    BitArray& operator<<=(const uint64_t shifts);
+    BitArray& operator<<=(const size_t shifts);
 
     /**
      * @brief operator >>
@@ -415,7 +415,7 @@ public:
      * @param shifts Number of bit positions to shift.
      * @return Reference to this array after shift.
      */
-    BitArray& operator>>=(const uint64_t shifts);
+    BitArray& operator>>=(const size_t shifts);
 
 protected:
 
@@ -423,12 +423,12 @@ protected:
      * @brief _numBits
      * Number of bits in the array.
      */
-    uint64_t _numBits;
+    size_t _numBits;
 
     /**
      * @brief _numBytes
      */
-    uint64_t _numBytes;
+    size_t _numBytes;
 
     /**
      * @brief data_

@@ -57,7 +57,7 @@ void AdvancedMesh::importPLY(const std::string &fileName)
     Node* node;
 
     // Fill the _vertices list
-    for(uint64_t i = 0; i < vertices.size(); ++i)
+    for (size_t i = 0; i < vertices.size(); ++i)
         _vertices.appendTail(newVertex(F2D(vertices[i].x()),
                                        F2D(vertices[i].y()),
                                        F2D(vertices[i].z())));
@@ -83,7 +83,7 @@ void AdvancedMesh::importPLY(const std::string &fileName)
     TIMER_RESET;
     LOOP_COUNTER_RESET;
     LOOP_STARTS("Creating Face List");
-    for(uint64_t i = 0; i < triangles.size(); ++i)
+    for (size_t i = 0; i < triangles.size(); ++i)
     {
         LOOP_PROGRESS_FRACTION(i, triangles.size());
 
@@ -99,7 +99,7 @@ void AdvancedMesh::importPLY(const std::string &fileName)
         TIMER_RESET;
         LOOP_STARTS("Cleaning Extended Data");
 
-        for (uint64_t i = 0; i < vertices.size(); ++i)
+        for (size_t i = 0; i < vertices.size(); ++i)
             delete(vertexList[i]);
         free(vertexList);
 
@@ -166,8 +166,8 @@ void AdvancedMesh::exportPLY(const std::string &filePath, bool writeASCII)
 
     Node *node;
     AdvancedVertex *vertex;
-    uint64_t numberVertices = _vertices.numberElements();
-    uint64_t progress = 0;
+    size_t numberVertices = _vertices.numberElements();
+    size_t progress = 0;
     if (writeASCII)
     {
         LOOP_STARTS("Writing Vertices")
@@ -205,7 +205,7 @@ void AdvancedMesh::exportPLY(const std::string &filePath, bool writeASCII)
     // Auxiliary array to construct the triangles data
     double *auxiliaryVertices = new double[_vertices.numberElements()];
 
-    uint64_t i = 0;
+    size_t i = 0;
     FOR_EACH_VERTEX(vertex, node)
     {
         auxiliaryVertices[i++] = vertex->x;
@@ -218,7 +218,7 @@ void AdvancedMesh::exportPLY(const std::string &filePath, bool writeASCII)
     }
 
     // Writing the triangles
-    uint64_t numberTriangles = _triangles.numberElements();
+    size_t numberTriangles = _triangles.numberElements();
     if (writeASCII)
     {
         progress = 0;

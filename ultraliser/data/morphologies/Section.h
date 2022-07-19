@@ -47,7 +47,7 @@ public:
      * @brief Section
      * @param index
      */
-    Section(const uint64_t &index);
+    Section(const size_t &index);
 
 public:
 
@@ -69,14 +69,14 @@ public:
      * @brief getIndex
      * @return The unique index of the section.
      */
-    uint64_t getIndex() const;
+    size_t getIndex() const;
 
     /**
      * @brief setIndex
      * Set the section index
      * @param index 
      */
-    void setIndex(const uint64_t &index);
+    void setIndex(const size_t &index);
 
     /**
      * @brief addSample
@@ -100,7 +100,7 @@ public:
      * @param index
      * The index of the parent section.
      */
-    void addParentIndex(const uint64_t index);
+    void addParentIndex(const size_t index);
 
     /**
      * @brief clearParentIndices
@@ -114,7 +114,7 @@ public:
      * @param index
      * The index of the child section.
      */
-    void addChildIndex(const uint64_t index);
+    void addChildIndex(const size_t index);
 
     /**
      * @brief clearChildrenIndices
@@ -163,13 +163,13 @@ public:
      * @brief getParentIndices
      * @return Returns a list of the indices of the parents.
      */
-    std::vector< uint64_t > getParentIndices() const;
+    std::vector< size_t > getParentIndices() const;
 
     /**
      * @brief getChildrenIndices
      * @return Returns a list of the children indices.
      */
-    std::vector< uint64_t > getChildrenIndices() const;
+    std::vector< size_t > getChildrenIndices() const;
 
     /**
      * @brief computeLength
@@ -237,19 +237,19 @@ private:
      * @brief _index
      * The unique index of the section.
      */
-    uint64_t _index;
+    size_t _index;
 
     /**
      * @brief _parentIndices
      * A list of the indices of the parent sections.
      */
-    std::vector< uint64_t > _parentsIndices;
+    std::vector< size_t > _parentsIndices;
 
     /**
      * @brief _childrenIndices
      * A list of the indices of the children sections.
      */
-    std::vector< uint64_t > _childrenIndices;
+    std::vector< size_t > _childrenIndices;
 
     /**
      * @brief _samples

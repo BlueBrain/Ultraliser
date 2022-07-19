@@ -163,13 +163,13 @@ static inline void logTitle(std::string title, const uint64_t& titleLength = 80)
     int size = I2I32(std::string(title).size());
     int spaces = titleLength - size;
     std::string bar = "";
-    for(uint64_t i = 0; i < titleLength + 2; i++) bar += "-";
+    for (size_t i = 0; i < titleLength + 2; i++) bar += "-";
     printf("\n%s\n", bar.c_str()); bar = " ";
-    for(uint64_t i = 0; i < uint64_t(0.5 * spaces) - 2; i++) bar += "-";
+    for (size_t i = 0; i < uint64_t(0.5 * spaces) - 2; i++) bar += "-";
     bar += "| " + std::string(title) + " |";
-    for(uint64_t i = 0; i < uint64_t(0.5 * spaces) - 2; i++) bar += "-";
+    for (size_t i = 0; i < uint64_t(0.5 * spaces) - 2; i++) bar += "-";
     printf("%s\n", bar.c_str());
-    bar = "" ; for(uint64_t i = 0; i < titleLength + 2; i++) bar += "-";
+    bar = "" ; for (size_t i = 0; i < titleLength + 2; i++) bar += "-";
     printf("%s\n\n", bar.c_str()); bar = "";
     fflush(stdout);
 }

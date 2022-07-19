@@ -41,7 +41,7 @@ float getRandomAngle(void);
  * @param max
  * @return
  */
-uint64_t getRandomInt(const uint64_t &min, const uint64_t &max);
+size_t getRandomInt(const size_t &min, const size_t &max);
 
 /**
  * @brief getRandomFloat

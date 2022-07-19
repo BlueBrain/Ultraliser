@@ -52,7 +52,7 @@ struct PBRTParameters
     /**
      * @brief resolution
      */
-    uint64_t resolution;
+    size_t resolution;
 
     /**
      * @brief filmPrefix

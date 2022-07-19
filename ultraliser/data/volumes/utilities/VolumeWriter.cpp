@@ -29,7 +29,7 @@ void writeNRRD(const std::string &prefix, const BitVolumeGrid* grid)
     fprintf(fptr, "encoding: raw\n");
 
     LOOP_STARTS("Writing Voxels (1 Byte per voxel)");
-    for (uint64_t i = 0; i < grid->getNumberVoxels(); ++i)
+    for (size_t i = 0; i < grid->getNumberVoxels(); ++i)
     {
         LOOP_PROGRESS(i, grid->getNumberVoxels());
         uint16_t value = grid->isFilled(i) ? FILLED_UI8_VOXEL_VALUE : EMPTY_VOXEL_VALUE;

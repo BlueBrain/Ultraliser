@@ -51,7 +51,7 @@ public:
      */
     TaggedVolume(const Vector3f& pMin,
                  const Vector3f& pMax,
-                 const uint64_t &baseResolution = 512,
+                 const size_t &baseResolution = 512,
                  const float &voxelPadding = 0.0);
 
     /**
@@ -70,9 +70,9 @@ public:
      * @param pMax
      * pMax of the bounding box of the volume.
      */
-    TaggedVolume(const uint64_t width,
-                 const uint64_t height,
-                 const uint64_t depth,
+    TaggedVolume(const size_t width,
+                 const size_t height,
+                 const size_t depth,
                  Vector3f pMin, Vector3f pMax);
     ~TaggedVolume();
 
@@ -148,13 +148,13 @@ public:
      * @brief updateColormap
      * @param length
      */
-    void updateColormap(const uint64_t &length);
+    void updateColormap(const size_t &length);
 
     /**
      * @brief getWidth
      * @return
      */
-    uint64_t getWidth(void) const
+    size_t getWidth(void) const
     {
         return _width;
     }
@@ -163,7 +163,7 @@ public:
      * @brief getHeight
      * @return
      */
-    uint64_t getHeight(void) const
+    size_t getHeight(void) const
     {
         return _height;
     }
@@ -172,7 +172,7 @@ public:
      * @brief getDepth
      * @return
      */
-    uint64_t getDepth(void) const
+    size_t getDepth(void) const
     {
         return _depth;
     }
@@ -181,7 +181,7 @@ public:
      * @brief getNumberVoxels
      * @return
      */
-    uint64_t getNumberVoxels(void) const
+    size_t getNumberVoxels(void) const
     {
         return _width * _height * _depth;
     }
@@ -191,13 +191,13 @@ public:
      * @param z
      * @return
      */
-    uint64_t computeNumberNonZeroVoxelsPerSlice(uint64_t z) const;
+    size_t computeNumberNonZeroVoxelsPerSlice(size_t z) const;
 
     /**
      * @brief computeNumberNonZeroVoxels
      * @return
      */
-    uint64_t computeNumberNonZeroVoxels(void) const;
+    size_t computeNumberNonZeroVoxels(void) const;
 
     /**
      * @brief computeVolume3
@@ -209,7 +209,7 @@ public:
      * @brief getNumberBytes
      * @return
      */
-    uint64_t getNumberBytes(void) const
+    size_t getNumberBytes(void) const
     {
         return getNumberVoxels();
     }
@@ -219,14 +219,14 @@ public:
      * @param index
      * @return
      */
-    uint8_t getTag(const uint64_t &index) const;
+    uint8_t getTag(const size_t &index) const;
 
     /**
      * @brief setTag
      * @param index
      * @param tag
      */
-    void setTag(const uint64_t &index, const uint8_t &tag);
+    void setTag(const size_t &index, const uint8_t &tag);
 
     /**
      * @brief getTag
@@ -235,9 +235,9 @@ public:
      * @param z
      * @return
      */
-    uint8_t getTag(const uint64_t &x,
-                   const uint64_t &y,
-                   const uint64_t &z) const;
+    uint8_t getTag(const size_t &x,
+                   const size_t &y,
+                   const size_t &z) const;
 
     /**
      * @brief setTag
@@ -246,9 +246,9 @@ public:
      * @param z
      * @param tag
      */
-    void setTag(const uint64_t &x,
-                const uint64_t &y,
-                const uint64_t &z,
+    void setTag(const size_t &x,
+                const size_t &y,
+                const size_t &z,
                 const uint8_t tag);
 
     /**
@@ -258,9 +258,9 @@ public:
      * @param z
      * @return
      */
-    uint64_t mapToIndex(const uint64_t &x,
-                        const uint64_t &y,
-                        const uint64_t &z) const;
+    size_t mapToIndex(const size_t &x,
+                      const size_t &y,
+                      const size_t &z) const;
 
     /**
      * @brief addVolume
@@ -394,17 +394,17 @@ private:
     /**
      * @brief _width
      */
-    uint64_t _width;
+    size_t _width;
 
     /**
      * @brief _height
      */
-    uint64_t _height;
+    size_t _height;
 
     /**
      * @brief _depth
      */
-    uint64_t _depth;
+    size_t _depth;
 
     /**
      * @brief _pMin
@@ -419,7 +419,7 @@ private:
     /**
      * @brief _numberVoxels
      */
-    uint64_t _numberVoxels;
+    size_t _numberVoxels;
 
     /**
      * @brief _data

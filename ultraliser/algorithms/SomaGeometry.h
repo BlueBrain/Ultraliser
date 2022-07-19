@@ -150,7 +150,7 @@ public:
      * @brief numVertices
      * Number of vertices of the section geometry.
      */
-    uint64_t numVertices;
+    size_t numVertices;
 
     /**
      * @brief triangles
@@ -162,7 +162,7 @@ public:
      * @brief numTriangles
      * Number of triangles of the section geometry.
      */
-    uint64_t numTriangles;
+    size_t numTriangles;
 
 private:
 

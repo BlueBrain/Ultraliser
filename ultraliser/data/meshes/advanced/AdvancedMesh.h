@@ -100,12 +100,12 @@ protected:
     /**
      * @brief _loadedNumberVertices
      */
-    uint64_t _loadedNumberVertices;
+    size_t _loadedNumberVertices;
 
     /**
      * @brief _loadedNumberTriagnles
      */
-    uint64_t _loadedNumberTriagnles;
+    size_t _loadedNumberTriagnles;
 
     /**
      * @brief _nBoundaries
@@ -180,8 +180,8 @@ public:
      * @param triangles
      * @param numberTriangles
      */
-    AdvancedMesh(const Vertex *vertices, const uint64_t &numberVertices,
-                 const Triangle *triangles, const uint64_t &numberTriangles);
+    AdvancedMesh(const Vertex *vertices, const size_t &numberVertices,
+                 const Triangle *triangles, const size_t &numberTriangles);
 
     /**
      * @brief Mesh
@@ -405,7 +405,7 @@ public:
      * @brief getNumberVertices
      * @return
      */
-    uint64_t getNumberVertices() const
+    size_t getNumberVertices() const
     {
         return _vertices.numberElements();
     }
@@ -414,7 +414,7 @@ public:
      * @brief getNumberEdges
      * @return
      */
-    uint64_t getNumberEdges() const
+    size_t getNumberEdges() const
     {
         return _edges.numberElements();
     }
@@ -423,7 +423,7 @@ public:
      * @brief getNumberTriangles
      * @return
      */
-    uint64_t getNumberTriangles() const
+    size_t getNumberTriangles() const
     {
         return _triangles.numberElements();
     }
@@ -432,7 +432,7 @@ public:
      * @brief getNumberSelfIntersectingFaces
      * @return
      */
-    uint64_t getNumberSelfIntersectingFaces();
+    size_t getNumberSelfIntersectingFaces();
 
 protected:
 
@@ -700,8 +700,8 @@ public:
       */
      void getVerticesAndTrianglesArray(Vertex *&vertexArray,
                                        Triangle *&triangleArray,
-                                       uint64_t &numberVertices,
-                                       uint64_t &numberTriangles) const;
+                                       size_t &numberVertices,
+                                       size_t &numberTriangles) const;
 
      /**
       * @brief printStats
@@ -851,7 +851,11 @@ public:
      */
     int selectTrianglesWithWrongDihedralAngles(const float &minDihedralAngles = 0.1);
 
-    uint64_t getNumberBoundaryEdges();
+    /**
+     * @brief getNumberBoundaryEdges
+     * @return
+     */
+    size_t getNumberBoundaryEdges();
 
     /**
      * @brief growSelection
@@ -1430,7 +1434,7 @@ public:
      * @param innerLoops
      * @return
      */
-    bool cleanMesh(uint64_t maxIterations = 25, int innerLoops = 25);
+    bool cleanMesh(size_t maxIterations = 25, int innerLoops = 25);
 
     /**
      * @brief ensureWatertightness
@@ -1592,8 +1596,7 @@ public:
      * @return
      * Returns number of holes patched.
      */
-    uint64_t fillHoles(const uint64_t minNumberBoundaryEdges = 0,
-                       const bool refinePatches = true);
+    size_t fillHoles(const size_t minNumberBoundaryEdges = 0, const bool refinePatches = true);
 
     /**
      * @brief refineSelectedHolePatches
@@ -1742,7 +1745,7 @@ public:
      * @param smoothLambda
      * @param inflateMu
      */
-    void applyLaplacianSmooth(const uint64_t &numIterations,
+    void applyLaplacianSmooth(const size_t &numIterations,
                               const float &smoothLambda, const float &inflateMu);
 
 protected:

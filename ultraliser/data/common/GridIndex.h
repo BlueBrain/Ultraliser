@@ -69,14 +69,14 @@ public:
      * @param idx
      * @return
      */
-    int64_t& operator[](uint64_t idx) { return index[idx]; }
+    int64_t& operator[](size_t idx) { return index[idx]; }
 
     /**
      * @brief operator []
      * @param idx
      * @return
      */
-    int64_t operator[](uint64_t idx) const { return index[idx]; }
+    int64_t operator[](size_t idx) const { return index[idx]; }
 
     /**
      * @brief operator <

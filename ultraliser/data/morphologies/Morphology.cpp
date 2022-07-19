@@ -68,12 +68,12 @@ Sections Morphology::getSubsectionsInBoundingBox(const Section* section,
     // Collecting the list of sections that are located within the bounding box
     Sections internalSections;
     Samples internalSamples;
-    uint64_t internalSectionIndex = 0;
+    size_t internalSectionIndex = 0;
 
     // Get all the samples in the section
     const Samples samples = section->getSamples();
 
-    uint64_t sampleIndex = 0;
+    size_t sampleIndex = 0;
     while (1)
     {
         // If the samples is located within the bounding box
@@ -94,7 +94,7 @@ Sections Morphology::getSubsectionsInBoundingBox(const Section* section,
                 internalSectionIndex++;
 
                 // Add the samples to the section
-                for (uint64_t i = 0; i < internalSamples.size(); ++i)
+                for (size_t i = 0; i < internalSamples.size(); ++i)
                 {
                     internalSection->addSample(internalSamples[i]);
                 }
@@ -122,7 +122,7 @@ Sections Morphology::getSubsectionsInBoundingBox(const Section* section,
                 internalSectionIndex++;
 
                 // Add the samples to the section
-                for (uint64_t i = 0; i < internalSamples.size(); ++i)
+                for (size_t i = 0; i < internalSamples.size(); ++i)
                 {
                     internalSection->addSample(internalSamples[i]);
                 }
@@ -149,12 +149,12 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section)
     Paths paths;
 
     // Get the parents data
-    const std::vector< uint64_t > parentsIndices = section->getParentIndices();
-    const uint64_t numberParents = parentsIndices .size();
+    const std::vector< size_t > parentsIndices = section->getParentIndices();
+    const size_t numberParents = parentsIndices .size();
 
     // Get the children data
-    const std::vector< uint64_t > childrenIndices = section->getChildrenIndices();
-    const uint64_t numberChildren = childrenIndices.size();
+    const std::vector< size_t > childrenIndices = section->getChildrenIndices();
+    const size_t numberChildren = childrenIndices.size();
 
     // The samples along the section
     Samples sectionSamples = section->getSamples();
@@ -178,7 +178,7 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section)
     // If the section is root and has children
     else if (numberParents == 0 && numberChildren > 0)
     {
-        for (uint64_t k = 0; k < numberChildren; ++k)
+        for (size_t k = 0; k < numberChildren; ++k)
         {
             // The samples along the path from a parent section to
             Samples pathSamples;
@@ -208,7 +208,7 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section)
     // If the section is a leaf (has no children) node but has parents
     else if (numberParents > 0 && numberChildren == 0)
     {
-        for (uint64_t j = 0; j < numberParents; ++j)
+        for (size_t j = 0; j < numberParents; ++j)
         {
             // The samples along the path from a parent section to
             Samples pathSamples;
@@ -238,13 +238,13 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section)
     // If the section has parents and children
     else if (numberParents > 0 && numberChildren > 0)
     {
-        for (uint64_t j = 0; j < numberParents; ++j)
+        for (size_t j = 0; j < numberParents; ++j)
         {
             // Parents data
             Section* parentSection = _sections[parentsIndices[j]];
             Samples parentSamples = parentSection->getSamples();
 
-            for (uint64_t k = 0; k < numberChildren; ++k)
+            for (size_t k = 0; k < numberChildren; ++k)
             {
                 // The samples along the path from a parent section to
                 Samples pathSamples;
@@ -351,9 +351,9 @@ void Morphology::computeMinMaxAvgSampleRadius(float& minSampleRadius,
     avgSampleRadius = avgValue / _samples.size();
 }
 
-uint64_t Morphology::computeNumberSegments() const
+size_t Morphology::computeNumberSegments() const
 {
-    uint64_t numberSegments = 0;
+    size_t numberSegments = 0;
     for (Section* section : _sections)
     {
         // Note that if the section has N samples, it has N - 1 segments
@@ -365,7 +365,7 @@ uint64_t Morphology::computeNumberSegments() const
 void Morphology::computeMinMaxAvgSegmentLength(float& minSegmentLength,
                                                float& maxSegmentLength,
                                                float& avgSegmentLength,
-                                               const uint64_t& numberMorphologySegments) const
+                                               const size_t &numberMorphologySegments) const
 {
     float minValue = std::numeric_limits<float>::max();
     float maxValue = std::numeric_limits<float>::lowest();
@@ -373,7 +373,7 @@ void Morphology::computeMinMaxAvgSegmentLength(float& minSegmentLength,
 
     for (const Section* section : _sections)
     {
-        for (uint64_t i = 0; i < section->getSamples().size(); ++i)
+        for (size_t i = 0; i < section->getSamples().size(); ++i)
         {
             const auto segmentLength = computeSegmentLength(_samples[i], _samples[i + 1]);
 
@@ -423,7 +423,7 @@ void Morphology::computeMinMaxAvgSectionLength(float& minSectionLength,
 void Morphology::computeMinMaxAvgSegmentSurfaceArea(float& minSegmentSurfaceArea,
                                                     float& maxSegmentSurfaceArea,
                                                     float& avgSegmentSurfaceArea,
-                                                    const uint64_t& numberMorphologySegments) const
+                                                    const size_t &numberMorphologySegments) const
 {
     float minValue = std::numeric_limits<float>::max();
     float maxValue = std::numeric_limits<float>::lowest();
@@ -431,7 +431,7 @@ void Morphology::computeMinMaxAvgSegmentSurfaceArea(float& minSegmentSurfaceArea
 
     for (const Section* section : _sections)
     {
-        for (uint64_t i = 0; i < section->getSamples().size(); ++i)
+        for (size_t i = 0; i < section->getSamples().size(); ++i)
         {
             const auto segmentSurfaceArea = computeSegmentSurfaceArea(_samples[i], _samples[i + 1]);
 
@@ -482,7 +482,7 @@ void Morphology::computeMinMaxAvgSectionSurfaceArea(float& minSectionSurfaceArea
 void Morphology::computeMinMaxAvgSegmentVolume(float& minSegmentVolume,
                                                float& maxSegmentVolume,
                                                float& avgSegmentVolume,
-                                               const uint64_t& numberMorphologySegments) const
+                                               const size_t& numberMorphologySegments) const
 {
     float minValue = std::numeric_limits<float>::max();
     float maxValue = std::numeric_limits<float>::lowest();
@@ -490,7 +490,7 @@ void Morphology::computeMinMaxAvgSegmentVolume(float& minSegmentVolume,
 
     for (const Section* section : _sections)
     {
-        for (uint64_t i = 0; i < section->getSamples().size(); ++i)
+        for (size_t i = 0; i < section->getSamples().size(); ++i)
         {
             const auto segmentVolume = computeSegmentVolume(_samples[i], _samples[i + 1]);
 
@@ -547,7 +547,7 @@ void Morphology::resampleSectionsUniformly(const float step)
     LOOP_STARTS("Uniform Resampling")
     PROGRESS_SET;
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < _sections.size(); ++i)
+    for (size_t i = 0; i < _sections.size(); ++i)
     {
         _sections[i]->resampleUniformly(step);
 
@@ -568,7 +568,7 @@ void Morphology::resampleSectionsAdaptively(const bool& relaxed)
     LOOP_STARTS("Adaptive Resampling")
     PROGRESS_SET;
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < _sections.size(); ++i)
+    for (size_t i = 0; i < _sections.size(); ++i)
     {
         _sections[i]->resampleAdaptively(relaxed);
 
@@ -589,14 +589,14 @@ ROIs Morphology::collectRegionsWithThinStructures(const float& threshold) const
 
     LOOP_STARTS("Collecting ROIs");
     PROGRESS_SET;
-    for (uint64_t i = 0; i < _sections.size(); ++i)
+    for (size_t i = 0; i < _sections.size(); ++i)
     {
         // Update the progress bar
         LOOP_PROGRESS_FRACTION(PROGRESS, _sections.size());
         PROGRESS_UPDATE;
 
         const Samples& samples = _sections[i]->getSamples();
-        for (uint64_t j = 0; j < samples.size(); ++j)
+        for (size_t j = 0; j < samples.size(); ++j)
         {
             if (samples[j]->getRadius() < threshold)
             {
@@ -645,7 +645,7 @@ void Morphology::printStats(const std::string &reference, const std::string *pre
     const float area = computeTotalSurfaceArea();
     const float volume = computeTotalVolume();
 
-    const uint64_t numberSegments = computeNumberSegments();
+    const size_t numberSegments = computeNumberSegments();
 
     float minSampleRadius, maxSampleRadius, avgSampleRadius;
     computeMinMaxAvgSampleRadius(minSampleRadius, maxSampleRadius, avgSampleRadius);

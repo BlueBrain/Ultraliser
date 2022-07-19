@@ -114,7 +114,7 @@ Volume::Volume(const std::string &filePath)
 
 Volume::Volume(const Vector3f& pMin,
                const Vector3f& pMax,
-               const uint64_t &baseResolution,
+               const size_t &baseResolution,
                const float &expansionRatio,
                const VOLUME_TYPE& gridType)
     : _gridType(gridType)
@@ -516,7 +516,7 @@ void Volume::surfaceVoxelizeNeuronMorphologyParallel(
         _rasterize(section->getSamples()[0], _grid);
 
     Paths paths;
-    for (uint64_t i = 0; i < sections.size(); i++)
+    for (size_t i = 0; i < sections.size(); i++)
     {
         // Construct the paths
         auto section = sections[i];
@@ -526,7 +526,7 @@ void Volume::surfaceVoxelizeNeuronMorphologyParallel(
 
     // Construct the neurites geometry
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < paths.size(); i++)
+    for (size_t i = 0; i < paths.size(); i++)
     {
         auto samples = paths[i];
         auto mesh = new Mesh(samples);
@@ -564,7 +564,7 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
     if (packingAlgorithm == POLYLINE_SPHERE_PACKING)
     {
         OMP_PARALLEL_FOR
-        for (uint64_t i = 0; i < sections.size(); ++i)
+        for (size_t i = 0; i < sections.size(); ++i)
         {
             auto section = sections[i];
             auto samples = section->getSamples();
@@ -585,11 +585,11 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
     else if (packingAlgorithm == POLYLINE_PACKING)
     {
         OMP_PARALLEL_FOR
-        for (uint64_t i = 0; i < sections.size(); i++)
+        for (size_t i = 0; i < sections.size(); i++)
         {
             // Construct the paths
             Paths paths = vasculatureMorphology->getConnectedPathsFromParentsToChildren(sections[i]);
-            for (uint64_t j = 0; j < paths.size(); ++j)
+            for (size_t j = 0; j < paths.size(); ++j)
             {
                 auto mesh = new Mesh(paths[j]);
                 _rasterize(mesh , _grid);
@@ -603,7 +603,7 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
     else if (packingAlgorithm == SDF_PACKING)
     {
         OMP_PARALLEL_FOR
-        for (uint64_t i = 0; i < sections.size(); ++i)
+        for (size_t i = 0; i < sections.size(); ++i)
         {
             auto section = sections[i];
             auto samples = section->getSamples();
@@ -657,7 +657,7 @@ void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(const AstrocyteMorpholog
 
     // Construct the paths representing the astrocytic processes
     Paths paths;
-    for (uint64_t i = 0; i < sections.size(); i++)
+    for (size_t i = 0; i < sections.size(); i++)
     {
         // For every section, construct a list of paths connecting its parents and children
         Paths sectionPaths =
@@ -671,7 +671,7 @@ void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(const AstrocyteMorpholog
     auto firstSections = astrocyteMorphology->getFirstSections();
 
     // Construct a straight sections between the somatic center and the neurites
-    for (uint64_t i = 0; i < firstSections.size(); i++)
+    for (size_t i = 0; i < firstSections.size(); i++)
     {
         // Get the samples of the section
         Samples samples = firstSections[i]->getSamples();
@@ -688,7 +688,7 @@ void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(const AstrocyteMorpholog
 
     // Rasterize all the paths
     OMP_PARALLEL_FOR
-    for (uint64_t i = 0; i < paths.size(); i++)
+    for (size_t i = 0; i < paths.size(); i++)
     {
         // Create a proxy-mesh representing the path
         auto pathProxyMesh = new Mesh(paths[i]);
@@ -705,12 +705,12 @@ void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(const AstrocyteMorpholog
     // Rasterize the endfeet
     PROGRESS_RESET;
     EndfeetPatches endfeetPatches = astrocyteMorphology->getEndfeetPatches();
-    for (uint64_t j = 0; j < endfeetPatches.size(); ++j)
+    for (size_t j = 0; j < endfeetPatches.size(); ++j)
     {
         EndfootPatches efPatches = endfeetPatches[j];
 
         // Rasterize sample triangles
-        for (uint64_t i = 0; i < efPatches.size(); ++i)
+        for (size_t i = 0; i < efPatches.size(); ++i)
         {
             // Get the triangle samples
             const Sample* sample0 = efPatches[i]->sample0;
@@ -735,10 +735,10 @@ void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(const AstrocyteMorpholog
 
             // Compute number of divisions for opposite edge to the sample0
             float edgeDistance = (pos2 - pos1).abs();
-            uint64_t edgeNumDivisions = std::ceil(edgeDistance / maxSeparation);
+            size_t edgeNumDivisions = std::ceil(edgeDistance / maxSeparation);
             float edgeAlphaIncrement = 1.0f / edgeNumDivisions;
 
-            for (uint64_t j = 0; j < edgeNumDivisions + 1; ++j)
+            for (size_t j = 0; j < edgeNumDivisions + 1; ++j)
             {
                 // Compute opposite edge samples
                 float edgeAlpha = j * edgeAlphaIncrement;
@@ -748,11 +748,11 @@ void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(const AstrocyteMorpholog
                 // Compute interpolated samples for the edges betweem the sample0 and the
                 // opposite edge samples computed
                 float distance = (edgePos - pos0).abs();
-                uint64_t numDivisions = std::ceil(distance / maxSeparation);
+                size_t numDivisions = std::ceil(distance / maxSeparation);
                 float alphaIncrement = 1.0f / numDivisions;
 
                 // Rasterize sample
-                for (uint64_t k = 0; k < numDivisions + 1; ++k)
+                for (size_t k = 0; k < numDivisions + 1; ++k)
                 {
                     float alpha = k * alphaIncrement;
                     Vector3f position = (1.0f - alpha) * pos0 + alpha * edgePos;
@@ -796,7 +796,7 @@ void Volume::surfaceVoxelization(const std::string &inputDirectory,
 
     LOG_STATUS("Creating Volume Shell [%d x %d x %d]",
                _grid->getWidth(), _grid->getHeight(), _grid->getDepth());
-    uint64_t processedMeshCount = 0;
+    size_t processedMeshCount = 0;
     LOOP_STARTS("Rasterization");
     PROGRESS_SET;
     for( size_t iMesh = 0; iMesh < meshFiles.size(); iMesh++ )
@@ -914,7 +914,7 @@ void Volume::_rasterizeParallel(Mesh* mesh, VolumeGrid* grid)
     LOOP_STARTS("Parallel Rasterization");
     PROGRESS_SET;
     #pragma omp parallel for schedule(dynamic)
-    for (uint64_t tIdx = 0; tIdx < mesh->getNumberTriangles(); tIdx++)
+    for (size_t tIdx = 0; tIdx < mesh->getNumberTriangles(); tIdx++)
     {
         // Get the pMin and pMax of the triangle within the grid
         int64_t pMinTriangle[3], pMaxTriangle[3];
@@ -1208,7 +1208,7 @@ int Volume::_triangleCubeSign(Mesh *mesh,
     return -1;
 }
 
-bool Volume::_testTriangleCubeIntersection(Mesh* mesh, uint64_t triangleIdx, const GridIndex& voxel)
+bool Volume::_testTriangleCubeIntersection(Mesh* mesh, size_t triangleIdx, const GridIndex& voxel)
 {
     // Get the origin of the voxel
     double  voxelOrigin[3];
@@ -1310,10 +1310,10 @@ bool Volume::_testTriangleGridIntersection(AdvancedTriangle triangle,
     return checkTriangleBoxIntersection(voxelCenter, voxelHalfSize, triangleArray);
 }
 
-uint64_t Volume::_clampIndex(uint64_t idx, uint64_t dimension)
+size_t Volume::_clampIndex(size_t idx, size_t dimension)
 {
-    idx = std::max(uint64_t(0) , idx);
-    idx = std::min(idx, uint64_t(_grid->getDimension(dimension) - 1));
+    idx = std::max(static_cast< size_t >(0) , idx);
+    idx = std::min(idx, static_cast< size_t >(_grid->getDimension(dimension) - 1));
     return idx;
 }
 
@@ -1338,7 +1338,7 @@ void Volume::_getTriangleBoundingBox(AdvancedTriangle triangle, int64_t *tMin, i
         tMax[j] = (vIdx[I2UI64(j)]);
     }
 
-    for (uint64_t j = 1; j < DIMENSIONS; ++j)
+    for (size_t j = 1; j < DIMENSIONS; ++j)
     {
         if (j == 1)
         {
@@ -1355,7 +1355,7 @@ void Volume::_getTriangleBoundingBox(AdvancedTriangle triangle, int64_t *tMin, i
 
         _vec2grid(vertex, vIdx);
 
-        for (uint64_t k = 0; k < DIMENSIONS; ++k)
+        for (size_t k = 0; k < DIMENSIONS; ++k)
         {
             if (vIdx[k] - 1 < (tMin[k]))
                 tMin[k] = (vIdx[k] - 1);
@@ -1372,7 +1372,7 @@ void Volume::_getTriangleBoundingBox(AdvancedTriangle triangle, int64_t *tMin, i
     }
 }
 
-void Volume::_getBoundingBox(Mesh* mesh, uint64_t i, int64_t *tMin, int64_t *tMax)
+void Volume::_getBoundingBox(Mesh* mesh, size_t i, int64_t *tMin, int64_t *tMax)
 {
     // The bounding box of the triangle
     Vector3f pMin, pMax;
@@ -1473,9 +1473,9 @@ int64_t Volume::getDepth(void) const
     return _grid->getDepth();
 }
 
-uint64_t Volume::getNumberVoxels(void) const
+size_t Volume::getNumberVoxels(void) const
 {
-    return I2UI64(_grid->getWidth() * _grid->getHeight() * _grid->getDepth());
+    return static_cast< size_t >(_grid->getWidth() * _grid->getHeight() * _grid->getDepth());
 }
 
 double Volume::getSurfaceVoxelizationTime(void) const
@@ -1501,14 +1501,14 @@ bool Volume::isFilled(const u_int64_t& index) const
 bool Volume::isFilled(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    uint64_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapToIndex(x, y, z, outlier);
     if (outlier)
         return false;
     else
         return isFilled(index);
 }
 
-uint64_t Volume::mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z, bool& outlier) const
+size_t Volume::mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z, bool& outlier) const
 {
     if(x >= getWidth()  || x < 0 || y >= getHeight() || y < 0 || z >= getDepth()  || z < 0)
     {
@@ -1600,8 +1600,7 @@ void Volume::writeStackXY(const std::string &outputDirectory, const std::string 
             for (int64_t j = 0; j < getHeight(); j++)
             {
                 bool outlier;
-                uint64_t index = mapToIndex(I2I64(i), I2I64(j),
-                                            I2I64(getDepth() - 1 - z), outlier);
+                size_t index = mapToIndex(I2I64(i), I2I64(j), I2I64(getDepth() - 1 - z), outlier);
 
                 if (_grid->isFilled(index) && !outlier)
                     slice->setPixelColor(i , j, WHITE);
@@ -1650,8 +1649,7 @@ void Volume::writeStackXZ(const std::string &outputDirectory,
             for (int64_t k = 0; k < getDepth(); k++)
             {
                 bool outlier;
-                uint64_t index = mapToIndex(I2I64(i), I2I64(k),
-                                            I2I64(getHeight() - 1 - y), outlier);
+                size_t index = mapToIndex(I2I64(i), I2I64(k), I2I64(getHeight() - 1 - y), outlier);
 
                 if (_grid->isFilled(index) && !outlier)
                     slice->setPixelColor(i , k, WHITE);
@@ -1699,8 +1697,7 @@ void Volume::writeStackZY(const std::string &outputDirectory,
             for (int64_t j = 0; j < getHeight(); j++)
             {
                 bool outlier;
-                uint64_t index = mapToIndex(I2I64(getWidth() - 1 - i),
-                                            I2I64(j), I2I64(z), outlier);
+                size_t index = mapToIndex(I2I64(getWidth() - 1 - i), I2I64(j), I2I64(z), outlier);
 
                 if (_grid->isFilled(index) && !outlier)
                     slice->setPixelColor(z , getHeight() - j - 1, WHITE);
@@ -2025,18 +2022,10 @@ void Volume::exportBoundingBoxMesh(const std::string &prefix,
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-uint8_t Volume::getByte(const uint64_t index) const
+uint8_t Volume::getByte(const size_t index) const
 {
     return _grid->getByte(index);
 }
-
-//uint8_t Volume::getValue(const uint64_t index) const
-//{
-//    if (_grid->isFilled(index))
-//        return 255;
-//    else
-//        return 0;
-//}
 
 uint8_t Volume::getConfirmedValue(const int64_t &x,
                                   const int64_t &y,
@@ -2050,20 +2039,6 @@ uint8_t Volume::getConfirmedValue(const int64_t &x,
     else
         return 0;
 }
-
-
-//uint8_t Volume::getValue(const int64_t &x,
-//                         const int64_t &y,
-//                         const int64_t &z) const
-//{
-//    if (_grid->isFilled(x, y, z))
-//        return 255;
-//    else
-//        return 0;
-//}
-
-
-
 
 uint8_t Volume::getValueUI8(const int64_t &x,
                             const int64_t &y,
@@ -2171,7 +2146,7 @@ void Volume::fillVoxel(const int64_t &x,
 
 }
 
-void Volume::addByte(const uint64_t &index, const uint8_t byte)
+void Volume::addByte(const size_t &index, const uint8_t byte)
 {
     _grid->addByte(index, byte);
 }
@@ -2540,7 +2515,7 @@ Volume* Volume::constructNonZeroVolume(const Volume* volume)
 }
 
 Volume* Volume::constructIsoValuesVolume(const Volume* volume,
-                                         const std::vector< uint64_t > &isoValues)
+                                         const std::vector<size_t> &isoValues)
 {
     // Create the iso-volume
     Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),

@@ -34,7 +34,7 @@ namespace Ultraliser
 {
 
 DualMarchingCubes::DualMarchingCubes(Volume *volume,
-                                     const uint64_t isoValue,
+                                     const size_t isoValue,
                                      const bool& generateManifold)
     : _volume(volume)
     , _isoValue(isoValue)
@@ -372,12 +372,12 @@ void DualMarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangl
     const int64_t maxY = _volume->getHeight() + maxValue;
     const int64_t maxZ = _volume->getDepth() + maxValue;
 
-    const uint64_t sizeX = maxX + extraVoxels;
+    const size_t sizeX = maxX + extraVoxels;
 
     // A list of lists of DMCVoxel's
     // This list will have reducedX entries to get filled in parallel
     DMCVoxelsList volumeDMCVoxels;
-    volumeDMCVoxels.resize(static_cast< uint64_t >(sizeX));
+    volumeDMCVoxels.resize(sizeX);
 
     // Shared quad points
     int64_t i0, i1, i2, i3;
@@ -461,10 +461,10 @@ void DualMarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangl
 
     // Building the shared vertices
     LOOP_STARTS("Building Shared Vertices");
-    for (uint64_t i = 0; i < volumeDMCVoxels.size(); i++)
+    for (size_t i = 0; i < volumeDMCVoxels.size(); i++)
     {
         LOOP_PROGRESS(i, volumeDMCVoxels.size());
-        for (uint64_t j = 0; j < volumeDMCVoxels[i].size(); j++)
+        for (size_t j = 0; j < volumeDMCVoxels[i].size(); j++)
         {
             DMCVoxel* dmcVoxel = volumeDMCVoxels[i][j];
 

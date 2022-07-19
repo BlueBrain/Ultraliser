@@ -172,7 +172,7 @@ void VasculatureVMVReader::_readSamples()
              std::back_inserter(tokens));
 
         // Vertex index is ignored
-        const uint64_t vertexIndex = S2UI(tokens[0]);
+        const size_t vertexIndex = static_cast< size_t >(S2UI(tokens[0]));
 
         // Sample attributes
         const float x = S2F(tokens[1]);
@@ -240,14 +240,14 @@ void VasculatureVMVReader::_readConnectivity()
              std::back_inserter(tokens));
 
         // Section index is at index 0 of the tokens
-        uint64_t sectionIndex = S2UI(tokens[0]);
+        size_t sectionIndex = static_cast<size_t> (S2UI(tokens[0]));
         Section* section = new Section(sectionIndex);
 
         // Fill the section with its sampless
-        for (uint64_t i = 1; i < tokens.size(); ++i)
+        for (size_t i = 1; i < tokens.size(); ++i)
         {
             // Get the section sample and construct it
-            const uint64_t sampleIndex = S2UI(tokens[i]);
+            const size_t sampleIndex = static_cast< size_t >(S2UI(tokens[i]));
             section->addSample(_samples[sampleIndex - 1]);
         }
 

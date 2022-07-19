@@ -61,7 +61,7 @@ public:
      * @param numVertices
      * @param numTriangles
      */
-    Mesh(const uint64_t &numVertices, const uint64_t &numTriangles);
+    Mesh(const size_t &numVertices, const size_t &numTriangles);
 
     /**
      * @brief OptimizationMesh
@@ -74,7 +74,7 @@ public:
      * @param samples
      * @param bevelSides
      */
-    Mesh(const Samples& samples, const uint64_t &bevelSides = 16);
+    Mesh(const Samples& samples, const size_t &bevelSides = 16);
 
     /**
      * @brief Mesh
@@ -111,8 +111,7 @@ public:
      * @param numTriangles
      * @return
      */
-    Mesh* instanciate(const uint64_t &numVertices,
-                      const uint64_t &numTriangles);
+    Mesh* instanciate(const size_t &numVertices, const size_t &numTriangles);
 
     /**
      * @brief getVertices
@@ -131,7 +130,7 @@ public:
      * @param pMin
      * @param pMax
      */
-    void getTriangleBoundingBox(const uint64_t &triangleIndex, Vector3f& pMin, Vector3f& pMax) const;
+    void getTriangleBoundingBox(const size_t &triangleIndex, Vector3f& pMin, Vector3f& pMax) const;
 
     /**
      * @brief translate
@@ -359,7 +358,7 @@ public:
      * @param vertexList
      * @param triangleList
      */
-    void subdivideTriangleAtCentroid(const uint64_t& triangleIndex,
+    void subdivideTriangleAtCentroid(const size_t& triangleIndex,
                                      std::vector< Vector3f >& vertexList,
                                      std::vector< Triangle >& triangleList);
 
@@ -369,11 +368,15 @@ public:
      * @param vertexList
      * @param triangleList
      */
-    void subdivideTriangleAtEdges(const uint64_t& triangleIndex,
+    void subdivideTriangleAtEdges(const size_t& triangleIndex,
                                   std::vector< Vector3f >& vertexList,
                                   std::vector< Triangle >& triangleList);
 
-    void refineSelectedTriangles(const std::vector<uint64_t> &trianglesIndices);
+    /**
+     * @brief refineSelectedTriangles
+     * @param trianglesIndices
+     */
+    void refineSelectedTriangles(const std::vector< size_t > &trianglesIndices);
 
     /**
      * @brief refineROIs
@@ -420,7 +423,7 @@ public:
      * @param smoothingIterations
      * @param denseFactor
      */
-    void optimize(const uint64_t &optimizationIterations,
+    void optimize(const size_t &optimizationIterations,
                   const int64_t &smoothingIterations,
                   const float& denseFactor);
 
@@ -431,8 +434,8 @@ public:
      * @param flatFactor
      * @param denseFactor
      */
-    void optimizeAdaptively(const uint64_t &optimizationIterations,
-                            const uint64_t &smoothingIterations,
+    void optimizeAdaptively(const size_t &optimizationIterations,
+                            const size_t &smoothingIterations,
                             const float &flatFactor,
                             const float &denseFactor);
 
@@ -444,8 +447,8 @@ public:
      * @param denseCoarseFactor
      * @param regions
      */
-    void optimizeAdapttivelyWithROI(const uint64_t &optimizationIterations,
-                                    const uint64_t &smoothingIterations,
+    void optimizeAdapttivelyWithROI(const size_t &optimizationIterations,
+                                    const size_t &smoothingIterations,
                                     const float &flatFactor,
                                     const float &denseFactor,
                                     const ROIs &regions);
@@ -495,13 +498,13 @@ public:
      * @brief getNumberVertices
      * @return
      */
-    uint64_t getNumberVertices() const;
+    size_t getNumberVertices() const;
 
     /**
      * @brief getNumberTriangles
      * @return
      */
-    uint64_t getNumberTriangles() const;
+    size_t getNumberTriangles() const;
 
     /**
      * @brief applyLaplacianSmooth
@@ -536,7 +539,7 @@ public:
      * @param numIterations
      * Number of iterations.
      */
-    void smoothSurface(uint64_t numIterations);
+    void smoothSurface(size_t numIterations);
 
 
 
@@ -605,7 +608,7 @@ private:
      * @return
      */
     Vector3f _computeKernel(Mesh& mesh,
-                            const uint64_t vertexIndex,
+                            const size_t vertexIndex,
                             Neighbors& verticesN,
                             Neighbors& facesN);
 
@@ -631,7 +634,7 @@ private:
      * @return
      */
     Vector3f _smoothVertex(Mesh& mesh,
-                           const uint64_t vertexIndex,
+                           const size_t vertexIndex,
                            const Vector3f kernel,
                            const float param);
 
@@ -641,7 +644,7 @@ private:
      * @param vIndex
      * @return
      */
-    inline bool _triangleContainsVertex(const Triangle & t, const uint64_t vIndex)
+    inline bool _triangleContainsVertex(const Triangle & t, const size_t vIndex)
     {
         return (I2UI64(t.x()) == vIndex || I2UI64(t.y()) == vIndex || I2UI64(t.z()) == vIndex);
     }
@@ -720,13 +723,13 @@ private:
      * @brief numberVertices
      * Number of vertices in the mesh.
      */
-    uint64_t _numberVertices;
+    size_t _numberVertices;
 
     /**
      * @brief numberTriangles
      * Number of triangles (or faces) in the meshes.
      */
-    uint64_t _numberTriangles;
+    size_t _numberTriangles;
 
     /**
      * @brief defaultOptimizationTime

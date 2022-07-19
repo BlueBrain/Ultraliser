@@ -35,9 +35,9 @@ Volume* createVolumeGrid(Mesh *mesh, const AppOptions* options)
     // Get the largest dimension
     const float largestDimension = meshBoundingBox.getLargestDimension();
 
-    uint64_t resolution;
+    size_t resolution;
     if (options->scaledResolution)
-        resolution = uint64_t(options->voxelsPerMicron * largestDimension);
+        resolution = static_cast< size_t >(options->voxelsPerMicron * largestDimension);
     else
         resolution = options->volumeResolution;
     LOG_SUCCESS("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);
@@ -69,7 +69,7 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
         size_t loadedMeshCount = 0;
         PROGRESS_SET;
         OMP_PARALLEL_FOR
-        for (uint64_t iMesh = 0; iMesh < meshFiles.size(); ++iMesh)
+        for (size_t iMesh = 0; iMesh < meshFiles.size(); ++iMesh)
         {
             // Create and load the mesh from the file
             std::string meshName= meshFiles[iMesh];
@@ -122,7 +122,7 @@ void computeBoundingBoxForMeshes(const std::string& boundsFile,
 
         LOOP_STARTS("Computing Bounding Box");
         TIMER_RESET;
-        for(uint64_t iMesh = 0; iMesh < meshFiles.size(); ++iMesh)
+        for(size_t iMesh = 0; iMesh < meshFiles.size(); ++iMesh)
         {
             LOOP_PROGRESS(iMesh,  meshFiles.size());
 
@@ -463,7 +463,7 @@ void optimizeMeshWithPartitions(AdvancedMesh* mesh, const AppOptions* options)
     }
 
     // Process the rest of the partitions
-    for (uint64_t i = 0; i < partitions.size(); ++i)
+    for (size_t i = 0; i < partitions.size(); ++i)
     {
         LOG_SUCCESS("Partition [%d / %d]", i, partitions.size());
 

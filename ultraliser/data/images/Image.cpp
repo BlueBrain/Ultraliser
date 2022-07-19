@@ -48,7 +48,7 @@ void Image::_allocateMemory(void)
     _data = new uint8_t[_numberPixels];
 
     // Fill black for the moment
-    for (uint64_t i = 0; i < _numberPixels; ++i)
+    for (size_t i = 0; i < _numberPixels; ++i)
         _data[i] = BLACK;
 }
 
@@ -77,12 +77,12 @@ void Image::writePPM(const std::string &prefix) const
     FILE *image = fopen(stream.str().c_str(), "wb");
     fprintf(image, "P6\n%ld %ld\n255\n", getWidth(), getHeight());
 
-    uint64_t index = 0;
+    size_t index = 0;
     for (int64_t i = 0; i < getWidth(); ++i)
     {
         for (int64_t j = 0; j < getHeight(); ++j)
         {
-            uint64_t index1D = I2UI64(getWidth() * getHeight()) - index;
+            size_t index1D = static_cast< size_t >(getWidth() * getHeight()) - index;
             uint8_t value;
 
             if (PIXEL_COLOR(_data[index1D]) == WHITE)

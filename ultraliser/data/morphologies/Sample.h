@@ -39,7 +39,7 @@ public:
      * @param radius
      * The radius of the sample.
      */
-    Sample(const Vector3f &position, const float &radius, const uint64_t& index);
+    Sample(const Vector3f &position, const float &radius, const size_t& index);
 
 public:
 
@@ -59,13 +59,13 @@ public:
      * @brief getIndex
      * @return
      */
-    uint64_t getIndex() const;
+    size_t getIndex() const;
 
     /**
      * @brief setIndex
      * @param index
      */
-    void setIndex(const uint64_t index);
+    void setIndex(const size_t index);
 
     /**
      * @brief isLocatedInBoundingBox
@@ -104,7 +104,7 @@ private:
      * @brief _index
      * The unique index of the sample.
      */
-    uint64_t _index;
+    size_t _index;
 };
 
 /**

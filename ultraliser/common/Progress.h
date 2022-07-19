@@ -36,7 +36,7 @@
  * The total langth of the progress bar.
  */
 static inline void printProgressBar(
-        const uint64_t& current, const uint64_t& total, const uint64_t barLength = 50)
+        const size_t& current, const size_t& total, const size_t barLength = 50)
 {
     float percentage = ((100.f * current) / (1.f * total));
     float starts = std::floor((percentage * barLength) / 100.f);
@@ -60,11 +60,11 @@ static inline void printProgressBar(
  * The total langth of the progress bar.
  */
 static inline void printFractionProgressBar(
-        const uint64_t& current, const uint64_t& total, const uint64_t barLength = 50)
+        const size_t& current, const size_t& total, const size_t barLength = 50)
 {
     float percentage = ((100.f * current) / (1.f * total));
 
-    if (static_cast< uint64_t >(percentage) % 10 == 0)
+    if (static_cast< size_t >(percentage) % 10 == 0)
     {
         float starts = std::floor((percentage * barLength) / 100.f);
         float spaces = std::floor(barLength - starts);
@@ -83,7 +83,7 @@ static inline void printFractionProgressBar(
  * @param progressValue
  * The progress value to be updated.
  */
-static void inline progressUpdate(uint64_t& progressValue)
+static void inline progressUpdate(size_t& progressValue)
 {
 #ifdef ULTRALISER_USE_OPENMP
 #pragma omp atomic
@@ -92,7 +92,7 @@ static void inline progressUpdate(uint64_t& progressValue)
 }
 
 // Setting a counter
-#define LOOP_COUNTER_SET uint64_t COUNTER = 0
+#define LOOP_COUNTER_SET size_t COUNTER = 0
 #define LOOP_COUNTER_RESET COUNTER = 0
 
 // Prints a simple message before starting the loop
@@ -111,7 +111,7 @@ static void inline progressUpdate(uint64_t& progressValue)
 #define PROGRESS ULTRALISER_PROGRESS
 
 // Set the progress to zero
-#define PROGRESS_SET uint64_t ULTRALISER_PROGRESS = 0
+#define PROGRESS_SET size_t ULTRALISER_PROGRESS = 0
 
 // Reset the progress
 #define PROGRESS_RESET ULTRALISER_PROGRESS = 0

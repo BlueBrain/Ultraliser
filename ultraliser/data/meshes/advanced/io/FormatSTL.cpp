@@ -281,8 +281,8 @@ void AdvancedMesh::exportSTL(const std::string &filePath)
     Node *node;
     AdvancedTriangle *triangle;
     AdvancedPoint normal;
-    uint64_t progress = 0;
-    uint64_t numberTriangles = _triangles.numberElements();
+    size_t progress = 0;
+    size_t numberTriangles = _triangles.numberElements();
     LOOP_STARTS("Writing Vertices, Normals and Triangles")
     FOR_EACH_TRIANGLE(triangle, node)
     {

@@ -26,8 +26,8 @@ namespace Ultraliser
 
 void saveColorMappedProjection(const std::string &prefix,
                                const double *projection,
-                               const uint64_t &projectionWidth,
-                               const uint64_t &projectionHeight,
+                               const size_t &projectionWidth,
+                               const size_t &projectionHeight,
                                const double &minValue,
                                const double &maxValue,
                                const std::string &colorMap)
@@ -40,7 +40,7 @@ void saveColorMappedProjection(const std::string &prefix,
 #ifdef ULTRALISER_USE_OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
 #endif
-    for (uint64_t index = 0; index < projectionWidth * projectionHeight; ++index)
+    for (size_t index = 0; index < projectionWidth * projectionHeight; ++index)
     {
         coloredProjection[index] =
                 ColorMap::getRGBColorF(projection[index], minValue, maxValue, colorMap);
@@ -57,8 +57,8 @@ void saveColorMappedProjection(const std::string &prefix,
 
 void saveColorMappedProjectionWithAllColorMaps(const std::string &prefix,
                                                const double* projection,
-                                               const uint64_t &projectionWidth,
-                                               const uint64_t &projectionHeight,
+                                               const size_t &projectionWidth,
+                                               const size_t &projectionHeight,
                                                const double& minValue,
                                                const double& maxValue)
 {
@@ -66,7 +66,7 @@ void saveColorMappedProjectionWithAllColorMaps(const std::string &prefix,
     TIMER_SET;
 
     LOOP_STARTS("Color Coded Projections");
-    for (uint64_t i = 0; i < ColorMap::MAPS.size(); ++i)
+    for (size_t i = 0; i < ColorMap::MAPS.size(); ++i)
     {
         LOOP_PROGRESS(i, ColorMap::MAPS.size());
         saveColorMappedProjection(prefix, projection, projectionWidth, projectionHeight,

@@ -66,7 +66,7 @@ void AdvancedMesh::importOFF(const std::string &filePath)
     } while (line[0] == '#' || line[0] == '\0' || !sscanf(line, "%256s", streamData));
 
     // Got the first line, that has the data of the mesh
-    uint64_t numberVertices, numberTriangles, numberEdges;
+    size_t numberVertices, numberTriangles, numberEdges;
     if (sscanf(line, "%" PRIu64 " %" PRIu64 " %" PRIu64 "",
                &numberVertices, &numberTriangles, &numberEdges) < 3)
     {
@@ -89,7 +89,7 @@ void AdvancedMesh::importOFF(const std::string &filePath)
     File::skipCommentAndBlankLines(filePointer);
 
     // For all the vertices
-    for (uint64_t i = 0; i < numberVertices; ++i)
+    for (size_t i = 0; i < numberVertices; ++i)
     {
         // Vertex
         float x, y, z;
@@ -106,7 +106,7 @@ void AdvancedMesh::importOFF(const std::string &filePath)
     // Create the extended vertices for the connectivity information
     ExtendedVertex **extendedVertices =
             (ExtendedVertex**) malloc(sizeof(ExtendedVertex*) * numberVertices);
-    uint64_t vertexIndex = 0;
+    size_t vertexIndex = 0;
     Node *node;
     AdvancedVertex *vertex;
     FOR_EACH_VERTEX(vertex, node) extendedVertices[vertexIndex++] = new ExtendedVertex(vertex);
@@ -115,10 +115,10 @@ void AdvancedMesh::importOFF(const std::string &filePath)
 
     // Triangles data
     bool triangulate = false;
-    for (uint64_t i = 0; i < numberTriangles; ++i)
+    for (size_t i = 0; i < numberTriangles; ++i)
     {
         // Scan the triangle data
-        uint64_t i1, i2, i3, i4;
+        size_t i1, i2, i3, i4;
         if (fscanf(filePointer,"%" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "",
                    &i4, &i1, &i2, &i3) == 4)
         {
@@ -128,7 +128,7 @@ void AdvancedMesh::importOFF(const std::string &filePath)
                 LOG_ERROR("Invalid index at face [ %" PRIu64 "]!", i);
             }
 
-            for (uint64_t j = 3; j <= i4; j++)
+            for (size_t j = 3; j <= i4; j++)
             {
                 if (i1 == i2 || i2 == i3 || i3 == i1)
                 {
@@ -193,8 +193,8 @@ void AdvancedMesh::exportOFF(const std::string &filePath)
     // Vertex data
     Node *node;
     AdvancedVertex *vertex;
-    uint64_t progress = 0;
-    uint64_t numberVertices = _vertices.numberElements();
+    size_t progress = 0;
+    size_t numberVertices = _vertices.numberElements();
     LOOP_STARTS("Writing Vertices")
     FOR_EACH_VERTEX(vertex, node)
     {
@@ -217,7 +217,7 @@ void AdvancedMesh::exportOFF(const std::string &filePath)
     FOR_EACH_VERTEX(vertex, node) vertex->x = i++;
 
     // Triangle data
-    uint64_t numberTriangles = _triangles.numberElements();
+    size_t numberTriangles = _triangles.numberElements();
     progress = 0;
     TIMER_RESET;
     LOOP_STARTS("Writing Vertices")

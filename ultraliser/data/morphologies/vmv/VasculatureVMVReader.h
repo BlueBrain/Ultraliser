@@ -77,19 +77,19 @@ private:
      * @brief _numberVerts
      * Number of samples in the morphology.
      */
-    uint64_t _numberVerts;
+    size_t _numberVerts;
 
     /**
      * @brief _numberStrands
      * Number of strands or edges in the morphology.
      */
-    uint64_t _numberStrands;
+    size_t _numberStrands;
 
     /**
      * @brief _numberAttributesPerVertex
      * Number of attributes per vertex.
      */
-    uint64_t _numberAttributesPerVertex;
+    size_t _numberAttributesPerVertex;
 
     /**
      * @brief _vmvMorphologyFile
