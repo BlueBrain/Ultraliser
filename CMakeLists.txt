@@ -36,17 +36,16 @@ include(TIFF)
 include(HDF5)
 include(Eigen3)
 include(GLM)
+include(FMT)
 include(ZLIB)
 include(BZip2)
 
-#include(Doxygen)
-
+# By default add the /usr/include into the path
 include_directories("/usr/include")
 
 # C++ 17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 
 # Installation directories
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
@@ -75,37 +74,73 @@ endif()
 message("*****************************************************************************************")
 message("* Dependencies Verification")
 if(ULTRALISER_USE_OPENMP)
-    message("   * OpenMP OK")
+    message("   * OpenMP        OK")
 else(ULTRALISER_USE_OPENMP)
-    message("   * OpenMP NOT INSTALLED")
+    message("   * OpenMP        NOT INSTALLED")
 endif(ULTRALISER_USE_OPENMP)
 
 if(ULTRALISER_USE_H5)
-    message("   * HDF5 OK")
+    message("   * HDF5          OK")
 else(ULTRALISER_USE_H5)
-    message("   * HDF5 NOT INSTALLED!")
+    message("   * HDF5          NOT INSTALLED!")
 endif(ULTRALISER_USE_H5)
 
 if(ULTRALISER_USE_TIFF)
-    message("   * TIFF OK")
+    message("   * TIFF          OK")
 else(ULTRALISER_USE_TIFF)
-    message("   * TIFF NOT INSTALLED!")
+    message("   * TIFF          NOT INSTALLED!")
 endif(ULTRALISER_USE_TIFF)
 
 if(ULTRALISER_USE_EIGEN3)
-    message("   * EIGEN3 OK")
+    message("   * EIGEN3        OK")
 else(ULTRALISER_USE_EIGEN3)
-    message("   * EIGEN3 NOT INSTALLED!")
+    message("   * EIGEN3        NOT INSTALLED!")
 endif(ULTRALISER_USE_EIGEN3)
 
-if(ULTRALISER_USE_ZLIB AND ULTRALISER_USE_BZIP2)
-    message("   * BZIP2 and ZLIB2 OK")
-else(ULTRALISER_USE_ZLIB AND ULTRALISER_USE_BZIP2)
-    message("   * BZIP2 & ZLIB2 NOT INSTALLED!")
-endif(ULTRALISER_USE_ZLIB AND ULTRALISER_USE_BZIP2)
+if(ULTRALISER_USE_ZLIB)
+    message("   * ZLIB          OK")
+else(ULTRALISER_USE_ZLIB)
+    message("   * ZLIB          NOT INSTALLED!")
+endif(ULTRALISER_USE_ZLIB)
+
+if(ULTRALISER_USE_BZIP2)
+    message("   * BZIP2         OK")
+else(ULTRALISER_USE_BZIP2)
+    message("   * BZIP2         NOT INSTALLED!")
+endif(ULTRALISER_USE_BZIP2)
+
+if(ULTRALISER_USE_GLM)
+    message("   * GLM           OK")
+else(ULTRALISER_USE_GLM)
+    message("   * GLM           NOT INSTALLED!")
+endif(ULTRALISER_USE_GLM)
+
+if(ULTRALISER_USE_FMT)
+    message("   * FMT           OK")
+else(ULTRALISER_USE_FMT)
+    message("   * FMT           NOT INSTALLED!")
+endif(ULTRALISER_USE_FMT)
+
+if(ULTRALISER_USE_ZLIB AND
+   ULTRALISER_USE_BZIP2 AND
+   ULTRALISER_USE_GLM AND
+   ULTRALISER_USE_FMT)
+    message("   * NRRD Deps.    OK")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DULTRALISER_USE_NRRD")
+    set(ULTRALISER_USE_NRRD TRUE)
+else(ULTRALISER_USE_ZLIB AND
+     ULTRALISER_USE_BZIP2 AND
+     ULTRALISER_USE_GLM AND
+     ULTRALISER_USE_FMT)
+    message("   * NRRD Deps.    NOT INSTALLED!")
+    set(ULTRALISER_USE_NRRD FALSE)
+endif(ULTRALISER_USE_ZLIB AND
+      ULTRALISER_USE_BZIP2 AND
+      ULTRALISER_USE_GLM AND
+      ULTRALISER_USE_FMT)
 message("*****************************************************************************************")
 
-# NRRD library, from Brayns
+# Extenral libraries, mainly the NRRD library, from Brayns
 add_subdirectory(externals)
 
 # Ultraliser library
@@ -113,6 +148,3 @@ add_subdirectory(ultraliser)
 
 # Ultraliser applications
 add_subdirectory(apps)
-
-# Adding documentation
-# add_subdirectory(doc)

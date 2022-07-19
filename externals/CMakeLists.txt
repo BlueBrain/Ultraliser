@@ -26,4 +26,6 @@
 # You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
 ####################################################################################################
 
-add_subdirectory(nrrdlib)
+if (${ULTRALISER_USE_NRRD})
+    add_subdirectory(nrrdlib)
+endif(${ULTRALISER_USE_NRRD})

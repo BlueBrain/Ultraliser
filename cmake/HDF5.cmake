@@ -51,5 +51,6 @@ if(HDF5_FOUND)
         ${HDF5_C_HL_LIBRARIES} ${HDF5_CXX_HL_LIBRARIES})
 else(HDF5_FOUND)
      message(STATUS "HDF5 NOT Found")
+     set(ULTRALISER_USE_H5 FALSE)
 endif(HDF5_FOUND)
 
