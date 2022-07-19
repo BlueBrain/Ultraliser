@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2018 - 2021
+ * Copyright (c) 2018 - 2022
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
