@@ -118,8 +118,7 @@ void AdvancedMesh::importOFF(const std::string &filePath)
     {
         // Scan the triangle data
         size_t i1, i2, i3, i4;
-        if (fscanf(filePointer,"%" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "",
-                   &i4, &i1, &i2, &i3) == 4)
+        if (fscanf(filePointer,"%zu %zu %zu %zu", &i4, &i1, &i2, &i3) == 4)
         {
             if (i1 < 0 || i2 < 0 || i3 < 0 || i4 < 3 ||
                 i1 > (numberVertices - 1) || i2 > (numberVertices - 1) || i3 > (numberVertices - 1))
@@ -144,7 +143,7 @@ void AdvancedMesh::importOFF(const std::string &filePath)
                 i2 = i3;
                 if (j < i4)
                 {
-                    if (fscanf(filePointer, "%" PRIu64 "", &i3) != 1)
+                    if (fscanf(filePointer, "%zu", &i3) != 1)
                     {
                         LOG_ERROR("Could not read indexes for face [ %" PRIu64 "]", i);
                     }

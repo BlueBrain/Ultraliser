@@ -146,7 +146,7 @@ void AdvancedMesh::exportPLY(const std::string &filePath, bool writeASCII)
     }
 
     // Vertex count
-    fprintf(filePointer, "element vertex %" PRIu64 "",_vertices.numberElements());
+    fprintf(filePointer, "element vertex %zu",_vertices.numberElements());
     fprintf(filePointer, "\n");
 
     fprintf(filePointer, "property float x");
@@ -157,7 +157,7 @@ void AdvancedMesh::exportPLY(const std::string &filePath, bool writeASCII)
     fprintf(filePointer, "\n");
 
     // Triangle count
-    fprintf(filePointer, "element face %" PRIu64 "",_triangles.numberElements());
+    fprintf(filePointer, "element face %zu",_triangles.numberElements());
     fprintf(filePointer, "\n");
     fprintf(filePointer, "property list uchar int vertex_indices");
     fprintf(filePointer, "\n");
