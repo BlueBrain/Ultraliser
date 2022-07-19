@@ -37,14 +37,14 @@ namespace Utilities
  * @param height
  */
 void savePPMLuminanceImage(const std::string &imageName,
-                  const uint8_t *imageData,
-                  const int64_t &width,
-                  const int64_t &height);
+                           const uint8_t *imageData,
+                           const size_t &width,
+                           const size_t &height);
 
 void savePPMLuminanceImage(const std::string &imageName,
                            const uint16_t *imageData,
-                           const int64_t &width,
-                           const int64_t &height);
+                           const size_t &width,
+                           const size_t &height);
 
 /**
  * @brief savePPMColoredImage
@@ -55,8 +55,8 @@ void savePPMLuminanceImage(const std::string &imageName,
  */
 void savePPMColoredImage(const std::string &imageName,
                          const Vector3f* imageData,
-                         const int64_t &width,
-                         const int64_t &height);
+                         const size_t &width,
+                         const size_t &height);
 
 /**
  * @brief savePPMColoredImage
@@ -67,8 +67,8 @@ void savePPMColoredImage(const std::string &imageName,
  */
 void savePPMColoredImage(const std::string &imageName,
                          const Vector4f* imageData,
-                         const int64_t &width,
-                         const int64_t &height);
+                         const size_t &width,
+                         const size_t &height);
 
 /**
  * @brief saveBrainbowImage
@@ -79,8 +79,8 @@ void savePPMColoredImage(const std::string &imageName,
  */
 void saveBrainbowImage(const std::string &imageName,
                        const Vector4f *imageData,
-                       const int64_t &width,
-                       const int64_t &height);
+                       const size_t &width,
+                       const size_t &height);
 
 }
 }

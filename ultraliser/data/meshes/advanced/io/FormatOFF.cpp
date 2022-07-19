@@ -186,8 +186,7 @@ void AdvancedMesh::exportOFF(const std::string &filePath)
     fprintf(filePointer, "\n");
 
     // Triangle and vertex count
-    fprintf(filePointer, "%" PRIu64 " %" PRIu64 " 0",
-            _vertices.numberElements(), _triangles.numberElements());
+    fprintf(filePointer, "%zu %zu 0", _vertices.numberElements(), _triangles.numberElements());
     fprintf(filePointer, "\n");
 
     // Vertex data

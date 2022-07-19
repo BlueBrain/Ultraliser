@@ -44,7 +44,7 @@ public:
      * @param y
      * @return
      */
-    bool isPixelFilled(int32_t x, int32_t y);
+    bool isPixelFilled(const uint32_t& x, const uint32_t& y);
 
     /**
      * @brief setimageFile
@@ -139,12 +139,12 @@ private:
     /**
      * @brief _imageWidth
      */
-    int32_t _imageWidth;
+    uint32_t _imageWidth;
 
     /**
      * @brief _imageHeight
      */
-    int32_t _imageHeight;
+    uint32_t _imageHeight;
 
     /**
      * @brief _imageOrientation

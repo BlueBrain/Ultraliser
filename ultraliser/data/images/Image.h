@@ -44,12 +44,6 @@ public:
 
     /**
      * @brief Image
-     * @param dimensions
-     */
-    Image(const Vec2i_64& dimensions);
-
-    /**
-     * @brief Image
      * @param width
      * @param height
      */
@@ -60,13 +54,13 @@ public:
      * @brief getWidth
      * @return
      */
-    int64_t getWidth() const { return _dimensions.v[0]; }
+    size_t getWidth() const { return _width; }
 
     /**
      * @brief getHeight
      * @return
      */
-    int64_t getHeight() const { return _dimensions.v[1]; }
+    size_t getHeight() const { return _height; }
 
     /**
      * @brief getNumberPixels
@@ -80,13 +74,12 @@ public:
      * @param y
      * @return
      */
-    size_t mapToIndex(const int64_t &x,
-                        const int64_t &y) const
+    size_t mapToIndex(const int64_t &x, const int64_t &y) const
     {
 
         if(x >= getWidth()  || x < 0 || y >= getHeight() || y < 0)
             LOG_ERROR("Index [%d, %d] is out of bound", x, y);
-        return I2UI64((x + (_dimensions.v[0] * y)));
+        return I2UI64((x + (_width * y)));
     }
 
     /**
@@ -178,9 +171,14 @@ private:
 private:
 
     /**
-     * @brief _dimensions
+     * @brief _width
      */
-    Vec2i_64 _dimensions;
+    size_t _width;
+
+    /**
+     * @brief height
+     */
+    size_t _height;
 
     /**
      * @brief _numberPixels

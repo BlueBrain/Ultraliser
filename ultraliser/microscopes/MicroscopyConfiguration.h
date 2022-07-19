@@ -70,13 +70,13 @@ struct MicroscopyConfiguration
      * @brief imageResolution
      * Image resolution of the microscope.
      */
-    uint64_t imageResolution;
+    size_t imageResolution;
 
     /**
      * @brief numberFocalPlanes
      * Number of focal planes used to slice the volume.
      */
-    uint64_t numberFocalPlanes;
+    size_t numberFocalPlanes;
 
     /**
      * @brief focusAllObjects

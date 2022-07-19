@@ -25,20 +25,13 @@
 namespace Ultraliser
 {
 
-Image::Image(const Vec2i_64 &dimensions)
-{
-    _dimensions = dimensions;
-    _numberPixels = I2UI64(dimensions.v[0] * dimensions.v[1]);
-
-    _allocateMemory();
-}
-
 Image::Image(const int64_t &width, const int64_t &height)
 {
-    _dimensions.v[0] = width;
-    _dimensions.v[1] = height;
-    _numberPixels = I2UI64(_dimensions.v[0] * _dimensions.v[1]);
+    _width = width;
+    _height = height;
+    _numberPixels = _width * _height;
 
+    // Allocate the memory of the image
     _allocateMemory();
 }
 
@@ -59,15 +52,15 @@ void Image::_freeMemory(void)
 
 int64_t Image::dimension(const int& i) const
 {
-    switch (i)
+    if (i == 0)
+        return _width;
+    else if (i == 1)
+        return _height;
+    else
     {
-        case 0 :
-            return getWidth();
-        case 1:
-            return getHeight();
+        LOG_WARNING("Image::dimension accepts ONLY 0 or 1!");
+        return 0;
     }
-
-    return 0;
 }
 
 void Image::writePPM(const std::string &prefix) const
@@ -78,11 +71,11 @@ void Image::writePPM(const std::string &prefix) const
     fprintf(image, "P6\n%ld %ld\n255\n", getWidth(), getHeight());
 
     size_t index = 0;
-    for (int64_t i = 0; i < getWidth(); ++i)
+    for (size_t i = 0; i < _width; ++i)
     {
-        for (int64_t j = 0; j < getHeight(); ++j)
+        for (size_t j = 0; j < _height; ++j)
         {
-            size_t index1D = static_cast< size_t >(getWidth() * getHeight()) - index;
+            size_t index1D = (getWidth() * getHeight()) - index;
             uint8_t value;
 
             if (PIXEL_COLOR(_data[index1D]) == WHITE)

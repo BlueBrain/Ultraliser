@@ -54,8 +54,7 @@ void TiffImage::setCompressionOutput(const uint32_t &compressionLevel)
     }
     else
     {
-        LOG_ERROR( "Supported values for compression are "
-                   "5(LZW), 7(JPEG), 32909(DEFLATE)!");
+        LOG_ERROR( "Supported values for compression are 5(LZW), 7(JPEG), 32909(DEFLATE)!");
     }
 }
 
@@ -64,23 +63,24 @@ uint32_t TiffImage::getCompressionOuput()
     return this->_compressionOutput;
 }
 
-uint32_t rgbaFloatToInt(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
+uint32_t rgbaFloatToInt(const uint32_t& r, const uint32_t& g, const uint32_t& b, const uint32_t& a)
 {
 
-    return a<<24 | b<<16 | g<<8 | r;
+    return a << 24 | b << 16 | g << 8 | r;
 }
 
 
-bool TiffImage::isPixelFilled(int32_t x, int32_t y)
+bool TiffImage::isPixelFilled(const uint32_t &x, const uint32_t &y)
 {
 #ifdef ULTRALISER_USE_TIFF
-    int32 index = x + (_imageWidth * y);
-    uint32_t value = _imageBuffer[I2UI32(index)];
+    size_t index = x + (_imageWidth * y);
+    uint32_t value = _imageBuffer[index];
 
     uint32_t r = TIFFGetR(value);
     uint32_t g = TIFFGetG(value);
     uint32_t b = TIFFGetB(value);
     uint32_t a = TIFFGetA(value);
+
     if (r > 0 || g > 0 || b > 0)
         return true;
     return false;
@@ -107,14 +107,11 @@ void TiffImage::readImage()
         TIFFGetField(tiffImage, TIFFTAG_ORIENTATION, &_imageOrientation);
 
         numberPixels = _imageWidth * _imageHeight;
-        raster = static_cast< uint32_t* >
-                (_TIFFmalloc(I2UI32(numberPixels) * sizeof (uint32_t)));
+        raster = static_cast< uint32_t* > (_TIFFmalloc(numberPixels * sizeof (uint32_t)));
 
         if (raster != nullptr)
         {
-            if (TIFFReadRGBAImage(tiffImage,
-                                  I2UI32(_imageWidth), I2UI32(_imageHeight),
-                                  raster, 0))
+            if (TIFFReadRGBAImage(tiffImage, (_imageWidth), (_imageHeight), raster, 0))
             {
                 // Process raster data
                 // Write data in vector member so we can do with it what we want
@@ -147,18 +144,18 @@ void TiffImage::readImage()
             // got to swap our vector. this means we hve to swap first row with
             // last and so on.
             uint32_t upBufPos, downBufPos;
-            for (uint32_t i = 0 ; i < I2UI32(this->_imageHeight) / 2; ++i)
+            for (uint32_t i = 0 ; i < I2UI32(_imageHeight) / 2; ++i)
             {
-                for (uint32_t j = 0 ; j < I2UI32(this->_imageWidth); ++j)
+                for (uint32_t j = 0 ; j < _imageWidth; ++j)
                 {
-                    upBufPos = i * I2UI32(this->_imageWidth) + j;
+                    upBufPos = i * _imageWidth + j;
                     if (i * j == 0)
                     {
                         upBufPos = i+j;
                     }
 
-                    downBufPos = ((I2UI32(this->_imageHeight) - i - 1) *
-                                   I2UI32(this->_imageWidth)) + j;
+                    downBufPos = (((this->_imageHeight) - i - 1) *
+                                   (this->_imageWidth)) + j;
                     std::swap(this->_imageBuffer[upBufPos],
                               this->_imageBuffer[downBufPos]);
                 }
@@ -212,7 +209,7 @@ bool TiffImage::writeImage(const std::string &outFile)
 #endif
 }
 
-int TiffImage::getComplementaryColour(const std::vector<int32_t> &rgb)
+int TiffImage::getComplementaryColour(const std::vector< int32_t > &rgb)
 {
     // RGB to HEX
     std::string hexValue = this->rgbToHex(rgb);
@@ -226,7 +223,7 @@ int TiffImage::getComplementaryColour(const std::vector<int32_t> &rgb)
 }
 
 
-std::string TiffImage::rgbToHex(const std::vector<int32_t> &rgb)
+std::string TiffImage::rgbToHex(const std::vector< int32_t > &rgb)
 {
     // Rgb to hex
     std::string hexvalue = "";
@@ -258,11 +255,11 @@ std::vector<int32_t> TiffImage::hextToRGB(const std::string &hexVal)
     {
         std::string rgbString;
         rgbString += hexVal[i];
-        rgbString += hexVal[i+1];
+        rgbString += hexVal[i + 1];
 
         stringStream << std::hex << rgbString;
         stringStream >> j;
-        complementaryRGB.push_back(I2I32(j));
+        complementaryRGB.push_back(j);
     }
     return complementaryRGB;
 }
@@ -273,7 +270,7 @@ std::string TiffImage::subtractHex(const std::string &hexValue)
     std::string subtractedHex;
     std::stringstream stringStream;
 
-    for (int64_t i = I2I64(hexValue.length()) - 1; i >= 0 ; --i)
+    for (size_t i = hexValue.length() - 1; i >= 0 ; --i)
     {
         // Get hex value when we subtract two other hex values
         size_t posHexWhite = this->_hexadecimal.find(hexWhite[I2UI64(i)]);

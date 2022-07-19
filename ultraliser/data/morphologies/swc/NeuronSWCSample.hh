@@ -48,7 +48,7 @@ struct NeuronSWCSample
      *@brief id
      * Sample index
      */
-    uint64_t id;
+    size_t id;
     
     /**
      *@brief type

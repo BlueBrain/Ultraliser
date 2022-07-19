@@ -30,8 +30,8 @@ namespace Utilities
 
 void savePPMLuminanceImage(const std::string &imageName,
                            const uint8_t *imageData,
-                           const int64_t &width,
-                           const int64_t &height)
+                           const size_t &width,
+                           const size_t &height)
 {
     // Make the file
     std::stringstream imageStream;
@@ -47,7 +47,7 @@ void savePPMLuminanceImage(const std::string &imageName,
         for (int64_t j = 0; j < height; ++j)
         {
             uint8_t color[3];
-            size_t index1D = I2UI64(width * height) - index;
+            size_t index1D = (width * height) - index;
             color[0] = imageData[index1D]; // R
             color[1] = imageData[index1D]; // G
             color[2] = imageData[index1D]; // B
@@ -61,8 +61,8 @@ void savePPMLuminanceImage(const std::string &imageName,
 
 void savePPMLuminanceImage(const std::string &imageName,
                            const uint16_t *imageData,
-                           const int64_t &width,
-                           const int64_t &height)
+                           const size_t &width,
+                           const size_t &height)
 {
     // Make the file
     std::stringstream imageStream;
@@ -78,7 +78,7 @@ void savePPMLuminanceImage(const std::string &imageName,
         for (int64_t j = 0; j < height; ++j)
         {
             uint16_t color[3];
-            size_t index1D = I2UI64(width * height) - index;
+            size_t index1D = (width * height) - index;
             color[0] = imageData[index1D]; // R
             color[1] = imageData[index1D]; // G
             color[2] = imageData[index1D]; // B
@@ -91,9 +91,9 @@ void savePPMLuminanceImage(const std::string &imageName,
 }
 
 void savePPMColoredImage(const std::string &imageName,
-                  const Vector3f* imageData,
-                  const int64_t &width,
-                  const int64_t &height)
+                         const Vector3f* imageData,
+                         const size_t &width,
+                         const size_t &height)
 {
     // Make the file
     std::stringstream imageStream;
@@ -108,7 +108,7 @@ void savePPMColoredImage(const std::string &imageName,
     {
         for (int64_t j = 0; j < height; ++j)
         {
-            Vector3f normalizeColor = imageData[I2UI64(width * height) - index] * 255.0;
+            Vector3f normalizeColor = imageData[(width * height) - index] * 255.0;
 
             uint8_t color[3];
             color[0] = F2UI8(normalizeColor.x()); // R
@@ -124,9 +124,9 @@ void savePPMColoredImage(const std::string &imageName,
 }
 
 void savePPMColoredImage(const std::string &imageName,
-                  const Vector4f* imageData,
-                  const int64_t &width,
-                  const int64_t &height)
+                         const Vector4f* imageData,
+                         const int64_t &width,
+                         const int64_t &height)
 {
     // Make the file
     std::stringstream imageStream;
@@ -144,9 +144,9 @@ void savePPMColoredImage(const std::string &imageName,
             Vector4f normalizeColor = imageData[I2UI64(width * height) - index] * 255.0;
 
             uint8_t color[3];
-            color[0] = static_cast<uint8_t> (normalizeColor.x()); // R
-            color[1] = static_cast<uint8_t> (normalizeColor.y()); // G
-            color[2] = static_cast<uint8_t> (normalizeColor.z()); // B
+            color[0] = static_cast< uint8_t > (normalizeColor.x()); // R
+            color[1] = static_cast< uint8_t > (normalizeColor.y()); // G
+            color[2] = static_cast< uint8_t > (normalizeColor.z()); // B
 
             fwrite(color, 1, 3, image);
             index++;
@@ -158,8 +158,8 @@ void savePPMColoredImage(const std::string &imageName,
 
 void saveBrainbowImage(const std::string &imageName,
                        const Vector4f *imageData,
-                       const int64_t &width,
-                       const int64_t &height)
+                       const size_t &width,
+                       const size_t &height)
 {
 
     Vector4f* rgbImage = new Vector4f[width * height];
@@ -169,7 +169,7 @@ void saveBrainbowImage(const std::string &imageName,
     {
         for (int64_t i = 0; i < width; ++i)
         {
-            Vector4f color = imageData[I2UI64(width * height)] * 255.0;
+            Vector4f color = imageData[(width * height)] * 255.0;
 
             rgbImage[3 * index].x() = color.x();
             rgbImage[3 * index].y() = color.y();
