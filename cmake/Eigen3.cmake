@@ -25,13 +25,13 @@
 ####################################################################################################
 
 # Eigen3
-find_package(Eigen3 REQUIRED)
+find_package(Eigen3 3.1.0)
 
 if(EIGEN3_FOUND)
-    message(STATUS "Found EIGEN3: ${EIGEN3_INCLUDE_DIRS}")
+    message(STATUS "Found Eigen3: ${EIGEN3_INCLUDE_DIR}")
 
     # Include directories
-    include_directories(${EIGEN3_INCLUDE_DIRS})
+    include_directories(${EIGEN3_INCLUDE_DIR})
     include_directories(/usr/include)
     include_directories(/usr/local/include)
     include_directories(/opt/local/include)
@@ -39,6 +39,6 @@ if(EIGEN3_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DULTRALISER_USE_EIGEN3")
     set(ULTRALISER_USE_EIGEN3 TRUE)
 else(EIGEN3_FOUND)
-     message(STATUS "EIGEN3 NOT Found")
-     set(ULTRALISER_USE_EIGEN3 FALSE)
+    message(STATUS "EIGEN3 NOT Found")
+    set(ULTRALISER_USE_EIGEN3 FALSE)
 endif(EIGEN3_FOUND)

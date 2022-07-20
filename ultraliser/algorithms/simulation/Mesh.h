@@ -24,7 +24,12 @@
 
 #pragma once
 
+#ifdef ULTRALISER_USE_EIGEN3
 #include "StiffnessMatrix.h"
+#else
+#include "Spring.h"
+#include "Tetrahedron.h"
+#endif
 
 namespace Ultraliser
 {
@@ -64,10 +69,11 @@ public:
      */
     ~Mesh();
     
-
+#ifdef ULTRALISER_USE_EIGEN3
     void computeStiffnessMatrix( float stiffness = 10000.0,
                                  float poissonRatio = 0.3,
                                  float dt = 0.01);
+#endif
 
 public:
     /**
@@ -90,10 +96,13 @@ public:
      */
     Tetrahedra tetrahedra;
 
+#ifdef ULTRALISER_USE_EIGEN3
+
     /**
      * @brief stiffnessMatrix
      */
     StiffnessMatrixPtr stiffnessMatrix;
+#endif
 
 };
 

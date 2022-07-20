@@ -72,6 +72,8 @@ void SomaGeometry::_somaGeometryGeneration(const Samples& somaSamples, const flo
                                            const uint32_t& numIterations)
 {
     auto mesh = _loadIcosphereGeometry();
+    
+#ifdef ULTRALISER_USE_EIGEN3
     mesh->computeStiffnessMatrix(stiffness, poissonRatio, dt);
 
     // Compute the simulation nodes linked to neurites starts
@@ -88,7 +90,7 @@ void SomaGeometry::_somaGeometryGeneration(const Samples& somaSamples, const flo
         _pullNeuritesNodes(neuritesNodes, surfacePositions, somaSamples, alpha);
         animSystem.animate(mesh);
     }
-
+#endif
     _nodesToVertices(mesh->nodes);
 }
 

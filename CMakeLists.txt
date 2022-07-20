@@ -27,7 +27,14 @@
 cmake_minimum_required(VERSION 3.5)
 
 # Ultraliser
-project (Ultraliser)
+project(Ultraliser)
+
+# gcc 8.4 is required
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.4)
+        message(FATAL_ERROR "GCC version must be at least 9.4")
+    endif()
+endif()
 
 #Add CMake customized modules
 set(CMAKE_MODULE_PATH  ${CMAKE_SOURCE_DIR}/cmake)
@@ -68,7 +75,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DULTRALISER_RELEASE")
 
 OPTION(ENABLE_PROGRESS_BAR "Disable the progress bar to gain performance" ON)
 if(ENABLE_PROGRESS_BAR)
-  add_definitions(-DENABLE_PROGRESS_BAR)
+    add_definitions(-DENABLE_PROGRESS_BAR)
 endif()
 
 # Dependencies
@@ -124,22 +131,22 @@ else(ULTRALISER_USE_FMT)
 endif(ULTRALISER_USE_FMT)
 
 if(ULTRALISER_USE_ZLIB AND
-   ULTRALISER_USE_BZIP2 AND
-   ULTRALISER_USE_GLM AND
-   ULTRALISER_USE_FMT)
+    ULTRALISER_USE_BZIP2 AND
+    ULTRALISER_USE_GLM AND
+    ULTRALISER_USE_FMT)
     message("   * NRRD Deps.    OK")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DULTRALISER_USE_NRRD")
     set(ULTRALISER_USE_NRRD TRUE)
 else(ULTRALISER_USE_ZLIB AND
-     ULTRALISER_USE_BZIP2 AND
-     ULTRALISER_USE_GLM AND
-     ULTRALISER_USE_FMT)
+    ULTRALISER_USE_BZIP2 AND
+    ULTRALISER_USE_GLM AND
+    ULTRALISER_USE_FMT)
     message("   * NRRD Deps.    NOT AVAILABLE! nrrdLoader will NOT be compiled.")
     set(ULTRALISER_USE_NRRD FALSE)
 endif(ULTRALISER_USE_ZLIB AND
-      ULTRALISER_USE_BZIP2 AND
-      ULTRALISER_USE_GLM AND
-      ULTRALISER_USE_FMT)
+    ULTRALISER_USE_BZIP2 AND
+    ULTRALISER_USE_GLM AND
+    ULTRALISER_USE_FMT)
 message("*****************************************************************************************")
 message("")
 
