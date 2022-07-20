@@ -158,8 +158,17 @@ void Argument::evaluate(const std::string &argvString)
             std::istream_iterator<std::string> end;
             std::vector<std::string> stringVector(begin, end);
 
-            // Pick the second element
-            _value = stringVector[1];
+            // Ensure that the argument has a value
+            if (stringVector.size() == 1)
+            {
+                LOG_ERROR("The values of the argument [%s] is not provided by the user!",
+                          stringVector[0].c_str());
+            }
+            else
+            {
+                // Pick the second element
+                _value = stringVector[1];
+            }
 
             // Remove all the spaces
             String::removeSubstring(_value, " ");
