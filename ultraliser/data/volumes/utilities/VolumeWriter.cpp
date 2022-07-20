@@ -19,7 +19,7 @@ void writeNRRD(const std::string &prefix, const BitVolumeGrid* grid)
     // Header
     fprintf(fptr, "NRRD0001\n");
     fprintf(fptr, "content: Volume\n");
-    fprintf(fptr, "type: uint16\n");
+    fprintf(fptr, "type: uint8\n");
     fprintf(fptr, "dimension: 3\n");
     // fprintf(fptr, "space dimension: 3\n");
     fprintf(fptr, "sizes: %zu %zu %zu\n", grid->getWidth(), grid->getHeight(), grid->getDepth());
@@ -27,14 +27,19 @@ void writeNRRD(const std::string &prefix, const BitVolumeGrid* grid)
     fprintf(fptr, "endian: little\n");
     fprintf(fptr, "encoding: raw\n");
 
-    LOOP_STARTS("Writing Voxels (1 Byte per voxel)");
+    std::unique_ptr< uint8_t[] > volume = std::make_unique< uint8_t[] >(grid->getNumberVoxels());
+
+    LOOP_STARTS("Constructing Voxel Array");
+    OMP_PARALLEL_FOR
     for (size_t i = 0; i < grid->getNumberVoxels(); ++i)
     {
-        LOOP_PROGRESS(i, grid->getNumberVoxels());
-        uint16_t value = grid->isFilled(i) ? FILLED_UI8_VOXEL_VALUE : EMPTY_VOXEL_VALUE;
-        // fputc(value, fptr);
-        fwrite(&value, 2, 1, fptr);
+        volume[i] = grid->isFilled(i) ? FILLED_UI8_VOXEL_VALUE : EMPTY_VOXEL_VALUE;
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    LOOP_STARTS("Writing Voxels");
+    fwrite(volume.get(), 1, grid->getNumberVoxels(), fptr);
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
 
