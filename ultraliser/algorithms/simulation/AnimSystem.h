@@ -21,8 +21,7 @@
  * Place - Suite 330, Boston, MA 02111-1307, USA. You can also find it on the
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
-
-
+#ifdef ULTRALISER_USE_EIGEN3
 #pragma once
 
 #include "Mesh.h"
@@ -94,3 +93,4 @@ private:
 
 }
 }
+#endif

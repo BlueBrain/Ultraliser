@@ -49,10 +49,12 @@ Mesh::~Mesh()
         delete tetrahedron;
 }
 
+#ifdef ULTRALISER_USE_EIGEN3
 void Mesh::computeStiffnessMatrix(float stiffness, float poissonRatio, float dt)
 {
     stiffnessMatrix = new StiffnessMatrix(nodes, tetrahedra, stiffness, poissonRatio, dt);
 }
+#endif
 
 }
 }

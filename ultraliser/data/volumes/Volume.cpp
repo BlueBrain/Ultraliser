@@ -513,7 +513,18 @@ void Volume::surfaceVoxelizeNeuronMorphologyParallel(
     // Rasterize the first section's beginnigs to fill the gap between the soma and the first 
     // sections 
     for (auto section: neuronMorphology->getFirstSections()) 
-        _rasterize(section->getSamples()[0], _grid);
+    {
+        auto sample = section->getSamples()[0];
+#ifdef ULTRALISER_USE_EIGEN3 
+        _rasterize(sample, _grid);
+#else
+        Samples samples;
+        samples.push_back(sample);
+        samples.push_back(new Sample(neuronMorphology->getSomaCenter(), sample->getRadius(), 0));
+        auto mesh = new Mesh(samples);
+        _rasterize(mesh, _grid);
+#endif
+    }
 
     Paths paths;
     for (size_t i = 0; i < sections.size(); i++)

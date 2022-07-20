@@ -24,7 +24,7 @@
 ####################################################################################################
 
 # ZLIB
-find_package(BZip2 REQUIRED)
+find_package(BZip2)
 
 if(BZIP2_FOUND)
     message(STATUS "Found BZip2: ${BZIP2_INCLUDE_DIR}, ${BZIP2_LIBRARIES}")

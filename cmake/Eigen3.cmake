@@ -25,7 +25,7 @@
 ####################################################################################################
 
 # Eigen3
-find_package(Eigen3 REQUIRED)
+find_package(Eigen3)
 
 if(EIGEN3_FOUND)
     message(STATUS "Found EIGEN3: ${EIGEN3_INCLUDE_DIRS}")

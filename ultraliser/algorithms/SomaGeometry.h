@@ -27,7 +27,12 @@
 #include <data/meshes/simple/primitives/Primitives.h>
 #include <data/morphologies/NeuronMorphology.h>
 #include <data/morphologies/AstrocyteMorphology.h>
+
+#ifdef ULTRALISER_USE_EIGEN3
 #include <algorithms/simulation/AnimSystem.h>
+#else 
+#include <algorithms/simulation/Mesh.h>
+#endif
 
 namespace Ultraliser
 {
