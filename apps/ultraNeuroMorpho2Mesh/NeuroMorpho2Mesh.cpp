@@ -82,9 +82,8 @@ void run(int argc, const char** argv)
         options->basalBranchOrder < INT_MAX |
         options->apicalBranchOrder < INT_MAX)
     {
-        neuronMorphology->trim(options->axonBranchOrder,
-                               options->basalBranchOrder,
-                               options->apicalBranchOrder);
+        neuronMorphology->trim(
+            options->axonBranchOrder, options->basalBranchOrder, options->apicalBranchOrder);
     }
 
     // Get relaxed bounding box to build the volume

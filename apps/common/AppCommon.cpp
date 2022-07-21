@@ -240,7 +240,6 @@ Mesh* removeUnwantedPartitions(Mesh* mesh, const AppOptions* options)
 
     // Return a simple mesh with a single partition for optimization
     return partition->toSimpleMesh();
-
 }
 
 void createWatertightMesh(const Mesh* mesh, const AppOptions* options)

@@ -137,8 +137,6 @@ void run(int argc, const char** argv)
     /// NOTE: Astrocyte meshes will be created with no solid voxelization, therefore all the
     /// overlapping partitions must be removed before the optimization, and this is why we avoid
     /// using generateReconstructedMeshArtifacts() here.
-    /// generateReconstructedMeshArtifacts
-    ///
     // Write the mesh reconstructed from the marching cubes algorithm
     if (!options->ignoreMarchingCubesMesh)
         generateMarchingCubesMeshArtifacts(mesh, options);
