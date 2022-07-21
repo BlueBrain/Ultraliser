@@ -33,14 +33,24 @@ Sample::Sample(const Vector3f &position, const float &radius, const size_t &inde
     /// EMPTY CONSTRUCTOR
 }
 
-Ultraliser::Vector3f Sample::getPosition() const
+Vector3f Sample::getPosition() const
 {
     return _position;
+}
+
+void Sample::setPosition(const Vector3f& position)
+{
+    _position = position;
 }
 
 float Sample::getRadius() const
 {
     return _radius;
+}
+
+void Sample::setRadius(const float& radius)
+{
+    _radius = radius;
 }
 
 size_t Sample::getIndex() const

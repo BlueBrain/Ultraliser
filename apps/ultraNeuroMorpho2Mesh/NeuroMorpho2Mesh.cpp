@@ -44,6 +44,7 @@ AppOptions* parseArguments(const int& argc, const char** argv)
     args->addSuppressionArguments();
     args->addDataArguments();
     args->addNeuronMorphologyBranchOrderArguments();
+    args->addMorphologyAdjustmentParameters();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -71,11 +72,15 @@ void run(int argc, const char** argv)
     // Read the file into a morphology structure
     auto neuronMorphology = readNeuronMorphology(options->inputMorphologyPath);
 
+    // Generate the statistical analysis results of the input morphology as is
     if (options->writeStatistics)
         neuronMorphology->printStats(options->prefix, &options->statisticsPrefix);
 
     if (options->writeDistributions)
         neuronMorphology->printDistributions(&options->distributionsPrefix);
+
+    // Update the minimum sample radius to a given value
+    neuronMorphology->verifyMinimumSampleRadius(options->minSampleRadius);
 
     // Trim the neuron morphology following the branch order options
     if (options->axonBranchOrder < INT_MAX |

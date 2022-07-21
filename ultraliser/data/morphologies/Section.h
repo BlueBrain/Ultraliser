@@ -57,7 +57,6 @@ public:
      */
     SECTION_TYPE getType() const;
 
-
     /**
      * @brief setType
      * Set the section type
@@ -158,6 +157,14 @@ public:
      * @param relaxed
      */
     void resampleAdaptively(const bool& relaxed = true);
+
+    /**
+     * @brief verifyMinimumSampleRadius
+     * Ensures that all the samples along the section have a minimum radius that is greater then
+     * the given one.
+     * @param radius
+     */
+    void verifyMinimumSampleRadius(const float& radius);
 
     /**
      * @brief getParentIndices

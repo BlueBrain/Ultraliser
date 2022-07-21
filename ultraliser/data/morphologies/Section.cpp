@@ -468,4 +468,15 @@ void Section::resampleAdaptively(const bool& relaxed)
     }
 }
 
+void Section::verifyMinimumSampleRadius(const float& radius)
+{
+    for (auto& sample: _samples)
+    {
+        if (sample->getRadius() < radius)
+        {
+            sample->setRadius(radius);
+        }
+    }
+}
+
 }

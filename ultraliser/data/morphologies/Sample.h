@@ -50,10 +50,22 @@ public:
     Vector3f getPosition() const;
 
     /**
+     * @brief setPosition
+     * @param position
+     */
+    void setPosition(const Vector3f& position);
+
+    /**
      * @brief getRadius
      * @return
      */
     float getRadius() const;
+
+    /**
+     * @brief setRadius
+     * @param radius
+     */
+    void setRadius(const float& radius);
 
     /**
      * @brief getIndex
