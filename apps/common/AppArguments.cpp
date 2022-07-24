@@ -257,6 +257,17 @@ void AppArguments::addOutputArguments()
     _options->prefix = _args->getStringValue(&prefix);
 }
 
+void AppArguments::addAutoParametersArguments()
+{
+    Argument autoParameters(
+                "--auto-parameters",
+                ARGUMENT_TYPE::BOOL,
+                "Use the parameters that are computed automatically based on the statistical "
+                "analysis of the input data.");
+    _args->addArgument(&autoParameters);
+    _options->autoParameters = _args->getBoolValue(&autoParameters);
+}
+
 void AppArguments::addSolidVoxelizationArguments()
 {
     Argument useSolidVoxelization(

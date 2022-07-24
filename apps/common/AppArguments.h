@@ -88,6 +88,11 @@ public:
     void addOutputArguments();
 
     /**
+     * @brief addAutoParametersArguments
+     */
+    void addAutoParametersArguments();
+
+    /**
      * @brief addSolidVoxelizationArguments
      */
     void addSolidVoxelizationArguments();

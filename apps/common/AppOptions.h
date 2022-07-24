@@ -603,6 +603,11 @@ public:
     std::string prefix;
 
     /**
+     * @brief autoParameters
+     * Use the best parameters computed from the statistical analysis of the data.
+     */
+    bool autoParameters;
+    /**
      * @brief writeStatictics
      * Write the statictics.
      */
