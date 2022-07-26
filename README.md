@@ -41,6 +41,10 @@ Ultraliser creates high-fidelity, adaptively optimized and watertight surface ma
 + Morphology, mesh and volume quantiative and qualitative analysis. 
 + Generation of color-coded multi-axis projections of spatial data (morphologies, meshes and volumes) for visual analytics. 
 
+## Documentation 
+
+Exhaustive user documentation, including step-by-step examples and detailed explanation of the 
+command line options, is available on the [Wiki](https://github.com/BlueBrain/Ultraliser/wiki) of this repository.
 
 ## Installation
 
