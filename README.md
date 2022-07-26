@@ -76,6 +76,7 @@ Please refer to the [github issue tracker](https://github.com/BlueBrain/Ultralis
 # License 
 _Ultraliser_ is available to download and use under the GNU General Public License, version 3 ([GPL](https://www.gnu.org/licenses/gpl.html), or “free software”). 
 The code is open sourced with approval from the open sourcing committee and principal coordinators of the Blue Brain Project in March 2021. 
+See file [LICENSE](https://github.com/BlueBrain/Ultraliser/blob/master/LICENSE) for the full license.
 
 # Publications 
 
