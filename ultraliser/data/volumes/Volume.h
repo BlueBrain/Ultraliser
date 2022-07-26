@@ -192,14 +192,16 @@ public:
      * @brief surfaceVoxelizeNeuronMorphology
      * @param morphology
      */
-    void surfaceVoxelizeNeuronMorphologyParallel(NeuronMorphology* neuronMorphology);
+    void surfaceVoxelizeNeuronMorphologyParallel(NeuronMorphology* neuronMorphology,
+                                                 const std::string &packingAlgorithm);
 
     /**
      * @brief surfaceVoxelizeEndfeetMorphology
      * @param morphology
      */
-    void surfaceVoxelizeAstrocyteMorphologyParallel(const AstrocyteMorphology *astrocyteMorphology,
-                                                    float threshold = 0.75);
+    void surfaceVoxelizeAstrocyteMorphologyParallel(
+            const AstrocyteMorphology *astrocyteMorphology, float threshold = 0.75,
+            const std::string &packingAlgorithm = POLYLINE_PACKING);
 
     /**
      * @brief surfaceVoxelizeVasculatureMorphologyParallel

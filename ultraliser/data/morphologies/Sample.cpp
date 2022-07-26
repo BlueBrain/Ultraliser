@@ -33,6 +33,13 @@ Sample::Sample(const Vector3f &position, const float &radius, const size_t &inde
     /// EMPTY CONSTRUCTOR
 }
 
+Sample::Sample(const Sample* sample)
+{
+    _position = sample->getPosition();
+    _radius = sample->getRadius();
+    _index = sample->getIndex();
+}
+
 Ultraliser::Vector3f Sample::getPosition() const
 {
     return _position;

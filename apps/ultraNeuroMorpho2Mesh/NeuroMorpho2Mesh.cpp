@@ -44,6 +44,8 @@ AppOptions* parseArguments(const int& argc, const char** argv)
     args->addSuppressionArguments();
     args->addDataArguments();
     args->addNeuronMorphologyBranchOrderArguments();
+    args->addPackingAlgorithmArguments();
+
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -55,6 +57,7 @@ AppOptions* parseArguments(const int& argc, const char** argv)
     options->verifyOutputDirectoryArgument();
     options->verifyBoudsFileArgument();
     options->verifyMorphologyPrefixArgument();
+    options->verifyPackingAlgorithmArgument();
 
     // Initialize context
     options->initializeContext();
@@ -108,7 +111,7 @@ void run(int argc, const char** argv)
                                 VolumeGrid::getType(options->volumeType));
 
     // Voxelize morphology
-    volume->surfaceVoxelizeNeuronMorphologyParallel(neuronMorphology);
+    volume->surfaceVoxelizeNeuronMorphologyParallel(neuronMorphology, options->packingAlgorithm);
 
     // Enable solid voxelization
     if (options->useSolidVoxelization)

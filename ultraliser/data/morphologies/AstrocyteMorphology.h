@@ -23,6 +23,7 @@
 #pragma once
 
 #include <data/morphologies/Morphology.h>
+#include <data/morphologies/swc/NeuronSWCSample.hh>
 #include <data/morphologies/EndfootPatch.hh>
 #include <data/morphologies/h5/H5Section.hh>
 #include <data/morphologies/h5/H5Sample.hh>
@@ -39,6 +40,12 @@ class AstrocyteMorphology : public Morphology
 public:
 
     /**
+     * @brief AstrocyteMorphology
+     * @param swcSamples
+     */
+    AstrocyteMorphology(const NeuronSWCSamples& swcSamples);
+
+    /**
      * @brief EndfeetMorphology
      * Constructor
      *
@@ -48,7 +55,6 @@ public:
      * A list of sample triangles.
      */
     AstrocyteMorphology(Samples& samples, EndfeetPatches& endfeetPatches);
-
 
     /**
      * @brief AstrocyteMorphology
@@ -130,12 +136,20 @@ public:
 private:
 
     /**
+     * @brief _constructMorphologyFromSWC
+     * Loads the morphology data from the param swcSamples.
+     * @param swcSamples
+     * Samples list
+     */
+    void _constructMorphologyFromSWC(const NeuronSWCSamples& swcSamples);
+
+private:
+
+    /**
      * @brief _samplesTriangles
      * A list of the actual sample triangles of the morphology.
      */
     EndfeetPatches _endfeetPatches;
-
-private:
 
     /**
      * @brief _somaSamples

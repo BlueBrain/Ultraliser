@@ -44,6 +44,8 @@ AppOptions* parseArguments(const int& argc, const char** argv)
     args->addSuppressionArguments();
     args->addDataArguments();
     args->addAstrocyteSpecificArguments();
+    args->addPackingAlgorithmArguments();
+
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -55,6 +57,7 @@ AppOptions* parseArguments(const int& argc, const char** argv)
     options->verifyOutputDirectoryArgument();
     options->verifyBoudsFileArgument();
     options->verifyMorphologyPrefixArgument();
+    options->verifyPackingAlgorithmArgument();
 
     // Initialize context
     options->initializeContext();
@@ -89,20 +92,18 @@ void run(int argc, const char** argv)
     size_t resolution;
     if (options->scaledResolution)
     {
-        const float minRadius = astrocyteMorphology->getSmallestRadiusInMorphology();
-        resolution =  static_cast< size_t >((2.0 / minRadius) * largestDimension);
-        LOG_WARNING("Mininum Radius [%f], Resolution [%d]", minRadius, resolution);
-    }
-    else
-    {
+        // const float minRadius = astrocyteMorphology->getSmallestRadiusInMorphology();
+        // resolution =  static_cast< size_t >((2.0 / minRadius) * largestDimension);
+        // LOG_WARNING("Mininum Radius [%f], Resolution [%d]", minRadius, resolution);
+
         if (options->voxelsPerMicron > 0)
         {
             resolution = static_cast< size_t >(options->voxelsPerMicron * largestDimension);
         }
-        else
-        {
-            resolution = options->volumeResolution;
-        }
+    }
+    else
+    {
+        resolution = options->volumeResolution;
     }
     LOG_WARNING("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);
 
@@ -112,7 +113,8 @@ void run(int argc, const char** argv)
                    VolumeGrid::getType(options->volumeType));
 
     // Voxelize morphology
-    volume->surfaceVoxelizeAstrocyteMorphologyParallel(astrocyteMorphology);
+    volume->surfaceVoxelizeAstrocyteMorphologyParallel(astrocyteMorphology, 0.75,
+                                                       options->packingAlgorithm);
 
     // Enable solid voxelization
     if (options->useSolidVoxelization)
@@ -138,7 +140,6 @@ void run(int argc, const char** argv)
     /// overlapping partitions must be removed before the optimization, and this is why we avoid
     /// using generateReconstructedMeshArtifacts() here.
     /// generateReconstructedMeshArtifacts
-    ///
     // Write the mesh reconstructed from the marching cubes algorithm
     if (!options->ignoreMarchingCubesMesh)
         generateMarchingCubesMeshArtifacts(mesh, options);
