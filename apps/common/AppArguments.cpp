@@ -784,6 +784,20 @@ void AppArguments::addNeuronMorphologyBranchOrderArguments()
     _options->apicalBranchOrder = branchOrder;
 }
 
+void AppArguments::addMorphologyAdjustmentParameters()
+{
+    Argument minSampleRadius(
+                "--min-sample-radius",
+                ARGUMENT_TYPE::FLOAT,
+                "A user-defined value used to set the radius of any sample whose actual value is "
+                "below this given threshold. "
+                "The default value is 0.05 micron.",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "0.05");
+    _args->addArgument(&minSampleRadius);
+    _options->minSampleRadius = _args->getFloatValue(&minSampleRadius);
+}
+
 AppOptions* AppArguments::getOptions()
 {
     // Parse the arguments

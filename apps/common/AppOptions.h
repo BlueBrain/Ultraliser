@@ -670,6 +670,12 @@ public:
      */
     float zScaleFactor = 1.f;
 
+    /**
+     * @brief minSampleRadius
+     * The radius of the smallest sample in the morphology.
+     */
+    float minSampleRadius = 0.05;
+
     /** 
      * @brief axonBranchOrder
      * Maximum branch order applies in the neuron morphology axon reconstruction 

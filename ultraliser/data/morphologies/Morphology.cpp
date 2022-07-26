@@ -537,6 +537,27 @@ void Morphology::computeMinMaxAvgSectionVolume(float& minSectionVolume,
     avgSectionVolume = avgValue / _sections.size();
 }
 
+void Morphology::verifyMinimumSampleRadius(const float& radius)
+{
+    LOG_STATUS("Verifying Minimum Sample Radius");
+
+    // Starting the timer
+    TIMER_SET;
+
+    LOOP_STARTS("Checking Morphology")
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _sections.size(); ++i)
+    {
+        _sections[i]->verifyMinimumSampleRadius(radius);
+
+        LOOP_PROGRESS(PROGRESS, _sections.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
 void Morphology::resampleSectionsUniformly(const float step)
 {
     LOG_STATUS("Resampling Morphology");

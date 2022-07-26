@@ -244,6 +244,15 @@ public:
                                        float& avgSectionVolume) const;
 
     /**
+     * @brief verifyMinimumSampleRadius
+     * Verifies the minimum sample radius and ensures that the morphology has no samples with lower
+     * radii than the given one.
+     * @param radius
+     * The value of the minimum radius that should exist in the morphology.
+     */
+    void verifyMinimumSampleRadius(const float& radius);
+
+    /**
      * @brief resampleSectionsUniformly
      * Resample each sections in the morphology uniformly with a fixed step.
      * @param step

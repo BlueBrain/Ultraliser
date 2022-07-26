@@ -182,6 +182,11 @@ public:
     void addNeuronMorphologyBranchOrderArguments();
 
     /**
+     * @brief addMorphologyAdjustmentParameters
+     */
+    void addMorphologyAdjustmentParameters();
+
+    /**
      * @brief getOptions
      * @return System option
      */
