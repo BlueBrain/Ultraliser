@@ -43,6 +43,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     args->addMeshArguments();
     args->addSuppressionArguments();
     args->addDataArguments();
+    args->addProcessingArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -56,6 +57,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyMaskDimensionsArguments();
     options->verifyMaskPrefixArgument();
     options->verifyIsoSurfaceExtractionArgument();
+    options->verifyProcessingArguments();
 
     // Initialize context
     options->initializeContext();
@@ -70,10 +72,9 @@ void run(int argc , const char** argv)
     auto options = parseArguments(argc, argv);
 
     // Construct a volume from the mask
-    Ultraliser::Volume* volume =
-            Ultraliser::Volume::constructFromTiffMask(
+    Volume* volume = Volume::constructFromTiffMask(
                 options->inputMaskDirectory, options->maskWidth, options->maskHeight,
-                Ultraliser::VolumeGrid::getType(options->volumeType));
+                VolumeGrid::getType(options->volumeType));
 
     // Generate the volume artifacts based on the given options
     generateVolumeArtifacts(volume, options);

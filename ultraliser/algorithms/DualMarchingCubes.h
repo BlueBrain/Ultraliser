@@ -67,14 +67,14 @@ public:
      * @param paralle
      * @return
      */
-    Mesh* generateMesh(const bool &paralle = true);
+    Mesh* generateMesh();
 
     /**
      * @brief generateAdvancedMesh
      * @param paralle
      * @return
      */
-    AdvancedMesh* generateAdvancedMesh(const bool& paralle = true);
+    AdvancedMesh* generateAdvancedMesh();
 
 public:
 
@@ -86,7 +86,7 @@ public:
      * @return
      * A pointer to the mesh.
      */
-    static Mesh* generateMeshFromVolume(Volume *volume, const bool &serialExecution = false);
+    static Mesh* generateMeshFromVolume(Volume *volume);
 
     /**
      * @brief generateMeshFromVolume
@@ -96,8 +96,7 @@ public:
      * @return
      * A pointer to the resulting mesh.
      */
-    static AdvancedMesh* generateAdvancedMeshFromVolume(Volume* volume,
-                                                        const bool& serialExecution = false);
+    static AdvancedMesh* generateAdvancedMeshFromVolume(Volume* volume);
 
 private:
 
@@ -112,18 +111,11 @@ private:
 
     /**
      * @brief _buildSharedVertices
-     * Extract quad mesh with shared vertex indices.
-     * @param mesh
-     */
-    void _buildSharedVertices(Vertices& vertices, Triangles &triangles);
-
-    /**
-     * @brief _buildSharedVerticesParallel
      * Extract quad mesh with shared vertex indices, but in parallel using all
      * the CPUs available.
      * @param mesh
      */
-    void _buildSharedVerticesParallel(Vertices& vertices, Triangles &triangles);
+    void _buildSharedVertices(Vertices& vertices, Triangles &triangles);
 
     /**
      * @brief _getCellCode

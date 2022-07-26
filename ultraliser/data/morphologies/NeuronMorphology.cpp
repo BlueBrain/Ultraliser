@@ -71,7 +71,7 @@ void NeuronMorphology::trim(size_t axonBranchOrder,
             break;
         }
         
-        std::stack<std::pair< Section*, size_t > > sectionStack;
+        std::stack< std::pair< Section*, size_t > > sectionStack;
         if (maxDepth > 0)
         {        
             sectionStack.push(std::make_pair(_firstSections[i], 0));

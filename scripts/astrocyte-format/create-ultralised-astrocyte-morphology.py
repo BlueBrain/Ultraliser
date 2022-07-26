@@ -126,11 +126,11 @@ def create_full_astrocyte_structure(astrocyte_h5_file,
     for eid, endfoot in enumerate(endfeet):
 
         triangle_start_index = triangle_last_index + 1
-        triangle_last_index = triangle_start_index + len(endfoot.triangles)
+        triangle_last_index = triangle_start_index + len(endfoot.triangles) - 1
         triangle_indices.append([triangle_start_index, triangle_last_index])
 
         vertex_start_index = vertex_last_index + 1
-        vertex_last_index = vertex_start_index + len(endfoot.vertices)
+        vertex_last_index = vertex_start_index + len(endfoot.vertices) - 1
         vertex_indices.append([vertex_start_index, vertex_last_index])
 
         # Compose the lists

@@ -491,10 +491,10 @@ void Volume::surfaceVoxelization(Mesh* mesh,
     }
 }
 
-void Volume::surfaceVoxelizeNeuronMorphologyParallel(
-    NeuronMorphology* neuronMorphology)
+void Volume::surfaceVoxelizeNeuronMorphology(
+    NeuronMorphology* neuronMorphology, const std::string& packingAlgorithm)
 {
-    LOG_TITLE("Neuron Surface Voxelization (Parallel)");
+    LOG_TITLE("Neuron Surface Voxelization");
 
     // Start the timer
     TIMER_SET;
@@ -510,43 +510,107 @@ void Volume::surfaceVoxelizeNeuronMorphologyParallel(
     auto mesh = new Mesh(neuronMorphology);
     _rasterize(mesh, _grid);
 
-    // Rasterize the first section's beginnigs to fill the gap between the soma and the first 
-    // sections 
-    for (auto section: neuronMorphology->getFirstSections()) 
+    if (packingAlgorithm == POLYLINE_SPHERE_PACKING)
     {
-        auto sample = section->getSamples()[0];
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < sections.size(); ++i)
+        {
+            auto section = sections[i];
+            auto samples = section->getSamples();
+
+            // If the section contains more than a single sample
+            if (samples.size() == 1)
+            {
+                // Rasterize a single sample
+                _rasterize(samples[0], _grid);
+            }
+            else if (samples.size() > 1)
+            {
+                // Rasterize a polyline representing the section samples
+                auto mesh = new Mesh(samples);
+                _rasterize(mesh, _grid);
+
+                // Rasterize the first and last samples as spheres to fill any gaps
+                _rasterize(samples.front(), _grid);
+                _rasterize(samples.back(), _grid);
+            }
+            else
+            {
+                continue;
+            }
+
+            // Update the progress bar
+            LOOP_PROGRESS(PROGRESS, sections.size());
+            PROGRESS_UPDATE;
+        }
+    }
+    else if (packingAlgorithm == POLYLINE_PACKING)
+    {
+        // Rasterize the first section's beginnigs to fill the gap between the soma and the first
+        // sections
+        for (auto section: neuronMorphology->getFirstSections())
+        {
+            auto sample = section->getSamples()[0];
 #ifdef ULTRALISER_USE_EIGEN3 
-        _rasterize(sample, _grid);
+            _rasterize(sample, _grid);
 #else
-        Samples samples;
-        samples.push_back(sample);
-        samples.push_back(new Sample(neuronMorphology->getSomaCenter(), sample->getRadius(), 0));
-        auto mesh = new Mesh(samples);
-        _rasterize(mesh, _grid);
+            Samples samples;
+            samples.push_back(sample);
+            samples.push_back(new Sample(neuronMorphology->getSomaCenter(), sample->getRadius(), 0));
+            auto mesh = new Mesh(samples);
+            _rasterize(mesh, _grid);
 #endif
-    }
+        }
 
-    Paths paths;
-    for (size_t i = 0; i < sections.size(); i++)
+        Paths paths;
+        for (size_t i = 0; i < sections.size(); i++)
+        {
+            // Construct the paths
+            auto section = sections[i];
+            Paths sectionPaths = neuronMorphology->getConnectedPathsFromParentsToChildren(section);
+            paths.insert(paths.end(), sectionPaths.begin(), sectionPaths.end());
+        }
+
+        // Construct the neurites geometry
+        OMP_PARALLEL_FOR
+                for (size_t i = 0; i < paths.size(); i++)
+        {
+            auto samples = paths[i];
+            auto mesh = new Mesh(samples);
+            _rasterize(mesh, _grid);
+
+            // Update the progress bar
+            LOOP_PROGRESS(PROGRESS, paths.size());
+            PROGRESS_UPDATE;
+        }
+    }
+    else if (packingAlgorithm == SDF_PACKING)
     {
-        // Construct the paths
-        auto section = sections[i];
-        Paths sectionPaths = neuronMorphology->getConnectedPathsFromParentsToChildren(section);
-        paths.insert(paths.end(), sectionPaths.begin(), sectionPaths.end());
-    }
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < sections.size(); ++i)
+        {
+            auto section = sections[i];
+            auto samples = section->getSamples();
 
-    // Construct the neurites geometry
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < paths.size(); i++)
+            // Rasterize each segment of the section samples
+            for (size_t i = 0; i < samples.size() - 1; ++i)
+                _rasterize(samples[i], samples[i + 1], _grid);
+
+            // Rasterize the last segment of the section
+            auto children = section->getChildrenIndices();
+            if (children.size() > 0)
+                _rasterize(samples.back(), sections[children[0]]->getSamples()[0], _grid);
+
+            // Update the progress bar
+            LOOP_PROGRESS(PROGRESS, sections.size());
+            PROGRESS_UPDATE;
+        }
+    }
+    else
     {
-        auto samples = paths[i];
-        auto mesh = new Mesh(samples);
-        _rasterize(mesh, _grid);
-
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, paths.size());
-        PROGRESS_UPDATE;
+        LOG_ERROR("[%s] is not a correct packing algorithm.");
     }
+
     LOOP_DONE;
 
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
@@ -557,11 +621,11 @@ void Volume::surfaceVoxelizeNeuronMorphologyParallel(
 }
 
 
-void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
+void Volume::surfaceVoxelizeVasculatureMorphology(
         VasculatureMorphology* vasculatureMorphology,
         const std::string &packingAlgorithm)
 {
-    LOG_TITLE("Surface Voxelization (Parallel)");
+    LOG_TITLE("Surface Voxelization");
 
     // Start the timer
     TIMER_SET;
@@ -645,10 +709,10 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
     LOG_STATS(_surfaceVoxelizationTime);
 }
 
-void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(const AstrocyteMorphology* astrocyteMorphology,
-                                                        float threshold)
+void Volume::surfaceVoxelizeAstrocyteMorphology(
+        const AstrocyteMorphology* astrocyteMorphology, float threshold, const std::string &packingAlgorithm)
 {
-    LOG_TITLE("Astrocyte Surface Voxelization (Parallel)");
+    LOG_TITLE("Astrocyte Surface Voxelization");
 
     // Start the timer
     TIMER_SET;
@@ -666,50 +730,113 @@ void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(const AstrocyteMorpholog
     // Rasterize the somatic mesh into the volume grid
     _rasterize(somaMesh, _grid);
 
-    // Construct the paths representing the astrocytic processes
-    Paths paths;
-    for (size_t i = 0; i < sections.size(); i++)
+    if (packingAlgorithm == POLYLINE_SPHERE_PACKING)
     {
-        // For every section, construct a list of paths connecting its parents and children
-        Paths sectionPaths =
-                astrocyteMorphology->getConnectedPathsFromParentsToChildren(sections[i]);
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < sections.size(); ++i)
+        {
+            auto section = sections[i];
+            auto samples = section->getSamples();
 
-        // Add all the paths to the list that will be rasterized
-        paths.insert(paths.end(), sectionPaths.begin(), sectionPaths.end());
+            // If the section contains more than a single sample
+            if (samples.size() == 1)
+            {
+                // Rasterize a single sample
+                _rasterize(samples[0], _grid);
+            }
+            else if (samples.size() > 1)
+            {
+                // Rasterize a polyline representing the section samples
+                auto mesh = new Mesh(samples);
+                _rasterize(mesh, _grid);
+
+                // Rasterize the first and last samples as spheres to fill any gaps
+                _rasterize(samples.front(), _grid);
+                _rasterize(samples.back(), _grid);
+            }
+            else
+            {
+                continue;
+            }
+
+            // Update the progress bar
+            LOOP_PROGRESS(PROGRESS, sections.size());
+            PROGRESS_UPDATE;
+        }
     }
-
-    // Get reference to the first sections, to handle the connectivity with the soma.
-    auto firstSections = astrocyteMorphology->getFirstSections();
-
-    // Construct a straight sections between the somatic center and the neurites
-    for (size_t i = 0; i < firstSections.size(); i++)
+    else if (packingAlgorithm == POLYLINE_PACKING)
     {
-        // Get the samples of the section
-        Samples samples = firstSections[i]->getSamples();
+        // Construct the paths representing the astrocytic processes
+        Paths paths;
+        for (size_t i = 0; i < sections.size(); i++)
+        {
+            // For every section, construct a list of paths connecting its parents and children
+            Paths sectionPaths =
+                    astrocyteMorphology->getConnectedPathsFromParentsToChildren(sections[i]);
 
-        // Construct a new sample at the center of the soma
-        Vector3f newSamplePos = astrocyteMorphology->getSomaCenter();
+            // Add all the paths to the list that will be rasterized
+            paths.insert(paths.end(), sectionPaths.begin(), sectionPaths.end());
+        }
 
-        // Append the path
-        samples.insert(samples.begin(), new Sample(newSamplePos, samples[0]->getRadius(), i));
+        // Get reference to the first sections, to handle the connectivity with the soma.
+        auto firstSections = astrocyteMorphology->getFirstSections();
 
-        // Add the new section to the paths
-        paths.push_back(samples);
-     }
+        // Construct a straight sections between the somatic center and the neurites
+        for (size_t i = 0; i < firstSections.size(); i++)
+        {
+            // Get the samples of the section
+            Samples samples = firstSections[i]->getSamples();
 
-    // Rasterize all the paths
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < paths.size(); i++)
+            // Construct a new sample at the center of the soma
+            Vector3f newSamplePos = astrocyteMorphology->getSomaCenter();
+
+            // Append the path
+            samples.insert(samples.begin(), new Sample(newSamplePos, samples[0]->getRadius(), i));
+
+            // Add the new section to the paths
+            paths.push_back(samples);
+         }
+
+        // Rasterize all the paths
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < paths.size(); i++)
+        {
+            // Create a proxy-mesh representing the path
+            auto pathProxyMesh = new Mesh(paths[i]);
+
+            // Rasterize the proxy-mesh in the volume grid
+            _rasterize(pathProxyMesh, _grid);
+
+            // Update the progress bar
+            LOOP_PROGRESS(PROGRESS, paths.size());
+            PROGRESS_UPDATE;
+        }
+    }
+    else if (packingAlgorithm == SDF_PACKING)
     {
-        // Create a proxy-mesh representing the path
-        auto pathProxyMesh = new Mesh(paths[i]);
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < sections.size(); ++i)
+        {
+            auto section = sections[i];
+            auto samples = section->getSamples();
 
-        // Rasterize the proxy-mesh in the volume grid
-        _rasterize(pathProxyMesh, _grid);
+            // Rasterize each segment of the section samples
+            for (size_t i = 0; i < samples.size() - 1; ++i)
+                _rasterize(samples[i], samples[i + 1], _grid);
 
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, paths.size());
-        PROGRESS_UPDATE;
+            // Rasterize the last segment of the section
+            auto children = section->getChildrenIndices();
+            if (children.size() > 0)
+                _rasterize(samples.back(), sections[children[0]]->getSamples()[0], _grid);
+
+            // Update the progress bar
+            LOOP_PROGRESS(PROGRESS, sections.size());
+            PROGRESS_UPDATE;
+        }
+    }
+    else
+    {
+        LOG_ERROR("[%s] is not a correct packing algorithm.");
     }
     LOOP_DONE;
 
@@ -922,7 +1049,7 @@ void Volume::_rasterizeParallel(Mesh* mesh, VolumeGrid* grid)
     // Start the timer
     TIMER_SET;
 
-    LOOP_STARTS("Parallel Rasterization");
+    LOOP_STARTS("Rasterization");
     PROGRESS_SET;
     #pragma omp parallel for schedule(dynamic)
     for (size_t tIdx = 0; tIdx < mesh->getNumberTriangles(); tIdx++)
@@ -2432,14 +2559,14 @@ Volume* Volume::constructVolumeWithMinimumIsoValue(const Volume* volume,
 }
 
 Volume* Volume::constructVolumeWithMaximumIsoValue(const Volume* volume,
-                                                   const size_t& minIsoValue)
+                                                   const size_t& maxIsoValue)
 {
     // Create the iso-volume
     Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),
                                    volume->getPMin(), volume->getPMax(),
                                    VOLUME_TYPE::BIT);
 
-    LOG_STATUS("Constructing Iso Volume with Minimum Value [%zu]", minIsoValue);
+    LOG_STATUS("Constructing Iso Volume with Minimum Value [%zu]", maxIsoValue);
     for (size_t x = 0; x < volume->getWidth(); ++x)
     {
         LOOP_PROGRESS(x, volume->getWidth());
@@ -2447,7 +2574,7 @@ Volume* Volume::constructVolumeWithMaximumIsoValue(const Volume* volume,
         {
             for (size_t z = 0; z < volume->getDepth(); ++z)
             {
-                if (volume->getValueUI64(x, y, z) <= minIsoValue)
+                if (volume->getValueUI64(x, y, z) <= maxIsoValue)
                 {
                     isoVolume->fill(x, y, z);
                 }

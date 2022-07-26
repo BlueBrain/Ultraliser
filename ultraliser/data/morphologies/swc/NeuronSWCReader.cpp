@@ -50,6 +50,15 @@ NeuronMorphology* NeuronSWCReader::getMorphology()
     return neuronMorphology;
 }
 
+AstrocyteMorphology* NeuronSWCReader::getAstrocyteMorphology()
+{
+    AstrocyteMorphology* astrocyteMorphology = new AstrocyteMorphology(_samples);
+
+    // Return the pointer to the astrocyte morphology
+    return astrocyteMorphology;
+}
+
+
 void NeuronSWCReader::_readSamples(const std::string &swcMorphologyFilePath)
 {
     _samples.clear();

@@ -40,6 +40,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     args->addMeshArguments();
     args->addSuppressionArguments();
     args->addDataArguments();
+    args->addProcessingArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -53,6 +54,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyMeshExportArguments();
     options->verifyMeshPrefixArgument();
     options->verifyIsoSurfaceExtractionArgument();
+    options->verifyProcessingArguments();
 
     // Initialize context, once everything is in place and all the options are verified
     options->initializeContext();

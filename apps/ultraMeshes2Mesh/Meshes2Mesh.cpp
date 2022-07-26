@@ -43,6 +43,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     args->addMeshArguments();
     args->addSuppressionArguments();
     args->addMeshJoiningArguments();
+    args->addProcessingArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -56,6 +57,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyBoudsFileArgument();
     options->verifyMeshesPrefixArgument();
     options->verifyIsoSurfaceExtractionArgument();
+    options->verifyProcessingArguments();
 
     // Initialize context
     options->initializeContext();

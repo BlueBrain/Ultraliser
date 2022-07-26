@@ -41,6 +41,12 @@ public:
      */
     Sample(const Vector3f &position, const float &radius, const size_t& index);
 
+    /**
+     * @brief Sample
+     * @param sample
+     */
+    Sample(const Sample* sample);
+
 public:
 
     /**

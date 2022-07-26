@@ -72,7 +72,7 @@ public:
      * @param argument
      * @return
      */
-    uint32_t getUnsignedIntegrValue(Ultraliser::Argument* argument);
+    size_t getUnsignedIntegrValue(Ultraliser::Argument* argument);
 
     /**
      * @brief getFloatValue

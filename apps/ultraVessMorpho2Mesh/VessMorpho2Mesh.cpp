@@ -43,6 +43,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     args->addSuppressionArguments();
     args->addDataArguments();
     args->addPackingAlgorithmArguments();
+    args->addProcessingArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -55,6 +56,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyBoudsFileArgument();
     options->verifyMorphologyPrefixArgument();
     options->verifyPackingAlgorithmArgument();
+    options->verifyProcessingArguments();
 
     // Initialize context
     options->initializeContext();
@@ -97,8 +99,7 @@ void run(int argc , const char** argv)
                                 VolumeGrid::getType(options->volumeType));
 
     // Voxelize morphology
-    volume->surfaceVoxelizeVasculatureMorphologyParallel(vasculatureMorphology,
-                                                         options->packingAlgorithm);
+    volume->surfaceVoxelizeVasculatureMorphology(vasculatureMorphology, options->packingAlgorithm);
 
     // Enable solid voxelization
     if (options->useSolidVoxelization)

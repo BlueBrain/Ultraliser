@@ -5,6 +5,7 @@
 ##### Version 1.0
 
     Juan Jose Garcia Cantero (BBP / EPFL) 
+    Nadir Roman Guerrero (BBP / EPFL)
     
 ##### External 
 

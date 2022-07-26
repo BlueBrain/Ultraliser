@@ -45,6 +45,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     args->addMeshArguments();
     args->addSuppressionArguments();
     args->addDataArguments();
+    args->addProcessingArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -57,6 +58,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyIsoSurfaceExtractionArgument();
     options->verifyIsoOptionArgument();
     options->verifyVolumePrefixArgument();
+    options->verifyProcessingArguments();
 
     // Initialize context
     options->initializeContext();
@@ -168,9 +170,6 @@ void run(int argc , const char** argv)
 
     // Free the voulme
     delete volume;
-
-    // Generate the mesh artifacts
-    generateMarchingCubesMeshArtifacts(reconstructedMesh, options);
 
     // Generate the reconstructed mesh artifacts
     generateReconstructedMeshArtifacts(reconstructedMesh, options);
