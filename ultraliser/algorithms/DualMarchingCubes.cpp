@@ -43,7 +43,7 @@ DualMarchingCubes::DualMarchingCubes(Volume *volume,
     /// EMPTY CONSTRUCTOR
 }
 
-Mesh* DualMarchingCubes::generateMesh(const bool& paralle)
+Mesh* DualMarchingCubes::generateMesh()
 {
     LOG_TITLE("Mesh Reconstruction with DMC");
 
@@ -55,10 +55,7 @@ Mesh* DualMarchingCubes::generateMesh(const bool& paralle)
     TIMER_SET;
 
     LOG_STATUS("Building Mesh");
-    if (paralle)
-        _buildSharedVerticesParallel(vertices, triangles);
-    else
-        _buildSharedVertices(vertices, triangles);
+    _buildSharedVertices(vertices, triangles);
 
     Mesh* mesh = new Mesh(vertices, triangles);
 
@@ -70,7 +67,7 @@ Mesh* DualMarchingCubes::generateMesh(const bool& paralle)
     return mesh;
 }
 
-AdvancedMesh* DualMarchingCubes::generateAdvancedMesh(const bool& paralle)
+AdvancedMesh* DualMarchingCubes::generateAdvancedMesh()
 {
     LOG_TITLE("Mesh Reconstruction with DMC");
 
@@ -82,10 +79,7 @@ AdvancedMesh* DualMarchingCubes::generateAdvancedMesh(const bool& paralle)
     TIMER_SET;
 
     LOG_STATUS("Building Mesh");
-    if (paralle)
-        _buildSharedVerticesParallel(vertices, triangles);
-    else
-        _buildSharedVertices(vertices, triangles);
+    _buildSharedVertices(vertices, triangles);
 
     AdvancedMesh* mesh = new AdvancedMesh(vertices, triangles);
 
@@ -358,7 +352,7 @@ bool DualPointKey::operator==(DualPointKey const & other) const
     return (linearizedCellID == other.linearizedCellID && pointCode == other.pointCode);
 }
 
-void DualMarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangles &triangles)
+void DualMarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangles)
 {
     // Start timer
     TIMER_SET;
@@ -578,151 +572,22 @@ void DualMarchingCubes::_buildSharedVerticesParallel(Vertices& vertices, Triangl
     volumeDMCVoxels.shrink_to_fit();
 }
 
-void DualMarchingCubes::_buildSharedVertices(Vertices &vertices, Triangles &triangles)
-{
-    // Start timer
-    TIMER_SET;
-
-    // Adding a little bit of extra voxels
-    const int64_t extraVoxels = 5;
-    const int64_t minValue = -1 * extraVoxels;
-    const int64_t maxValue = extraVoxels;
-
-    const int64_t maxX = _volume->getWidth() + maxValue;
-    const int64_t maxY = _volume->getHeight() + maxValue;
-    const int64_t maxZ = _volume->getDepth() + maxValue;
-
-    const uint64_t sizeX = maxX + extraVoxels;
-
-    // Quad points
-    int64_t i0, i1, i2, i3;
-
-    pointToIndex.clear();
-
-    // Iterate voxels
-    LOOP_STARTS("Building Shared Vertices");
-    for (int64_t x = minValue; x < maxX; ++x)
-    {
-        for (int64_t y = minValue; y < maxY; ++y)
-        {
-            for (int64_t z = minValue; z < maxZ; ++z)
-            {
-
-                // Construct quads for X edge
-                if (z > minValue && y > minValue)
-                {
-                    const uint64_t value0 = _volume->getValueUI64(x, y, z);
-                    const uint64_t value1 = _volume->getValueUI64(x + 1, y, z);
-
-                    bool const entering = (value0 < _isoValue) && (value1 >= _isoValue);
-                    bool const exiting = (value0 >= _isoValue) && (value1 < _isoValue);
-
-                    if (entering || exiting)
-                    {
-                        // Generate quad
-                        i0 = _getSharedDualPointIndex(x, y, z, EDGE0, vertices);
-                        i1 = _getSharedDualPointIndex(x, y, z - 1, EDGE2, vertices);
-                        i2 = _getSharedDualPointIndex(x, y - 1, z - 1, EDGE6, vertices);
-                        i3 = _getSharedDualPointIndex(x, y - 1, z, EDGE4, vertices);
-
-                        if (entering)
-                        {
-                            triangles.push_back(Triangle(i0, i1, i2));
-                            triangles.push_back(Triangle(i2, i3, i0));
-                        }
-                        else
-                        {
-                            triangles.push_back(Triangle(i0, i3, i2));
-                            triangles.push_back(Triangle(i2, i1, i0));
-                        }
-                    }
-                }
-
-                // Construct quads for y edge
-                if (z > minValue && x > minValue)
-                {
-                    const uint64_t value0 = _volume->getValueUI64(x, y, z);
-                    const uint64_t value1 = _volume->getValueUI64(x, y + 1, z);
-
-                    bool const entering = value0 < _isoValue && value1 >= _isoValue;
-                    bool const exiting = value0 >= _isoValue && value1 < _isoValue;
-
-                    if (entering || exiting)
-                    {
-                        // Generate quad
-                        i0 = _getSharedDualPointIndex(x, y, z, EDGE8, vertices);
-                        i1 = _getSharedDualPointIndex(x, y, z - 1, EDGE11, vertices);
-                        i2 = _getSharedDualPointIndex(x - 1, y, z - 1, EDGE10, vertices);
-                        i3 = _getSharedDualPointIndex(x - 1, y, z, EDGE9, vertices);
-
-                        if (exiting)
-                        {
-                            triangles.push_back(Triangle(i0, i1, i2));
-                            triangles.push_back(Triangle(i2, i3, i0));
-                        }
-                        else
-                        {
-                            triangles.push_back(Triangle(i0, i3, i2));
-                            triangles.push_back(Triangle(i2, i1, i0));
-                        }
-                    }
-                }
-
-                // Construct quads for z edge
-                if (x > minValue && y > minValue)
-                {
-                    const uint64_t value0 = _volume->getValueUI64(x, y, z);
-                    const uint64_t value1 = _volume->getValueUI64(x, y, z + 1);
-
-                    bool const entering = value0 < _isoValue && value1 >= _isoValue;
-                    bool const exiting = value0 >= _isoValue && value1 < _isoValue;
-
-                    if (entering || exiting)
-                    {
-                        // Generate quad
-                        i0 = _getSharedDualPointIndex(x, y, z, EDGE3, vertices);
-                        i1 = _getSharedDualPointIndex(x - 1, y, z, EDGE1, vertices);
-                        i2 = _getSharedDualPointIndex(x - 1, y - 1, z, EDGE5, vertices);
-                        i3 = _getSharedDualPointIndex(x, y - 1, z, EDGE7, vertices);
-
-                        if (exiting)
-                        {
-                            triangles.push_back(Triangle(i0, i1, i2));
-                            triangles.push_back(Triangle(i2, i3, i0));
-                        }
-                        else
-                        {
-                            triangles.push_back(Triangle(i0, i3, i2));
-                            triangles.push_back(Triangle(i2, i1, i0));
-                        }
-                    }
-                }
-            }
-        }
-
-        LOOP_PROGRESS_FRACTION(x, sizeX);
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-}
-
-Mesh* DualMarchingCubes::generateMeshFromVolume(Volume* volume, const bool& serialExecution)
+Mesh* DualMarchingCubes::generateMeshFromVolume(Volume* volume)
 {
     // Reconstruct a watertight mesh from the volume with DMC
     std::unique_ptr< DualMarchingCubes > workflow = std::make_unique< DualMarchingCubes >(volume);
 
     // Generate the DMC mesh
-    return workflow->generateMesh(!serialExecution);
+    return workflow->generateMesh();
 }
 
-AdvancedMesh* DualMarchingCubes::generateAdvancedMeshFromVolume(Volume* volume,
-                                                                const bool& serialExecution)
+AdvancedMesh* DualMarchingCubes::generateAdvancedMeshFromVolume(Volume* volume)
 {
     // Reconstruct a watertight mesh from the volume with DMC
     std::unique_ptr< DualMarchingCubes > workflow = std::make_unique< DualMarchingCubes >(volume);
 
     // Generate the DMC mesh
-    return workflow->generateAdvancedMesh(!serialExecution);
+    return workflow->generateAdvancedMesh();
 }
 
 

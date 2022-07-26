@@ -20,9 +20,36 @@
  **************************************************************************************************/
 
 #include "AppOptions.h"
+#include <common/Common.h>
 
 namespace Ultraliser
 {
+
+void AppOptions::verifyProcessingArguments()
+{
+#ifdef ULTRALISER_USE_OPENMP
+    if (threads == 0)
+    {
+         omp_set_num_threads(omp_get_max_threads());
+         LOG_SUCCESS("Running the application with [%d] thread(s)!", omp_get_max_threads());
+    }
+    else
+    {
+        if (threads  > omp_get_max_threads())
+        {
+            omp_set_num_threads(omp_get_max_threads());
+            LOG_SUCCESS("Running the application with [%d] thread(s)!", omp_get_max_threads());
+        }
+        else
+        {
+            omp_set_num_threads(threads);
+            LOG_SUCCESS("Running the application with [%d] thread(s)!", threads);
+        }
+    }
+#else
+    LOG_WARNING("OpenMP NOT Found! Using 1 core to run the application!");
+#endif
+}
 
 void AppOptions::verifyInputMeshArgument()
 {
@@ -31,16 +58,11 @@ void AppOptions::verifyInputMeshArgument()
         LOG_ERROR("The file [ %s ] does NOT exist! ", inputMeshPath.c_str());
     }
 
-    if (!(String::subStringFound(inputMeshPath, ".OBJ") ||
-          String::subStringFound(inputMeshPath, ".obj") ||
-          String::subStringFound(inputMeshPath, ".PLY") ||
-          String::subStringFound(inputMeshPath, ".ply") ||
-          String::subStringFound(inputMeshPath, ".STL") ||
-          String::subStringFound(inputMeshPath, ".stl") ||
-          String::subStringFound(inputMeshPath, ".OFF") ||
-          String::subStringFound(inputMeshPath, ".off") ||
-          String::subStringFound(inputMeshPath, ".H5")  ||
-          String::subStringFound(inputMeshPath, ".h5")))
+    std::string path = inputMeshPath;
+    String::toLower(path);
+    if (!(String::subStringFound(path, ".obj") || String::subStringFound(path, ".ply") ||
+          String::subStringFound(path, ".stl") || String::subStringFound(path, ".off") ||
+          String::subStringFound(path, ".h5")))
     {
         LOG_ERROR("Unsupported mesh type [%s]!", inputMeshPath.c_str());
     }

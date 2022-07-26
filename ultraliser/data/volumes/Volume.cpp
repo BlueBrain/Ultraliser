@@ -491,10 +491,10 @@ void Volume::surfaceVoxelization(Mesh* mesh,
     }
 }
 
-void Volume::surfaceVoxelizeNeuronMorphologyParallel(
+void Volume::surfaceVoxelizeNeuronMorphology(
     NeuronMorphology* neuronMorphology, const std::string& packingAlgorithm)
 {
-    LOG_TITLE("Neuron Surface Voxelization (Parallel)");
+    LOG_TITLE("Neuron Surface Voxelization");
 
     // Start the timer
     TIMER_SET;
@@ -621,11 +621,11 @@ void Volume::surfaceVoxelizeNeuronMorphologyParallel(
 }
 
 
-void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
+void Volume::surfaceVoxelizeVasculatureMorphology(
         VasculatureMorphology* vasculatureMorphology,
         const std::string &packingAlgorithm)
 {
-    LOG_TITLE("Surface Voxelization (Parallel)");
+    LOG_TITLE("Surface Voxelization");
 
     // Start the timer
     TIMER_SET;
@@ -709,10 +709,10 @@ void Volume::surfaceVoxelizeVasculatureMorphologyParallel(
     LOG_STATS(_surfaceVoxelizationTime);
 }
 
-void Volume::surfaceVoxelizeAstrocyteMorphologyParallel(
+void Volume::surfaceVoxelizeAstrocyteMorphology(
         const AstrocyteMorphology* astrocyteMorphology, float threshold, const std::string &packingAlgorithm)
 {
-    LOG_TITLE("Astrocyte Surface Voxelization (Parallel)");
+    LOG_TITLE("Astrocyte Surface Voxelization");
 
     // Start the timer
     TIMER_SET;
@@ -1049,7 +1049,7 @@ void Volume::_rasterizeParallel(Mesh* mesh, VolumeGrid* grid)
     // Start the timer
     TIMER_SET;
 
-    LOOP_STARTS("Parallel Rasterization");
+    LOOP_STARTS("Rasterization");
     PROGRESS_SET;
     #pragma omp parallel for schedule(dynamic)
     for (size_t tIdx = 0; tIdx < mesh->getNumberTriangles(); tIdx++)

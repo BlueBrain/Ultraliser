@@ -246,7 +246,7 @@ int32_t ArgumentParser::getIntegrValue(Argument* input)
     return 0;
 }
 
-uint32_t ArgumentParser::getUnsignedIntegrValue(Argument* input)
+size_t ArgumentParser::getUnsignedIntegrValue(Argument* input)
 {
     updateArguments();
     for (const auto& argument: _arguments)

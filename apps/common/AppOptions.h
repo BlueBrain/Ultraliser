@@ -45,6 +45,12 @@ public:
 public:
 
     /**
+     * @brief verifyProcessingArguments
+     * Verifies the processing arguments.
+     */
+    void verifyProcessingArguments();
+
+    /**
      * @brief verifyInputMeshArgument
      * Verifies the input mesh argument.
      */
@@ -171,10 +177,10 @@ public:
 public:
 
     /**
-     * @brief serialExecution
-     * Execute the workflows in a single thread for validation.
+     * @brief threads
+     * The number of threads used to process the parallel chunks in the code.
      */
-    bool serialExecution = false;
+    size_t threads;
 
     /**
      * @brief inputMeshPath
@@ -246,12 +252,12 @@ public:
     /**
      * @brief maskWidth
      */
-    uint64_t maskWidth;
+    size_t maskWidth;
 
     /**
      * @brief maskHeight
      */
-    uint64_t maskHeight;
+    size_t maskHeight;
 
     /**
      * @brief bboxWidth
@@ -306,7 +312,7 @@ public:
      * @brief isoValue
      * The isovalue where the volume will get segmented, default 127.
      */
-    uint64_t isoValue;
+    size_t isoValue;
 
     /**
      * @brief isovaluesFile
@@ -343,7 +349,7 @@ public:
      * @brief volumeResolution
      * The base resolution of the volume that corresponds to the largest dimension.
      */
-    uint64_t volumeResolution;
+    size_t volumeResolution;
 
     /**
      * @brief scaledResolution
@@ -367,7 +373,7 @@ public:
      * The number of zero-padding voxels that will be appended to the volume to avoid any clipping
      * artifacts, default 0.
      */
-    uint64_t zeroPaddingVoxels;
+    size_t zeroPaddingVoxels;
 
     /**
      * @brief solid
@@ -680,19 +686,19 @@ public:
      * @brief axonBranchOrder
      * Maximum branch order applies in the neuron morphology axon reconstruction 
      */
-    uint64_t axonBranchOrder = INT_MAX;
+    size_t axonBranchOrder = INT_MAX;
 
     /** 
      * @brief basalBranchOrder
      * Maximum branch order applies in the neuron morphology basal dendrites reconstruction 
      */
-    uint64_t basalBranchOrder = INT_MAX;
+    size_t basalBranchOrder = INT_MAX;
 
     /** 
      * @brief apicalBranchOrder
      * Maximum branch order applies in the neuron morphology apical dendrites reconstruction 
      */
-    uint64_t apicalBranchOrder = INT_MAX;
+    size_t apicalBranchOrder = INT_MAX;
 
     /**
      * @brief exportAstrocyteAtOrigin

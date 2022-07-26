@@ -59,7 +59,7 @@ int32_t Args::getIntegrValue(Ultraliser::Argument* argument)
     return _parser->getIntegrValue(argument);
 }
 
-uint32_t Args::getUnsignedIntegrValue(Ultraliser::Argument* argument)
+size_t Args::getUnsignedIntegrValue(Ultraliser::Argument* argument)
 {
     return _parser->getUnsignedIntegrValue(argument);
 }

@@ -90,7 +90,7 @@ public:
      * @param argument
      * @return
      */
-    uint32_t getUnsignedIntegrValue(Argument* argument);
+    size_t getUnsignedIntegrValue(Argument* argument);
 
     /**
      * @brief getFloatValue

@@ -664,6 +664,18 @@ void AppArguments::addMeshArguments()
     addMeshExportArguments();
 }
 
+void AppArguments::addProcessingArguments()
+{
+    Argument threads(
+                "--threads",
+                ARGUMENT_TYPE::INTEGER,
+                "Number of cores used to process the parallel chunks in the code. "
+                "If this value is set to 0, all the cores available in the system will be used.",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "0");
+    _args->addArgument(&threads);
+    _options->threads = _args->getUnsignedIntegrValue(&threads);
+}
 
 void AppArguments::addAstrocyteSpecificArguments()
 {
@@ -690,13 +702,6 @@ void AppArguments::addDataArguments()
                 "Write the distributions of the resulting meshes/volumes/morphologies.");
     _args->addArgument(&writeDistributions);
     _options->writeDistributions = _args->getBoolValue(&writeDistributions);
-
-    Argument serialExecution(
-                "--serial",
-                ARGUMENT_TYPE::BOOL,
-                "Execute the pipeline in a single thread for validation.");
-    _args->addArgument(&serialExecution);
-    _options->serialExecution = _args->getBoolValue(&serialExecution);
 }
 
 void AppArguments::addPackingAlgorithmArguments()

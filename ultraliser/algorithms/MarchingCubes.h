@@ -42,28 +42,23 @@ public:
      * @param volume
      * @param isoValue
      */
-    MarchingCubes(Volume* volume,
-                  const size_t isoValue = 127);
+    MarchingCubes(Volume* volume, const size_t isoValue = 127);
 
     /**
      * @brief generateMesh
      * Generate the mesh.
-     * @param parallel
-     * Do it in parallel.
      * @return
      * The reconstructed mesh.
      */
-    Mesh* generateMesh(const bool& parallel = true);
+    Mesh* generateMesh();
 
     /**
      * @brief generateAdvancedMesh
      * Generate the mesh.
-     * @param parallel
-     * Do it in parallel.
      * @return
      * The reconstructed mesh.
      */
-    AdvancedMesh* generateAdvancedMesh(const bool& parallel = true);
+    AdvancedMesh* generateAdvancedMesh();
 
     /**
      * @brief generateMeshFromVolume
@@ -74,7 +69,7 @@ public:
      * @return
      * A pointer to the mesh.
      */
-    static Mesh* generateMeshFromVolume(Volume *volume, const bool &serialExecution = false);
+    static Mesh* generateMeshFromVolume(Volume *volume);
 
     /**
      * @brief generateAdvancedMeshFromVolume
@@ -85,25 +80,12 @@ public:
      * @return
      * A pointer to the mesh.
      */
-    static AdvancedMesh* generateAdvancedMeshFromVolume(Volume *volume,
-                                                        const bool &serialExecution = false);
-
+    static AdvancedMesh* generateAdvancedMeshFromVolume(Volume *volume);
 
 private:
 
     /**
      * @brief _buildSharedVertices
-     * Extract triangular mesh with shared vertex indices.
-     *
-     * @param vertices
-     * A list to collect the vertices of the mesh.
-     * @param triangles
-     * A list to collect the triangles of the mesh.
-     */
-    void _buildSharedVertices(Vertices& vertices, Triangles &triangles);
-
-    /**
-     * @brief _buildSharedVerticesParallel
      * Extract triangular mesh with shared vertex indices, in parallel using OpenMP.
      *
      * @param vertices
@@ -111,7 +93,7 @@ private:
      * @param triangles
      * A list to collect the triangles of the mesh.
      */
-    void _buildSharedVerticesParallel(Vertices& vertices, Triangles &triangles);
+    void _buildSharedVertices(Vertices& vertices, Triangles &triangles);
 
 private:
 

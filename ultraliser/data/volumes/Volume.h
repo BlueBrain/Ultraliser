@@ -192,26 +192,26 @@ public:
      * @brief surfaceVoxelizeNeuronMorphology
      * @param morphology
      */
-    void surfaceVoxelizeNeuronMorphologyParallel(NeuronMorphology* neuronMorphology,
+    void surfaceVoxelizeNeuronMorphology(NeuronMorphology* neuronMorphology,
                                                  const std::string &packingAlgorithm);
 
     /**
-     * @brief surfaceVoxelizeEndfeetMorphology
+     * @brief surfaceVoxelizeAstrocyteMorphology
      * @param morphology
      */
-    void surfaceVoxelizeAstrocyteMorphologyParallel(
+    void surfaceVoxelizeAstrocyteMorphology(
             const AstrocyteMorphology *astrocyteMorphology, float threshold = 0.75,
             const std::string &packingAlgorithm = POLYLINE_PACKING);
 
     /**
-     * @brief surfaceVoxelizeVasculatureMorphologyParallel
+     * @brief surfaceVoxelizeVasculatureMorphology
      * Create the volumetric shell of the vasculature morphology.
      * @param vasculatureMorphology
      * The input vascular morphology.
      * @param packingAlgorithm
      * The used packing algorithm.
      */
-    void surfaceVoxelizeVasculatureMorphologyParallel(
+    void surfaceVoxelizeVasculatureMorphology(
             VasculatureMorphology* vasculatureMorphology,
             const std::string& packingAlgorithm = POLYLINE_PACKING);
 	

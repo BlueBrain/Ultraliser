@@ -42,6 +42,11 @@ public:
 public:
 
     /**
+     * @brief addProcessingArguments
+     */
+    void addProcessingArguments();
+
+    /**
      * @brief addInputMeshArguments
      * @param args
      */

@@ -35,6 +35,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     args->addOutputArguments();
     args->addVolumeArguments();
     args->addDataArguments();
+    args->addProcessingArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -47,6 +48,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyVolumeExportArguments();
     options->verifyBoudsFileArgument();
     options->verifyMeshPrefixArgument();
+    options->verifyProcessingArguments();
 
     // Initialize context
     options->initializeContext();

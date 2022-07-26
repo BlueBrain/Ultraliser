@@ -45,7 +45,7 @@ AppOptions* parseArguments(const int& argc, const char** argv)
     args->addDataArguments();
     args->addAstrocyteSpecificArguments();
     args->addPackingAlgorithmArguments();
-
+    args->addProcessingArguments();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -58,6 +58,7 @@ AppOptions* parseArguments(const int& argc, const char** argv)
     options->verifyBoudsFileArgument();
     options->verifyMorphologyPrefixArgument();
     options->verifyPackingAlgorithmArgument();
+    options->verifyProcessingArguments();
 
     // Initialize context
     options->initializeContext();
@@ -113,8 +114,8 @@ void run(int argc, const char** argv)
                    VolumeGrid::getType(options->volumeType));
 
     // Voxelize morphology
-    volume->surfaceVoxelizeAstrocyteMorphologyParallel(astrocyteMorphology, 0.75,
-                                                       options->packingAlgorithm);
+    volume->surfaceVoxelizeAstrocyteMorphology(astrocyteMorphology, 0.75,
+                                               options->packingAlgorithm);
 
     // Enable solid voxelization
     if (options->useSolidVoxelization)

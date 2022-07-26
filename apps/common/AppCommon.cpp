@@ -410,17 +410,17 @@ Mesh* reconstructMeshFromVolume(Volume* volume, const AppOptions* options)
 {
     // Generate the reconstructed mesh from any of the marching cubes algorithms
     if (options->isosurfaceTechnique == DMC_STRING)
-        return DualMarchingCubes::generateMeshFromVolume(volume, options->serialExecution);
+        return DualMarchingCubes::generateMeshFromVolume(volume);
     else
-        return MarchingCubes::generateMeshFromVolume(volume, options->serialExecution);
+        return MarchingCubes::generateMeshFromVolume(volume);
 }
 
 AdvancedMesh* reconstructAdvancedMeshFromVolume(Volume* volume, const AppOptions* options)
 {
     if (options->isosurfaceTechnique == DMC_STRING)
-        return DualMarchingCubes::generateAdvancedMeshFromVolume(volume, options->serialExecution);
+        return DualMarchingCubes::generateAdvancedMeshFromVolume(volume);
     else
-        return MarchingCubes::generateAdvancedMeshFromVolume(volume, options->serialExecution);
+        return MarchingCubes::generateAdvancedMeshFromVolume(volume);
 }
 
 void optimizeMeshWithPartitions(AdvancedMesh* mesh, const AppOptions* options)
