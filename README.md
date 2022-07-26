@@ -57,7 +57,7 @@ Ultraliser creates high-fidelity, adaptively optimized and watertight surface ma
 
 ### Supported Operating Systems 
 
-Ultraliser has been tested on Unix-based operating systems including:
+_Ultraliser_ has been tested on Unix-based operating systems including:
 
 * Ubuntu 16.04, Ubuntu 18.04, Ubuntu 20.04
 * RedHat 
