@@ -167,5 +167,6 @@ Blue Brain Project
  
  
 <p align="center">
-Copyright © 2022 Blue Brain Project / Ecole Polytechnique Fédérale de Lausanne (EPFL)
+Copyright © 2022 </br> 
+Blue Brain Project / Ecole Polytechnique Fédérale de Lausanne (EPFL)
 </p>
