@@ -8,7 +8,9 @@ _Ultraliser_ implements an effective __voxelization-based remeshing engine__ tha
 form of __triangular soups__ - into high resolution volumes, with which we can reconstruct topologically accurate, adaptively optimized 
 and watertight surface manifolds. 
 
-In addition to their importance for accurate quantitative analysis, resulting models are primarily intended to automate the process of conducting supercomputer simulations of neuroscience experiments; complementing _in vivo_ and _in vitro_ techniques. 
+In addition to their importance for accurate quantitative analysis, the resulting models are primarily intended to automate the 
+process of conducting supercomputer-based _in silico_ simulations of neuroscience experiments; complementing _in vivo_ and _in vitro_ 
+techniques. 
 
 Watertight triangular meshes are used for (i) performing 3D particle simulations, (ii) mesh-based skeletonization, in which accurate morphologies of cellular structures are obtained for performing 1D compartmental simulations and (iii) tetrahedralization, in which we can generate tetrahedral volume meshes for 3D reaction-diffusion simulations.
 Annotated volumetric tissue models are also used in _in silico_ imaging studies, where we can simulate optical imaging experiments with brightfield or fluorescence microscopy<sup>10</sup>. 
