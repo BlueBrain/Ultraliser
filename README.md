@@ -162,7 +162,7 @@ Blue Brain Project
 --- 
 
 <p align="center">
-        <img src="docs/images/logos/epfl-logo.png" width=300>
+        <img src="docs/images/logos/epfl-logo.png" width=200>
 </p>
  
  
