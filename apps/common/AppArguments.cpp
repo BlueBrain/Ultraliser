@@ -219,7 +219,7 @@ void AppArguments::addInputVolumeParametersArguments()
                 ARGUMENT_PRESENCE::OPTIONAL,
                 "255");
     _args->addArgument(&maxIsoValue);
-    _options->minIsoValue = _args->getIntegrValue(&maxIsoValue);
+    _options->maxIsoValue = _args->getIntegrValue(&maxIsoValue);
 
     Argument isovaluesFile(
                 "--isovalues-file",
@@ -670,7 +670,8 @@ void AppArguments::addProcessingArguments()
                 "--threads",
                 ARGUMENT_TYPE::INTEGER,
                 "Number of cores used to process the parallel chunks in the code. "
-                "If this value is set to 0, all the cores available in the system will be used.",
+                "If this value is set to 0, all the cores available in the system will be used."
+                "The default valus is 0.",
                 ARGUMENT_PRESENCE::OPTIONAL,
                 "0");
     _args->addArgument(&threads);

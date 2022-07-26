@@ -171,9 +171,6 @@ void run(int argc , const char** argv)
     // Free the voulme
     delete volume;
 
-    // Generate the mesh artifacts
-    generateMarchingCubesMeshArtifacts(reconstructedMesh, options);
-
     // Generate the reconstructed mesh artifacts
     generateReconstructedMeshArtifacts(reconstructedMesh, options);
 

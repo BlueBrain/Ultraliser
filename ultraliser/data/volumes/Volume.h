@@ -527,7 +527,7 @@ public:
                                                       const size_t& minIsoValue);
 
     static Volume* constructVolumeWithMaximumIsoValue(const Volume* volume,
-                                                      const size_t& minIsoValue);
+                                                      const size_t& maxIsoValue);
 
     static Volume* constructVolumeWithIsoRange(const Volume* volume,
                                                const size_t& minIsoValue,

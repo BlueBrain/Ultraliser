@@ -2559,14 +2559,14 @@ Volume* Volume::constructVolumeWithMinimumIsoValue(const Volume* volume,
 }
 
 Volume* Volume::constructVolumeWithMaximumIsoValue(const Volume* volume,
-                                                   const size_t& minIsoValue)
+                                                   const size_t& maxIsoValue)
 {
     // Create the iso-volume
     Volume* isoVolume = new Volume(volume->getWidth(), volume->getHeight(),volume->getDepth(),
                                    volume->getPMin(), volume->getPMax(),
                                    VOLUME_TYPE::BIT);
 
-    LOG_STATUS("Constructing Iso Volume with Minimum Value [%zu]", minIsoValue);
+    LOG_STATUS("Constructing Iso Volume with Minimum Value [%zu]", maxIsoValue);
     for (size_t x = 0; x < volume->getWidth(); ++x)
     {
         LOOP_PROGRESS(x, volume->getWidth());
@@ -2574,7 +2574,7 @@ Volume* Volume::constructVolumeWithMaximumIsoValue(const Volume* volume,
         {
             for (size_t z = 0; z < volume->getDepth(); ++z)
             {
-                if (volume->getValueUI64(x, y, z) <= minIsoValue)
+                if (volume->getValueUI64(x, y, z) <= maxIsoValue)
                 {
                     isoVolume->fill(x, y, z);
                 }
