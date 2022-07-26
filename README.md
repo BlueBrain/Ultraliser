@@ -160,7 +160,7 @@ Blue Brain Project
 # References
 
 <p align="center">
-        <img src="docs/images/logos/epfl-logo.jpg" width=200>
+        <img src="docs/images/logos/epfl-logo.png" width=300>
 </p>
  
  
