@@ -64,7 +64,7 @@ command line options, is available on the [Wiki](https://github.com/BlueBrain/Ul
 _Ultraliser_ has been tested on Unix-based operating systems including:
 
 * Ubuntu 16.04, Ubuntu 18.04, Ubuntu 20.04
-* RedHat 
+* RHEL7, RHEL8 
 * macOS 10.12 Sierra, 10.13 High Sierra,  10.14 Mojave, 10.15 Catalina
 
 
