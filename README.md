@@ -4,7 +4,9 @@ _Ultraliser_ is an __unconditionally robust__ and __high performance__ framework
 _Ultraliser_ is capable of generating high fidelity and multiscale 3D models (surface meshes and annotated volumes) of neuroscientific data, such as: nuclei, mitochondria, endoplasmic reticula, 
 neurons, astrocytes, pericytes, neuronal branches with dendritic spines, minicolumns with thousands of neurons and large networks of cerebral vasculature - with realistic geometries. 
 
-_Ultraliser_ implements an effective voxelization-based remeshing engine that can rasterize non-watertight surface meshes - in the form of triangular soups - into high resolution volumes, with which we can reconstruct topologically accurate, adaptively optimized and watertight surface manifolds. 
+_Ultraliser_ implements an effective __voxelization-based remeshing engine__ that can rasterize non-watertight surface meshes - in the 
+form of __triangular soups__ - into high resolution volumes, with which we can reconstruct topologically accurate, adaptively optimized 
+and watertight surface manifolds. 
 
 In addition to their importance for accurate quantitative analysis, resulting models are primarily intended to automate the process of conducting supercomputer simulations of neuroscience experiments; complementing _in vivo_ and _in vitro_ techniques. 
 
