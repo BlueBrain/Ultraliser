@@ -88,7 +88,8 @@ The volume reconstruction algorithms in _Ultraliser_ are based on the following 
 
 # Acknowledgement & Funding
 
-_Ultraliser_ is developed by the Visualization team at the [Blue Brain Project](https://bluebrain.epfl.ch/page-52063.html), [Ecole Polytechnique Federale de Lausanne (EPFL)](https://www.epfl.ch/). Financial support was provided by competitive research funding from [King Abdullah University of Science and Technology (KAUST)](https://www.kaust.edu.sa/en).
+The development of this software was supported by funding to the [Blue Brain Project](https://bluebrain.epfl.ch), a research center of the [École polytechnique fédérale de Lausanne (EPFL)](https://www.epfl.ch/), from the Swiss government’s ETH Board of the Swiss Federal Institutes of Technology.
+Financial support was provided by competitive research funding from [King Abdullah University of Science and Technology (KAUST)](https://www.kaust.edu.sa/en).
 
 # Attributions
 
