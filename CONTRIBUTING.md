@@ -12,12 +12,12 @@ As a contributor, here are the guidelines we would like you to follow:
 
 # Got a Question?
 
-Please do not hesitate to raise an issue on [GitHub project page][https://github.com/BlueBrain/Ultraliser/issues].
+Please do not hesitate to raise an issue on [GitHub project page](https://github.com/BlueBrain/Ultraliser/issues).
 
 # Found a Bug?
 
 If you find a bug in the source code, you can help us by [submitting an issue](#issues)
-to our [GitHub Repository][https://github.com/BlueBrain/Ultraliser]. Even better, you can [submit a Pull Request](#pull-requests) with a fix.
+to our [GitHub Repository](https://github.com/BlueBrain/Ultraliser). Even better, you can [submit a Pull Request](#pull-requests) with a fix.
 
 #  Missing a Feature?
 
