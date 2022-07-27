@@ -127,7 +127,7 @@ resonance angiography. NeuroImage, 82, 170-181, (2013)](http://dx.doi.org/10.101
 courtesy of [Bruno Weber](https://www.neuroscience.uzh.ch/en/about/people/steering/Weber.html), 
 University of Zurich, Switzerland.
 
-Full attributions and acknowledgements are available in the [ACKNOWLEDGEMENTS file](https://github.com/BlueBrain/Ultraliser/blob/master/ACKNOWLEDGEMENTS).
+Full attributions and acknowledgements are available in the [ACKNOWLEDGEMENTS file](https://github.com/BlueBrain/Ultraliser/blob/master/ACKNOWLEDGEMENTS.md).
 
 # Contact
 
