@@ -21,11 +21,11 @@ Annotated volumetric tissue models are also used in _in silico_ imaging studies,
 + Surface mesh smoothing and optimization using [Laplacian operators](https://en.wikipedia.org/wiki/Laplacian_smoothing) and feature-preserving adaptive mesh optimization<sup>1</sup>.
 + Reconstruction of large-scale volumetric models<sup>3</sup> from non-watertight input meshes using high performance [surface and solid voxelization](Mesh-Voxelization). 
 + Reconstruction of optimized and smooth surface meshes from input volumes using parallel implementations of the standard marching cubes<sup>4</sup> algorithm and the advanced dual marching cubes<sup>5</sup> algorithm. 
-+ Reconstruction of optimized and smooth surface meshes from input binary masks of segmened data. 
++ Reconstruction of optimized and smooth surface meshes from input binary masks of segmented data. 
 + Reconstruction of geometrically realistic watertight mesh models of spiny neurons from corresponding morphological skeletons<sup>6</sup> .
 + Reconstruction of geometrically realistic watertight mesh models of complete astroglial cells<sup>8</sup>  (with endfeet) from input morphological skeletons and endfeet surface patches<sup>9</sup> .        
 + Reconstruction of high-fidelity, optimized and multi-partitioned vascular meshes from fragmented and large-scale vascular network graphs<sup>7</sup>. 
-+ Morphology, mesh and volume quantiative and qualitative analysis. 
++ Morphology, mesh and volume quantitative and qualitative analysis. 
 + Generation of color-coded multi-axis projections of spatial data (morphologies, meshes and volumes) for visual analytics. 
 
 ## Documentation 
@@ -41,7 +41,7 @@ Installation instructions are detailed in this [page on the Wiki](https://github
 
 * [OpenMP](https://en.wikipedia.org/wiki/OpenMP), a multi-threading library for parallel processing on multi-core CPUs. 
 * [libTIFF](http://www.libtiff.org/), which gives support for the Tag Image File Format (TIFF), a widely used format for storing image data.
-* [libhdf5](https://support.hdfgroup.org/HDF5/doc/cpplus_RM/index.html), or the Hierarchical Data Format 5 (HDF5) library for stroring data.
+* [libhdf5](https://support.hdfgroup.org/HDF5/doc/cpplus_RM/index.html), or the Hierarchical Data Format 5 (HDF5) library for storing data.
 * [Eigen3](https://eigen.tuxfamily.org/), a template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms.
 * [BZip2](https://www.sourceware.org/bzip2/), a high quality data compressor.  
 * [ZLIB](https://docs.python.org/3/library/zlib.html), for data compression. 
