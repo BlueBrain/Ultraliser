@@ -14,19 +14,6 @@ techniques.
 
 Watertight triangular meshes are used for (i) performing 3D particle simulations, (ii) mesh-based skeletonization, in which accurate morphologies of cellular structures are obtained for performing 1D compartmental simulations and (iii) tetrahedralization, in which we can generate tetrahedral volume meshes for 3D reaction-diffusion simulations.
 Annotated volumetric tissue models are also used in _in silico_ imaging studies, where we can simulate optical imaging experiments with brightfield or fluorescence microscopy<sup>10</sup>. 
-A high-level overview of _Ultraliser's_ workflow is graphically illustrated in __Figure 1__.
-
-<figure>
-<p align="center">
-  <img width="1000" src="images/workflows/workflow.jpeg">
-</p>
-<figcaption>
-<p align="justify">
-<strong>Figure 1</strong> A high-level overview of Ultraliser's workflow showing its subsequent stages (surface and solid voxelization, mesh reconstruction and optimization) including the different data formats that can be processed within its workflow (masks, gray-scale volumes, polygonal surface meshes, morphological skeletons and tetrahedral volumetric meshes).
-Ultraliser creates high-fidelity, adaptively optimized and watertight surface manifolds and large-scale annotated volumes. The surface meshes are used directly for molecular simulations, and can be further processed to create volumetric (tetrahedral or hexahedral) meshes for performing reaction-diffusion simulation. They can be also used by mesh-based skeletonization applications to skeletonize accurate morphological counterparts. The annotated volumes are used in <em>in silico</em> optical imaging experiments<sup>10</sup>.
-</p>
-</figcaption>
-</figure>
 
 ## Features 
 
