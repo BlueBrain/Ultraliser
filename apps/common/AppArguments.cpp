@@ -197,9 +197,9 @@ void AppArguments::addInputVolumeParametersArguments()
     Argument isoValue(
                 "--iso-value",
                 ARGUMENT_TYPE::INTEGER,
-                "The iso-value where the volume will get segmented. Default 1.",
+                "The iso-value where the volume will get segmented. Default 128.",
                 ARGUMENT_PRESENCE::OPTIONAL,
-                "1");
+                "128");
     _args->addArgument(&isoValue);
     _options->isoValue = _args->getIntegrValue(&isoValue);
 

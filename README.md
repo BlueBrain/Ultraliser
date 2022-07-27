@@ -48,6 +48,8 @@ command line options, is available on the [Wiki](https://github.com/BlueBrain/Ul
 
 ## Installation
 
+Installation instructions are detailed in this [page on the Wiki](https://github.com/BlueBrain/Ultraliser/wiki/Installation). 
+
 ### Software Dependencies 
 
 * [OpenMP](https://en.wikipedia.org/wiki/OpenMP), a multi-threading library for parallel processing on multi-core CPUs. 
@@ -63,17 +65,17 @@ command line options, is available on the [Wiki](https://github.com/BlueBrain/Ul
 
 _Ultraliser_ has been tested on Unix-based operating systems including:
 
-* Ubuntu 16.04, Ubuntu 18.04, Ubuntu 20.04
-* RHEL7, RHEL8 
-* macOS 10.12 Sierra, 10.13 High Sierra,  10.14 Mojave, 10.15 Catalina
+* Ubuntu 18.04, Ubuntu 20.04, Ubuntu 21.04 and Ubuntu 22.04.
+* RHEL7, RHEL8. 
+* macOS 10.12 Sierra, 10.13 High Sierra,  10.14 Mojave, 10.15 Catalina.
 
 
 # Known Bugs or Feature Requests
 
 Please refer to the [github issue tracker](https://github.com/BlueBrain/Ultraliser/issues?utf8=%E2%9C%93&q=) for fixed and open bugs. User can also report any bugs and request new features needed for their research. We are happy to provide direct [support](#contact) . 
 
-
 # License 
+
 _Ultraliser_ is available to download and use under the GNU General Public License, version 3 ([GPL](https://www.gnu.org/licenses/gpl.html), or “free software”). 
 The code is open sourced with approval from the open sourcing committee and principal coordinators of the Blue Brain Project in March 2021. 
 See file [LICENSE](https://github.com/BlueBrain/Ultraliser/blob/master/LICENSE) for the full license.
@@ -138,6 +140,8 @@ resonance angiography. NeuroImage, 82, 170-181, (2013)](http://dx.doi.org/10.101
 courtesy of [Bruno Weber](https://www.neuroscience.uzh.ch/en/about/people/steering/Weber.html), 
 University of Zurich, Switzerland.
 
+Full attributions and acknowledgements are available in the [ACKNOWLEDGEMENTS file](https://github.com/BlueBrain/Ultraliser/blob/master/ACKNOWLEDGEMENTS).
+
 # Contact
 
 For more information on _Ultraliser_, comments or suggestions, please contact:
@@ -160,12 +164,31 @@ Blue Brain Project
 
 # References
 
+1. YU, Zeyun, HOLST, Michael J., CHENG, Yuhui, et al. Feature-preserving adaptive mesh generation for molecular shape modeling and simulation. Journal of Molecular Graphics and Modelling, 2008, vol. 26, no 8, p. 1370-1380.
+
+2. ATTENE, Marco. A lightweight approach to repairing digitized polygon meshes. The visual computer, 2010, vol. 26, no 11, p. 1393-1406.
+
+3. ABDELLAH, Marwan, HERNANDO, Juan, ANTILLE, Nicolas, et al. Reconstruction and visualization of large-scale volumetric models of neocortical circuits for physically-plausible in silico optical studies. BMC bioinformatics, 2017, vol. 18, no 10, p. 39-50.
+
+4. LORENSEN, William E. et CLINE, Harvey E. Marching cubes: A high resolution 3D surface construction algorithm. ACM siggraph computer graphics, 1987, vol. 21, no 4, p. 163-169.
+
+5. NIELSON, Gregory M. Dual marching cubes. In : IEEE visualization 2004. IEEE, 2004. p. 489-496.
+
+6. ABDELLAH, Marwan, HERNANDO, Juan, EILEMANN, Stefan, et al. NeuroMorphoVis: a collaborative framework for analysis and visualization of neuronal morphology skeletons reconstructed from microscopy stacks. Bioinformatics, 2018, vol. 34, no 13, p. i574-i582.
+
+7. ABDELLAH, Marwan, GUERRERO, Nadir Román, LAPERE, Samuel, et al. Interactive visualization and analysis of morphological skeletons of brain vasculature networks with VessMorphoVis. Bioinformatics, 2020, vol. 36, no Supplement_1, p. i534-i541.
+
+8. ZISIS, Eleftherios, KELLER, Daniel, KANARI, Lida, et al. Digital reconstruction of the neuro-glia-vascular architecture. Cerebral Cortex, 2021, vol. 31, no 12, p. 5686-5703.
+
+9. ABDELLAH, Marwan, FONI, Alessandro, ZISIS, Eleftherios, et al. Metaball skinning of synthetic astroglial morphologies into realistic mesh models for in silico simulations and visual analytics. Bioinformatics, 2021, vol. 37, no Supplement_1, p. i426-i433.
+
+10. ABDELLAH, Marwan. In silico brain imaging: physically-plausible methods for visualizing neocortical microcircuitry. EPFL, 2017.
+
 --- 
 
 <p align="center">
         <img src="docs/images/logos/epfl-logo.png" width=200>
 </p>
- 
  
 <p align="center">
 Copyright © 2022 </br> 
