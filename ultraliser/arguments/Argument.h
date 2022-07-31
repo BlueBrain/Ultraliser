@@ -42,11 +42,11 @@ public:
      * @param type
      * @param presence
      */
-    Argument(const std::string name,
-             const ARGUMENT_TYPE type,
-             const std::string help,
-             const ARGUMENT_PRESENCE presence = ARGUMENT_PRESENCE::OPTIONAL,
-             const std::string defaultValue = NO_DEFAULT_VALUE);
+    Argument(const std::string &name,
+             const ARGUMENT_TYPE &type,
+             const std::string &help,
+             const ARGUMENT_PRESENCE &presence = ARGUMENT_PRESENCE::OPTIONAL,
+             const std::string &defaultValue = NO_DEFAULT_VALUE);
     ~Argument();
 
     /**

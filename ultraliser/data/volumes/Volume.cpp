@@ -2766,7 +2766,7 @@ Volume* Volume::constructFromTiffMask(
     TIMER_SET;
 
     LOG_TITLE("Loading .Tiff");
-    LOG_STATUS("Mask Directory [ %s ]", maskDirectory.c_str());
+    LOG_SUCCESS("Mask Directory [ %s ]", maskDirectory.c_str());
 
     // Get a list of all the stacks of the masks
     std::vector< std::string > maskFiles;
@@ -2784,9 +2784,11 @@ Volume* Volume::constructFromTiffMask(
                 Vector3f(),
                 Vector3f(),
                 gridType);
-    LOG_INFO("%d %d %d", maskVolume->getWidth(), maskVolume->getHeight(), maskVolume->getDepth());
+    LOG_SUCCESS("Mask Dimensions [%d x %d x %d]",
+                maskVolume->getWidth(), maskVolume->getHeight(), maskVolume->getDepth());
 
     PROGRESS_SET;
+    LOG_STATUS("Constructing Volume");
     OMP_PARALLEL_FOR
     for(int64_t i = 0; i < I2I64(maskFiles.size()); ++i)
     {

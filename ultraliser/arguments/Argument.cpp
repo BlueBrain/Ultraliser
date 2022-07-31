@@ -25,11 +25,11 @@
 namespace Ultraliser
 {
 
-Argument::Argument(const std::string name,
-                   const ARGUMENT_TYPE type,
-                   const std::string help,
-                   const ARGUMENT_PRESENCE presence,
-                   const std::string defaultValue)
+Argument::Argument(const std::string& name,
+                   const ARGUMENT_TYPE& type,
+                   const std::string& help,
+                   const ARGUMENT_PRESENCE& presence,
+                   const std::string& defaultValue)
     : _name(name)
     , _defaultValue(defaultValue)
     , _help(help)
@@ -50,18 +50,16 @@ Argument* Argument::getCopy()
     return new Argument(_name, _type, _help, _presence, _defaultValue);
 }
 
-
 size_t getArgumentCount(std::string argvString, std::string argument)
 {
     size_t count = 0;
-    const size_t step = argument.size();
+    const auto& step = argument.size();
 
     size_t position = 0;
-
     while ((position=argvString.find(argument, position)) !=std::string::npos)
     {
-      position +=step;
-      ++count ;
+        position +=step;
+        ++count ;
     }
 
     return count;
@@ -70,7 +68,7 @@ size_t getArgumentCount(std::string argvString, std::string argument)
 void Argument::validateCurrentOptionalArguments(const std::string &argvString)
 {
     // Get the number of times this argument was added in the command line
-    size_t count = getArgumentCount(argvString, _name);
+    const auto& count = getArgumentCount(argvString, _name);
 
     // If count is 0 and the argument is optional, then it is always valid
     if (count == 0 && _presence == ARGUMENT_PRESENCE::OPTIONAL)
@@ -94,7 +92,7 @@ bool Argument::isValid(const std::string &argvString)
     {
         if (getArgumentCount(argvString, _name) == 0)
         {
-            LOG_ERROR("\t Argument %s is not optional", _name.c_str());
+            LOG_ERROR("Argument [%s] is not optional", _name.c_str());
         }
     }
 
@@ -124,7 +122,7 @@ bool Argument::isValid(const std::string &argvString)
     // If the argument is declared more than once
     if (count > 1)
     {
-        LOG_ERROR("Argument %s was already defined.", _name.c_str());
+        LOG_ERROR("Argument [%s] was already defined.", _name.c_str());
         return false;
     }
 
@@ -148,8 +146,15 @@ void Argument::evaluate(const std::string &argvString)
             _value = _defaultValue;
         else
         {
-            // Find the rest of the string that starts from the name of the
-            // argument
+            if (_presence == ARGUMENT_PRESENCE::MANDATORY)
+            {
+                if (getArgumentCount(argvString, _name) == 0)
+                {
+                    LOG_ERROR("Argument [%s] is not optional", _name.c_str());
+                }
+            }
+
+            // Find the rest of the string that starts from the name of the argument
             std::string post = argvString.substr(argvString.find(_name));
 
             // Convert the list to a vector
@@ -181,7 +186,17 @@ int32_t Argument::getIntegerValue(bool& valid)
     if (_type == ARGUMENT_TYPE::INTEGER)
     {
         valid = true;
-        return atoi(_value.c_str());
+
+        try
+        {
+            int32_t value = std::stoi(_value);
+            return value;
+        }
+        catch(std::exception const & e)
+        {
+            LOG_ERROR("The value [%s] cannot be an Integer for the argument [%s]!",
+                      _value.c_str(), _name.c_str());
+        }
     }
 
     valid = false;
@@ -193,7 +208,17 @@ uint32_t Argument::getUnsignedIntegerValue(bool& valid)
     if (_type == ARGUMENT_TYPE::INTEGER)
     {
         valid = true;
-        return static_cast< uint32_t >(atoi(_value.c_str()));
+
+        try
+        {
+            int32_t value = std::stoi(_value);
+            return static_cast< uint32_t >(value);
+        }
+        catch(std::exception const & e)
+        {
+            LOG_ERROR("The value [%s] cannot be an Integer for the argument [%s]!",
+                      _value.c_str(), _name.c_str());
+        }
     }
 
     valid = false;
@@ -205,7 +230,17 @@ float Argument::getFloatValue(bool& valid)
     if (_type == ARGUMENT_TYPE::FLOAT)
     {
         valid = true;
-        return static_cast<float>(atof(_value.c_str()));
+
+        try
+        {
+            float value = std::stof(_value);
+            return value;
+        }
+        catch(std::exception const & e)
+        {
+            LOG_ERROR("The value [%s] cannot be a float for the argument [%s]!",
+                      _value.c_str(), _name.c_str());
+        }
     }
 
     valid = false;
@@ -215,7 +250,7 @@ float Argument::getFloatValue(bool& valid)
 std::string Argument::getStringValue(bool &valid)
 {
     if (_type == ARGUMENT_TYPE::STRING)
-    {
+    {        
         valid = true;
         return _value;
     }

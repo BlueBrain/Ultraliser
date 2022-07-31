@@ -72,13 +72,12 @@ void run(int argc , const char** argv)
     auto options = parseArguments(argc, argv);
 
     // Construct a volume from the mask
-    Volume* volume = Volume::constructFromTiffMask(
+    auto volume = Volume::constructFromTiffMask(
                 options->inputMaskDirectory, options->maskWidth, options->maskHeight,
                 VolumeGrid::getType(options->volumeType));
 
     // Generate the volume artifacts based on the given options
     generateVolumeArtifacts(volume, options);
-
 
     // Extract the mesh from the volume again
     auto reconstructedMesh = reconstructMeshFromVolume(volume, options);

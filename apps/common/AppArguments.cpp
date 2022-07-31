@@ -86,8 +86,7 @@ void AppArguments::addMaskArguments()
                 "--mask-width",
                 ARGUMENT_TYPE::INTEGER,
                 "The width of the mask.",
-                ARGUMENT_PRESENCE::MANDATORY,
-                "0");
+                ARGUMENT_PRESENCE::MANDATORY);
     _args->addArgument(&maskWidth);
     _options->maskWidth = _args->getIntegrValue(&maskWidth);
 
@@ -95,10 +94,9 @@ void AppArguments::addMaskArguments()
                 "--mask-height",
                 ARGUMENT_TYPE::INTEGER,
                 "The height of the mask.",
-                ARGUMENT_PRESENCE::MANDATORY,
-                "0");
+                ARGUMENT_PRESENCE::MANDATORY);
     _args->addArgument(&maskHeight);
-    _options->maskHeight = _args->getIntegrValue(&maskWidth);
+    _options->maskHeight = _args->getIntegrValue(&maskHeight);
 }
 
 void AppArguments::addMorphologyExtractionArguments()

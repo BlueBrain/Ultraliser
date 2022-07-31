@@ -205,7 +205,7 @@ void log(const LOG_LEVEL& logLevel,
 
     case ERROR:
 #ifdef ULTRALISER_RELEASE
-        printf(STD_BOLD_RED "%s \n\n" STD_RESET, logMessage);
+        printf(STD_BOLD_RED "\n%s \n\n" STD_RESET, logMessage);
         exit(EXIT_SUCCESS);
 #else
         printf(STD_RED "[%d]" STD_RESET
