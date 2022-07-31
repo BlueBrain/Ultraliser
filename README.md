@@ -73,8 +73,8 @@ If you use _Ultraliser_, you can use the following BibTex entry for citation
 
 ```
 @article {Abdellah2022.07.27.501675,
-    author = {Abdellah, Marwan and Garc{\'\i}a Cantero, Juan Jos{\'e} and Roman Guerrero, Nadir and
-    Foni, Alessandro and Coggan, Jay S. and Cal{\`\i}, Corrado and Agus, Marco and 
+    author = {Abdellah, Marwan and Garc{\'\i}a Cantero, Juan Jos{\'e} and Roman Guerrero, Nadir 
+    and Foni, Alessandro and Coggan, Jay S. and Cal{\`\i}, Corrado and Agus, Marco and 
     Zisis, Eleftherios and Keller, Daniel and Hadwiger, Markus and Magistretti, Pierre and 
     Markram, Henry and Sch{\"u}rmann, Felix},
     title = {Ultraliser: a framework for creating multiscale, high-fidelity and geometrically 
