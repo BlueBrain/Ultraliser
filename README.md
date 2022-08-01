@@ -69,7 +69,7 @@ See file [LICENSE](https://github.com/BlueBrain/Ultraliser/blob/master/LICENSE) 
 
 # Citation
 
-If you use _Ultraliser_, you can use the following BibTex entry for citation
+If you use _Ultraliser_, you can use the following ${\mathrm{B{\scriptstyle{IB}} \! T\!_{\displaystyle E} \! X}}$ entry for citation
 
 ```
 @article {Abdellah2022.07.27.501675,
