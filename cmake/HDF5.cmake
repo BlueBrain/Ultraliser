@@ -34,8 +34,7 @@ if(HDF5_FOUND)
             /usr/lib
             /usr/local/lib
             /sw/lib
-            /opt/local/lib
-            $ENV{PROGRAM_FILES}/OpenEXR/lib/static)
+            /opt/local/lib)
 
     # Include directories
     include_directories(${HDF5_INCLUDE_DIRS})
