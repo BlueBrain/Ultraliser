@@ -149,6 +149,18 @@ resonance angiography. NeuroImage, 82, 170-181, (2013)](http://dx.doi.org/10.101
 courtesy of [Bruno Weber](https://www.neuroscience.uzh.ch/en/about/people/steering/Weber.html), 
 University of Zurich, Switzerland.
 
+* Cortical meshes (in H5 format) are courtesy of the the [MICrONS Consortium](https://www.microns-explorer.org/) including 
+[Seung Lab](http://seunglab.org/), 
+[Brain-map.org](https://brain-map.org) - [Allen Institute for Brain Science](https://alleninstitute.org/), 
+[Tolias Lab](https://toliaslab.org/) and [IARPA Microns](https://www.iarpa.gov/index.php/research-programs/microns). 
+    * The cortical mm^3 datasets are available from the following pulication:
+        * MICrONs Consortium et al. Functional connectomics spanning multiple areas of mouse visual cortex. bioRxiv 2021.07.28.454025; doi: https://doi.org/10.1101/2021.07.28.454025
+    * Layer 2/3 datasets are available from the following publications:
+        * Dorkenwald, S., Turner, N.L., Macrina, T., Lee, K., Lu, R., Wu, J., Bodor, A.L., Bleckert, A.A., Brittain, D., Kemnitz, N., et al. (2019). Binary and analog variation of synapses between cortical pyramidal neurons. bioRxiv 2019.12.29.890319; doi: https://doi.org/10.1101/2019.12.29.890319
+        * Schneider-Mizell, C. Bodor, A.L., Collman, F.  Brittain,D. Bleckert, AA, Dorkenwald, S., Turner N.L. Macrina, T.  Lee, K. Lu, R.  Wu, J. et al. (2020)  Chandelier cell anatomy and function suggest a variably distributed but common signal. bioRxiv 2020.03.31.018952v1; doi: https://doi.org/10.1101/2020.03.31.018952
+
+
+
 Full attributions and acknowledgements are available in the [ACKNOWLEDGEMENTS file](https://github.com/BlueBrain/Ultraliser/blob/master/ACKNOWLEDGEMENTS.md).
 
 # Contact
