@@ -120,7 +120,7 @@ Financial support was provided by competitive research funding from [King Abdull
 
 * The watertighness verification code in _Ultraliser_ is based on an extended version of the [MeshFix library](https://github.com/MarcoAttene/MeshFix-V2.1). MeshFix is developed by _Marco Attene_, Consiglio Nazionale delle Ricerche, Istituto di Matematica Applicata e Tecnologie Informatiche, Sezione di Genova, IMATI-GE / CNR, and can be redistributed and modified under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or any later version.    
 
-* The mesh analysis code is implemented based on the metrics described in the [The Verdict Geometric Quality Library](https://coreform.com/papers/verdict_quality_library.pdf). 
+* The mesh analysis code is implemented based on the metrics described in [The Verdict Geometric Quality Library](https://coreform.com/papers/verdict_quality_library.pdf). 
 
 * The morphology analysis code is implemented based on the metrics described in [NeuroMorphoVis](https://github.com/BlueBrain/NeuroMorphoVis/wiki/Analysis). 
 
@@ -149,7 +149,7 @@ resonance angiography. NeuroImage, 82, 170-181, (2013)](http://dx.doi.org/10.101
 courtesy of [Bruno Weber](https://www.neuroscience.uzh.ch/en/about/people/steering/Weber.html), 
 University of Zurich, Switzerland.
 
-* Cortical meshes (in H5 format) are courtesy of the the [MICrONS Consortium](https://www.microns-explorer.org/) including 
+* Cortical meshes (in H5 format) are courtesy of the [MICrONS Consortium](https://www.microns-explorer.org/) including 
 [Seung Lab](http://seunglab.org/), 
 [Brain-map.org](https://brain-map.org) - [Allen Institute for Brain Science](https://alleninstitute.org/), 
 [Tolias Lab](https://toliaslab.org/) and [IARPA Microns](https://www.iarpa.gov/index.php/research-programs/microns). 
