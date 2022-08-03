@@ -8,7 +8,7 @@
     Nadir Roman Guerrero (BBP / EPFL)
     
 ##### External 
-
+    
     Marco Attene (IMATI-GE / CNR) 
     
     Zeyun Yu (UC San Diego)
