@@ -42,15 +42,22 @@ add_library(${NRRD_LIB} ${NRRD_READER_HEADERS} ${NRRD_READER_SOURCES})
 # Copy the artifacts for the apps
 set_property(TARGET ${NRRD_LIB} PROPERTY IMPORTED_LOCATION
     ${CMAKE_BINARY_DIRECTORY}/lib${NRRD_LIB}.so)
-
-# Install the files
-install(TARGETS ${NRRD_LIB} DESTINATION lib)
-install(FILES ${NRRD_LIB} DESTINATION include)
-
+    
 # Link the libraries
 target_link_libraries(${NRRD_LIB} PRIVATE ${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES})
 target_include_directories(${NRRD_LIB} PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>"
     "$<INSTALL_INTERFACE:include>")
+    
+target_include_directories(${NRRD_LIB} SYSTEM PUBLIC ${GLM_INCLUDE_DIRS})
 
 target_compile_options(${NRRD_LIB} PRIVATE -Wall -Wextra -pedantic -Werror)
+
+# Install the files
+install(TARGETS ${NRRD_LIB} DESTINATION lib)
+
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/nrrdloader
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.h")
+
+
