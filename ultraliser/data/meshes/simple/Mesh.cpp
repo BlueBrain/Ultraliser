@@ -383,40 +383,32 @@ void Mesh::import(const std::string &fileName, const bool &verbose)
     Triangles loadedTriangles;
 
     // Switch to the corresponding loader based on the extension
-    switch(fileName[strlen(fileName.c_str()) - 1])
-    {
-    case 'y':
-    case 'Y':
-    {
-        importPLY(fileName, loadedVertices, loadedTriangles, verbose);
-        break;
-    }
-    case 'j':
-    case 'J':
+    std::string lower = fileName;
+    String::toLower(lower);
+
+    if (String::subStringFound(lower, ".obj"))
     {
         importOBJ(fileName, loadedVertices, loadedTriangles, verbose);
-        break;
     }
-    case 'l':
-    case 'L':
+    else if (String::subStringFound(lower, ".stl"))
     {
         importSTL(fileName, loadedVertices, loadedTriangles, verbose);
-        break;
-    }   
-    case 'f':
-    case 'F':
+    }
+    else if (String::subStringFound(lower, ".ply"))
+    {
+        importPLY(fileName, loadedVertices, loadedTriangles, verbose);
+    }
+    else if (String::subStringFound(lower, ".off"))
     {
         importOFF(fileName, loadedVertices, loadedTriangles, verbose);
-        break;
     }
-    case 'h':
-    case 'H':
+    else if (String::subStringFound(lower, ".h5"))
     {
         importH5(fileName, loadedVertices, loadedTriangles, verbose);
-        break;
     }
-    default:
-        LOG_ERROR("The mesh [ %s ] CANNOT be read.", fileName.c_str());
+    else
+    {
+        LOG_ERROR("Unsupported mesh extension: the mesh [ %s ] CANNOT be read!", fileName.c_str());
     }
 
     _numberVertices = loadedVertices.size();
