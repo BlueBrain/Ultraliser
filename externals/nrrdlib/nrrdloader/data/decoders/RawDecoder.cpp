@@ -25,6 +25,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <stdexcept>
 
 namespace
 {
@@ -73,6 +74,8 @@ public:
         default:
             throw std::runtime_error("Unsupported type");
         }
+        
+        return 0;
     }
 };
 

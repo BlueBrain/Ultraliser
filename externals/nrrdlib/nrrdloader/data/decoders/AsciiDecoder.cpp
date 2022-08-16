@@ -30,6 +30,8 @@
 
 #include "../../utils/StringUtils.h"
 
+#include <stdexcept>
+
 namespace
 {
 template<typename T>
