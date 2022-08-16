@@ -44,4 +44,3 @@ University of Zurich, Switzerland.
     * Layer 2/3 datasets are available from the following publications:
         * Dorkenwald, S., Turner, N.L., Macrina, T., Lee, K., Lu, R., Wu, J., Bodor, A.L., Bleckert, A.A., Brittain, D., Kemnitz, N., et al. (2019). Binary and analog variation of synapses between cortical pyramidal neurons. bioRxiv 2019.12.29.890319; doi: https://doi.org/10.1101/2019.12.29.890319
         * Schneider-Mizell, C. Bodor, A.L., Collman, F.  Brittain,D. Bleckert, AA, Dorkenwald, S., Turner N.L. Macrina, T.  Lee, K. Lu, R.  Wu, J. et al. (2020)  Chandelier cell anatomy and function suggest a variably distributed but common signal. bioRxiv 2020.03.31.018952v1; doi: https://doi.org/10.1101/2020.03.31.018952
-

@@ -43,8 +43,9 @@ VasculatureMorphology::VasculatureMorphology
     // Connect the sections
     _connectSections();
 
-    // Resamplg the sections, relaxed
-    resampleSectionsUniformly(0.1);
+    // Resample the sections, relaxed
+    // resampleSectionsUniformly(0.5);
+    resampleSectionsAdaptively(true);
 }
 
 void VasculatureMorphology::_constructSections()
@@ -237,8 +238,6 @@ void VasculatureMorphology::exportVascularMorphologyVMV(const std::string &prefi
 
     // Start the time
     TIMER_SET;
-
-
 
     // Write the Header
     stream  << "$PARAM_BEGIN" << NEW_LINE;

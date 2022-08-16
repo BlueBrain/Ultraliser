@@ -647,11 +647,12 @@ void Volume::surfaceVoxelizeVasculatureMorphology(
            // Rasterize a polyline representing the section samples
             auto mesh = new Mesh(samples);
             _rasterize(mesh, _grid);
+            mesh->~Mesh();
 
             // Rasterize the first and last samples as spheres to fill any gaps
             _rasterize(samples.front(), _grid);
             _rasterize(samples.back(), _grid);
- 
+
             // Update the progress bar
             LOOP_PROGRESS(PROGRESS, sections.size());
             PROGRESS_UPDATE;
@@ -668,7 +669,11 @@ void Volume::surfaceVoxelizeVasculatureMorphology(
             {
                 auto mesh = new Mesh(paths[j]);
                 _rasterize(mesh , _grid);
+                mesh->~Mesh();
             }
+
+            paths.clear();
+            paths.shrink_to_fit();
 
             // Update the progress bar
             LOOP_PROGRESS(PROGRESS, sections.size());
@@ -691,6 +696,9 @@ void Volume::surfaceVoxelizeVasculatureMorphology(
             auto children = section->getChildrenIndices();
             if (children.size() > 0)
                 _rasterize(samples.back(), sections[children[0]]->getSamples()[0], _grid);
+            children.clear();
+            children.shrink_to_fit();
+
             // Update the progress bar
             LOOP_PROGRESS(PROGRESS, sections.size());
             PROGRESS_UPDATE;

@@ -82,6 +82,9 @@ Mesh::Mesh(const Samples& samples, const size_t& bevelSides)
     _vertices = sectionGeometry.vertices;
     _numberTriangles = sectionGeometry.numTriangles;
     _triangles = sectionGeometry.triangles;
+
+    _neighbors = nullptr;
+    _neighborList = nullptr;
 }
 
 Mesh::Mesh(Vertices vertices, Triangles triangles)

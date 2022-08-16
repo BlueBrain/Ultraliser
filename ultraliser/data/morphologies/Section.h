@@ -48,6 +48,7 @@ public:
      * @param index
      */
     Section(const size_t &index);
+    ~Section();
 
 public:
 

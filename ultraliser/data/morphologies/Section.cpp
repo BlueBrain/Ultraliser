@@ -286,6 +286,7 @@ void Section::resampleUniformly(const float& step)
                     newSamples.push_back(sample1);
                     break;
                 }
+
                 // Otherwise, interpolate the new sample and add it
                 const float radius = 0.5 *
                         (newSamples[index - 1]->getRadius() + sample1->getRadius());
@@ -306,6 +307,7 @@ void Section::resampleUniformly(const float& step)
         // Clear the old samples list
         _samples.clear();
         _samples.shrink_to_fit();
+        _samples = std::vector<Sample*>();
 
         // Update the samples list
         _samples = newSamples;
@@ -477,6 +479,19 @@ void Section::verifyMinimumSampleRadius(const float& radius)
             sample->setRadius(radius);
         }
     }
+}
+
+Section::~Section()
+{
+    // Clear the old samples list
+    _samples.clear();
+    _samples.shrink_to_fit();
+
+    _parentsIndices.clear();
+    _parentsIndices.shrink_to_fit();
+
+    _childrenIndices.clear();
+    _childrenIndices.shrink_to_fit();
 }
 
 }
