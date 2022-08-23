@@ -1,5 +1,5 @@
 ####################################################################################################
-# Copyright (c) 2016 - 2021
+# Copyright (c) 2016 - 2022
 # Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
 #
 # Author(s)
@@ -23,56 +23,33 @@
 # You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
 ####################################################################################################
 
-# ultraMask2Mesh
-if(${ULTRALISER_USE_TIFF})
-    add_subdirectory(ultraMask2Mesh)
-else(${ULTRALISER_USE_TIFF})
-    message(STATUS "ultraMask2Mesh will not be compiled. Missing the TIFF library!")
-endif(${ULTRALISER_USE_TIFF})
+# Applications
+set(ANALYSIS_APPS "")
+list(APPEND ANALYSIS_APPS AnalyseVessMorpho)
 
-# ultraMesh2Mesh
-add_subdirectory(ultraMesh2Mesh)
+foreach(APP_NAME ${ANALYSIS_APPS})
 
-# ultraMeshes2Mesh
-add_subdirectory(ultraMeshes2Mesh)
+    # Add the current directory to include directories
+    include_directories(${CMAKE_BINARY_DIR}/include)
 
-# ultraVolume2Mesh
-add_subdirectory(ultraVolume2Mesh)
+    # Add the current directory to include directories
+    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../common/")
 
-# ultraMesh2Volume
-add_subdirectory(ultraMesh2Volume)
+    # Source files
+    file(GLOB COMMON_SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/../common/*.cpp")
 
-# ultraCleanMesh
-add_subdirectory(ultraCleanMesh)
+    # Executables
+    add_executable("ultra${APP_NAME}" "${APP_NAME}.cpp" ${COMMON_SOURCE_FILES})
 
-# ultraScaleMesh
-add_subdirectory(ultraScaleMesh)
+    # Link against ultraliser
+    target_link_libraries("ultra${APP_NAME}" ultraliser)
 
-# ultraSplitPartitions
-add_subdirectory(ultraSplitPartitions)
+    # Copy the executables after the build
+    add_custom_command(TARGET "ultra${APP_NAME}" POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ultra${APP_NAME}>
+                       ${CMAKE_BINARY_DIR}/bin)
 
-# ultraMeshQualityChecker
-add_subdirectory(ultraMeshQualityChecker)
+    # Install the executable in the bin directory
+    install(TARGETS "ultra${APP_NAME}" DESTINATION bin)
 
-# ultraH5MeshConverter
-if(${ULTRALISER_USE_H5})
-add_subdirectory(ultraH5MeshConverter)
-else(${ULTRALISER_USE_H5})
-    message(STATUS "ultraH5MeshConverter will not be compiled. Missing H5!")
-endif(${ULTRALISER_USE_H5})
-
-# ultraVessMorpho2Mesh
-add_subdirectory(ultraVessMorpho2Mesh)
-
-# ultraAstroMorpho2Mesh
-add_subdirectory(ultraAstroMorpho2Mesh)
-
-# ultraNeuroMorpho2Mesh
-add_subdirectory(ultraNeuroMorpho2Mesh)
-
-# ultraSampleVascularMorphology
-add_subdirectory(ultraSampleVascularMorphology)
-
-# ultraAnalysis
-add_subdirectory(ultraAnalysis)
-
+endforeach()

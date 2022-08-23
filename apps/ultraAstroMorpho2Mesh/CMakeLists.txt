@@ -42,7 +42,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../common/")
 # Executable
 add_executable(${APP_NAME}
     ${${APP_NAME}_SOURCE_FILES}
-    ${${APP_NAME}_SOURCE_FILES}
+    ${${APP_NAME}_HEADER_FILES}
 )
 
 # Link against ultraliser
