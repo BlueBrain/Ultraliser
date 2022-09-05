@@ -24,6 +24,7 @@
 
 #include <common/Common.h>
 #include <data/morphologies/Morphologies.h>
+#include "PerAxisAnalysisData.hh"
 
 namespace Ultraliser
 {
@@ -35,6 +36,7 @@ class MorphologyStatistics
 {
 public:
     MorphologyStatistics(const Morphology* morphology);
+
 
 public:
 
@@ -91,6 +93,31 @@ public:
      * @return
      */
     std::vector< float > computeSectionsVolumeDistribution() const;
+
+    /**
+     * @brief computeSampleRadiusDistributionAlongAxis
+     * @return
+     */
+    std::vector<PerAxisAnalysisData* > computeSampleRadiusDistributionAlongAxis() const;
+
+    /**
+     * @brief computeSegmentLengthDistributionAlongAxis
+     * @return
+     */
+    std::vector<PerAxisAnalysisData* > computeSegmentLengthDistributionAlongAxis() const;
+
+    /**
+     * @brief computeSegmentSurfaceAreaDistributionAlongAxis
+     * @return
+     */
+    std::vector<PerAxisAnalysisData* > computeSegmentSurfaceAreaDistributionAlongAxis() const;
+
+    /**
+     * @brief computeSegmentVolumeDistributionAlongAxis
+     * @return
+     */
+    std::vector<PerAxisAnalysisData* > computeSegmentVolumeDistributionAlongAxis() const;
+
 
     /**
      * @brief writeStatsDistributions

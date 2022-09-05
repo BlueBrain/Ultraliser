@@ -253,6 +253,12 @@ public:
     void verifyMinimumSampleRadius(const float& radius);
 
     /**
+     * @brief resampleSectionsReduced
+     * Resample each section, by keeping the first and last samples.
+     */
+    void resampleSectionsReduced();
+
+    /**
      * @brief resampleSectionsUniformly
      * Resample each sections in the morphology uniformly with a fixed step.
      * @param step

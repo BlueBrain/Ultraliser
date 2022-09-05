@@ -76,3 +76,5 @@ add_subdirectory(ultraSampleVascularMorphology)
 # ultraAnalysis
 add_subdirectory(ultraAnalysis)
 
+# ultraResampling
+add_subdirectory(ultraResampling)

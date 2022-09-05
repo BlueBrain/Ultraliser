@@ -4,6 +4,7 @@
  *
  * Author(s)
  *      Marwan Abdellah < marwan.abdellah@epfl.ch >
+ *      Juan Jose Garcia Cantero < juanjose.garcia@epfl.ch>
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -21,51 +22,39 @@
 
 #pragma once
 
-#include <geometry/Geometry.h>
+#include <math/Vector3f.h>
 
 namespace Ultraliser
 {
 
 /**
- * @brief The ROI struct
- * A region of interest defines a sphere where we need to perform local operations.
+ * @brief The PerAxisAnalysisData struct
  */
-struct ROI
+struct PerAxisAnalysisData
 {
+public:
+
     /**
-     * @brief ROI
-     * Constructor.
-     *
-     * @param center
-     * The center of the ROI.
-     * @param radius
-     * The radius of the ROI.
+     * @brief PerAxisAnalysisData
+     * @param v
+     * @param p
      */
-    ROI(const Vector3f& center, const float radius)
+    PerAxisAnalysisData(float v, Vector3f p)
     {
-        this->center = center;
-        this->radius = radius;
+        value = v; point = p;
     }
 
 public:
 
     /**
-     * @brief center
-     * The center of the ROI.
+     * @brief value
      */
-    Vector3f center;
+    float value;
 
     /**
-     * @brief radius
-     * The radius of the ROI.
+     * @brief point
      */
-    float radius;
+    Vector3f point;
 };
-
-/**
- * @brief ROIs
- * A vector of multiple region of interests.
- */
-typedef std::vector< ROI* > ROIs;
 
 }

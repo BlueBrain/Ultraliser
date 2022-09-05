@@ -558,6 +558,29 @@ void Morphology::verifyMinimumSampleRadius(const float& radius)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
+void Morphology::resampleSectionsReduced()
+{
+    LOG_STATUS("Resampling Morphology");
+
+    // Starting the timer
+    TIMER_SET;
+
+    Samples newSamples;
+
+    LOOP_STARTS("Reduced Resampling - Keeps First & Last Samples")
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _sections.size(); ++i)
+    {
+        _sections[i]->resampleReduced();
+
+        LOOP_PROGRESS(PROGRESS, _sections.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
 void Morphology::resampleSectionsUniformly(const float step)
 {
     LOG_STATUS("Resampling Morphology");

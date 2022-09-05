@@ -24,6 +24,8 @@
 #include <common/Common.h>
 #include <math/Vector3f.h>
 #include <data/NeuronData.h>
+#include <data/morphologies/MorphologyOpertions.h>
+#include <data/morphologies/PerAxisAnalysisData.hh>
 
 namespace Ultraliser
 {
@@ -124,6 +126,14 @@ std::string getName(std::string &filePath, bool withExtension = false);
  * @param filePath
  */
 void writeFloatDistributionToFile(const std::string &filePath, std::vector<float> distribution);
+
+/**
+ * @brief writePerAxisFloatDistributionToFile
+ * @param filePath
+ * @param distribution
+ */
+void writePerAxisFloatDistributionToFile(const std::string &filePath,
+                                         const std::vector<PerAxisAnalysisData*> distribution);
 
 /**
  * @brief writeIntegerDistributionToFile

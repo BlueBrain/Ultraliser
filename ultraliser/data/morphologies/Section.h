@@ -145,6 +145,12 @@ public:
     Sample* getLastSample() const;
 
     /**
+     * @brief resampleReduced
+     * Resample the section and keep the first and last samples only.
+     */
+    void resampleReduced();
+
+    /**
      * @brief resampleSectionUniformly
      * Resamples the section uniformy.
      * @param step

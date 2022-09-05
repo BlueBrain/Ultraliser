@@ -35,3 +35,4 @@
 #include <data/morphologies/h5/VasculatureH5Connectivity.hh>
 #include <data/morphologies/VasculatureMorphology.h>
 #include <data/morphologies/vmv/VasculatureVMVReader.h>
+#include <data/morphologies/MorphologyStatistics.h>

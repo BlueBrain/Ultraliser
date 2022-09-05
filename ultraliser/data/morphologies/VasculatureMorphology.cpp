@@ -45,7 +45,7 @@ VasculatureMorphology::VasculatureMorphology
 
     // Resample the sections, relaxed
     // resampleSectionsUniformly(0.5);
-    resampleSectionsAdaptively(true);
+    // resampleSectionsAdaptively(true);
 }
 
 void VasculatureMorphology::_constructSections()
@@ -252,7 +252,7 @@ void VasculatureMorphology::exportVascularMorphologyVMV(const std::string &prefi
     for (size_t i = 0; i < _samples.size(); ++i)
     {
         auto pos = _samples[i]->getPosition();
-        stream << _samples[i]->getIndex() + 1 << SPACE
+        stream << _samples[i]->getIndex() << SPACE
                << pos.x() << SPACE << pos.y() << SPACE << pos.z() << SPACE
                << _samples[i]->getRadius() << NEW_LINE;
     }
@@ -266,7 +266,7 @@ void VasculatureMorphology::exportVascularMorphologyVMV(const std::string &prefi
         stream << i + 1 << SPACE;
         for (size_t j = 0; j < _sections[i]->getSamples().size(); ++j)
         {
-            stream << _sections[i]->getSamples()[j]->getIndex() + 1 << SPACE;
+            stream << _sections[i]->getSamples()[j]->getIndex() << SPACE;
         }
         stream << NEW_LINE;
     }

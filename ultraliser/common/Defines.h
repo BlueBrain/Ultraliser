@@ -154,13 +154,17 @@
 #define DISTORTION_SUFFIX                       STRING("-distortion")
 #define RELATIVE_SIZE_SUFFIX                    STRING("-relative-size")
 #define SAMPLES_RADII                           STRING("-samples-radii")
+#define PER_AXIS_SAMPLES_RADII                  STRING("-per-axis-samples-radii")
 #define SECTION_AVERAGE_RADIUS                  STRING("-section-average-radius")
 #define NUMBER_SAMPLES_PER_SECTION              STRING("-number-samples-per-section")
 #define SEGMENTS_LENGTH                         STRING("-segments-length")
 #define SECTIONS_LENGTH                         STRING("-sections-length")
+#define PER_AXIS_SEGMENTS_LENGTH                STRING("-per-axis-segments-length")
 #define SEGMENTS_SURFACE_AREA                   STRING("-segments-surface-area")
+#define PER_AXIS_SEGMENTS_SURFACE_AREA          STRING("-per-axis-segments-surface-area")
 #define SECTIONS_SURFACE_AREA                   STRING("-sections-surface-area")
 #define SEGMENTS_VOLUME                         STRING("-segments-volume")
+#define PER_AXIS_SEGMENTS_VOLUME                STRING("-per-axis-segments-volume")
 #define SECTIONS_VOLUME                         STRING("-sections-volume")
 
 // OBJ flags

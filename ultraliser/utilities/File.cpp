@@ -399,6 +399,26 @@ void writeFloatDistributionToFile(const std::string &filePath,
     outputStream.close();
 }
 
+void writePerAxisFloatDistributionToFile(const std::string &filePath,
+                                         const std::vector<PerAxisAnalysisData*> distribution)
+{
+    std::ofstream outputStream(filePath.c_str());
+    if (!outputStream.good())
+        LOG_ERROR("Cannot write file [ %s ]", filePath.c_str());
+
+    for (size_t i = 0; i < distribution.size(); i++)
+    {
+        outputStream << i << " " << distribution[i]->value << " "
+                     << distribution[i]->point.x() << " "
+                     << distribution[i]->point.y() << " "
+                     << distribution[i]->point.z() << " "
+                     << NEW_LINE;
+    }
+
+    // Close the stream
+    outputStream.close();
+}
+
 void writeIntegerDistributionToFile(const std::string &filePath,
                                     std::vector<size_t> distribution)
 {

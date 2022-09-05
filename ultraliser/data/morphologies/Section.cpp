@@ -178,6 +178,27 @@ float Section::computeAverageRadius() const
     return sectionAverageRadius / _samples.size();
 }
 
+void Section::resampleReduced()
+{
+    // Get the total number of samples in the section
+    const size_t numberSamples = _samples.size();
+
+    // If the section has less than or exactly two samples, return
+    if (numberSamples < 2 || numberSamples == 2)
+        return;
+
+    // Create a new samples list
+    Samples newSamples;
+    newSamples.push_back(_samples.front());
+    newSamples.push_back(_samples.back());
+
+    // Delete and free the old samples list
+    _samples.clear();
+    _samples.shrink_to_fit();
+
+    _samples = newSamples;
+}
+
 void Section::resampleUniformly(const float& step)
 {
     // Get the total number of samples in the section

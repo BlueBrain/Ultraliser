@@ -21,6 +21,7 @@
  **************************************************************************************************/
 
 #include "MorphologyStatistics.h"
+#include "MorphologyOpertions.h"
 
 namespace Ultraliser
 {
@@ -57,6 +58,40 @@ std::vector< float > MorphologyStatistics::computeSamplesRadiiDistribution() con
 #endif
 
         distribution[i] = samples[i]->getRadius();
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    return distribution;
+}
+
+std::vector< PerAxisAnalysisData* >
+MorphologyStatistics::computeSampleRadiusDistributionAlongAxis() const
+{
+    std::vector< PerAxisAnalysisData* > distribution;
+    const auto samples = _morphology->getSamples();
+    distribution.resize(samples.size());
+
+    TIMER_SET;
+    LOOP_STARTS("Computing Samples Radii Along Axis Distribution");
+    size_t progress = 0;
+#ifdef ULTRALISER_USE_OPENMP
+    #pragma omp parallel for
+#endif
+    for (size_t i = 0; i < samples.size(); ++i)
+    {
+#ifdef ULTRALISER_USE_OPENMP
+        if (omp_get_thread_num() == 0)
+            LOOP_PROGRESS(progress, samples.size());
+
+        #pragma omp atomic
+        ++progress;
+#else
+        LOOP_PROGRESS_FRACTION(progress, samples.size());
+        ++progress;
+#endif
+
+        distribution[i] = new PerAxisAnalysisData(samples[i]->getRadius(), samples[i]->getPosition());
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
@@ -149,6 +184,97 @@ std::vector< float > MorphologyStatistics::computeSegmentsLengthDistribution() c
     LOG_STATS(GET_TIME_SECONDS);
 
     return  distribution;
+}
+
+
+std::vector< PerAxisAnalysisData* >
+MorphologyStatistics::computeSegmentLengthDistributionAlongAxis() const
+{
+    std::vector< PerAxisAnalysisData* > distribution;
+    const auto sections = _morphology->getSections();
+
+    TIMER_SET;
+    LOOP_STARTS("Computing Segment Length Along Axis Distribution");
+    size_t progress = 0;
+
+    for (size_t i = 0; i < sections.size(); ++i)
+    {
+        const auto samples = sections[i]->getSamples();
+
+        for (size_t j = 0; j < samples.size() - 1; ++j)
+        {
+            const auto length = computeSegmentLength(samples[j], samples[j + 1]);
+            const Vector3f position = 0.5 * (samples[j]->getPosition() + samples[j + 1]->getPosition());
+            distribution.push_back(new PerAxisAnalysisData(length, position));
+        }
+
+        LOOP_PROGRESS_FRACTION(progress, sections.size());
+        ++progress;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    return distribution;
+}
+
+std::vector<PerAxisAnalysisData* >
+MorphologyStatistics::computeSegmentSurfaceAreaDistributionAlongAxis() const
+{
+    std::vector< PerAxisAnalysisData* > distribution;
+    const auto sections = _morphology->getSections();
+
+    TIMER_SET;
+    LOOP_STARTS("Computing Segment Surface Area Along Axis Distribution");
+    size_t progress = 0;
+
+    for (size_t i = 0; i < sections.size(); ++i)
+    {
+        const auto samples = sections[i]->getSamples();
+
+        for (size_t j = 0; j < samples.size() - 1; ++j)
+        {
+            const auto area = computeSegmentSurfaceArea(samples[j], samples[j + 1]);
+            const Vector3f position = 0.5 * (samples[j]->getPosition() + samples[j+ 1]->getPosition());
+            distribution.push_back(new PerAxisAnalysisData(area, position));
+        }
+
+        LOOP_PROGRESS_FRACTION(progress, sections.size());
+        ++progress;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    return distribution;
+}
+
+std::vector<PerAxisAnalysisData* >
+MorphologyStatistics::computeSegmentVolumeDistributionAlongAxis() const
+{
+    std::vector< PerAxisAnalysisData* > distribution;
+    const auto sections = _morphology->getSections();
+
+    TIMER_SET;
+    LOOP_STARTS("Computing Segment Volume Along Axis Distribution");
+    size_t progress = 0;
+
+    for (size_t i = 0; i < sections.size(); ++i)
+    {
+        const auto samples = sections[i]->getSamples();
+
+        for (size_t j = 0; j < samples.size() - 1; ++j)
+        {
+            const auto volume = computeSegmentVolume(samples[j], samples[j + 1]);
+            const Vector3f position = 0.5 * (samples[j]->getPosition() + samples[j + 1]->getPosition());
+            distribution.push_back(new PerAxisAnalysisData(volume, position));
+        }
+
+        LOOP_PROGRESS_FRACTION(progress, sections.size());
+        ++progress;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    return distribution;
 }
 
 std::vector< float > MorphologyStatistics::computeSectionsLengthDistribution() const
@@ -298,6 +424,22 @@ void MorphologyStatistics::writeStatsDistributions(const std::string &prefix)
                 prefix + SAMPLES_RADII + DISTRIBUTION_EXTENSION,
                 computeSamplesRadiiDistribution());
 
+    File::writePerAxisFloatDistributionToFile(
+                prefix + PER_AXIS_SAMPLES_RADII + DISTRIBUTION_EXTENSION,
+                computeSampleRadiusDistributionAlongAxis());
+
+    File::writePerAxisFloatDistributionToFile(
+                prefix + PER_AXIS_SEGMENTS_LENGTH + DISTRIBUTION_EXTENSION,
+                computeSegmentLengthDistributionAlongAxis());
+
+    File::writePerAxisFloatDistributionToFile(
+                prefix + PER_AXIS_SEGMENTS_SURFACE_AREA + DISTRIBUTION_EXTENSION,
+                computeSegmentSurfaceAreaDistributionAlongAxis());
+
+    File::writePerAxisFloatDistributionToFile(
+                prefix + PER_AXIS_SEGMENTS_VOLUME + DISTRIBUTION_EXTENSION,
+                computeSegmentVolumeDistributionAlongAxis());
+
     File::writeFloatDistributionToFile(
                 prefix + SECTION_AVERAGE_RADIUS + DISTRIBUTION_EXTENSION,
                 computeSectionAverageRadiiDistribution());
@@ -313,7 +455,6 @@ void MorphologyStatistics::writeStatsDistributions(const std::string &prefix)
     File::writeFloatDistributionToFile(
                 prefix + SECTIONS_LENGTH + DISTRIBUTION_EXTENSION,
                 computeSectionsLengthDistribution());
-
 
     File::writeFloatDistributionToFile(
                 prefix + SEGMENTS_SURFACE_AREA + DISTRIBUTION_EXTENSION,
