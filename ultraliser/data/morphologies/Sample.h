@@ -123,6 +123,12 @@ private:
      * The unique index of the sample.
      */
     size_t _index;
+
+    /**
+     * @brief _parentIndex
+     * The index of the parent sample, GLOBALLY
+     */
+    uint64_t _parentIndex;
 };
 
 /**

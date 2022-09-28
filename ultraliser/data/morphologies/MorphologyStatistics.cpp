@@ -97,9 +97,9 @@ std::vector< float > MorphologyStatistics::computeSectionAverageRadiiDistributio
     return distribution;
 }
 
-std::vector< float > MorphologyStatistics::computeNumberSamplesPerSectionDistribution() const
+std::vector< size_t > MorphologyStatistics::computeNumberSamplesPerSectionDistribution() const
 {
-    std::vector< float > distribution;
+    std::vector< size_t > distribution;
     const auto sections = _morphology->getSections();
     distribution.resize(sections.size());
 
@@ -302,7 +302,7 @@ void MorphologyStatistics::writeStatsDistributions(const std::string &prefix)
                 prefix + SECTION_AVERAGE_RADIUS + DISTRIBUTION_EXTENSION,
                 computeSectionAverageRadiiDistribution());
 
-    File::writeFloatDistributionToFile(
+    File::writeIntegerDistributionToFile(
                 prefix + NUMBER_SAMPLES_PER_SECTION + DISTRIBUTION_EXTENSION,
                 computeNumberSamplesPerSectionDistribution());
 
@@ -313,7 +313,6 @@ void MorphologyStatistics::writeStatsDistributions(const std::string &prefix)
     File::writeFloatDistributionToFile(
                 prefix + SECTIONS_LENGTH + DISTRIBUTION_EXTENSION,
                 computeSectionsLengthDistribution());
-
 
     File::writeFloatDistributionToFile(
                 prefix + SEGMENTS_SURFACE_AREA + DISTRIBUTION_EXTENSION,

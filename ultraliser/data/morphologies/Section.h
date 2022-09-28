@@ -158,6 +158,12 @@ public:
      */
     void resampleAdaptively(const bool& relaxed = true);
 
+
+    size_t removeInnerSamples();
+
+    size_t interpolateLongSegments();
+
+
     /**
      * @brief verifyMinimumSampleRadius
      * Ensures that all the samples along the section have a minimum radius that is greater then
@@ -232,6 +238,28 @@ public:
      * Computes the average radius of the section.
      */
     float computeAverageRadius() const;
+
+    /**
+     * @brief computeNumberZeroRadiusSamples
+     * Computes the number of zero-radius samples that have radii below the given threshold.
+     * @param threshold
+     * Minimum radius value.
+     * @return
+     * The number of zero-radius samples.
+     */
+    size_t computeNumberZeroRadiusSamples(const float& threshold) const;
+
+    /**
+     * @brief computeSamplingDensityPerMicron
+     * @return
+     */
+    float computeSamplingDensityPerMicron() const;
+
+    /**
+     * @brief updateSamplesIndices
+     * Update the local indices of the samples
+     */
+    void updateSamplesIndices();
 
 private:
 

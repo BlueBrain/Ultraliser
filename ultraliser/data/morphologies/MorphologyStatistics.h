@@ -54,7 +54,7 @@ public:
      * @brief computeNumberSamplesPerSectionDistribution
      * @return
      */
-    std::vector< float > computeNumberSamplesPerSectionDistribution() const;
+    std::vector< size_t > computeNumberSamplesPerSectionDistribution() const;
 
     /**
      * @brief computeSegmentsLengthDistribution

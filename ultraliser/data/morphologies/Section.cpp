@@ -178,6 +178,26 @@ float Section::computeAverageRadius() const
     return sectionAverageRadius / _samples.size();
 }
 
+size_t Section::computeNumberZeroRadiusSamples(const float& threshold) const
+{
+    size_t count = 0;
+    for (const auto sample: _samples)
+    {
+        if (sample->getRadius() < threshold)
+        {
+            count++;
+        }
+    }
+    return count;
+}
+
+void Section::updateSamplesIndices()
+{
+    // Update the indices of the samples, locally
+    for (size_t i = 0; i < _samples.size(); ++i)
+        _samples[i]->setIndex(i);
+}
+
 void Section::resampleUniformly(const float& step)
 {
     // Get the total number of samples in the section
@@ -310,6 +330,149 @@ void Section::resampleUniformly(const float& step)
         // Update the samples list
         _samples = newSamples;
     }
+
+    // Update the indices of the samples
+    updateSamplesIndices();
+}
+
+size_t Section::removeInnerSamples()
+{
+    // Get the total number of samples in the section
+    const size_t numberSamples = _samples.size();
+
+    // If the section has less than two samples, return
+    if (numberSamples < 2)
+        return 0;
+
+    // If the section has two samples, return. The section cannot be resampled.
+    if (numberSamples == 2)
+        return 0;
+
+    // Keep track on the removed samples
+    size_t numberRemovedSamples = 0;
+
+    // Keep track on current sample, its index
+    size_t i = 0;
+    while (true)
+    {
+        // Compute the distance between samples
+        const auto distance = (_samples[i + 1]->getPosition() - _samples[i]->getPosition()).abs();
+
+        // Compute the radii sum
+        const auto& r0 = _samples[i]->getRadius();
+        const auto& r1 = _samples[i + 1]->getRadius();
+
+        // If sample0 is located entirely within sample1
+        if (distance < r1)
+        {
+            // If sample0 is the first sample in the section
+            if (i == 0)
+            {
+                // Use sample1 as the first sample of the section, and remove sample0
+                _samples[i + 1]->setPosition(_samples[i]->getPosition());
+                _samples.erase(_samples.begin());
+            }
+            // Otherwise, remove sample0 from the section
+            else
+            {
+                // Remove sample0 @i
+                _samples.erase(_samples.begin() + i);
+            }
+
+            // Increment the counter
+            numberRemovedSamples++;
+        }
+
+        // If sample1 is located entirely within sample0
+        else if (distance < r0)
+        {
+            // If sample1 is the last sample in the section
+            if (i == _samples.size() - 1)
+            {
+                // Use sample0 as the last sample of the section and remove sample1
+                _samples[i]->setPosition(_samples[i + 1]->getPosition());
+                _samples.erase(_samples.end());
+            }
+            // Otherwise, remove sample1 from the section
+            else
+            {
+                // Remove sample1 @i+1
+                _samples.erase(_samples.begin() + i + 1);
+            }
+
+            // Increment the counter
+            numberRemovedSamples++;
+        }
+        else
+        {
+            // Next sample
+            i++;
+        }
+
+        // We have reached the terminal
+        if (i == _samples.size() - 2)
+            break;
+    }
+
+    // Return the number of removed samples
+    return numberRemovedSamples;
+}
+
+size_t Section::interpolateLongSegments()
+{
+    // Get the total number of samples in the section
+    const size_t numberSamples = _samples.size();
+
+    // If the section has less than two samples, return
+    if (numberSamples < 2)
+        return 0;
+
+    // Keep track on the total number of samples added
+    size_t numberAddedSamples = 0;
+
+    // Keep track on current sample, its index
+    size_t i = 0;
+    while (true)
+    {
+        auto sample0 = _samples[i];
+        auto sample1 = _samples[i + 1];
+
+        // Compute the distance between samples
+        const auto distance = (sample1->getPosition() - sample0->getPosition()).abs();
+
+        // If the distance between the two samples is greater than the radii, insert a sample
+        if (distance > sample0->getRadius() + sample1->getRadius())
+        {
+            // Compute the direction of the segment from sample0 to sample1
+            const auto direction = (sample1->getPosition() - sample0->getPosition()).normalized();
+
+            // Compute the interpolated radius
+            const auto radius = (sample0->getRadius() + sample1->getRadius()) * 0.5;
+
+            // Compute the new position of the sample
+            const auto position =
+                    sample0->getPosition() + (direction * radius) - Vector3f(FLT_EPSILON);
+
+            // Create the new sample, for the moment use the index 0 until all the auxillary
+            // samples are created
+            Sample* interpolatedSample = new Sample(position, radius, 0);
+
+            // Add the new sample
+            _samples.insert(_samples.begin() + i + 1, interpolatedSample);
+
+            // Increment the counter
+            numberAddedSamples++;
+        }
+
+        // Next sample
+        i++;
+
+        if (i >= _samples.size() - 2)
+            break;
+    }
+
+    // Return the number of added samples
+    return numberAddedSamples;
 }
 
 void Section::resampleAdaptively(const bool& relaxed)

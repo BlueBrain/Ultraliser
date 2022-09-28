@@ -83,6 +83,12 @@ public:
     Samples getSamples() const;
 
     /**
+     * @brief getRootSections
+     * @return
+     */
+    Sections getRootSections() const;
+
+    /**
      * @brief getConnectedPathsFromParentsToChildren
      * @param section
      * @return
@@ -270,6 +276,10 @@ public:
      */
     void resampleSectionsAdaptively(const bool& relaxed);
 
+
+    void resampleSectionsSmartly();
+
+
     /**
      * @brief printStats
      * Prints the morphology stats.
@@ -289,6 +299,8 @@ public:
      * Output file prefix.
      */
     void printDistributions(const std::string *prefix) const;
+
+    void exportToSWC(const std::string& path, const std::string& prefix);
 
 protected:
 

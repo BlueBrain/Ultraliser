@@ -165,7 +165,7 @@ void log(const LOG_LEVEL& logLevel,
 
         case WARNING:
 #ifdef ULTRALISER_RELEASE
-        printf(STD_BOLD_YELLOW "    WARNING: %s \n\n" STD_RESET, logMessage);
+        printf(STD_BOLD_YELLOW "\n    WARNING: %s \n\n" STD_RESET, logMessage);
 #else
         printf(STD_RED "[%d]" STD_RESET
                STD_YELLOW "[ %s ]" STD_RESET
@@ -205,7 +205,7 @@ void log(const LOG_LEVEL& logLevel,
 
     case ERROR:
 #ifdef ULTRALISER_RELEASE
-        printf(STD_BOLD_RED "\n%s \n\n" STD_RESET, logMessage);
+        printf(STD_BOLD_RED "\n\n    %s \n\n" STD_RESET, logMessage);
         exit(EXIT_SUCCESS);
 #else
         printf(STD_RED "[%d]" STD_RESET

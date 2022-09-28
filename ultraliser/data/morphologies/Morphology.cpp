@@ -59,6 +59,21 @@ Samples Morphology::getSamples() const
     return _samples;
 }
 
+Sections Morphology::getRootSections() const
+{
+    // Collect all the root sections in this list
+    Sections rootSections;
+    for (size_t i = 0; i < _sections.size(); ++i)
+    {
+        // The root section has no parents, indeed
+        if (_sections[i]->getParentIndices().size() == 0)
+            rootSections.push_back(_sections[i]);
+    }
+
+    // Return a list with all the root nodes
+    return rootSections;
+}
+
 Sections Morphology::getSubsectionsInBoundingBox(const Section* section,
                                                  const Vector3f& center,
                                                  const float& width,
@@ -600,6 +615,53 @@ void Morphology::resampleSectionsAdaptively(const bool& relaxed)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
+void Morphology::resampleSectionsSmartly()
+{
+    LOG_STATUS("Resampling Morphology");
+
+    // Starting the timer
+    TIMER_SET;
+
+    std::vector< size_t > sectionCounter;
+    sectionCounter.resize(_sections.size());
+
+    LOOP_STARTS("Removing Redundant Samples")
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _sections.size(); ++i)
+    {
+        sectionCounter[i] = _sections[i]->removeInnerSamples();
+
+        LOOP_PROGRESS(PROGRESS, _sections.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    size_t totalNumberRemovedSamples = 0;
+    for (size_t i = 0; i < sectionCounter.size(); ++i)
+        totalNumberRemovedSamples += sectionCounter[i];
+    LOG_SUCCESS("Number of Redundant Sample(s) [%d]", totalNumberRemovedSamples);
+
+    LOOP_STARTS("Intepolating Long Sections")
+    PROGRESS_RESET;
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _sections.size(); ++i)
+    {
+        sectionCounter[i] = _sections[i]->interpolateLongSegments();
+
+        LOOP_PROGRESS(PROGRESS, _sections.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    size_t totalNumberInterpolatedSamples = 0;
+    for (size_t i = 0; i < sectionCounter.size(); ++i)
+        totalNumberInterpolatedSamples += sectionCounter[i];
+    LOG_SUCCESS("Number of Added Sample(s) [%d]", totalNumberInterpolatedSamples);
+}
+
 ROIs Morphology::collectRegionsWithThinStructures(const float& threshold) const
 {
     // Regions of interest
@@ -765,6 +827,50 @@ void Morphology::printStats(const std::string &reference, const std::string *pre
 
     LOG_STATUS_IMPORTANT("Gathering Morphology Stats.");
     LOG_STATS(GET_TIME_SECONDS);
+}
+
+void Morphology::exportToSWC(const std::string& path, const std::string& prefix)
+{
+
+
+
+
+
+
+
+
+
+
+
+
+
+    auto getChildrenSamples = [](Section* section, std::vector< size_t > samplesIndices)
+    {
+        for (size_t j = 0; j < section->getChildrenIndices().size(); ++j)
+        {
+
+
+        }
+
+
+    };
+
+    // Get the root nodes
+    auto rootSections = getRootSections();
+
+    for (size_t i = 0; i < rootSections.size(); ++i)
+    {
+        auto section = rootSections[i];
+
+        // Add the indices of this 'parent' section
+
+        //
+        for (size_t j = 0; j < section->getChildrenIndices().size(); ++j)
+        {
+
+        }
+
+    }
 }
 
 }

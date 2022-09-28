@@ -2804,6 +2804,18 @@ void Mesh::coarseFlat(const float& flatnessRate,
     LOG_STATS(GET_TIME_SECONDS);
 }
 
+void Mesh::improveTopology(const size_t &smoothingIterations)
+{
+    // Smooth normals
+    smoothNormals();
+
+    // Smooth
+    smooth(15, 150, smoothingIterations);
+
+    // Smooth normals
+    smoothNormals();
+}
+
 void Mesh::optimizeAdaptively(const size_t &optimizationIterations,
                               const size_t &smoothingIterations,
                               const float &flatFactor,
@@ -2814,14 +2826,8 @@ void Mesh::optimizeAdaptively(const size_t &optimizationIterations,
     // Starting the timer
     TIMER_SET;
 
-    // Smooth normals
-    smoothNormals();
-
-    // Smooth
-    smooth(15, 150, smoothingIterations);
-
-    // Smooth normals
-    smoothNormals();
+    // Smooth surface
+    improveTopology(smoothingIterations);
 
     // Refine the mesh
     refine();
@@ -2832,14 +2838,8 @@ void Mesh::optimizeAdaptively(const size_t &optimizationIterations,
     // Coarse flat
     coarseFlat(flatFactor, optimizationIterations);
 
-    // Smooth normals
-    smoothNormals();
-
-    // Smooth
-    smooth(15, 150, smoothingIterations);
-
-    // Smooth normals
-    smoothNormals();
+    // Smooth surface
+    improveTopology(smoothingIterations);
 
     // Statistics
     _optimizationTime = GET_TIME_SECONDS;
@@ -2861,14 +2861,8 @@ void Mesh::optimize(const size_t &optimizationIterations,
     // Remove the unnecessary vertices in multiple iterations
     coarseDense(denseFactor, optimizationIterations);
 
-    // Smooth the normals
-    smoothNormals();
-
-    // Smoothing the surface
-    smooth(15, 150, smoothingIterations);
-
-    // Smooth the normals again
-    smoothNormals();
+    // Smooth surface
+    improveTopology(smoothingIterations);
 
     // Statistics
     _optimizationTime = GET_TIME_SECONDS;

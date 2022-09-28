@@ -66,23 +66,17 @@ float computeSegmentVolume(const Sample* sample1, const Sample* sample2)
 
 void resampleSectionRelaxed(Section* section)
 {
-
+    // TODO: Implement Me
 }
 
 void resampleSectionPacked(Section* section)
 {
-
+    // TODO: Implement Me
 }
 
 void resampleSectionWithFixedStep(Section* section, const float& step)
 {
-    // Initially, compute section length
-
-    // If the section length if less than the step, do not resample it and return
-
-    // If the section length is less than double the step, add a new bi-centric sample
-
-    // Otherwise, resample the section.
+    // TODO: Implement Me
 }
 
 }

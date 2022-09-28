@@ -428,6 +428,12 @@ public:
                   const float& denseFactor);
 
     /**
+     * @brief improveTopology
+     * @param smoothingIterations
+     */
+    void improveTopology(const size_t &smoothingIterations);
+
+    /**
      * @brief optimizeAdaptively
      * @param optimizationIterations
      * @param smoothingIterations

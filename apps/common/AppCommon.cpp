@@ -540,6 +540,8 @@ Mesh* loadInputMesh(const AppOptions* options)
     // Load the mesh and construct the mesh object, and generate its artifacts if needed
     auto mesh = new Mesh(options->inputMeshPath);
 
+    // If the dimensions of the input mesh are larger than
+
     // Write the statistics of the input mesh
     if (options->writeStatistics)
         mesh->printStats(INPUT_STRING, &options->statisticsPrefix);
@@ -565,7 +567,10 @@ void generateReconstructedMeshArtifacts(Mesh* mesh, const AppOptions* options)
     if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)
         generateOptimizedMesh(mesh, options);
 
-    // Create the final watertight mesh
+    // Before creating the watertight mesh, improve the topology even if the mesh was not optimized
+    mesh->improveTopology(options->smoothingIterations);
+
+    // Create the final watertight mesh    
     createWatertightMesh(mesh, options);
 }
 
