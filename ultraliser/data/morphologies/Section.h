@@ -261,6 +261,9 @@ public:
      */
     void updateSamplesIndices();
 
+
+    void reIndexSectionTree(size_t& sectionIndex, size_t &sampleIndex, Samples& samples);
+
 private:
 
     /**

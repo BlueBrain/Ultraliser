@@ -642,4 +642,23 @@ void Section::verifyMinimumSampleRadius(const float& radius)
     }
 }
 
+void Section::reIndexSectionTree(size_t& sectionIndex, size_t &sampleIndex, Samples& samples)
+{
+    // Set the indices of this 'parent' section
+    setIndex(sectionIndex);
+    sectionIndex++;
+
+    // Set the indices of the samples of the parent section
+    for (size_t i = 0; i < getSamples().size(); ++i)
+    {
+        getSamples()[i]->setIndex(sampleIndex);
+        sampleIndex++;
+
+        for (size_t j = 0; j < getChildrenIndices().size(); ++j)
+        {
+            reIndexSectionTree(sectionIndex, sampleIndex, samples);
+        }
+    }
+}
+
 }

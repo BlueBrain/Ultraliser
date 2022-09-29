@@ -300,7 +300,11 @@ public:
      */
     void printDistributions(const std::string *prefix) const;
 
+    void reIndexMorphology();
+
     void exportToSWC(const std::string& path, const std::string& prefix);
+
+    void exportToH5(const std::string& path, const std::string& prefix);
 
 protected:
 

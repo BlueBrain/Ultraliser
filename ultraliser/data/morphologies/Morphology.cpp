@@ -829,9 +829,63 @@ void Morphology::printStats(const std::string &reference, const std::string *pre
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Morphology::exportToSWC(const std::string& path, const std::string& prefix)
+// Reindexing of acyclic morphologies, with root nodes
+void Morphology::reIndexMorphology()
+{
+    // Global indexing the sections
+    size_t sectionIndex = 0;
+
+    // Global indexing for the samples, note that sample 0 is for the soma
+    size_t sampleIndex = 1;
+
+    // A collector for all the samples in the morphology including the ones that have been added
+    // We will clear the current samples list, and then we reconstruct a new list of samples
+    _samples.clear();
+
+    // Get root sections, for neurons and astrocytes
+    auto rootSections = getRootSections();
+
+    // For each root section
+    for (size_t i = 0; i < rootSections.size(); ++i)
+    {
+        // Get a reference to the root section
+        auto& section = rootSections[i];
+
+        // Set the indices of this 'parent' section
+        section->setIndex(sectionIndex);
+        sectionIndex++;
+
+        // Set the indices of the samples of the parent section
+        for (size_t j = 0; j < section->getSamples().size(); ++j)
+        {
+            section->getSamples()[j]->setIndex(sampleIndex);
+            sampleIndex++;
+
+            // Add the sample to the samples list
+            _samples.push_back(section->getSamples()[j]);
+        }
+
+        for (size_t j = 0; j < section->getChildrenIndices().size(); ++j)
+        {
+            // Get a reference to the child section
+            auto child = _sections[section->getChildrenIndices()[j]];
+
+            // Apply recursively
+            child->reIndexSectionTree(sectionIndex, sampleIndex, _samples);
+        }
+    }
+}
+
+
+
+
+void Morphology::exportToH5(const std::string& path, const std::string& prefix)
 {
 
+}
+
+void Morphology::exportToSWC(const std::string& path, const std::string& prefix)
+{
 
 
 
