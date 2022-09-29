@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <data/morphologies/ProcessType.h>
 #include <data/morphologies/Sample.h>
 #include <data/morphologies/Section.h>
 #include <data/morphologies/Morphologies.h>

@@ -133,6 +133,8 @@ public:
      */
     float getLargestRadiusInMorphology() const;
 
+    void reIndexMorphology();
+
 private:
 
     /**

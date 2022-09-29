@@ -80,6 +80,7 @@
 #define OFF_EXTENSION                           STRING(".off")
 #define PLY_EXTENSION                           STRING(".ply")
 #define STL_EXTENSION                           STRING(".stl")
+#define SWC_EXTENSION                           STRING(".swc")
 #define VMV_EXTENSION                           STRING(".vmv")
 #define H5_EXTENSION                            STRING(".h5")
 

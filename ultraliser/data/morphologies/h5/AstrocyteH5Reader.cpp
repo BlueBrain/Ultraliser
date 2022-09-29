@@ -279,9 +279,12 @@ void AstrocyteH5Reader::_constructEndfeet()
             H5Sample &s2 = _endfeetSamples.at(v2);
 
             // Convert the H5Samples into Samples, indicies values are not important in this context
-            Sample* sample0 = new Sample(Vector3f(s0.x, s0.y, s0.z), s0.r * 0.5, 0);
-            Sample* sample1 = new Sample(Vector3f(s1.x, s1.y, s1.z), s1.r * 0.5, 1);
-            Sample* sample2 = new Sample(Vector3f(s2.x, s2.y, s2.z), s2.r * 0.5, 2);
+            Sample* sample0 = new Sample(Vector3f(s0.x, s0.y, s0.z), s0.r * 0.5,
+                                         PROCESS_TYPE::GLIA_ENDFEET, 0);
+            Sample* sample1 = new Sample(Vector3f(s1.x, s1.y, s1.z), s1.r * 0.5,
+                                         PROCESS_TYPE::GLIA_ENDFEET, 1);
+            Sample* sample2 = new Sample(Vector3f(s2.x, s2.y, s2.z), s2.r * 0.5,
+                                         PROCESS_TYPE::GLIA_ENDFEET, 2);
 
             // Construct the endfeet patches
             EndfootPatch* patch = new EndfootPatch(sample0, sample1, sample2);

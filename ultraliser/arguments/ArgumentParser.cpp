@@ -107,6 +107,7 @@ void ArgumentParser::_validateArguments()
             {
                 if (argumentString == argument->getName())
                 {
+                    std::cout << argumentString << " " <<  argument->getName() << "\n";
                     exists = true;
                 }
             }

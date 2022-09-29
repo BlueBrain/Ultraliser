@@ -89,6 +89,12 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Ultraliser.h
 # Add the current directory to include directories
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+# OpenMP for qt-creator, fix
+include_directories(
+    "/usr/lib/gcc/x86_64-linux-gnu/8/include/"
+    "/usr/lib/gcc/x86_64-linux-gnu/9/include/"
+)
+
 # Create a shared library
 add_library(ultraliser ${ULTRALISER_SOURCE_FILES} ${ULTRALISER_HEADER_FILES})
 

@@ -23,6 +23,7 @@
 #pragma once
 
 #include <geometry/Geometry.h>
+#include <data/morphologies/ProcessType.h>
 
 namespace Ultraliser
 {
@@ -33,13 +34,13 @@ public:
 
     /**
      * @brief Sample
-     * Constructor
      * @param position
-     * The Cartesian position of the sample.
      * @param radius
-     * The radius of the sample.
+     * @param index
+     * @param parentIndex
      */
-    Sample(const Vector3f &position, const float &radius, const size_t& index);
+    Sample(const Vector3f &position, const float &radius,
+           const PROCESS_TYPE& type, const size_t& index = 0, const int64_t& parentIndex = -1);
 
     /**
      * @brief Sample
@@ -74,16 +75,38 @@ public:
     void setRadius(const float& radius);
 
     /**
+     * @brief getType
+     * @return
+     */
+    PROCESS_TYPE getType() const;
+
+    /**
      * @brief getIndex
      * @return
      */
     size_t getIndex() const;
 
     /**
+     * @brief getParentIndex
+     * Gets the index parent of the sample.
+     * @return
+     * Returns the index of the parent sample.
+     */
+    int64_t getParentIndex() const;
+
+    /**
      * @brief setIndex
      * @param index
      */
     void setIndex(const size_t index);
+
+    /**
+     * @brief setParentIndex
+     * Updates the index of the parent sample after morphology re-indexing.
+     * @param index
+     * The new index of the parent sample.
+     */
+    void setParentIndex(const int64_t index);
 
     /**
      * @brief isLocatedInBoundingBox
@@ -107,6 +130,12 @@ public:
 private:
 
     /**
+     * @brief _type
+     * The type of the sample, for example: axon, basal or apical dendrite, vasculature, etc ...
+     */
+    PROCESS_TYPE _type;
+
+    /**
      * @brief _position
      * The Cartesian position of the sample.
      */
@@ -128,7 +157,7 @@ private:
      * @brief _parentIndex
      * The index of the parent sample, GLOBALLY
      */
-    uint64_t _parentIndex;
+    int64_t _parentIndex;
 };
 
 /**

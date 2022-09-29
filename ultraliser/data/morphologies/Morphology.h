@@ -24,6 +24,7 @@
 
 #include <data/morphologies/Sample.h>
 #include <data/morphologies/Section.h>
+#include <data/morphologies/ProcessType.h>
 #include <data/common/ROI.h>
 
 namespace Ultraliser
@@ -300,11 +301,11 @@ public:
      */
     void printDistributions(const std::string *prefix) const;
 
-    void reIndexMorphology();
+    virtual void reIndexMorphology() = 0;
 
-    void exportToSWC(const std::string& path, const std::string& prefix);
+    void exportToSWC(const std::string& prefix);
 
-    void exportToH5(const std::string& path, const std::string& prefix);
+    void exportToH5(const std::string& prefix);
 
 protected:
 

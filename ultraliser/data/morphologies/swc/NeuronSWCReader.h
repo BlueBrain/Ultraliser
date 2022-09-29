@@ -69,6 +69,13 @@ private:
      */
     void _readSamples(const std::string &swcMorphologyFilePath);
 
+    /**
+     * @brief _addAuxiliarySample
+     * SWC samples start from index 1, therefore, to make the mapping easy, we will add an
+     * auxiliary sample to help indexing with the same sample index.
+     */
+    void _addAuxiliarySample();
+
 private:
 
     /**

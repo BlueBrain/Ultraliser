@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2022
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -22,72 +22,38 @@
 
 #pragma once
 
-#include <vector>
-#include <common/Headers.hh>
-#include <data/morphologies/ProcessType.h>
-
-namespace Ultraliser
-{
+#include <common/Common.h>
 
 /**
- * @brief The NeuronSWCSample struct
- * A morphological sample as stored in an .swc file.
+ * @brief The PROCESS_TYPE enum
  */
-struct NeuronSWCSample
+enum PROCESS_TYPE
 {
-    /**
-     *@brief id
-     * Sample index
-     */
-    size_t id;
-
-    /**
-     * @brief parentId
-     * The index of the parent sample
-     */
-    int64_t parentId;
-    
-    /**
-     *@brief type
-     * Sample type
-     */
-    PROCESS_TYPE type;
-
-    /**
-     *@brief childrenSamples
-     * Parent index
-     */
-    std::vector< struct NeuronSWCSample* > childrenSamples;
-
-    /**
-     * @brief x
-     * X-coordinate of the point.
-     */
-    float x;
-
-    /**
-     * @brief y
-     * Y-coordinate of the point.
-     */
-    float y;
-
-    /**
-     * @brief z
-     * Z-coordinate of the point.
-     */
-    float z;
-
-    /**
-     * @brief r
-     * Sample radius.
-     */
-    float r;
+    SOMA,
+    NEURON_AXON,
+    NEURON_APICAL_DENDRITE,
+    NEURON_BASAL_DENDRITE,
+    SPINE_NECK,
+    SPINE_HEAD,
+    GLIA_PERIVASCULAR_PROCESS,
+    GLIA_PROCESS,
+    GLIA_ENDFEET,
+    VASCULATURE,
+    AUXILIARY,
+    UNKNOWN_PROCESS
 };
 
 /**
- * @brief NeuronSWCSamples
- * A list of NeuronSWCSamples.
+ * @brief mapNeuronProcessTypeToSWCIndex
+ * @param type
+ * @return
  */
-typedef std::vector< NeuronSWCSample* > NeuronSWCSamples;
+int64_t mapNeuronProcessTypeToSWCIndex(const PROCESS_TYPE& type);
 
-}
+/**
+ * @brief mapNeuronH5IndexToType
+ * @param index
+ * @return
+ */
+PROCESS_TYPE mapNeuronH5IndexToType(const size_t& index);
+

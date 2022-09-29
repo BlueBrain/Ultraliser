@@ -112,6 +112,8 @@ public:
      */
     float getSomaMaxRadius() const;
 
+    void reIndexMorphology();
+
 private:
 
     /**

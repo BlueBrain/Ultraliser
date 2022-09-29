@@ -185,7 +185,7 @@ void VasculatureVMVReader::_readSamples()
         r *= 0.8;
 
         // Construct the sample
-        Sample* sample = new Sample(Vector3f(x, y, z), r, vertexIndex);
+        Sample* sample = new Sample(Vector3f(x, y, z), r, PROCESS_TYPE::VASCULATURE, vertexIndex);
         _samples.push_back(sample);
     }
 }
@@ -241,7 +241,7 @@ void VasculatureVMVReader::_readConnectivity()
 
         // Section index is at index 0 of the tokens
         size_t sectionIndex = static_cast<size_t> (S2UI(tokens[0]));
-        Section* section = new Section(sectionIndex);
+        Section* section = new Section(sectionIndex, PROCESS_TYPE::VASCULATURE);
 
         // Fill the section with its sampless
         for (size_t i = 1; i < tokens.size(); ++i)

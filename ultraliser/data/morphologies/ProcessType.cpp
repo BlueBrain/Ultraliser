@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2022
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -20,74 +20,46 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#pragma once
+#include "ProcessType.h"
 
-#include <vector>
-#include <common/Headers.hh>
-#include <data/morphologies/ProcessType.h>
-
-namespace Ultraliser
+int64_t mapNeuronProcessTypeToSWCIndex(const PROCESS_TYPE& type)
 {
+    switch (type)
+    {
+    case PROCESS_TYPE::SOMA:
+        return 1;
+        break;
 
-/**
- * @brief The NeuronSWCSample struct
- * A morphological sample as stored in an .swc file.
- */
-struct NeuronSWCSample
+    case PROCESS_TYPE::NEURON_AXON:
+        return 2;
+        break;
+
+    case PROCESS_TYPE::NEURON_BASAL_DENDRITE:
+        return 3;
+        break;
+
+    case PROCESS_TYPE::NEURON_APICAL_DENDRITE:
+        return 4;
+        break;
+
+    default:
+        return 0;
+        break;
+    }
+}
+
+PROCESS_TYPE mapNeuronH5IndexToType(const size_t& index)
 {
-    /**
-     *@brief id
-     * Sample index
-     */
-    size_t id;
-
-    /**
-     * @brief parentId
-     * The index of the parent sample
-     */
-    int64_t parentId;
-    
-    /**
-     *@brief type
-     * Sample type
-     */
-    PROCESS_TYPE type;
-
-    /**
-     *@brief childrenSamples
-     * Parent index
-     */
-    std::vector< struct NeuronSWCSample* > childrenSamples;
-
-    /**
-     * @brief x
-     * X-coordinate of the point.
-     */
-    float x;
-
-    /**
-     * @brief y
-     * Y-coordinate of the point.
-     */
-    float y;
-
-    /**
-     * @brief z
-     * Z-coordinate of the point.
-     */
-    float z;
-
-    /**
-     * @brief r
-     * Sample radius.
-     */
-    float r;
-};
-
-/**
- * @brief NeuronSWCSamples
- * A list of NeuronSWCSamples.
- */
-typedef std::vector< NeuronSWCSample* > NeuronSWCSamples;
-
+    if (index == 0)
+        return PROCESS_TYPE::UNKNOWN_PROCESS;
+    else if (index == 1)
+        return PROCESS_TYPE::SOMA;
+    else if (index == 2)
+        return PROCESS_TYPE::NEURON_AXON;
+    else if (index == 3)
+        return PROCESS_TYPE::NEURON_BASAL_DENDRITE;
+    else if (index == 4)
+        return PROCESS_TYPE::NEURON_APICAL_DENDRITE;
+    else
+        return PROCESS_TYPE::UNKNOWN_PROCESS;
 }

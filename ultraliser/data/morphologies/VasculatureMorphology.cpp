@@ -57,7 +57,7 @@ void VasculatureMorphology::_constructSections()
     {
         Ultraliser::Vector3f position(h5Sample.x, h5Sample.y, h5Sample.z);
         Sample* sample = new Sample(Ultraliser::Vector3f(h5Sample.x, h5Sample.y, h5Sample.z),
-                                    h5Sample.r * 0.5f, 0);
+                                    h5Sample.r * 0.5f, PROCESS_TYPE::VASCULATURE, 0);
         _samples.push_back(sample);
 
         Vector3f pMaxSample = position + Vector3f(h5Sample.r * 0.5f);
@@ -75,7 +75,7 @@ void VasculatureMorphology::_constructSections()
     // Construct the sections list
     for (size_t i = 0; i < _h5Sections.size(); ++i)
     {
-        Section* section = new Section(i);
+        Section* section = new Section(i, PROCESS_TYPE::VASCULATURE);
 
         // The initial sample always stays the same
         const size_t startingSampleIndex = static_cast< size_t >(_h5Sections[i].firstSampleIndex);
@@ -221,6 +221,11 @@ VasculatureMorphology* VasculatureMorphology::extractRegion(const Vector3f& cent
 
     // Construct the morphology from the sections and samples, and return it
     return new VasculatureMorphology(regionSamples, regionSections);
+}
+
+void VasculatureMorphology::reIndexMorphology()
+{
+
 }
 
 void VasculatureMorphology::exportVascularMorphologyVMV(const std::string &prefix)

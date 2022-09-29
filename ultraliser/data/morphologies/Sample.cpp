@@ -25,10 +25,13 @@
 namespace Ultraliser
 {
 
-Sample::Sample(const Vector3f &position, const float &radius, const size_t &index)
+Sample::Sample(const Vector3f &position, const float &radius, const PROCESS_TYPE &type,
+               const size_t &index, const int64_t& parentIndex)
     : _position(position)
     , _radius(radius)
+    , _type(type)
     , _index(index)
+    , _parentIndex(parentIndex)
 {
     /// EMPTY CONSTRUCTOR
 }
@@ -37,7 +40,9 @@ Sample::Sample(const Sample* sample)
 {
     _position = sample->getPosition();
     _radius = sample->getRadius();
+    _type = sample->getType();
     _index = sample->getIndex();
+    _parentIndex = sample->getParentIndex();
 }
 
 Vector3f Sample::getPosition() const
@@ -60,6 +65,11 @@ void Sample::setRadius(const float& radius)
     _radius = radius;
 }
 
+PROCESS_TYPE Sample::getType() const
+{
+    return _type;
+}
+
 size_t Sample::getIndex() const
 {
     return _index;
@@ -68,6 +78,16 @@ size_t Sample::getIndex() const
 void Sample::setIndex(const size_t index)
 {
     _index = index;
+}
+
+int64_t Sample::getParentIndex() const
+{
+    return _parentIndex;
+}
+
+void Sample::setParentIndex(const int64_t index)
+{
+    _parentIndex = index;
 }
 
 bool Sample::isLocatedInBoundingBox(const Vector3f& center,

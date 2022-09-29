@@ -26,21 +26,16 @@
 namespace Ultraliser
 {
 
-Section::Section(const size_t &index)
+Section::Section(const size_t &index, const PROCESS_TYPE &type)
     : _index(index)
-    , _type(UNKNOWN)
+    , _type(type)
 {
     /// EMPTY CONSTRUCTOR
 }
 
-SECTION_TYPE Section::getType() const
+PROCESS_TYPE Section::getType() const
 {
     return _type;
-}
-
-void Section::setType(SECTION_TYPE type)
-{
-    _type = type;
 }
 
 size_t Section::getIndex() const
@@ -249,7 +244,7 @@ void Section::resampleUniformly(const float& step)
                         (newSamples[index - 1]->getRadius() + _samples[1]->getRadius());
 
                 // Add the new sample to the list of new sample
-                Sample* sample = new Sample(position, radius, index);
+                Sample* sample = new Sample(position, radius, _samples[0]->getType(), index);
                 newSamples.push_back(sample);
 
                 // Increase the sample index
@@ -311,7 +306,7 @@ void Section::resampleUniformly(const float& step)
                         (newSamples[index - 1]->getRadius() + sample1->getRadius());
 
                 // Add the new sample to the list of new sample
-                Sample* sample = new Sample(position, radius, index);
+                Sample* sample = new Sample(position, radius, _samples[i]->getType(), index);
                 newSamples.push_back(sample);
 
                 // Increase the sample index
@@ -455,7 +450,7 @@ size_t Section::interpolateLongSegments()
 
             // Create the new sample, for the moment use the index 0 until all the auxillary
             // samples are created
-            Sample* interpolatedSample = new Sample(position, radius, 0);
+            Sample* interpolatedSample = new Sample(position, radius, sample0->getType(), 0);
 
             // Add the new sample
             _samples.insert(_samples.begin() + i + 1, interpolatedSample);
@@ -542,7 +537,7 @@ void Section::resampleAdaptively(const bool& relaxed)
                     break;
 
                 // Add the new sample to the list of new sample
-                auto sample = new Sample(position, newSampleRadius, index);
+                auto sample = new Sample(position, newSampleRadius, sample0->getType(), index);
                 newSamples.push_back(sample);
 
                 // Increase the sample index
@@ -613,7 +608,7 @@ void Section::resampleAdaptively(const bool& relaxed)
                 }
 
                 // Add the new sample to the list of new sample
-                auto sample = new Sample(position, newSampleRadius, index);
+                auto sample = new Sample(position, newSampleRadius, sample0->getType(), index);
                 newSamples.push_back(sample);
 
                 // Increase the sample index
@@ -642,23 +637,39 @@ void Section::verifyMinimumSampleRadius(const float& radius)
     }
 }
 
-void Section::reIndexSectionTree(size_t& sectionIndex, size_t &sampleIndex, Samples& samples)
+void Section::reIndexSectionTree(const Sections& sections, size_t &sampleIndex, Samples& samples)
 {
-    // Set the indices of this 'parent' section
-    setIndex(sectionIndex);
-    sectionIndex++;
-
-    // Set the indices of the samples of the parent section
-    for (size_t i = 0; i < getSamples().size(); ++i)
+    // Set the indices of the samples of that section
+    auto sectionSamples = getSamples();
+    for (size_t i = 0; i < sectionSamples .size(); ++i)
     {
-        getSamples()[i]->setIndex(sampleIndex);
-        sampleIndex++;
+        sectionSamples [i]->setIndex(sampleIndex);
 
-        for (size_t j = 0; j < getChildrenIndices().size(); ++j)
+        // For the first sample, the index of the parent sample comes from the parent section
+        if (i == 0)
         {
-            reIndexSectionTree(sectionIndex, sampleIndex, samples);
+            auto parent = sections[getParentIndices()[0]];
+            getSamples()[i]->setParentIndex(parent->getLastSample()->getIndex());
         }
+        else
+        {
+            getSamples()[i]->setParentIndex(sampleIndex - 1);
+        }
+
+        samples.push_back(getSamples()[i]);
+        sampleIndex++;
+        std::cout << sampleIndex << "\n";
+
     }
+
+    for (size_t j = 0; j < getChildrenIndices().size(); ++j)
+    {
+        // Get a reference to the child section
+        auto child = sections[getChildrenIndices()[j]];
+
+        child->reIndexSectionTree(sections, sampleIndex, samples);
+    }
+
 }
 
 }

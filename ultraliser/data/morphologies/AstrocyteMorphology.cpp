@@ -145,10 +145,6 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
     for (auto h5Sample : h5Samples)
     {
         Ultraliser::Vector3f position(h5Sample.x, h5Sample.y, h5Sample.z);
-        Sample* sample = new Sample(
-            Ultraliser::Vector3f(h5Sample.x, h5Sample.y, h5Sample.z),
-                                    h5Sample.r * 0.5f, 0);
-        _samples.push_back(sample);
 
         if (h5Sample.r < _smallestRadiusInMorphology && h5Sample.r > 0)
             _smallestRadiusInMorphology = h5Sample.r;
@@ -228,7 +224,7 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
     }
 
     // Create the soma section, for indexing only
-    Section* somaSection = new Section(0);
+    Section* somaSection = new Section(0, PROCESS_TYPE::SOMA);
     _sections.push_back(somaSection);
 
     // The soma is located at index 0, but we will consider it a section for indexing!
@@ -243,8 +239,11 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
         // Last point index
         const auto lastPointIdx = h5Sections[i + 1].offsetIndex - 1;
 
+        // Get the process type
+        auto processType = mapNeuronH5IndexToType(h5Sections[i].sectionType);
+
         // Create a new morphology section
-        Section* section = new Section(sectionIndex);
+        Section* section = new Section(sectionIndex, processType);
 
         // Construct a list of samples
         Samples samples;
@@ -253,37 +252,17 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
             // Create the sample
             Sample* sample =
                     new Sample(Ultraliser::Vector3f(h5Samples[s].x, h5Samples[s].y, h5Samples[s].z),
-                               h5Samples[s].r * 0.5f, 0);
+                               h5Samples[s].r * 0.5f, processType, s);
 
             // Update the samples list
             section->addSample(sample);
+
+            // Add the sample to samples list
+            _samples.push_back(sample);
         }
 
         // Update the section parent
         section->addParentIndex(h5Sections[i].parentIndex);
-
-        // Section type
-        const auto sectionType = h5Sections[i].sectionType;
-
-        switch (h5Sections[i].sectionType)
-        {
-        case 2:
-        {
-            section->setType(NEURON_AXON);
-        }
-        case 3:
-        {
-            section->setType(NEURON_BASAL_DENDRITE);
-        }
-        case 4:
-        {
-            section->setType(NEURON_APICAL_DENDRITE);
-        }
-        default:
-        {
-            section->setType(NEURON_BASAL_DENDRITE);
-        }
-        }
 
         // Add the section to the list
         _sections.push_back(section);
@@ -398,6 +377,11 @@ float AstrocyteMorphology::getLargestRadiusInMorphology() const
     return _largestRadiusInMorphology;
 }
 
+void AstrocyteMorphology::reIndexMorphology()
+{
+
+}
+
 void AstrocyteMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSamples)
 {
     // The _pMin and _pMax will be used to compute the bounding box of the neuron morphology
@@ -441,38 +425,22 @@ void AstrocyteMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& sw
         if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
 
         // Construct a new sample
-        Sample* sample = new Sample(position, radius, swcSample->id);
+        Sample* sample = new Sample(position, radius, swcSample->type, swcSample->id, swcSample->parentId);
 
         // If this sample is somatic, either the soma average sample or a profile point
-        if (swcSample->type == SWCSampleType::SOMA)
+        if (swcSample->type == PROCESS_TYPE::SOMA)
         {
             // _somaSamples.push_back(sample);
             for (auto child : swcSample->childrenSamples)
             {
                 samplesStack.push(child);
-                if (child->type == SWCSampleType::SOMA)
+                if (child->type == PROCESS_TYPE::SOMA)
                 {
                     sectionStack.push(nullptr);
                 }
                 else
                 {
-                    auto newSection = new Section(sectionId);
-                    switch (child->type)
-                    {
-                    case AXON:
-                        newSection->setType(NEURON_AXON);
-                        break;
-                    case BASAL:
-                        newSection->setType(NEURON_BASAL_DENDRITE);
-                        break;
-                    case APICAL:
-                        newSection->setType(NEURON_APICAL_DENDRITE);
-                        break;
-
-                    case SOMA:
-                    case UNKNOWN_SAMPLE:
-                        break;
-                    }
+                    auto newSection = new Section(sectionId, child->type);
                     _sections.push_back(newSection);
                     _firstSections.push_back(newSection);
                     ++sectionId;
@@ -509,7 +477,7 @@ void AstrocyteMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& sw
                     section->addChildIndex(sectionId);
 
                     // Construct a new section corresponding to the child
-                    auto newSection = new Section(sectionId);
+                    auto newSection = new Section(sectionId, child->type);
 
                     // Add it to the list of sections
                     _sections.push_back(newSection);

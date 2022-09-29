@@ -791,7 +791,9 @@ void Volume::surfaceVoxelizeAstrocyteMorphology(
             Vector3f newSamplePos = astrocyteMorphology->getSomaCenter();
 
             // Append the path
-            samples.insert(samples.begin(), new Sample(newSamplePos, samples[0]->getRadius(), i));
+            samples.insert(samples.begin(),
+                           new Sample(newSamplePos, samples[0]->getRadius(),
+                           samples[0]->getType(), i));
 
             // Add the new section to the paths
             paths.push_back(samples);
@@ -895,7 +897,7 @@ void Volume::surfaceVoxelizeAstrocyteMorphology(
                     float alpha = k * alphaIncrement;
                     Vector3f position = (1.0f - alpha) * pos0 + alpha * edgePos;
                     float radius = (1.0f - alpha) * radius0 + alpha * edgeRadius;
-                    Sample sample(position, radius, 0);
+                    Sample sample(position, radius, PROCESS_TYPE::GLIA_ENDFEET, 0);
                     _rasterize(&sample, _grid);
                 }
             }
@@ -1039,7 +1041,7 @@ void Volume::_rasterize(Sample* sample0, Sample* sample1, VolumeGrid* grid, floa
     {
         // Compute the interpolated sample
         Sample sample(position0 + positionIncrement * i,
-                      radius0 + radiusIncrement * i, 0);
+                      radius0 + radiusIncrement * i, sample0->getType(), 0);
         _rasterize(&sample, grid);
     }
 }

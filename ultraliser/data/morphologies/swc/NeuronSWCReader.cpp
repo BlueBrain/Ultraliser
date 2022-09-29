@@ -40,6 +40,7 @@ NeuronSWCReader::~NeuronSWCReader()
     for (auto sample: _samples)
         delete sample;
     _samples.clear();
+    _samples.shrink_to_fit();
 }
 
 NeuronMorphology* NeuronSWCReader::getMorphology()
@@ -58,6 +59,18 @@ AstrocyteMorphology* NeuronSWCReader::getAstrocyteMorphology()
     return astrocyteMorphology;
 }
 
+void NeuronSWCReader::_addAuxiliarySample()
+{
+    NeuronSWCSample* auxiliarySample = new NeuronSWCSample();
+    auxiliarySample->id         = 0;
+    auxiliarySample->parentId   = 0;
+    auxiliarySample->x          = 0.f;
+    auxiliarySample->y          = 0.f;
+    auxiliarySample->z          = 0.f;
+    auxiliarySample->r          = 0.f;
+    auxiliarySample->type       = PROCESS_TYPE::AUXILIARY;
+    _samples.insert(_samples.begin(), auxiliarySample);
+}
 
 void NeuronSWCReader::_readSamples(const std::string &swcMorphologyFilePath)
 {
@@ -69,7 +82,7 @@ void NeuronSWCReader::_readSamples(const std::string &swcMorphologyFilePath)
         if (!swcFile.is_open())
         {
             LOG_WARNING("Unable to open an SWC morphology file [ %s ]",
-                      swcMorphologyFilePath.c_str());
+                        swcMorphologyFilePath.c_str());
         }
         std::string line;
         while(!swcFile.eof())
@@ -82,49 +95,52 @@ void NeuronSWCReader::_readSamples(const std::string &swcMorphologyFilePath)
                 continue;
 
             NeuronSWCSample* sample = new NeuronSWCSample();
-            int64_t parentId, type;
+            int64_t type;
             std::stringstream sstr(line);
             sstr >> sample->id >> type >>
-                    sample->x >> sample->y >> sample->z >> sample->r >> parentId;
+                    sample->x >> sample->y >> sample->z >> sample->r >>
+                    sample->parentId;
 
             switch(type)
             {
             case 1:
-                sample->type = SWCSampleType::SOMA;
+                sample->type = PROCESS_TYPE::SOMA;
                 break; 
             case 2:
-                sample->type = SWCSampleType::AXON;
+                sample->type = PROCESS_TYPE::NEURON_AXON;
                 break; 
             case 3:
-                sample->type = SWCSampleType::BASAL;
+                sample->type = PROCESS_TYPE::NEURON_BASAL_DENDRITE;
                 break; 
             case 4:
-                sample->type = SWCSampleType::APICAL;
+                sample->type = PROCESS_TYPE::NEURON_APICAL_DENDRITE;
                 break; 
             default:
-                sample->type = UNKNOWN_SAMPLE;
+                sample->type = PROCESS_TYPE::UNKNOWN_PROCESS;
                 break;
             } 
             
             _samples.push_back(sample);
 
             samplesMap[sample->id] = sample;
-            if (parentId >= 0)
+            if (sample->parentId >= 0)
             {
-                auto search = samplesMap.find(parentId);
+                auto search = samplesMap.find(sample->parentId);
                 if (search != samplesMap.end())
                 {
                     auto parent = search->second;
                     parent->childrenSamples.push_back(sample);
                 }
             }
-            
         }
     }
     catch(const std::exception&)
     {
         LOG_WARNING("Unable to load an SWC morphology file [ %s ]", swcMorphologyFilePath.c_str());
     }
+
+    // Add the auxiliary sample
+    _addAuxiliarySample();
 }
 
 }

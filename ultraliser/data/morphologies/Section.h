@@ -22,22 +22,14 @@
 
 #pragma once
 
+#include <data/morphologies/ProcessType.h>
 #include <data/morphologies/Sample.h>
 
 namespace Ultraliser
 {
 
-/**
- * @brief The SECTION_TYPE enum
- */
-enum SECTION_TYPE
-{
-    NEURON_AXON,
-    NEURON_APICAL_DENDRITE,
-    NEURON_BASAL_DENDRITE,
-    VASCULATURE,
-    UNKNOWN
-};
+class Section;
+typedef std::vector< Section* > Sections;
 
 class Section
 {
@@ -47,7 +39,7 @@ public:
      * @brief Section
      * @param index
      */
-    Section(const size_t &index);
+    Section(const size_t &index, const PROCESS_TYPE& type);
 
 public:
 
@@ -55,14 +47,14 @@ public:
      * @brief getType
      * @return
      */
-    SECTION_TYPE getType() const;
+    PROCESS_TYPE getType() const;
 
     /**
      * @brief setType
      * Set the section type
      * @param sectionType
      */
-    void setType(SECTION_TYPE type);
+    void setType(PROCESS_TYPE type);
 
     /**
      * @brief getIndex
@@ -262,14 +254,15 @@ public:
     void updateSamplesIndices();
 
 
-    void reIndexSectionTree(size_t& sectionIndex, size_t &sampleIndex, Samples& samples);
+    void reIndexSectionTree(const Sections& sections, size_t &sampleIndex, Samples& samples);
 
 private:
 
     /**
      * @brief _type
+     * The type of the section, for example: axon, basal or apical dendrite, vasculature, etc ...
      */
-    SECTION_TYPE _type;
+    const PROCESS_TYPE _type;
 
     /**
      * @brief _index

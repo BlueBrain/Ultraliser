@@ -85,6 +85,8 @@ public:
                                          const float &height,
                                          const float &depth) const;
 
+    void reIndexMorphology();
+
     void exportVascularMorphologyVMV(const std::string &prefix);
 
 private:
