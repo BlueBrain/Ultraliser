@@ -362,16 +362,62 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
         }
     }
 
+    // Construct the sections
     std::cout << sectionTerminals.size() << "\n";
     for (size_t i = 0; i < sectionTerminals.size(); i++)
+    {
         std::cout << sectionTerminals[i].first << " " << sectionTerminals[i].second << "\n";
 
+        // Get references to the indices of the section terminal samples
+        const auto firstSampleId = sectionTerminals[i].first;
+        const auto lastSampleId = sectionTerminals[i].second;
+
+        // Get a reference to the section type
+        const auto sectionType = swcSamples[firstSampleId]->type;
+
+        // Create Ultraliser section
+        Section* section = new Section(i, sectionType);
+
+        Samples sectionSamples;
+        for (size_t i = firstSampleId; i < lastSampleId; ++i)
+        {
+            const auto swcSample = swcSamples[i];
+            Sample* sample = new Sample(Vector3f(swcSample->x, swcSample->y, swcSample->z),
+                                        swcSample->r, sectionType,
+                                        swcSample->id, swcSample->parentId);
+            sectionSamples.push_back(sample);
+            _samples.push_back(sample);
+        }
+        section->addSamples(sectionSamples);
+
+        _sections.push_back(section);
+    }
+
+    // Construct the graph
+    for (size_t i = 0; i < _sections.size(); ++i)
+    {
+        for (size_t j = 0; j < _sections.size(); ++j)
+        {
+            if (i == j)
+                continue;
+
+            const auto parentLastIndex = _sections[i]->getLastSample()->getIndex();
+            const auto childFirstIndex = _sections[j]->getFirstSample()->getIndex();
+
+            if (parentLastIndex == childFirstIndex)
+            {
+                _sections[i]->addChildIndex(_sections[j]->getIndex());
+                _sections[j]->addParentIndex(_sections[i]->getIndex());
+            }
+
+        }
+    }
 
 
 
 
 
-    exit(0);
+//    exit(0);
 
     // Construct the Ultraliser Sections and Samples lists from the swcSections list
 
