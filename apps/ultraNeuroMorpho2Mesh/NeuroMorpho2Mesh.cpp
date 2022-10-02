@@ -76,11 +76,11 @@ void run(int argc, const char** argv)
     // Read the file into a morphology structure
     auto neuronMorphology = readNeuronMorphology(options->inputMorphologyPath);
 
-    neuronMorphology->resampleSectionsSmartly();
+    // neuronMorphology->resampleSectionsSmartly();
 
     neuronMorphology->exportToSWC(options->meshPrefix + WATERTIGHT_SUFFIX);
 
-    exit(0);
+    // exit(0);
 
     // Generate the statistical analysis results of the input morphology as is
     if (options->writeStatistics)

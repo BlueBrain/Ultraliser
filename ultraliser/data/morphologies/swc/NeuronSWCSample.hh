@@ -90,4 +90,11 @@ struct NeuronSWCSample
  */
 typedef std::vector< NeuronSWCSample* > NeuronSWCSamples;
 
+/**
+ * @brief NeuronSWCSections
+ * A list of SWC sections from lists of NeuronSWCSamples.
+ */
+typedef std::vector< NeuronSWCSamples > NeuronSWCSections;
+
+
 }

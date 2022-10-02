@@ -254,7 +254,8 @@ public:
     void updateSamplesIndices();
 
 
-    void reIndexSectionTree(const Sections& sections, size_t &sampleIndex, Samples& samples);
+    void reIndexSectionTree(const Sections& sections, size_t &sampleIndex,
+                            const size_t branchingSampleIndex, Samples& samples);
 
 private:
 

@@ -74,7 +74,10 @@ void NeuronSWCReader::_addAuxiliarySample()
 
 void NeuronSWCReader::_readSamples(const std::string &swcMorphologyFilePath)
 {
+    // Ensure that the _samples list is completely empty
     _samples.clear();
+    _samples.shrink_to_fit();
+
     std::unordered_map< size_t, NeuronSWCSample* > samplesMap;
     try
     {

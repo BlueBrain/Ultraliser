@@ -189,9 +189,13 @@ void NeuronMorphology::reIndexMorphology()
     _samples.clear();
     _samples.shrink_to_fit();
 
-    // Add the soma sample
-    Sample* sample = new Sample(_somaCenter, _somaMeanRadius, PROCESS_TYPE::SOMA, sampleIndex++, -2);
-    _samples.push_back(sample);
+    // Add a zeroSample, for indexing
+    Sample* zeroSample = new Sample(Vector3f(0.f), 0.f, PROCESS_TYPE::UNKNOWN_PROCESS, sampleIndex++, 0);
+    _samples.push_back(zeroSample);
+
+    // Add the somaSample
+    Sample* somaSample = new Sample(_somaCenter, 0.5, PROCESS_TYPE::SOMA, sampleIndex++, -1);
+    _samples.push_back(somaSample);
 
     // Get root sections, for neurons and astrocytes
     auto rootSections = getRootSections();
@@ -204,15 +208,24 @@ void NeuronMorphology::reIndexMorphology()
 
         // Set the indices of the samples of the section
         auto rootSamples = rootSection->getSamples();
-        for (size_t j = 0; j < rootSamples.size(); ++j)
-        {
-            rootSamples[j]->setIndex(sampleIndex++);
-            auto parentIndex = (j == 0) ? 0 : sampleIndex - 1;
-            rootSamples[j]->setParentIndex(parentIndex);
 
-            // Add the sample to the samples list
+        // The first sample of the rootSection, set index, parent index and append to the list
+        rootSamples.front()->setIndex(sampleIndex++);
+        rootSamples.front()->setParentIndex(1);
+        _samples.push_back(rootSamples.front());
+
+        // Intermediate samples
+        for (size_t j = 1; j < rootSamples.size(); ++j)
+        {
+            // Set index, parent index and append to the list
+            rootSamples[j]->setIndex(sampleIndex);
+            rootSamples[j]->setParentIndex(sampleIndex - 1);
+            sampleIndex++;
             _samples.push_back(rootSamples[j]);
-        }
+        }        
+
+        // The branchingSampleIndex will be the same for all the children sections
+        const size_t branchingSampleIndex = _samples[_samples.size() - 1]->getIndex();
 
         auto childrenIndices = rootSection->getChildrenIndices();
         for (size_t j = 0; j < childrenIndices.size(); ++j)
@@ -221,17 +234,147 @@ void NeuronMorphology::reIndexMorphology()
             auto child = _sections[childrenIndices[j]];
 
             // Apply recursively
-            child->reIndexSectionTree(_sections, sampleIndex, _samples);
+            child->reIndexSectionTree(_sections, sampleIndex, branchingSampleIndex, _samples);
         }
     }
 }
 
-
 void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSamples)
 {
-    // The _pMin and _pMax will be used to compute the bounding box of the neuron morphology
-    _pMin = Vector3f(std::numeric_limits<float>::max());
-    _pMax = Vector3f(std::numeric_limits<float>::lowest());
+    size_t numberSomaSamples = 0;
+    size_t numberSomaProfilePoints = 0;
+
+    typedef struct
+    {
+        // The index of the first sample of the arbor
+        size_t firstSample;
+
+        // The index of the last sample of the arbor
+        size_t lastSample;
+    } Indices;
+
+    // The first element represents the first sample, and the second represents the last sample
+    std::vector< Indices > arborsIndices;
+
+    // Pre-process the samples, to get the construction
+    for (size_t i = 0; i < swcSamples.size(); ++i)
+    {
+        if (swcSamples[i]->type == PROCESS_TYPE::SOMA &&
+            swcSamples[i]->id == 1 && swcSamples[i]->parentId == -1)
+        {
+            // This is a soma sample
+            numberSomaSamples++;
+        }
+        else if (swcSamples[i]->type == PROCESS_TYPE::SOMA && swcSamples[i]->parentId == 1)
+        {
+            // This is a soma profile point
+            numberSomaProfilePoints++;
+        }
+        else if (swcSamples[i]->type != PROCESS_TYPE::SOMA && swcSamples[i]->parentId == 1)
+        {
+            // Add the first sample of the arbor
+            Indices arbor;
+            arbor.firstSample = swcSamples[i]->id;
+            arborsIndices.push_back(arbor);
+        }
+    }
+
+    // Get the last sampels of the arbor
+    for (size_t i = 0; i < arborsIndices.size(); ++i)
+    {
+        // The index of the last sample of the current arbor can be either obtained from the index
+        // of the first sample of the next sample, or from the swcSamples, only for the last arbor
+        arborsIndices[i].lastSample = (i == arborsIndices.size() - 1) ?
+                    swcSamples.back()->id : arborsIndices[i + 1].firstSample - 1;
+    }
+
+
+
+//    for (size_t i = 0; i < arborIndices.size(); ++i)
+//    {
+//        LOG_WARNING("Arbor %d, S0 %d, S1 %d", i, arborIndices[i].firstSample, arborIndices[i].lastSample);
+//    }
+
+    for (size_t i = 0; i < arborsIndices.size(); ++i)
+    {
+        // Get the indices of the terminal samples
+        const size_t& firstSampleIndex = arborsIndices[i].firstSample;
+        const size_t& lastSampleIndex = arborsIndices[i].lastSample;
+
+        // The indices of the different strands
+        std::vector< size_t > strandIndices;
+        for (size_t j = firstSampleIndex + 1; j <= lastSampleIndex; ++j)
+        {
+            if (swcSamples[j]->id != (swcSamples[j]->parentId + 1))
+            {
+                strandIndices.push_back(j);
+            }
+        }
+
+        // The indices of the terminal samples of each section in this arbor
+        std::vector< Indices > sectionIndices;
+        for (size_t j = 0; j < strandIndices.size() + 1; ++j)
+        {
+            Indices section;
+
+            if (j == 0)
+            {
+                section.firstSample = arborsIndices[i].firstSample;
+                section.lastSample = strandIndices[j] - 1;
+            }
+            else if (j >= strandIndices.size())
+            {
+                section.firstSample = strandIndices[j - 1];
+                section.lastSample = arborsIndices[i].lastSample;
+            }
+            else
+            {
+                section.firstSample = strandIndices[j - 1];
+                section.lastSample = strandIndices[j];
+            }
+
+            LOG_WARNING("Sample %d, %d", section.firstSample, section.lastSample);
+
+        }
+        NeuronSWCSections arborSections;
+        for (size_t j = 0; j < sectionIndices.size(); ++j)
+        {
+            NeuronSWCSamples samples;
+            for (size_t k = sectionIndices[j].firstSample; k <= sectionIndices[j].lastSample; ++k)
+            {
+                 samples.push_back(swcSamples[k]);
+            }
+            arborSections.push_back(samples);
+        }
+
+
+
+
+//        // LOG_WARNING("Arbor %d, Sample %d", i, arborIndices[i].firstSample);
+//        for (size_t k =0; k < strandIndices.size(); ++k)
+//        {
+//            LOG_WARNING("Arbor %d, Sample %d", i, strandIndices[k]);
+//        }
+//        // LOG_WARNING("Arbor %d, Sample %d", i, arborIndices[i].lastSample);
+
+
+        exit(0);
+
+        // Collect the arbor samples
+        NeuronSWCSamples arborSamples;
+        for (size_t j = firstSampleIndex; j <= lastSampleIndex; ++j)
+        {
+            arborSamples.push_back(swcSamples[j]);
+        }
+
+        LOG_WARNING("%d, %d", firstSampleIndex, lastSampleIndex);
+
+    }
+
+    LOG_WARNING("Soma: %d, Profiles: %d, Arbors: %d",
+                numberSomaSamples, numberSomaProfilePoints, arborsIndices.size());
+    exit(0);
+
 
     // Sample index
     size_t index = 0;
@@ -314,9 +457,7 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
     for (size_t i = 0; i < swcPathsIndices.size(); ++i)
     {
         firstSamplesIds.push_back(swcPathsIndices[i][0]);
-        std::cout << firstSamplesIds[i] << " ";
     }
-    std::cout << "\n";
 
     // The segments along each path
     std::vector< std::vector< size_t > > pathSegments;
@@ -362,12 +503,19 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
         }
     }
 
+    // Construct the _samples list, in order
+    for (size_t i = 0; i < swcSamples.size(); ++i)
+    {
+        const auto swcSample = swcSamples[i];
+        Sample* sample = new Sample(Vector3f(swcSample->x, swcSample->y, swcSample->z),
+                                    swcSample->r, swcSample->type,
+                                    swcSample->id, swcSample->parentId);
+        _samples.push_back(sample);
+    }
+
     // Construct the sections
-    std::cout << sectionTerminals.size() << "\n";
     for (size_t i = 0; i < sectionTerminals.size(); i++)
     {
-        std::cout << sectionTerminals[i].first << " " << sectionTerminals[i].second << "\n";
-
         // Get references to the indices of the section terminal samples
         const auto firstSampleId = sectionTerminals[i].first;
         const auto lastSampleId = sectionTerminals[i].second;
@@ -386,10 +534,9 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
                                         swcSample->r, sectionType,
                                         swcSample->id, swcSample->parentId);
             sectionSamples.push_back(sample);
-            _samples.push_back(sample);
         }
-        section->addSamples(sectionSamples);
 
+        section->addSamples(sectionSamples);
         _sections.push_back(section);
     }
 
@@ -413,14 +560,94 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
         }
     }
 
+    // The _pMin and _pMax will be used to compute the bounding box of the neuron morphology
+    _pMin = Vector3f(std::numeric_limits<float>::max());
+    _pMax = Vector3f(std::numeric_limits<float>::lowest());
 
+    for (size_t i = 0; i < _samples.size(); ++i)
+    {
+        Vector3f position = _samples[i]->getPosition();
+        float radius = _samples[i]->getRadius();
 
+        Vector3f pMaxSample = position + Vector3f(radius);
+        Vector3f pMinSample = position - Vector3f(radius);
 
+        if (pMaxSample.x() > _pMax.x()) _pMax.x() = pMaxSample.x();
+        if (pMaxSample.y() > _pMax.y()) _pMax.y() = pMaxSample.y();
+        if (pMaxSample.z() > _pMax.z()) _pMax.z() = pMaxSample.z();
 
-//    exit(0);
+        if (pMinSample.x() < _pMin.x()) _pMin.x() = pMinSample.x();
+        if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
+        if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
+    }
 
-    // Construct the Ultraliser Sections and Samples lists from the swcSections list
+    // Get the first sections
+    for (size_t i = 0; i < _sections.size(); ++i)
+    {
+        if (_sections[i]->getParentIndices().size() == 0)
+        {
+            _firstSections.push_back(_sections[i]);
+        }
+    }
 
+    std::cout << _firstSections.size() << std::endl;
+
+    // Get the somatic samples from the initial sections of all the neurites
+    for (const auto& section: _firstSections)
+    {
+        const auto sample = section->getFirstSample();
+        _somaSamples.push_back(sample);
+    }
+
+    // Initially, the soma center is set to Zero.
+    _somaCenter = Vector3f(0.0f);
+    _somaMeanRadius = 0.0f;
+    _somaMinRadius = 1e10;
+    _somaMaxRadius = -1e10;
+
+    if (_somaSamples.size() > 1)
+    {
+        // Compute the soma center
+        for (auto sample : _somaSamples)
+        {
+            _somaCenter += sample->getPosition();
+        }
+        _somaCenter /= _somaSamples.size();
+
+        // Compute the minimum, average and maximum radii
+        for (auto sample : _somaSamples)
+        {
+            const auto radius = (sample->getPosition() - _somaCenter).abs();
+
+            if (radius < _somaMinRadius)
+                _somaMinRadius = radius;
+
+            if (radius > _somaMaxRadius)
+                _somaMaxRadius = radius;
+
+            _somaMeanRadius += radius;
+        }
+
+        // Compute the minimum, average and maximum radii
+        _somaMeanRadius /= _somaSamples.size();
+    }
+    else
+    {
+        _somaCenter = _somaSamples[0]->getPosition();
+        _somaMeanRadius = _somaSamples[0]->getRadius();
+        _somaMinRadius = _somaMeanRadius;
+        _somaMaxRadius = _somaMeanRadius;
+    }
+
+    Vector3f pMaxSoma = _somaCenter + Vector3f(_somaMaxRadius);
+    Vector3f pMinSoma = _somaCenter - Vector3f(_somaMaxRadius);
+
+    if (pMaxSoma.x() > _pMax.x()) _pMax.x() = pMaxSoma.x();
+    if (pMaxSoma.y() > _pMax.y()) _pMax.y() = pMaxSoma.y();
+    if (pMaxSoma.z() > _pMax.z()) _pMax.z() = pMaxSoma.z();
+    if (pMinSoma.x() < _pMin.x()) _pMin.x() = pMinSoma.x();
+    if (pMinSoma.y() < _pMin.y()) _pMin.y() = pMinSoma.y();
+    if (pMinSoma.z() < _pMin.z()) _pMin.z() = pMinSoma.z();
 
 }
 

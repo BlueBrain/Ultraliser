@@ -637,39 +637,40 @@ void Section::verifyMinimumSampleRadius(const float& radius)
     }
 }
 
-void Section::reIndexSectionTree(const Sections& sections, size_t &sampleIndex, Samples& samples)
+void Section::reIndexSectionTree(const Sections& sections, size_t &sampleIndex,
+                                 const size_t branchingSampleIndex, Samples& samples)
 {
     // Set the indices of the samples of that section
     auto sectionSamples = getSamples();
-    for (size_t i = 0; i < sectionSamples .size(); ++i)
+
+    // Set index, parent index and append to the list, of the second sample
+    sectionSamples[0]->setIndex(sampleIndex);
+    sectionSamples[0]->setParentIndex(branchingSampleIndex);
+    sampleIndex++;
+    _samples.push_back(sectionSamples[0]);
+
+    // The first sample of the section corresponds to the last sample of the parent section
+    for (size_t i = 1; i < sectionSamples.size(); ++i)
     {
-        sectionSamples [i]->setIndex(sampleIndex);
-
-        // For the first sample, the index of the parent sample comes from the parent section
-        if (i == 0)
-        {
-            auto parent = sections[getParentIndices()[0]];
-            getSamples()[i]->setParentIndex(parent->getLastSample()->getIndex());
-        }
-        else
-        {
-            getSamples()[i]->setParentIndex(sampleIndex - 1);
-        }
-
-        samples.push_back(getSamples()[i]);
+        // Set index, parent index and append to the list
+        sectionSamples[i]->setIndex(sampleIndex);
+        sectionSamples[i]->setParentIndex(sampleIndex - 1);
         sampleIndex++;
-        std::cout << sampleIndex << "\n";
-
+        _samples.push_back(sectionSamples[i]);
     }
 
+    // The branchingSampleIndex will be the same for all the children sections
+    const size_t childBranchingSampleIndex = _samples.back()->getIndex();
+
+    // Re-index the children in a recursive manner
     for (size_t j = 0; j < getChildrenIndices().size(); ++j)
     {
         // Get a reference to the child section
         auto child = sections[getChildrenIndices()[j]];
 
-        child->reIndexSectionTree(sections, sampleIndex, samples);
+        // Re-index the children sections
+        child->reIndexSectionTree(sections, sampleIndex, childBranchingSampleIndex, samples);
     }
-
 }
 
 }
