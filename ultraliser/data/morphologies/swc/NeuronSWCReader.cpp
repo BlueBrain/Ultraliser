@@ -92,20 +92,8 @@ void NeuronSWCReader::_readSamples(const std::string &swcMorphologyFilePath)
         {
             std::getline(swcFile, line);
 
-
-            if (line.size() == 0)
-            {
-                std::cout << "empty \n";
-            }
-
-            if (line.empty())
-            {
-                std::cout << "emptyss \n";
-            }
-
-
             // Remove whitespaces at the beginning of the line 
-            // line.erase(0, line.find_first_not_of(" "));
+            line.erase(0, line.find_first_not_of(" "));
             if (line.empty() || line[0] == '#')
                 continue;
             NeuronSWCSample* sample = new NeuronSWCSample();
@@ -115,7 +103,6 @@ void NeuronSWCReader::_readSamples(const std::string &swcMorphologyFilePath)
                     sample->x >> sample->y >> sample->z >> sample->r >>
                     sample->parentId;
 
-            std::cout << sample->id << "\n";
             switch(type)
             {
             case 1:

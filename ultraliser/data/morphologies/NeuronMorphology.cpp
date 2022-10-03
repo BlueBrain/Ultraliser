@@ -331,7 +331,6 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
             }
         }
 
-        std::cout << strandIndices.size() << "ccccc\n";
         // The indices of the terminal samples of each section in this arbor
         std::vector< Indices > sectionIndices;
 
@@ -344,29 +343,30 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
             section.lastSample = lastSampleIndex;
             sectionIndices.push_back(section);
 
-            LOG_WARNING("Inside ... Arbor %d, S0 %d, S1 %d", i, section.firstSample, section.lastSample);
-
-            // LOG_WARNING("* Arbor: %d, Section: %d, %d", i, section.firstSample, section.lastSample);
+            LOG_WARNING("* Arbor %d, S0 %d, S1 %d", i, section.firstSample, section.lastSample);
         }
         else
         {
-            for (size_t j = 0; j < strandIndices.size() + 1; ++j)
+            for (size_t j = 0; j <= strandIndices.size(); ++j)
             {
+                if (j < strandIndices.size())
+                std::cout << strandIndices[j] << "\n";
+
                 Indices section;
                 if (j == 0)
                 {
                     section.firstSample = arborsIndices[i].firstSample;
                     section.lastSample = strandIndices[j] - 1;
                 }
-                else if (j >= strandIndices.size())
+                else if (j == strandIndices.size())
                 {
                     section.firstSample = strandIndices[j - 1];
                     section.lastSample = arborsIndices[i].lastSample;
                 }
                 else
                 {
-                    section.firstSample = strandIndices[j - 1];
-                    section.lastSample = strandIndices[j];
+                    section.firstSample = swcSamples[strandIndices[j - 1]]->parentId;
+                    section.lastSample = strandIndices[j] - 1;
                 }
 
                 sectionIndices.push_back(section);
