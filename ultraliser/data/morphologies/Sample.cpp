@@ -45,6 +45,15 @@ Sample::Sample(const Sample* sample)
     _parentIndex = sample->getParentIndex();
 }
 
+Sample::Sample(const NeuronSWCSample* sample)
+{
+    _index = sample->id;
+    _parentIndex = sample->parentId;
+    _position = Vector3f(sample->x, sample->y, sample->z);
+    _radius = sample->r;
+    _type = sample->type;
+}
+
 Vector3f Sample::getPosition() const
 {
     return _position;

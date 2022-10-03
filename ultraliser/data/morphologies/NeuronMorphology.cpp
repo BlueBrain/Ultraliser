@@ -23,6 +23,7 @@
 #include "NeuronMorphology.h"
 #include <data/morphologies/swc/NeuronSWCReader.h>
 #include <data/morphologies/h5/NeuronH5Reader.h>
+#include <data/morphologies/swc/NeuronSWCSection.hh>
 #include <utilities/String.h>
 #include <stack>
 
@@ -241,6 +242,18 @@ void NeuronMorphology::reIndexMorphology()
 
 void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSamples)
 {
+
+    // Remove the duplicate elements
+    auto removeDuplicates = [](std::vector<size_t> &v)
+    {
+        auto end = v.end();
+        for (auto it = v.begin(); it != end; ++it)
+        {
+            end = std::remove(it + 1, end, *it);
+        }
+        v.erase(end, v.end());
+    };
+
     size_t numberSomaSamples = 0;
     size_t numberSomaProfilePoints = 0;
 
@@ -289,17 +302,23 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
     }
 
 
+    for (size_t i = 0; i < arborsIndices.size(); ++i)
+    {
+        LOG_WARNING("Arbor %d, S0 %d, S1 %d", i, arborsIndices[i].firstSample, arborsIndices[i].lastSample);
+    }
 
-//    for (size_t i = 0; i < arborIndices.size(); ++i)
-//    {
-//        LOG_WARNING("Arbor %d, S0 %d, S1 %d", i, arborIndices[i].firstSample, arborIndices[i].lastSample);
-//    }
+    // Construct the sections
+    size_t sectionIndex = 0;
+    _sections.push_back(new Section(sectionIndex, PROCESS_TYPE::AUXILIARY));
+    sectionIndex++;
 
     for (size_t i = 0; i < arborsIndices.size(); ++i)
     {
         // Get the indices of the terminal samples
         const size_t& firstSampleIndex = arborsIndices[i].firstSample;
         const size_t& lastSampleIndex = arborsIndices[i].lastSample;
+
+        LOG_SUCCESS("INDEX %d S0 %d, S1 %d", i, firstSampleIndex, lastSampleIndex);
 
         // The indices of the different strands
         std::vector< size_t > strandIndices;
@@ -308,72 +327,139 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
             if (swcSamples[j]->id != (swcSamples[j]->parentId + 1))
             {
                 strandIndices.push_back(j);
+                LOG_SUCCESS("STRAND %d", j);
             }
         }
 
+        std::cout << strandIndices.size() << "ccccc\n";
         // The indices of the terminal samples of each section in this arbor
         std::vector< Indices > sectionIndices;
-        for (size_t j = 0; j < strandIndices.size() + 1; ++j)
+
+        // In case of no segments, then the section emanating from the soma has no children
+        if (strandIndices.size() == 0)
         {
+            // Therefore, add the section indices from the first and last samples directly
             Indices section;
+            section.firstSample = firstSampleIndex;
+            section.lastSample = lastSampleIndex;
+            sectionIndices.push_back(section);
 
-            if (j == 0)
-            {
-                section.firstSample = arborsIndices[i].firstSample;
-                section.lastSample = strandIndices[j] - 1;
-            }
-            else if (j >= strandIndices.size())
-            {
-                section.firstSample = strandIndices[j - 1];
-                section.lastSample = arborsIndices[i].lastSample;
-            }
-            else
-            {
-                section.firstSample = strandIndices[j - 1];
-                section.lastSample = strandIndices[j];
-            }
+            LOG_WARNING("Inside ... Arbor %d, S0 %d, S1 %d", i, section.firstSample, section.lastSample);
 
-            LOG_WARNING("Sample %d, %d", section.firstSample, section.lastSample);
-
+            // LOG_WARNING("* Arbor: %d, Section: %d, %d", i, section.firstSample, section.lastSample);
         }
-        NeuronSWCSections arborSections;
+        else
+        {
+            for (size_t j = 0; j < strandIndices.size() + 1; ++j)
+            {
+                Indices section;
+                if (j == 0)
+                {
+                    section.firstSample = arborsIndices[i].firstSample;
+                    section.lastSample = strandIndices[j] - 1;
+                }
+                else if (j >= strandIndices.size())
+                {
+                    section.firstSample = strandIndices[j - 1];
+                    section.lastSample = arborsIndices[i].lastSample;
+                }
+                else
+                {
+                    section.firstSample = strandIndices[j - 1];
+                    section.lastSample = strandIndices[j];
+                }
+
+                sectionIndices.push_back(section);
+
+                LOG_WARNING("* Arbor: %d, Section: %d, %d", i, section.firstSample, section.lastSample);
+            }
+        }
+
         for (size_t j = 0; j < sectionIndices.size(); ++j)
         {
-            NeuronSWCSamples samples;
+            Samples samples;
+
+            // Construct the sample list
             for (size_t k = sectionIndices[j].firstSample; k <= sectionIndices[j].lastSample; ++k)
             {
-                 samples.push_back(swcSamples[k]);
+                samples.push_back(new Sample(swcSamples[k]));
             }
-            arborSections.push_back(samples);
+
+            Section* section = new Section(sectionIndex, samples[0]->getType());
+            sectionIndex++;
+            section->addSamples(samples);
+
+            _sections.push_back(section);
         }
-
-
-
-
-//        // LOG_WARNING("Arbor %d, Sample %d", i, arborIndices[i].firstSample);
-//        for (size_t k =0; k < strandIndices.size(); ++k)
-//        {
-//            LOG_WARNING("Arbor %d, Sample %d", i, strandIndices[k]);
-//        }
-//        // LOG_WARNING("Arbor %d, Sample %d", i, arborIndices[i].lastSample);
-
-
-        exit(0);
-
-        // Collect the arbor samples
-        NeuronSWCSamples arborSamples;
-        for (size_t j = firstSampleIndex; j <= lastSampleIndex; ++j)
-        {
-            arborSamples.push_back(swcSamples[j]);
-        }
-
-        LOG_WARNING("%d, %d", firstSampleIndex, lastSampleIndex);
-
     }
 
-    LOG_WARNING("Soma: %d, Profiles: %d, Arbors: %d",
-                numberSomaSamples, numberSomaProfilePoints, arborsIndices.size());
+    std::cout << "--------------\n";
+
+//    for (size_t i = 2; i < _sections.size(); ++i)
+//    {
+//        LOG_WARNING("Section %d First %d Last %d", _sections[i]->getIndex(),
+//                    _sections[i]->getFirstSample()->getIndex(),
+//                    _sections[i]->getLastSample()->getIndex());
+//    }
+
+
+    // Construct the graph from the individual sections
+    /// Note that the first sample is AUXILIARY, and will NOT be taken into consideration
+    for (size_t i = 1; i < _sections.size(); ++i)
+    {
+        auto& iSection = _sections[i];
+
+        for (size_t j = 1; j < _sections.size(); ++j)
+        {
+            auto& jSection = _sections[j];
+
+            // Same section, ignore
+            if (i == j)
+                continue;
+
+            if (iSection->getFirstSample()->getIndex() == jSection->getLastSample()->getIndex())
+            {
+                LOG_WARNING("iSection: %d, jSection %d",
+                           iSection->getFirstSample()->getIndex(), jSection->getLastSample()->getIndex());
+                iSection->addParentIndex(jSection->getIndex());
+                jSection->addChildIndex(iSection->getIndex());
+            }
+
+            if (iSection->getLastSample()->getIndex() == jSection->getFirstSample()->getIndex())
+            {
+                LOG_WARNING("*P: %d, C: %d", iSection->getIndex(), jSection->getIndex());
+
+                iSection->addChildIndex(jSection->getIndex());
+                jSection->addParentIndex(iSection->getIndex());
+            }
+        }
+    }
+
+
+    // Get the root sections, for quick access
+    /// Note that the first sample is AUXILIARY, and will NOT be taken into consideration
+    for (size_t i = 1; i < _sections.size(); ++i)
+    {
+        if (_sections[i]->isRoot())
+        {
+            _rootSections.push_back(_sections[i]);
+        }
+    }
+
+    LOG_WARNING("Soma: %d, Profiles: %d, Sections: %d",
+                numberSomaSamples, numberSomaProfilePoints, _rootSections.size());
     exit(0);
+
+
+
+
+
+
+
+
+
+
+
 
 
     // Sample index

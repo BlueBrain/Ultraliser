@@ -854,18 +854,18 @@ void Morphology::exportToSWC(const std::string& prefix)
 
     // Write the vertices
     LOOP_STARTS("Writing Vertices");
-    for (size_t i = 1; i < _samples.size(); ++i)
+    for (size_t i = 0; i < _samples.size(); ++i)
     {
         // LOOP_PROGRESS_FRACTION(i, _samples.size());
 
         auto& sample = _samples[i];
-        stream << sample->getIndex() << SPACE
+        stream << sample->getIndex() + 1 << SPACE
                << mapNeuronProcessTypeToSWCIndex(sample->getType()) << SPACE
                << sample->getPosition().x() << SPACE
                << sample->getPosition().y() << SPACE
                << sample->getPosition().z() << SPACE
                << sample->getRadius()       << SPACE
-               << sample->getParentIndex()  << NEW_LINE;
+               << sample->getParentIndex() + 1 << NEW_LINE;
     }
     LOOP_DONE;
 

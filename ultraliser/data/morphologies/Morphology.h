@@ -322,6 +322,12 @@ protected:
     Sections _sections;
 
     /**
+     * @brief _rootSections
+     * A list of all the root sections of the morphology, where we can construct the entire graph
+     */
+    Sections _rootSections;
+
+    /**
      * @brief _pMin
      */
     Vector3f _pMin;

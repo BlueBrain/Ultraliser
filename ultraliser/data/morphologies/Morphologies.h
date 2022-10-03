@@ -28,6 +28,7 @@
 #include <data/morphologies/Morphology.h>
 #include <data/morphologies/swc/NeuronSWCReader.h>
 #include <data/morphologies/swc/NeuronSWCSample.hh>
+#include <data/morphologies/swc/NeuronSWCSection.hh>
 #include <data/morphologies/AstrocyteMorphology.h>
 #include <data/morphologies/NeuronMorphology.h>
 #include <data/morphologies/h5/VasculatureH5Reader.h>

@@ -68,6 +68,15 @@ void Section::clearChildrenIndices()
     _childrenIndices.clear();
 }
 
+bool Section::isRoot()
+{
+    if (_parentsIndices.size() == 0)
+    {
+        return true;
+    }
+    return false;
+}
+
 void Section::addSample(Sample* sample)
 {
     _samples.push_back(sample);

@@ -165,6 +165,12 @@ public:
     void verifyMinimumSampleRadius(const float& radius);
 
     /**
+     * @brief isRoot
+     * @return
+     */
+    bool isRoot();
+
+    /**
      * @brief getParentIndices
      * @return Returns a list of the indices of the parents.
      */

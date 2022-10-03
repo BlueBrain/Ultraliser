@@ -24,6 +24,7 @@
 
 #include <geometry/Geometry.h>
 #include <data/morphologies/ProcessType.h>
+#include <data/morphologies/swc/NeuronSWCSample.hh>
 
 namespace Ultraliser
 {
@@ -41,6 +42,12 @@ public:
      */
     Sample(const Vector3f &position, const float &radius,
            const PROCESS_TYPE& type, const size_t& index = 0, const int64_t& parentIndex = -1);
+
+    /**
+     * @brief Sample
+     * @param sample
+     */
+    Sample(const NeuronSWCSample* sample);
 
     /**
      * @brief Sample
