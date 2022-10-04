@@ -259,6 +259,9 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
 
     typedef struct
     {
+        // The index of the parent sample
+        size_t parentSample;
+
         // The index of the first sample of the arbor
         size_t firstSample;
 
@@ -319,71 +322,76 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
         const size_t& firstSampleIndex = arborsIndices[i].firstSample;
         const size_t& lastSampleIndex = arborsIndices[i].lastSample;
 
-        // The indices of the different strands
-        std::vector< size_t > strandIndices;
+        // Collect the indices of the branching points
+        std::vector< size_t > branchingPointsIndices;
         for (size_t j = firstSampleIndex + 1; j <= lastSampleIndex; ++j)
         {
             if (swcSamples[j]->id != (swcSamples[j]->parentId + 1))
             {
-                strandIndices.push_back(j);
+                branchingPointsIndices.push_back(j);
                 LOG_SUCCESS("STRAND %d", j);
             }
         }
 
-        // The indices of the terminal samples of each section in this arbor
-        std::vector< Indices > sectionIndices;
+        // Collect the indices of the paths, parent and along the path
+        std::vector< Indices > pathsIndices;
 
         // In case of no segments, then the section emanating from the soma has no children
-        if (strandIndices.size() == 0)
+        if (branchingPointsIndices.size() == 0)
         {
             // Therefore, add the section indices from the first and last samples directly
             Indices section;
+            section.parentSample = 1;
             section.firstSample = firstSampleIndex;
             section.lastSample = lastSampleIndex;
-            sectionIndices.push_back(section);
+            pathsIndices.push_back(section);
         }
-        else if (strandIndices.size() == 1)
+        else if (branchingPointsIndices.size() == 1)
         {
             Indices firstSection;
+            firstSection.parentSample = 1;
             firstSection.firstSample = arborsIndices[i].firstSample;
-            firstSection.lastSample = strandIndices[0] - 1;
-            sectionIndices.push_back(firstSection);
+            firstSection.lastSample = branchingPointsIndices[0] - 1;
+            pathsIndices.push_back(firstSection);
 
             Indices lastSection;
-            lastSection.firstSample = strandIndices[0];
+            lastSection.parentSample = swcSamples[branchingPointsIndices[0]]->parentId;
+            lastSection.firstSample = branchingPointsIndices[0];
             lastSection.lastSample = arborsIndices[i].lastSample;
-            sectionIndices.push_back(lastSection);
+            pathsIndices.push_back(lastSection);
         }
         else
         {
             // The first section
             Indices initialSection;
+            initialSection.parentSample = 1;
             initialSection.firstSample = arborsIndices[i].firstSample;
-            initialSection.lastSample = strandIndices[0] - 1;
-            sectionIndices.push_back(initialSection);
+            initialSection.lastSample = branchingPointsIndices[0] - 1;
+            pathsIndices.push_back(initialSection);
 
-            for (size_t j = 0; j < strandIndices.size(); ++j)
+            for (size_t j = 0; j < branchingPointsIndices.size(); ++j)
             {
-                if (j < strandIndices.size() - 1)
+                if (j < branchingPointsIndices.size() - 1)
                 {
                     // Get the current index
-                    size_t currentIndex = strandIndices[j];
+                    size_t currentIndex = branchingPointsIndices[j];
 
                     // Get the parentId @swcSample[currentIndex]
                     size_t parentIndex = swcSamples[currentIndex]->parentId;
 
                     // Get the last sample
-                    size_t lastSampleIndex = strandIndices[j + 1] - 1;
+                    size_t lastSampleIndex = branchingPointsIndices[j + 1] - 1;
 
                     Indices inbetweenSection;
-                    inbetweenSection.firstSample = parentIndex;
+                    inbetweenSection.parentSample = parentIndex;
+                    inbetweenSection.firstSample = currentIndex;
                     inbetweenSection.lastSample = lastSampleIndex;
-                    sectionIndices.push_back(inbetweenSection);
+                    pathsIndices.push_back(inbetweenSection);
                 }
                 else
                 {
                     // Get the current index
-                    size_t currentIndex = strandIndices[j];
+                    size_t currentIndex = branchingPointsIndices[j];
 
                     // Get the parentId @swcSample[currentIndex]
                     size_t parentIndex = swcSamples[currentIndex]->parentId;
@@ -392,38 +400,43 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
                     size_t lastSampleIndex = arborsIndices[i].lastSample;
 
                     Indices inbetweenSection;
-                    inbetweenSection.firstSample = parentIndex;
+                    inbetweenSection.parentSample = parentIndex;
+                    inbetweenSection.firstSample = currentIndex;
                     inbetweenSection.lastSample = lastSampleIndex;
-                    sectionIndices.push_back(inbetweenSection);
+                    pathsIndices.push_back(inbetweenSection);
                 }
             }
         }
 
-        for (size_t j = 0; j < sectionIndices.size(); ++j)
+        for (size_t j = 0; j < pathsIndices.size(); ++j)
         {
-            auto section = sectionIndices[j];
-            LOG_WARNING("* Arbor: %d, Section: %d, %d", i + 1, section.firstSample, section.lastSample);
+            auto section = pathsIndices[j];
+            LOG_WARNING("* Arbor: %d, Path: [%d], %d, %d", i + 1,
+                        section.parentSample, section.firstSample, section.lastSample);
         }
 
-        for (size_t j = 0; j < sectionIndices.size(); ++j)
+        for (size_t j = 0; j < pathsIndices.size(); ++j)
         {
             Samples samples;
 
             std::stringstream st;
 
             // Construct the sample list
-            for (size_t k = sectionIndices[j].firstSample; k <= sectionIndices[j].lastSample; ++k)
+            samples.push_back(new Sample(swcSamples[pathsIndices[j].parentSample]));
+            for (size_t k = pathsIndices[j].firstSample; k <= pathsIndices[j].lastSample; ++k)
             {
                 samples.push_back(new Sample(swcSamples[k]));
-
-                st << k << " ";
             }
-            st <<"\n";
-            std::cout << "[" << j << "] " << st.str();
 
             Section* section = new Section(sectionIndex, samples[0]->getType());
             sectionIndex++;
             section->addSamples(samples);
+
+            for (int xx =0; xx<samples.size(); xx++)
+            {
+                std::cout << samples[xx]->getIndex() << " ";
+            }
+            std::cout << "\n";
 
             _sections.push_back(section);
         }
