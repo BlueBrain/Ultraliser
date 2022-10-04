@@ -52,10 +52,10 @@ void NeuronMorphology::trim(size_t axonBranchOrder,
     _pMin = Vector3f(std::numeric_limits<float>::max());
     _pMax = Vector3f(std::numeric_limits<float>::lowest());
  
-    for (uint8_t i = 0; i < _firstSections.size(); ++i)
+    for (uint8_t i = 0; i < _rootSections.size(); ++i)
     {
         size_t maxDepth = 0;
-        switch (_firstSections[i]->getType())
+        switch (_rootSections[i]->getType())
         {
         case PROCESS_TYPE::NEURON_AXON:
             maxDepth = axonBranchOrder;
@@ -78,8 +78,8 @@ void NeuronMorphology::trim(size_t axonBranchOrder,
         std::stack< std::pair< Section*, size_t > > sectionStack;
         if (maxDepth > 0)
         {        
-            sectionStack.push(std::make_pair(_firstSections[i], 0));
-            newFirstSections.push_back(_firstSections[i]);
+            sectionStack.push(std::make_pair(_rootSections[i], 0));
+            newFirstSections.push_back(_rootSections[i]);
         }
 
         while(!sectionStack.empty())
@@ -145,8 +145,8 @@ void NeuronMorphology::trim(size_t axonBranchOrder,
 
     _sections.clear();
     _sections = newSections;
-    _firstSections.clear();
-    _firstSections = newFirstSections;
+    _rootSections.clear();
+    _rootSections = newFirstSections;
 }
 
 Samples NeuronMorphology::getSomaSamples() const
@@ -156,7 +156,7 @@ Samples NeuronMorphology::getSomaSamples() const
 
 Sections NeuronMorphology::getFirstSections() const
 {
-    return _firstSections;
+    return _rootSections;
 }
 
 Vector3f NeuronMorphology::getSomaCenter() const
@@ -254,17 +254,15 @@ void NeuronMorphology::reIndexMorphology()
 
 void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSamples)
 {
-
-    // Remove the duplicate elements
-    auto removeDuplicates = [](std::vector<size_t> &v)
+    // Construct the _samples list, in order
+    for (size_t i = 0; i < swcSamples.size(); ++i)
     {
-        auto end = v.end();
-        for (auto it = v.begin(); it != end; ++it)
-        {
-            end = std::remove(it + 1, end, *it);
-        }
-        v.erase(end, v.end());
-    };
+        const auto swcSample = swcSamples[i];
+        Sample* sample = new Sample(Vector3f(swcSample->x, swcSample->y, swcSample->z),
+                                    swcSample->r, swcSample->type,
+                                    swcSample->id, swcSample->parentId);
+        _samples.push_back(sample);
+    }
 
     size_t numberSomaSamples = 0;
     size_t numberSomaProfilePoints = 0;
@@ -668,216 +666,20 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
     for (size_t i = 0; i < _sections.size(); ++i)
     {
         if (_sections[i]->isRoot())
-        {            _rootSections.push_back(_sections[i]);
+        {
+            _rootSections.push_back(_sections[i]);
             LOG_WARNING("Root %d, %d", _sections[i]->getIndex(), _sections[i]->getFirstSample()->getIndex());
         }
     }
 
     LOG_WARNING("Soma: %d, Profiles: %d, Sections: %d",
                 numberSomaSamples, numberSomaProfilePoints, _rootSections.size());
-    exit(0);
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Sample index
-    size_t index = 0;
-
-    // Isolate the soma samples, id = 1
-    std::vector< size_t > somaSamplesIndices;
-
-    // SWC paths, where some could be sections and others could be concatinated lists of sections
-    std::vector< std::vector< size_t > > swcPathsIndices;
-
-    // Parse the list, and construct the paths
-    while(true)
-    {
-        // Construct the path
-        std::vector< size_t > swcPathIndices;
-        while (true)
-        {
-            // If we have processed the last sample, then break
-            if (index >= swcSamples.size() - 1)
-                break;
-
-            // Soma sample
-            if (swcSamples[index]->type == PROCESS_TYPE::SOMA)
-            {
-                somaSamplesIndices.push_back(swcSamples[index]->id);
-                index++;
-                break;
-            }
-            else
-            {
-                // Get a reference to the sample
-                auto swcSample = swcSamples[index];
-
-                // If there is no increment by 1, then we have either a begining or end
-                if (swcSample->parentId != swcSample->id - 1)
-                {
-                    // If the path is empty
-                    if (swcPathIndices.empty())
-                    {
-                        if (swcSample->parentId != 1)
-                        {
-                            // Add the last sample of the parent section to be the first sample
-                            auto parentSampleArrayIndex = swcSample->parentId;
-                            swcPathIndices.push_back(swcSamples[parentSampleArrayIndex]->id);
-                        }
-
-                        // Add the first sample of the section to be the second sample
-                        swcPathIndices.push_back(swcSample->id);
-
-                        // Increment the index for the next sample
-                        index++;
-                    }
-                    else
-                    {
-                        // It is the last sample of the section
-                        swcPathsIndices.push_back(swcPathIndices);
-                        swcPathIndices.clear();
-                        swcPathIndices.shrink_to_fit();
-                        break;
-                    }
-                }
-                else
-                {
-                    // It is a middle section sample, the add it to the swcSection
-                    swcPathIndices.push_back(swcSample->id);
-
-                    // Increment the index for the next sample
-                    index++;
-                }
-            }
-        }
-
-        // If we have processed the last sample, then break
-        if (index >= swcSamples.size() - 1)
-            break;
-    }
-
-    // List the first samples
-    std::vector< size_t > firstSamplesIds;
-    for (size_t i = 0; i < swcPathsIndices.size(); ++i)
-    {
-        firstSamplesIds.push_back(swcPathsIndices[i][0]);
-    }
-
-    // The segments along each path
-    std::vector< std::vector< size_t > > pathSegments;
-
-    // Construct sections from the paths
-    for (size_t i = 0; i < swcPathsIndices.size(); ++i)
-    {
-        // A new SWC section
-        std::vector< size_t > segmentTerminals;
-
-        // Get a reference to the current path
-        auto pathIds = swcPathsIndices[i];
-
-        for (size_t j = 0; j < pathIds.size(); ++j)
-        {
-            for (size_t k = 0; k < firstSamplesIds.size(); ++k)
-            {
-                if (pathIds[j] == firstSamplesIds[k])
-                {
-                    segmentTerminals.push_back(pathIds[j]);
-                }
-            }
-        }
-
-        // Add the last sample to the section
-        segmentTerminals.push_back(pathIds.back());
-
-        // Append
-        pathSegments.push_back(segmentTerminals);
-    }
-
-
-    std::vector< std::pair< size_t, size_t> > sectionTerminals;
-
-    for (size_t i = 0; i < pathSegments.size(); ++i)
-    {
-        for (size_t j = 0; j < pathSegments[i].size() - 1; ++j)
-        {
-            std::pair< size_t, size_t > terminals;
-            terminals.first = pathSegments[i][j];
-            terminals.second = pathSegments[i][j + 1];
-            sectionTerminals.push_back(terminals);
-        }
-    }
-
-    // Construct the _samples list, in order
-    for (size_t i = 0; i < swcSamples.size(); ++i)
-    {
-        const auto swcSample = swcSamples[i];
-        Sample* sample = new Sample(Vector3f(swcSample->x, swcSample->y, swcSample->z),
-                                    swcSample->r, swcSample->type,
-                                    swcSample->id, swcSample->parentId);
-        _samples.push_back(sample);
-    }
-
-    // Construct the sections
-    for (size_t i = 0; i < sectionTerminals.size(); i++)
-    {
-        // Get references to the indices of the section terminal samples
-        const auto firstSampleId = sectionTerminals[i].first;
-        const auto lastSampleId = sectionTerminals[i].second;
-
-        // Get a reference to the section type
-        const auto sectionType = swcSamples[firstSampleId]->type;
-
-        // Create Ultraliser section
-        Section* section = new Section(i, sectionType);
-
-        Samples sectionSamples;
-        for (size_t i = firstSampleId; i < lastSampleId; ++i)
-        {
-            const auto swcSample = swcSamples[i];
-            Sample* sample = new Sample(Vector3f(swcSample->x, swcSample->y, swcSample->z),
-                                        swcSample->r, sectionType,
-                                        swcSample->id, swcSample->parentId);
-            sectionSamples.push_back(sample);
-        }
-
-        section->addSamples(sectionSamples);
-        _sections.push_back(section);
-    }
-
-    // Construct the graph
-    for (size_t i = 0; i < _sections.size(); ++i)
-    {
-        for (size_t j = 0; j < _sections.size(); ++j)
-        {
-            if (i == j)
-                continue;
-
-            const auto parentLastIndex = _sections[i]->getLastSample()->getIndex();
-            const auto childFirstIndex = _sections[j]->getFirstSample()->getIndex();
-
-            if (parentLastIndex == childFirstIndex)
-            {
-                _sections[i]->addChildIndex(_sections[j]->getIndex());
-                _sections[j]->addParentIndex(_sections[i]->getIndex());
-            }
-
-        }
-    }
 
     // The _pMin and _pMax will be used to compute the bounding box of the neuron morphology
     _pMin = Vector3f(std::numeric_limits<float>::max());
     _pMax = Vector3f(std::numeric_limits<float>::lowest());
 
-    for (size_t i = 0; i < _samples.size(); ++i)
+    for (size_t i = 1; i < _samples.size(); ++i)
     {
         Vector3f position = _samples[i]->getPosition();
         float radius = _samples[i]->getRadius();
@@ -894,19 +696,8 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
         if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
     }
 
-    // Get the first sections
-    for (size_t i = 0; i < _sections.size(); ++i)
-    {
-        if (_sections[i]->getParentIndices().size() == 0)
-        {
-            _firstSections.push_back(_sections[i]);
-        }
-    }
-
-    std::cout << _firstSections.size() << std::endl;
-
     // Get the somatic samples from the initial sections of all the neurites
-    for (const auto& section: _firstSections)
+    for (const auto& section: _rootSections)
     {
         const auto sample = section->getFirstSample();
         _somaSamples.push_back(sample);
@@ -961,200 +752,7 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
     if (pMinSoma.x() < _pMin.x()) _pMin.x() = pMinSoma.x();
     if (pMinSoma.y() < _pMin.y()) _pMin.y() = pMinSoma.y();
     if (pMinSoma.z() < _pMin.z()) _pMin.z() = pMinSoma.z();
-
 }
-
-//void NeuronMorphology::_constructMorphologyFromSWC_(const NeuronSWCSamples& swcSamples)
-//{
-//    // The _pMin and _pMax will be used to compute the bounding box of the neuron morphology
-//    _pMin = Vector3f(std::numeric_limits<float>::max());
-//    _pMax = Vector3f(std::numeric_limits<float>::lowest());
-
-//    // Construct the samples and the sections list from the tree structure
-//    std::stack< NeuronSWCSample* > samplesStack;
-//    std::stack< Section* > sectionStack;
-//    size_t sectionId = 0;
-
-//    // The first sample is always the SOMA
-//    samplesStack.push(swcSamples[0]);
-
-//    // Initially, nothing is in the section stack
-//    sectionStack.push(nullptr);
-
-//    // Process the samples stack until empty where by then the sections are constructed
-//    while (!samplesStack.empty())
-//    {
-//        // Gets the first element in the samples stack, and then removes it
-//        auto swcSample = samplesStack.top();
-//        samplesStack.pop();
-
-//        // Get the first section
-//        auto section = sectionStack.top();
-//        sectionStack.pop();
-
-//        Ultraliser::Vector3f position(swcSample->x, swcSample->y, swcSample->z);
-//        float radius = swcSample->r;
-
-//        Vector3f pMaxSample = position + Vector3f(radius);
-//        Vector3f pMinSample = position - Vector3f(radius);
-
-//        if (pMaxSample.x() > _pMax.x()) _pMax.x() = pMaxSample.x();
-//        if (pMaxSample.y() > _pMax.y()) _pMax.y() = pMaxSample.y();
-//        if (pMaxSample.z() > _pMax.z()) _pMax.z() = pMaxSample.z();
-
-//        if (pMinSample.x() < _pMin.x()) _pMin.x() = pMinSample.x();
-//        if (pMinSample.y() < _pMin.y()) _pMin.y() = pMinSample.y();
-//        if (pMinSample.z() < _pMin.z()) _pMin.z() = pMinSample.z();
-
-//        // Construct a new sample
-//        Sample* sample = new Sample(position, radius,
-//                                    swcSample->type, swcSample->id, swcSample->parentId);
-
-//        // If this sample is somatic, either the soma average sample or a profile point
-//        if (swcSample->type == PROCESS_TYPE::SOMA)
-//        {
-//            // _somaSamples.push_back(sample);
-//            for (auto child : swcSample->childrenSamples)
-//            {
-//                samplesStack.push(child);
-//                if (child->type == PROCESS_TYPE::SOMA)
-//                {
-//                    sectionStack.push(nullptr);
-//                }
-//                else
-//                {
-//                    auto newSection = new Section(sectionId, child->type);
-//                    _sections.push_back(newSection);
-//                    _firstSections.push_back(newSection);
-//                    ++sectionId;
-//                    sectionStack.push(newSection);
-//                }
-//            }
-//        }
-
-//        // Skeleton samples
-//        else
-//        {
-//            // Add the sample to the skeleton samples
-//            _samples.push_back(sample);
-
-//            // Add the sample to the section
-//            section->addSample(sample);
-
-//            // Get the children samples
-//            auto children = swcSample->childrenSamples;
-
-//            // If there is only a single child
-//            if (children.size() == 1)
-//            {
-//                samplesStack.push(children[0]);
-//                sectionStack.push(section);
-//            }
-
-//            // Multiple children
-//            else
-//            {
-//                for (auto child : children)
-//                {
-//                    samplesStack.push(child);
-//                    section->addChildIndex(sectionId);
-
-//                    // Construct a new section corresponding to the child
-//                    auto newSection = new Section(sectionId, child->type);
-
-//                    // Add it to the list of sections
-//                    _sections.push_back(newSection);
-
-//                    // Update the counters to keep track
-//                    ++sectionId;
-
-//                    // Parent-child link
-//                    newSection->addParentIndex(section->getIndex());
-
-//                    // Add the sample to the new section
-//                    newSection->addSample(sample);
-
-//                    // Add the new section to the stack
-//                    sectionStack.push(newSection);
-//                }
-//            }
-//        }
-//    }
-
-//    // Get the somatic samples from the initial sections of all the neurites
-//    for (const auto& section: _firstSections)
-//    {
-//        const auto sample = section->getFirstSample();
-//        _somaSamples.push_back(sample);
-//    }
-
-//    // Initially, the soma center is set to Zero.
-//    _somaCenter = Vector3f(0.0f);
-//    _somaMeanRadius = 0.0f;
-//    _somaMinRadius = 1e10;
-//    _somaMaxRadius = -1e10;
-
-//    if (_somaSamples.size() > 1)
-//    {
-//        // Compute the soma center
-//        for (auto sample : _somaSamples)
-//        {
-//            _somaCenter += sample->getPosition();
-//        }
-//        _somaCenter /= _somaSamples.size();
-
-//        // Compute the minimum, average and maximum radii
-//        for (auto sample : _somaSamples)
-//        {
-//            const auto radius = (sample->getPosition() - _somaCenter).abs();
-
-//            if (radius < _somaMinRadius)
-//                _somaMinRadius = radius;
-
-//            if (radius > _somaMaxRadius)
-//                _somaMaxRadius = radius;
-
-//            _somaMeanRadius += radius;
-//        }
-
-//        // Compute the minimum, average and maximum radii
-//        _somaMeanRadius /= _somaSamples.size();
-//    }
-//    else
-//    {
-//        _somaCenter = _somaSamples[0]->getPosition();
-//        _somaMeanRadius = _somaSamples[0]->getRadius();
-//        _somaMinRadius = _somaMeanRadius;
-//        _somaMaxRadius = _somaMeanRadius;
-//    }
-
-//    Vector3f pMaxSoma = _somaCenter + Vector3f(_somaMaxRadius);
-//    Vector3f pMinSoma = _somaCenter - Vector3f(_somaMaxRadius);
-
-//    if (pMaxSoma.x() > _pMax.x()) _pMax.x() = pMaxSoma.x();
-//    if (pMaxSoma.y() > _pMax.y()) _pMax.y() = pMaxSoma.y();
-//    if (pMaxSoma.z() > _pMax.z()) _pMax.z() = pMaxSoma.z();
-//    if (pMinSoma.x() < _pMin.x()) _pMin.x() = pMinSoma.x();
-//    if (pMinSoma.y() < _pMin.y()) _pMin.y() = pMinSoma.y();
-//    if (pMinSoma.z() < _pMin.z()) _pMin.z() = pMinSoma.z();
-
-
-
-
-
-//    std::cout << "Reading and validating..... \n\n";
-//    for (size_t ii = 0; ii < _samples.size(); ++ii)
-//    {
-//        auto sample = _samples[_samples.size() - ii - 1];
-//        std::cout   << sample->getIndex() + 1 << SPACE
-//                    << mapNeuronProcessTypeToSWCIndex(sample->getType()) << SPACE
-//                    << sample->getPosition().x() << SPACE
-//                    << sample->getPosition().y() << SPACE
-//                    << sample->getPosition().z() << SPACE
-//                    << sample->getRadius()       << SPACE
-//                    << sample->getParentIndex() + 1 << NEW_LINE;
-//    }
-//}
 
 void NeuronMorphology::_constructMorphologyFromH5(const H5Samples& h5Samples,
                                                   const H5Sections& h5Sections)
@@ -1229,7 +827,7 @@ void NeuronMorphology::_constructMorphologyFromH5(const H5Samples& h5Samples,
         // Determine if this is a first section or not!
         if (h5Sections[i].parentIndex == 0)
         {
-            _firstSections.push_back(section);
+            _rootSections.push_back(section);
         }
     }
 
@@ -1244,7 +842,7 @@ void NeuronMorphology::_constructMorphologyFromH5(const H5Samples& h5Samples,
     }
 
     // Get the somatic samples from the initial sections of all the neurites
-    for (const auto& section: _firstSections)
+    for (const auto& section: _rootSections)
     {
         const auto sample = section->getFirstSample();
         _somaSamples.push_back(sample);

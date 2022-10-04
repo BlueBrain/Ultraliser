@@ -163,7 +163,7 @@ private:
      * @brief _firstSecion
      * A list of the first neurites secitions of the morphology.
      */
-    Sections _firstSections;
+    Sections _rootSections;
 
     /**
      * @brief _somaCenter

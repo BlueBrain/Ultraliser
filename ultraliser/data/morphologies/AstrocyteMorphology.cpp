@@ -270,7 +270,7 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
         // Determine if this is a first section or not!
         if (h5Sections[i].parentIndex == 0)
         {
-            _firstSections.push_back(section);
+            _rootSections.push_back(section);
         }
     }
 
@@ -285,7 +285,7 @@ AstrocyteMorphology::AstrocyteMorphology(const H5Samples& h5Samples,
     }
 
     // Get the somatic samples from the initial sections of all the neurites
-    for (const auto& section: _firstSections)
+    for (const auto& section: _rootSections)
     {
         const auto sample = section->getFirstSample();
         _somaSamples.push_back(sample);
@@ -339,7 +339,7 @@ Samples AstrocyteMorphology::getSomaSamples() const
 
 Sections AstrocyteMorphology::getFirstSections() const
 {
-    return _firstSections;
+    return _rootSections;
 }
 
 Vector3f AstrocyteMorphology::getSomaCenter() const
@@ -442,7 +442,7 @@ void AstrocyteMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& sw
                 {
                     auto newSection = new Section(sectionId, child->type);
                     _sections.push_back(newSection);
-                    _firstSections.push_back(newSection);
+                    _rootSections.push_back(newSection);
                     ++sectionId;
                     sectionStack.push(newSection);
                 }
@@ -499,7 +499,7 @@ void AstrocyteMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& sw
     }
 
     // Get the somatic samples from the initial sections of all the neurites
-    for (const auto& section: _firstSections)
+    for (const auto& section: _rootSections)
     {
         const auto sample = section->getFirstSample();
         _somaSamples.push_back(sample);
