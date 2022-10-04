@@ -78,7 +78,7 @@ void run(int argc, const char** argv)
 
     // neuronMorphology->resampleSectionsSmartly();
 
-    // neuronMorphology->exportToSWC(options->meshPrefix + WATERTIGHT_SUFFIX);
+    neuronMorphology->exportToSWC(options->meshPrefix + WATERTIGHT_SUFFIX);
 
     // exit(0);
 

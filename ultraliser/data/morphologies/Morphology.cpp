@@ -66,7 +66,7 @@ Sections Morphology::getRootSections() const
     for (size_t i = 0; i < _sections.size(); ++i)
     {
         // The root section has no parents, indeed
-        if (_sections[i]->getParentIndices().size() == 0)
+        if (_sections[i]->isRoot())
             rootSections.push_back(_sections[i]);
     }
 
@@ -853,19 +853,19 @@ void Morphology::exportToSWC(const std::string& prefix)
     TIMER_SET;
 
     // Write the vertices
-    LOOP_STARTS("Writing Vertices");
-    for (size_t i = 0; i < _samples.size(); ++i)
+    LOOP_STARTS("Exporting Neuron Morphology");
+    for (size_t i = 1; i < _samples.size(); ++i)
     {
-        // LOOP_PROGRESS_FRACTION(i, _samples.size());
+        LOOP_PROGRESS_FRACTION(i, _samples.size());
 
         auto& sample = _samples[i];
-        stream << sample->getIndex() + 1 << SPACE
+        stream << sample->getIndex() << SPACE
                << mapNeuronProcessTypeToSWCIndex(sample->getType()) << SPACE
                << sample->getPosition().x() << SPACE
                << sample->getPosition().y() << SPACE
                << sample->getPosition().z() << SPACE
                << sample->getRadius()       << SPACE
-               << sample->getParentIndex() + 1 << NEW_LINE;
+               << sample->getParentIndex() << NEW_LINE;
     }
     LOOP_DONE;
 
