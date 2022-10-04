@@ -345,35 +345,72 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
 
             LOG_WARNING("* Arbor %d, S0 %d, S1 %d", i, section.firstSample, section.lastSample);
         }
+        else if (strandIndices.size() == 1)
+        {
+            // Initially, set how many elements in the vector
+            sectionIndices.resize(strandIndices.size() + 1);
+
+            Indices firstSection;
+            firstSection.firstSample = arborsIndices[i].firstSample;
+            firstSection.lastSample = strandIndices[0] - 1;
+            sectionIndices.push_back(firstSection);
+
+            Indices lastSection;
+            lastSection.firstSample = strandIndices[0];
+            lastSection.lastSample = arborsIndices[i].lastSample;
+            sectionIndices.push_back(lastSection);
+        }
         else
         {
-            for (size_t j = 0; j <= strandIndices.size(); ++j)
-            {
-                if (j < strandIndices.size())
-                std::cout << strandIndices[j] << "\n";
+            // The first section
+            Indices initialSection;
+            initialSection.firstSample = arborsIndices[i].firstSample;
+            initialSection.lastSample = strandIndices[0] - 1;
+            sectionIndices.push_back(initialSection);
 
-                Indices section;
-                if (j == 0)
+            for (size_t j = 0; j < strandIndices.size(); ++j)
+            {
+                if (j < strandIndices.size() - 1)
                 {
-                    section.firstSample = arborsIndices[i].firstSample;
-                    section.lastSample = strandIndices[j] - 1;
-                }
-                else if (j == strandIndices.size())
-                {
-                    section.firstSample = strandIndices[j - 1];
-                    section.lastSample = arborsIndices[i].lastSample;
+                    // Get the current index
+                    size_t currentIndex = strandIndices[j];
+
+                    // Get the parentId @swcSample[currentIndex]
+                    size_t parentIndex = swcSamples[currentIndex]->parentId;
+
+                    // Get the last sample
+                    size_t lastSampleIndex = strandIndices[j + 1] - 1;
+
+                    Indices inbetweenSection;
+                    inbetweenSection.firstSample = parentIndex;
+                    inbetweenSection.lastSample = lastSampleIndex;
+                    sectionIndices.push_back(inbetweenSection);
                 }
                 else
                 {
-                    section.firstSample = swcSamples[strandIndices[j - 1]]->parentId;
-                    section.lastSample = strandIndices[j] - 1;
+                    // Get the current index
+                    size_t currentIndex = strandIndices[j];
+
+                    // Get the parentId @swcSample[currentIndex]
+                    size_t parentIndex = swcSamples[currentIndex]->parentId;
+
+                    // Get the last sample
+                    size_t lastSampleIndex = arborsIndices[i].lastSample;
+
+                    Indices inbetweenSection;
+                    inbetweenSection.firstSample = parentIndex;
+                    inbetweenSection.lastSample = lastSampleIndex;
+                    sectionIndices.push_back(inbetweenSection);
                 }
-
-                sectionIndices.push_back(section);
-
-                LOG_WARNING("* Arbor: %d, Section: %d, %d", i, section.firstSample, section.lastSample);
             }
         }
+
+        for (size_t j = 0; j < sectionIndices.size(); ++j)
+        {
+            auto section = sectionIndices[j];
+            LOG_WARNING("* Arbor: %d, Section: %d, %d", i, section.firstSample, section.lastSample);
+        }
+
 
         for (size_t j = 0; j < sectionIndices.size(); ++j)
         {
