@@ -304,8 +304,9 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
 
     for (size_t i = 0; i < arborsIndices.size(); ++i)
     {
-        LOG_WARNING("Arbor %d, S0 %d, S1 %d", i, arborsIndices[i].firstSample, arborsIndices[i].lastSample);
+        LOG_WARNING("Arbor %d, S0 %d, S1 %d", i + 1, arborsIndices[i].firstSample, arborsIndices[i].lastSample);
     }
+    LOG_WARNING("**********************************");
 
     // Construct the sections
     size_t sectionIndex = 0;
@@ -317,8 +318,6 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
         // Get the indices of the terminal samples
         const size_t& firstSampleIndex = arborsIndices[i].firstSample;
         const size_t& lastSampleIndex = arborsIndices[i].lastSample;
-
-        LOG_SUCCESS("INDEX %d S0 %d, S1 %d", i, firstSampleIndex, lastSampleIndex);
 
         // The indices of the different strands
         std::vector< size_t > strandIndices;
@@ -342,14 +341,9 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
             section.firstSample = firstSampleIndex;
             section.lastSample = lastSampleIndex;
             sectionIndices.push_back(section);
-
-            LOG_WARNING("* Arbor %d, S0 %d, S1 %d", i, section.firstSample, section.lastSample);
         }
         else if (strandIndices.size() == 1)
         {
-            // Initially, set how many elements in the vector
-            sectionIndices.resize(strandIndices.size() + 1);
-
             Indices firstSection;
             firstSection.firstSample = arborsIndices[i].firstSample;
             firstSection.lastSample = strandIndices[0] - 1;
@@ -408,7 +402,7 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
         for (size_t j = 0; j < sectionIndices.size(); ++j)
         {
             auto section = sectionIndices[j];
-            LOG_WARNING("* Arbor: %d, Section: %d, %d", i, section.firstSample, section.lastSample);
+            LOG_WARNING("*** Arbor: %d, Section: %d, %d", i + 1, section.firstSample, section.lastSample);
         }
 
 
@@ -456,15 +450,15 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
 
             if (iSection->getFirstSample()->getIndex() == jSection->getLastSample()->getIndex())
             {
-                LOG_WARNING("iSection: %d, jSection %d",
-                           iSection->getFirstSample()->getIndex(), jSection->getLastSample()->getIndex());
+//                LOG_WARNING("iSection: %d, jSection %d",
+//                           iSection->getFirstSample()->getIndex(), jSection->getLastSample()->getIndex());
                 iSection->addParentIndex(jSection->getIndex());
                 jSection->addChildIndex(iSection->getIndex());
             }
 
             if (iSection->getLastSample()->getIndex() == jSection->getFirstSample()->getIndex())
             {
-                LOG_WARNING("*P: %d, C: %d", iSection->getIndex(), jSection->getIndex());
+//                LOG_WARNING("*P: %d, C: %d", iSection->getIndex(), jSection->getIndex());
 
                 iSection->addChildIndex(jSection->getIndex());
                 jSection->addParentIndex(iSection->getIndex());
