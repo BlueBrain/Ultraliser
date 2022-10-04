@@ -402,19 +402,24 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
         for (size_t j = 0; j < sectionIndices.size(); ++j)
         {
             auto section = sectionIndices[j];
-            LOG_WARNING("*** Arbor: %d, Section: %d, %d", i + 1, section.firstSample, section.lastSample);
+            LOG_WARNING("* Arbor: %d, Section: %d, %d", i + 1, section.firstSample, section.lastSample);
         }
-
 
         for (size_t j = 0; j < sectionIndices.size(); ++j)
         {
             Samples samples;
 
+            std::stringstream st;
+
             // Construct the sample list
             for (size_t k = sectionIndices[j].firstSample; k <= sectionIndices[j].lastSample; ++k)
             {
                 samples.push_back(new Sample(swcSamples[k]));
+
+                st << k << " ";
             }
+            st <<"\n";
+            std::cout << "[" << j << "] " << st.str();
 
             Section* section = new Section(sectionIndex, samples[0]->getType());
             sectionIndex++;
@@ -426,12 +431,12 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
 
     std::cout << "--------------\n";
 
-//    for (size_t i = 2; i < _sections.size(); ++i)
-//    {
-//        LOG_WARNING("Section %d First %d Last %d", _sections[i]->getIndex(),
-//                    _sections[i]->getFirstSample()->getIndex(),
-//                    _sections[i]->getLastSample()->getIndex());
-//    }
+    for (size_t i = 1; i < _sections.size(); ++i)
+    {
+        LOG_WARNING("Section %d First %d Last %d", _sections[i]->getIndex(),
+                    _sections[i]->getFirstSample()->getIndex(),
+                    _sections[i]->getLastSample()->getIndex());
+    }
 
 
     // Construct the graph from the individual sections
@@ -473,6 +478,7 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
     {
         if (_sections[i]->isRoot())
         {
+
             _rootSections.push_back(_sections[i]);
         }
     }
