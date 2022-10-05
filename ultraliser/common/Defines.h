@@ -227,6 +227,8 @@
 #define COLUMN_KEY                              STRING("COLUMN:")
 #define LAYER_KEY                               STRING("LAYER:")
 
+#define SOMA_PARENT_INDEX                       -1
+#define AUXILIARY_SAMPLE_INDEX                  0
 #define AXON_INDEX                              1
 #define APICAL_DENDRITE_INDEX                   2
 #define BASAL_DENDRITE_INDEX                    3

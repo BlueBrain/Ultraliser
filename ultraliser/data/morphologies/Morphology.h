@@ -280,6 +280,8 @@ public:
 
     void resampleSectionsSmartly();
 
+    void resampleSectionsToBeLines();
+
 
     /**
      * @brief printStats
@@ -301,7 +303,16 @@ public:
      */
     void printDistributions(const std::string *prefix) const;
 
-    virtual void reIndexMorphology() = 0;
+
+
+    /**
+     * @brief compileSWCTableRecursively
+     * Re-creates the _samples list, by traversing the morphology tree and building SWC table.
+     * This function is only implemented to acyclic graphs.
+     */
+    virtual void compileSWCTableRecursively() = 0;
+
+    virtual void reIndexSamples() = 0;
 
     void exportToSWC(const std::string& prefix);
 

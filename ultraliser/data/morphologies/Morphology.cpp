@@ -615,6 +615,35 @@ void Morphology::resampleSectionsAdaptively(const bool& relaxed)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
+void Morphology::resampleSectionsToBeLines()
+{
+    LOG_STATUS("Resampling Morphology while Keeping Terminal Samples");
+
+    // Starting the timer
+    TIMER_SET;
+
+    std::vector< size_t > sectionCounter;
+    sectionCounter.resize(_sections.size());
+
+    LOOP_STARTS("Removing Samples")
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _sections.size(); ++i)
+    {
+        sectionCounter[i] = _sections[i]->removeIntermediateSamples();
+
+        LOOP_PROGRESS(PROGRESS, _sections.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    size_t totalNumberRemovedSamples = 0;
+    for (size_t i = 0; i < sectionCounter.size(); ++i)
+        totalNumberRemovedSamples += sectionCounter[i];
+    LOG_SUCCESS("Number of Removed Sample(s) [%d]", totalNumberRemovedSamples);
+}
+
 void Morphology::resampleSectionsSmartly()
 {
     LOG_STATUS("Resampling Morphology");
@@ -837,7 +866,7 @@ void Morphology::exportToH5(const std::string& prefix)
 
 void Morphology::exportToSWC(const std::string& prefix)
 {
-    reIndexMorphology();
+    compileSWCTableRecursively();
 
     // Open the file
     std::string fileName = prefix + SWC_EXTENSION;

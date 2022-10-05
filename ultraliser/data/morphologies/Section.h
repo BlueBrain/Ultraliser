@@ -169,6 +169,8 @@ public:
 
     size_t removeInnerSamples();
 
+    size_t removeIntermediateSamples();
+
     size_t interpolateLongSegments();
 
 
@@ -275,13 +277,9 @@ public:
      */
     void updateSamplesIndices();
 
-
-    void reIndexSectionTree(const Sections& sections, size_t &sampleIndex,
-                            const size_t& branchingSampleIndex, Samples& samples);
-
-    void compileSWCTableRecursively(size_t &currentSampleIndex,
-                                    const size_t& branchingSampleIndex,
-                                    Samples& samples);
+    void compileSWCTableRecursively(Samples& samples,
+                                    size_t &currentSampleIndex,
+                                    const size_t& branchingSampleIndex = 0);
 
     /**
      * @brief getBranchingOrder

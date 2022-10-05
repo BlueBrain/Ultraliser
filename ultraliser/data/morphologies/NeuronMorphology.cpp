@@ -179,89 +179,44 @@ float NeuronMorphology::getSomaMaxRadius() const
     return _somaMaxRadius;
 }
 
-// Reindexing of acyclic morphologies, with root nodes
-void NeuronMorphology::reIndexMorphology()
+void NeuronMorphology::compileSWCTableRecursively()
 {
     // Global indexing for the samples
     size_t sampleIndex = 0;
 
     // A collector for all the samples in the morphology including the ones that have been added
     // We will clear the current samples list, and then we reconstruct a new list of samples
+    for (auto& sample: _samples) { delete sample; }
     _samples.clear();
     _samples.shrink_to_fit();
 
-    // Add a zeroSample, for indexing
-    Sample* zeroSample = new Sample(Vector3f(0.f), 0.f, PROCESS_TYPE::AUXILIARY, sampleIndex, 0);
-    _samples.push_back(zeroSample);
-    sampleIndex++;
+    // Add a zeroSample as an auxiliary sample, for preserving the index to start at 0
+    _samples.push_back(new Sample(Vector3f(0.f), 0.f, PROCESS_TYPE::AUXILIARY,
+                                  sampleIndex++, AUXILIARY_SAMPLE_INDEX));
 
-    // Add the somaSample
-    Sample* somaSample = new Sample(_somaCenter, _somaMinRadius, PROCESS_TYPE::SOMA, sampleIndex, -1);
-    _samples.push_back(somaSample);
-    sampleIndex++;
+    // Add the sample of the soma
+    _samples.push_back(new Sample(_somaCenter, _somaMinRadius, PROCESS_TYPE::SOMA,
+                                  sampleIndex++, SOMA_PARENT_INDEX));
 
-
-    _samples.push_back(new Sample(Vector3f(0.f), 0.f, PROCESS_TYPE::AUXILIARY, sampleIndex, 0));
-    sampleIndex++;
-
-    _samples.push_back(new Sample(Vector3f(0.f), 0.f, PROCESS_TYPE::AUXILIARY, sampleIndex, 0));
-    sampleIndex++;
-
-
-    // Get root sections, for neurons and astrocytes
+    // Get root sections, for neurons and astrocytes, and collect the samples
     auto rootSections = getRootSections();
-
-    // For each root section
     for (size_t i = 0; i < rootSections.size(); ++i)
     {
-        // Get a reference to the root section
-        auto& rootSection = rootSections[i];
-
-        LOG_SUCCESS("Section %d", rootSection->getIndex());
-
-
-        // Set the indices of the samples of the section
-        auto rootSamples = rootSection->getSamples();
-
-        // The first sample of the rootSection, set index, parent index and append to the list
-        rootSamples.front()->setIndex(sampleIndex);
-        sampleIndex++;
-        std::cout << sampleIndex << " ";
-
-        rootSamples.front()->setParentIndex(1);
-        _samples.push_back(rootSamples.front());
-
-        // Intermediate samples
-        for (size_t j = 1; j < rootSamples.size(); ++j)
-        {
-            // Set index, parent index and append to the list
-            rootSamples[j]->setIndex(sampleIndex);
-            rootSamples[j]->setParentIndex(sampleIndex - 1);
-            _samples.push_back(rootSamples[j]);
-            std::cout << sampleIndex << " ";
-
-            sampleIndex++;
-        }        
-
-        // The branchingSampleIndex will be the same for all the children sections
-        const size_t branchingSampleIndex = _samples[_samples.size() - 1]->getIndex();
-
-        auto childrenIndices = rootSection->getChildrenIndices();
-        for (size_t j = 0; j < childrenIndices.size(); ++j)
-        {
-
-
-            // Get a reference to the child section
-            auto& child = _sections[childrenIndices[j]];
-
-            LOG_SUCCESS("Section %d", child->getIndex());
-
-            // Apply recursively
-            child->reIndexSectionTree(_sections, sampleIndex, branchingSampleIndex, _samples);
-        }
+        rootSections[i]->compileSWCTableRecursively(_samples, sampleIndex);
     }
+}
 
-    LOG_SUCCESS("Samples %d", _samples.size());
+void NeuronMorphology::reIndexSamples()
+{
+    // Global indexing for the samples
+    size_t sampleIndex = 0;
+
+    // Get root sections, for neurons and astrocytes, and collect the samples
+//    auto rootSections = getRootSections();
+//    for (size_t i = 0; i < rootSections.size(); ++i)
+//    {
+//        rootSections[i]->reIndexSamples(sampleIndex);
+//    }
 }
 
 void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSamples)

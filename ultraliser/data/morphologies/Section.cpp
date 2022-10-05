@@ -354,6 +354,36 @@ void Section::resampleUniformly(const float& step)
     updateSamplesIndices();
 }
 
+size_t Section::removeIntermediateSamples()
+{
+    // Get the total number of samples in the section
+    const size_t numberOriginalSamples = _samples.size();
+
+    // If the section has less than two samples, return
+    if (numberOriginalSamples < 2)
+        return 0;
+
+    // If the section has two samples, return. The section cannot be resampled.
+    if (numberOriginalSamples == 2)
+        return 0;
+
+    Samples newSamples;
+    newSamples.push_back(new Sample(_samples.front()));
+    newSamples.push_back(new Sample(_samples.back()));
+
+    for (auto& sample: _samples) { delete sample; }
+    _samples.clear();
+    _samples.shrink_to_fit();
+
+    _samples = newSamples;
+
+    // Keep track on the removed samples
+    size_t numberRemovedSamples = numberOriginalSamples - _samples.size();
+
+    return numberRemovedSamples;
+}
+
+
 size_t Section::removeInnerSamples()
 {
     // Get the total number of samples in the section
@@ -661,57 +691,60 @@ void Section::verifyMinimumSampleRadius(const float& radius)
     }
 }
 
-void Section::compileSWCTableRecursively(size_t &currentSampleIndex,
-                                         const size_t& branchingSampleIndex,
-                                         Samples& samples)
+void Section::compileSWCTableRecursively(Samples& samples,
+                                         size_t &currentSampleIndex,
+                                         const size_t& branchingSampleIndex)
 {
     /// NOTE: Section samples are _samples, but the collecting list is samples
-
-    // If this section is root
     if (isRoot())
     {
-//        samples.push_back()
+        // The parentIndex of the first sample is 1 if the section isRoot()
+        samples.push_back(new Sample(_samples[0]->getPosition(),
+                                     _samples[0]->getRadius(),
+                                     _samples[0]->getType(),
+                                     currentSampleIndex++, 1));
+
+        // Start directly at the second sample to complete the section
+        for (size_t i = 1; i < _samples.size(); ++i)
+        {
+            samples.push_back(new Sample(_samples[i]->getPosition(),
+                                         _samples[i]->getRadius(),
+                                         _samples[i]->getType(),
+                                         currentSampleIndex,
+                                         currentSampleIndex - 1));
+            currentSampleIndex++;
+        }
     }
-}
-
-void Section::reIndexSectionTree(const Sections& sections, size_t &sampleIndex,
-                                 const size_t& branchingSampleIndex, Samples& samples)
-{
-    // Set the indices of the samples of that section
-    auto sectionSamples = getSamples();
-
-    // Set index, parent index and append to the list, of the second sample
-    sectionSamples[1]->setIndex(sampleIndex);
-    sectionSamples[1]->setParentIndex(branchingSampleIndex);
-    samples.push_back(sectionSamples[1]);
-    sampleIndex++;
-    std::cout << sampleIndex << " ";
-
-    // The first sample of the section corresponds to the last sample of the parent section
-    for (size_t i = 2; i < sectionSamples.size(); ++i)
+    else
     {
-        // Set index, parent index and append to the list
-        sectionSamples[i]->setIndex(sampleIndex);
-        sectionSamples[i]->setParentIndex(sampleIndex - 1);
-        sampleIndex++;
-        std::cout << sampleIndex << " ";
+        // The parentIndex of the sample is the branchingSampleIndex if not isRoot()
+        samples.push_back(new Sample(_samples[1]->getPosition(),
+                                     _samples[1]->getRadius(),
+                                     _samples[1]->getType(),
+                                     currentSampleIndex++, branchingSampleIndex));
 
-        samples.push_back(sectionSamples[i]);
+        // Start at the third sample
+        for (size_t i = 2; i < _samples.size(); ++i)
+        {
+            samples.push_back(new Sample(_samples[i]->getPosition(),
+                                         _samples[i]->getRadius(),
+                                         _samples[i]->getType(),
+                                         currentSampleIndex,
+                                         currentSampleIndex - 1));
+            currentSampleIndex++;
+        }
     }
 
     // The branchingSampleIndex will be the same for all the children sections
     const size_t childBranchingSampleIndex = samples[samples.size() - 1]->getIndex();
 
     // Re-index the children in a recursive manner
-    for (size_t i = 0; i < getChildrenIndices().size(); ++i)
+    for (size_t i = 0; i < _children.size(); ++i)
     {
-        // Get a reference to the child section
-        auto& child = sections[getChildrenIndices()[i]];
-
-        LOG_SUCCESS("Section %d, [%d]", child->getIndex(), samples.size());
-
         // Re-index the children sections
-        child->reIndexSectionTree(sections, sampleIndex, childBranchingSampleIndex, samples);
+        _children[i]->compileSWCTableRecursively(samples,
+                                                 currentSampleIndex,
+                                                 childBranchingSampleIndex);
     }
 }
 

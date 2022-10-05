@@ -377,7 +377,34 @@ float AstrocyteMorphology::getLargestRadiusInMorphology() const
     return _largestRadiusInMorphology;
 }
 
-void AstrocyteMorphology::reIndexMorphology()
+void AstrocyteMorphology::compileSWCTableRecursively()
+{
+    // Global indexing for the samples
+    size_t sampleIndex = 0;
+
+    // A collector for all the samples in the morphology including the ones that have been added
+    // We will clear the current samples list, and then we reconstruct a new list of samples
+    for (auto& sample: _samples) { delete sample; }
+    _samples.clear();
+    _samples.shrink_to_fit();
+
+    // Add a zeroSample as an auxiliary sample, for preserving the index to start at 0
+    _samples.push_back(new Sample(Vector3f(0.f), 0.f, PROCESS_TYPE::AUXILIARY,
+                                  sampleIndex++, AUXILIARY_SAMPLE_INDEX));
+
+    // Add the sample of the soma
+    _samples.push_back(new Sample(_somaCenter, _somaMinRadius, PROCESS_TYPE::SOMA,
+                                  sampleIndex++, SOMA_PARENT_INDEX));
+
+    // Get root sections, for neurons and astrocytes, and collect the samples
+    auto rootSections = getRootSections();
+    for (size_t i = 0; i < rootSections.size(); ++i)
+    {
+        rootSections[i]->compileSWCTableRecursively(_samples, sampleIndex);
+    }
+}
+
+void AstrocyteMorphology::reIndexSamples()
 {
 
 }

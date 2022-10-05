@@ -85,7 +85,9 @@ public:
                                          const float &height,
                                          const float &depth) const;
 
-    void reIndexMorphology();
+    void reIndexSamples();
+
+    void compileSWCTableRecursively();
 
     void exportVascularMorphologyVMV(const std::string &prefix);
 

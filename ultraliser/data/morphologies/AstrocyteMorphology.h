@@ -133,7 +133,10 @@ public:
      */
     float getLargestRadiusInMorphology() const;
 
-    void reIndexMorphology();
+    void compileSWCTableRecursively();
+
+
+    void reIndexSamples();
 
 private:
 

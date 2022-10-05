@@ -77,6 +77,9 @@ void run(int argc, const char** argv)
     // Read the file into a morphology structure
     auto neuronMorphology = readNeuronMorphology(options->inputMorphologyPath);
 
+
+    neuronMorphology->resampleSectionsToBeLines();
+
     // neuronMorphology->resampleSectionsSmartly();
 
     neuronMorphology->exportToSWC(options->morphologyPrefix);

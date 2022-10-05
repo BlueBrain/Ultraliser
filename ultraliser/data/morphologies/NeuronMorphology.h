@@ -114,7 +114,10 @@ public:
      */
     float getSomaMaxRadius() const;
 
-    void reIndexMorphology();
+    void reIndexSamples();
+
+    void compileSWCTableRecursively();
+
 
 private:
 

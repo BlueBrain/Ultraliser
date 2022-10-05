@@ -223,9 +223,14 @@ VasculatureMorphology* VasculatureMorphology::extractRegion(const Vector3f& cent
     return new VasculatureMorphology(regionSamples, regionSections);
 }
 
-void VasculatureMorphology::reIndexMorphology()
+void VasculatureMorphology::compileSWCTableRecursively()
 {
+    LOG_ERROR("VasculatureMorphology::compileSWCTableRecursively is NOT implemented!");
+}
 
+void VasculatureMorphology::reIndexSamples()
+{
+    LOG_ERROR("VasculatureMorphology::reIndexSamples is NOT implemented!");
 }
 
 void VasculatureMorphology::exportVascularMorphologyVMV(const std::string &prefix)
