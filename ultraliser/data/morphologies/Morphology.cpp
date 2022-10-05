@@ -858,12 +858,6 @@ void Morphology::printStats(const std::string &reference, const std::string *pre
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-
-void Morphology::exportToH5(const std::string& prefix)
-{
-
-}
-
 void Morphology::exportToSWC(const std::string& prefix)
 {
     compileSWCTableRecursively();

@@ -78,8 +78,9 @@ void run(int argc, const char** argv)
     auto neuronMorphology = readNeuronMorphology(options->inputMorphologyPath);
 
 
-    neuronMorphology->resampleSectionsToBeLines();
+    //neuronMorphology->resampleSectionsToBeLines();
 
+    neuronMorphology->resampleSectionsAdaptively(true);
     // neuronMorphology->resampleSectionsSmartly();
 
     neuronMorphology->exportToSWC(options->morphologyPrefix);

@@ -340,7 +340,7 @@ void Section::resampleUniformly(const float& step)
         }
 
         // Add the last sample to ensure to completensee of the section
-        newSamples.push_back(_samples.at(_samples.size() - 1));
+        newSamples.push_back(_samples.back());
 
         // Clear the old samples list
         _samples.clear();
@@ -389,7 +389,7 @@ size_t Section::removeInnerSamples()
     // Get the total number of samples in the section
     const size_t numberSamples = _samples.size();
 
-    // If the section has less than two samples, return
+    // If the section has less than two samples, return. The section cannot be resampled.
     if (numberSamples < 2)
         return 0;
 
@@ -532,6 +532,27 @@ void Section::resampleAdaptively(const bool& relaxed)
     // If the section has less than two samples, return as it is not valid
     if (numberSamples < 2)
         return;
+
+    // Get the smallest radius
+    const auto smallestRadius = getMinimumSampleRadius();
+
+    // Resample uniformly based on the radius of the smallest sample
+    resampleUniformly(smallestRadius);
+
+    return;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // If the sampling is relaxed, then use a distance factor of 2 to account for diameters
     // instead of radii
@@ -678,6 +699,21 @@ void Section::resampleAdaptively(const bool& relaxed)
         // Update the samples list
         _samples = newSamples;
     }
+}
+
+float Section::getMinimumSampleRadius() const
+{
+    float radius = std::numeric_limits< float >::max();
+
+    for (auto& sample: _samples)
+    {
+        if (sample->getRadius() < radius)
+        {
+            radius = sample->getRadius();
+        }
+    }
+
+    return radius;
 }
 
 void Section::verifyMinimumSampleRadius(const float& radius)

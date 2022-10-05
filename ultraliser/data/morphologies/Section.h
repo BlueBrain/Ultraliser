@@ -167,6 +167,8 @@ public:
     void resampleAdaptively(const bool& relaxed = true);
 
 
+
+
     size_t removeInnerSamples();
 
     size_t removeIntermediateSamples();
@@ -181,6 +183,9 @@ public:
      * @param radius
      */
     void verifyMinimumSampleRadius(const float& radius);
+
+    float getMinimumSampleRadius() const;
+
 
     /**
      * @brief isRoot
@@ -280,6 +285,7 @@ public:
     void compileSWCTableRecursively(Samples& samples,
                                     size_t &currentSampleIndex,
                                     const size_t& branchingSampleIndex = 0);
+
 
     /**
      * @brief getBranchingOrder
