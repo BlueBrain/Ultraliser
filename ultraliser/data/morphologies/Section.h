@@ -151,6 +151,9 @@ public:
      */
     Sample* getLastSample() const;
 
+
+    void resampleSegment(const float& step, Samples& samples);
+
     /**
      * @brief resampleSectionUniformly
      * Resamples the section uniformy.
@@ -167,6 +170,7 @@ public:
     void resampleAdaptively(const bool& relaxed = true);
 
 
+    void removeOverlappingSamples();
 
 
     size_t removeInnerSamples();

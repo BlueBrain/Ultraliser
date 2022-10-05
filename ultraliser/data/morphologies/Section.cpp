@@ -217,137 +217,95 @@ void Section::updateSamplesIndices()
         _samples[i]->setIndex(i);
 }
 
+void Section::resampleSegment(const float& step, Samples& samples)
+{
+    // The segment can be resampled, if it only has two samples, otherwise return
+    if (samples.size() == 2)
+    {
+        const auto sample0 = samples[0];
+        const auto sample1 = samples[1];
+
+        // Compuet the distance between the two samples, i.e. the segmentLength
+        const auto segmentLength = (sample0->getPosition() - sample1->getPosition()).abs();
+
+        // If the step is greater than the segmentLength, then we cannot resample this segment
+        if (step > segmentLength)
+            return;
+
+        // Compute the direction of the segment
+        Vector3f direction = sample1->getPosition() - sample0->getPosition();
+        direction.normalize();
+
+        // Sampling index
+        size_t index = 1;
+        while (true)
+        {
+            // Compute the position of a new sample
+            const auto position = sample0->getPosition() + direction * (index) * step;
+
+            // Compute the delta
+            const auto delta = (position - sample0->getPosition()).abs();
+
+            // If we exceed the segmentLength, then break
+            if (delta > segmentLength)
+            {
+                break;
+            }
+
+            // Compute the radius
+            const auto radius = 0.5 *
+                    (samples[index - 1]->getRadius() + samples[index]->getRadius());
+
+            // Construct the new sample
+            Sample* sample = new Sample(position, radius, sample0->getType(),
+                    AUXILIARY_SAMPLE_INDEX, AUXILIARY_SAMPLE_INDEX);
+            samples.insert(samples.begin() + index, sample);
+            index++;
+        }
+    }
+}
+
+
+
 void Section::resampleUniformly(const float& step)
 {
     // Get the total number of samples in the section
-    const size_t numberSamples = _samples.size();
+    const auto numberSamples = _samples.size();
 
-    // If the section has less than two samples, return as it is not valid
+    // If the section has less than two samples, return. The section cannot be resampled.
     if (numberSamples < 2)
         return;
 
     // If the section has two samples only, then verify its length with respect to the given step
     if (numberSamples == 2)
     {
-        const auto sample0 = _samples[0];
-        const auto sample1 = _samples[1];
-
-        // Compuet the distance between the two samples
-        const auto distance = (sample0->getPosition() - sample1->getPosition()).abs();
-
-        // If the distance is less than the step, then we cannot resample this section
-        if (distance < step)
-            return;
-
-        // Otherwise, the section could be resampled, so RESAMPLE it
-        else
-        {
-            // Create a new samples list
-            Samples newSamples;
-
-            // Add the first sample to the section
-            newSamples.push_back(_samples[0]);
-
-            // Compute the direction of the section
-            Vector3f direction = _samples[1]->getPosition() - _samples[0]->getPosition();
-            direction.normalize();
-
-            // This index will keep track on the current sample along the section
-            size_t index = 1;
-            while (true)
-            {
-                // Compute the position of a new sample
-                Vector3f position = newSamples[0]->getPosition() + direction * index * step;
-
-                // If the position of the new sample goes beyond the segment length, break
-                if ((position - sample0->getPosition()).abs() > distance)
-                    break;
-
-                // Otherwise, interpolate the new sample and add it
-                const float radius = 0.5 *
-                        (newSamples[index - 1]->getRadius() + _samples[1]->getRadius());
-
-                // Add the new sample to the list of new sample
-                Sample* sample = new Sample(position, radius, _samples[0]->getType(), index);
-                newSamples.push_back(sample);
-
-                // Increase the sample index
-                ++index;
-            }
-
-            // Add the first sample to the section
-            newSamples.push_back(_samples.back());
-
-            // Clear the old samples list
-            _samples.clear();
-            _samples.shrink_to_fit();
-
-            // Update the samples list
-            _samples = newSamples;
-        }
+        resampleSegment(step, _samples);
     }
-
-    // If the section has more than two samples
     else
     {
-        // Create a new samples list
-        Samples newSamples;
-
-        // Add the first sample to the new list
-        newSamples.push_back(_samples[0]);
-
-        // This index will keep track on the current sample along the section
-        size_t index = 1;
-
-        for (size_t i = 0; i < numberSamples - 2; ++i)
+        //
+        Samples sectionSamples;
+        sectionSamples.push_back(_samples[0]);
+        for (size_t i = 0; i < _samples.size() - 1; ++i)
         {
-            const auto sample0 = _samples[i];
-            const auto sample1 = _samples[i + 1];
+            Samples segmentSamples;
+            segmentSamples.resize(2);
+            segmentSamples[0] = _samples[i];
+            segmentSamples[1] = _samples[i + 1];
+            resampleSegment(step, segmentSamples);
 
-            // Compute the direction of the section
-            Vector3f direction = sample1->getPosition() - sample0->getPosition();
-            direction.normalize();
-
-            // Compuet the distance between the two samples
-            const auto distance = (sample1->getPosition() - sample0->getPosition()).abs();
-
-            // Proceed wiht the resampling
-            size_t perSegmentIndex = 1;
-            while (true)
+            for (size_t j = 1; j < segmentSamples.size(); ++j)
             {
-                // Compute the position of a new sample
-                Vector3f position = sample0->getPosition() + direction * perSegmentIndex * step;
-
-                // If the position of the new sample goes beyond the segment length, break
-                if ((position - sample0->getPosition()).abs() > distance)
-                {
-                    // Add the last sample of the segment
-                    newSamples.push_back(sample1);
-                    break;
-                }
-                // Otherwise, interpolate the new sample and add it
-                const float radius = 0.5 *
-                        (newSamples[index - 1]->getRadius() + sample1->getRadius());
-
-                // Add the new sample to the list of new sample
-                Sample* sample = new Sample(position, radius, _samples[i]->getType(), index);
-                newSamples.push_back(sample);
-
-                // Increase the sample index
-                ++index;
-                ++perSegmentIndex;
+                sectionSamples.push_back(segmentSamples[j]);
             }
         }
-
-        // Add the last sample to ensure to completensee of the section
-        newSamples.push_back(_samples.back());
 
         // Clear the old samples list
         _samples.clear();
         _samples.shrink_to_fit();
 
         // Update the samples list
-        _samples = newSamples;
+        _samples = sectionSamples;
     }
 
     // Update the indices of the samples
@@ -382,6 +340,76 @@ size_t Section::removeIntermediateSamples()
 
     return numberRemovedSamples;
 }
+
+void Section::removeOverlappingSamples()
+{
+    if (_samples.size() <=2)
+        return;
+
+    size_t index = 0;
+    while(true)
+    {
+
+        std::cout << index << " ";
+        if (index > _samples.size() - 2)
+            break;
+
+        auto sample0 = _samples[index];
+        auto sample1 = _samples[index + 1];
+
+        const auto r0 = sample0->getRadius();
+        const auto r1 = sample1->getRadius();
+
+        const auto p0 = sample0->getPosition();
+        const auto p1 = sample1->getPosition();
+
+        const auto delta = (p1 - p0).abs();
+        const auto radiiSum = r0 + r1;
+
+        if (delta < 0.5 * radiiSum)
+        {
+            if (r0 < r1)
+            {
+                if (index == 0)
+                {
+                    // do noting, next
+                    index++;
+                }
+                else
+                {
+                    // remove sample0
+                    _samples.erase(_samples.begin() + index);
+                }
+            }
+            else
+            {
+                if (index == _samples.size() - 2)
+                {
+                    // do nothing
+                    break;
+                }
+                else
+                {
+                    _samples.erase(_samples.begin() + index + 1);
+                }
+            }
+
+            continue;
+        }
+
+        index++;
+
+        std::cout << "\n";
+
+
+
+
+
+
+
+    }
+}
+
 
 
 size_t Section::removeInnerSamples()
@@ -538,6 +566,10 @@ void Section::resampleAdaptively(const bool& relaxed)
 
     // Resample uniformly based on the radius of the smallest sample
     resampleUniformly(smallestRadius);
+
+    // removeInnerSamples();
+
+    removeOverlappingSamples();
 
     return;
 

@@ -603,12 +603,12 @@ void Morphology::resampleSectionsAdaptively(const bool& relaxed)
 
     LOOP_STARTS("Adaptive Resampling")
     PROGRESS_SET;
-    OMP_PARALLEL_FOR
+    //OMP_PARALLEL_FOR
     for (size_t i = 0; i < _sections.size(); ++i)
     {
         _sections[i]->resampleAdaptively(relaxed);
 
-        LOOP_PROGRESS(PROGRESS, _sections.size());
+        // LOOP_PROGRESS(PROGRESS, _sections.size());
         PROGRESS_UPDATE;
     }
     LOOP_DONE;
