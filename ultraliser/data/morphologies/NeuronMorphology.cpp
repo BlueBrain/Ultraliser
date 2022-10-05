@@ -200,6 +200,14 @@ void NeuronMorphology::reIndexMorphology()
     _samples.push_back(somaSample);
     sampleIndex++;
 
+
+    _samples.push_back(new Sample(Vector3f(0.f), 0.f, PROCESS_TYPE::AUXILIARY, sampleIndex, 0));
+    sampleIndex++;
+
+    _samples.push_back(new Sample(Vector3f(0.f), 0.f, PROCESS_TYPE::AUXILIARY, sampleIndex, 0));
+    sampleIndex++;
+
+
     // Get root sections, for neurons and astrocytes
     auto rootSections = getRootSections();
 
@@ -209,12 +217,17 @@ void NeuronMorphology::reIndexMorphology()
         // Get a reference to the root section
         auto& rootSection = rootSections[i];
 
+        LOG_SUCCESS("Section %d", rootSection->getIndex());
+
+
         // Set the indices of the samples of the section
         auto rootSamples = rootSection->getSamples();
 
         // The first sample of the rootSection, set index, parent index and append to the list
         rootSamples.front()->setIndex(sampleIndex);
         sampleIndex++;
+        std::cout << sampleIndex << " ";
+
         rootSamples.front()->setParentIndex(1);
         _samples.push_back(rootSamples.front());
 
@@ -225,6 +238,8 @@ void NeuronMorphology::reIndexMorphology()
             rootSamples[j]->setIndex(sampleIndex);
             rootSamples[j]->setParentIndex(sampleIndex - 1);
             _samples.push_back(rootSamples[j]);
+            std::cout << sampleIndex << " ";
+
             sampleIndex++;
         }        
 
@@ -234,26 +249,20 @@ void NeuronMorphology::reIndexMorphology()
         auto childrenIndices = rootSection->getChildrenIndices();
         for (size_t j = 0; j < childrenIndices.size(); ++j)
         {
+
+
             // Get a reference to the child section
-            auto child = _sections[childrenIndices[j]];
+            auto& child = _sections[childrenIndices[j]];
+
+            LOG_SUCCESS("Section %d", child->getIndex());
 
             // Apply recursively
             child->reIndexSectionTree(_sections, sampleIndex, branchingSampleIndex, _samples);
         }
     }
+
+    LOG_SUCCESS("Samples %d", _samples.size());
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSamples)
 {
@@ -267,9 +276,11 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
         _samples.push_back(sample);
     }
 
+    // Compute the number of samples of the soma and its profile points
     size_t numberSomaSamples = 0;
     size_t numberSomaProfilePoints = 0;
 
+    // The indices structure will easily allow you to construct the graph from the individual samples
     typedef struct
     {
         // The index of the parent sample
@@ -281,6 +292,7 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
         // The index of the last sample of the arbor
         size_t lastSample;
 
+        // The indices of the branching samples
         std::vector< size_t > branchingIndices;
     } Indices;
 
@@ -290,11 +302,17 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
     // Pre-process the samples, to get the construction
     for (size_t i = 0; i < swcSamples.size(); ++i)
     {
+        // Soma samples, and it must be one
         if (swcSamples[i]->type == PROCESS_TYPE::SOMA &&
             swcSamples[i]->id == 1 && swcSamples[i]->parentId == -1)
         {
             // This is a soma sample
             numberSomaSamples++;
+
+            if (numberSomaSamples > 1)
+            {
+                LOG_WARNING("More than a single soma sample is present in the file!");
+            }
         }
         else if (swcSamples[i]->type == PROCESS_TYPE::SOMA && swcSamples[i]->parentId == 1)
         {
@@ -319,19 +337,10 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
                     swcSamples.back()->id : arborsIndices[i + 1].firstSample - 1;
     }
 
-
-    for (size_t i = 0; i < arborsIndices.size(); ++i)
-    {
-        LOG_WARNING("Arbor %d, S0 %d, S1 %d", i, arborsIndices[i].firstSample, arborsIndices[i].lastSample);
-    }
-    LOG_WARNING("**********************************");
-
     // Construct the sections
     size_t sectionIndex = 0;
     for (size_t i = 0; i < arborsIndices.size(); ++i)
     {
-         // LOG_WARNING("Arbor %d, S0 %d, S1 %d", i, arborsIndices[i].firstSample, arborsIndices[i].lastSample);
-
         // Get the indices of the terminal samples
         const size_t& firstSampleIndex = arborsIndices[i].firstSample;
         const size_t& lastSampleIndex = arborsIndices[i].lastSample;
@@ -343,11 +352,10 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
             if (swcSamples[j]->id != (swcSamples[j]->parentId + 1))
             {
                 newPathsIndices.push_back(j);
-                // LOG_SUCCESS("A new path starts at [%d]", j);
             }
         }
 
-
+        // The indices of the sections
         std::vector< Indices > sectionsIndices;
 
         // In case of no segments, then the section emanating from the soma has no children
@@ -392,7 +400,10 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
         }
         else
         {
+            // The indices of the individual paths
             std::vector< Indices > pathsIndices;
+
+            // The indices of the branching points
             std::vector< size_t > branchingPointsIndices;
 
             // The first path
@@ -443,33 +454,37 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
                 }
             }
 
-            // Sort
+            // Sort, to be able to split the section from sample0 to sampleN
             std::sort(branchingPointsIndices.begin(), branchingPointsIndices.end());
 
+            // Split the mult-section paths
             for (size_t j = 0; j < pathsIndices.size(); ++j)
             {
+                // A reference to the path
                 auto path = pathsIndices[j];
 
                 // Collect the branching indices
                 for (size_t k = 0; k < branchingPointsIndices.size(); ++k)
                 {
+                    // If this branching point located along the path
                     if (branchingPointsIndices[k] >= path.firstSample &&
                             branchingPointsIndices[k] <= path.lastSample)
                     {
+                        // Append that point to split the path later at that specific point
                         path.branchingIndices.push_back(branchingPointsIndices[k]);
                     }
                 }
 
-                // Sort the branching indices
+                // Sort, to be able to split the section from sample0 to sampleN
                 std::sort(path.branchingIndices.begin(), path.branchingIndices.end());
 
+                // No branching indices, then this path is a section, no need to split
                 if (path.branchingIndices.size() == 0)
                 {
                     sectionsIndices.push_back(path);
-                    std::cout << path.parentSample << ": "
-                              << path.firstSample  << " | " << path.lastSample << " *\n";
-
                 }
+
+                // Only a single branching point, then the path will be divided into two sections
                 else if (path.branchingIndices.size() == 1)
                 {
                     Indices section1, section2;
@@ -481,16 +496,19 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
                     section2.firstSample = path.branchingIndices[0] + 1;
                     section2.lastSample = path.lastSample;
 
+                    // Add the sections to the list
                     sectionsIndices.push_back(section1);
                     sectionsIndices.push_back(section2);
                 }
                 else
                 {
-                    // Construct the sections
+                    // Multiple branching points, i.e. multiple sections
                     for (size_t k = 0; k <= path.branchingIndices.size(); ++k)
                     {
+                        // For the first branching point, use the parentSample initially
                         if (k == 0)
                         {
+                            // If the parent sample emanates from the soma
                             if (path.parentSample == 1)
                             {
                                 Indices section;
@@ -499,6 +517,8 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
                                 section.lastSample = path.branchingIndices[k];
                                 sectionsIndices.push_back(section);
                             }
+
+                            // If the parent sample emanates from another section
                             else
                             {
                                 Indices section;
@@ -508,15 +528,18 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
                                 sectionsIndices.push_back(section);
                             }
                         }
+
+                        // Last branching point, use the lastSample of the path
                         else if (k == path.branchingIndices.size())
                         {
-
                             Indices section;
                             section.parentSample = path.branchingIndices[k - 1];
                             section.firstSample = path.branchingIndices[k - 1] + 1;
                             section.lastSample = path.lastSample;
                             sectionsIndices.push_back(section);
                         }
+
+                        // In-between branching points, use only branchingIndices
                         else
                         {
                             Indices section;
@@ -530,17 +553,17 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
             }
         }
 
-        // Construct the sections
-
+        // Construct the swcSections and then the Ultraliser _sections
         for (size_t j = 0; j < sectionsIndices.size(); ++j)
         {
+            // This reference contains the indices of the current section in the SWC format
             auto& swcSection =  sectionsIndices[j];
 
-            // Construct the new section, assign ID and type
+            // Construct a new section, assign ID and type
             Section* section = new Section(sectionIndex, swcSamples[swcSection.firstSample]->type);
             sectionIndex++;
 
-            // Construct samples
+            // Build the samples list
             Samples samples;
 
             // Soma samples are not included in the samples list
@@ -550,49 +573,48 @@ void NeuronMorphology::_constructMorphologyFromSWC(const NeuronSWCSamples& swcSa
                 samples.push_back(new Sample(swcSamples[swcSection.parentSample]));
             }
 
-            // Add the rest of the samples
+            // Add the rest of the samples, beyond the first sample in a continuous fashion
             for (size_t k = swcSection.firstSample; k <= swcSection.lastSample; ++k)
             {
                 samples.push_back(new Sample(swcSamples[k]));
             }
 
+            // Add the samples list to the section
             section->addSamples(samples);
 
-            // Add the section to the sections list
+            // Add the section to the _sections list
             _sections.push_back(section);
         }
     }
 
-    // Construct the graph from the individual sections
+    // Construct the graph (i.e. the connectivity) from the individual sections
     /// Note that the first sample is AUXILIARY, and will NOT be taken into consideration
     for (size_t i = 0; i < _sections.size(); ++i)
     {
+        // Any section with index @i
         auto& iSection = _sections[i];
 
         for (size_t j = 0; j < _sections.size(); ++j)
         {
+            // Any section with index @j
             auto& jSection = _sections[j];
 
             // Same section, ignore
             if (i == j)
                 continue;
 
+            // Set the parent, child relationship
             if (iSection->getFirstSample()->getIndex() == jSection->getLastSample()->getIndex())
             {
                 iSection->addParentIndex(jSection->getIndex());
+                iSection->addParent(jSection);
                 jSection->addChildIndex(iSection->getIndex());
-            }
-
-            if (iSection->getLastSample()->getIndex() == jSection->getFirstSample()->getIndex())
-            {
-
-                iSection->addChildIndex(jSection->getIndex());
-                jSection->addParentIndex(iSection->getIndex());
+                jSection->addChild(iSection);
             }
         }
     }
 
-    // Get the root sections, for quick access
+    // Get the root sections
     /// Note that the first sample is AUXILIARY, and will NOT be taken into consideration
     for (size_t i = 0; i < _sections.size(); ++i)
     {

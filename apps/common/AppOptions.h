@@ -428,6 +428,12 @@ public:
     bool projectColorCoded = false;
 
     /**
+     * @brief exportMorphology
+     * Export the re-sampled morphologies in *Morpho2Mesh applications.
+     */
+    bool exportMorphology= false;
+
+    /**
      * @brief exportStackXY
      * Create an image stack along the XY plane and export it.
      */

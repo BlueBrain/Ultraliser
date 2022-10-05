@@ -310,6 +310,14 @@ void AppOptions::createRespectiveDirectories()
         mkdir(path.str().c_str(), 0777);
     }
 
+    // Morphologies directory
+    if (exportMorphology)
+    {
+        std::stringstream path;
+        path << outputDirectory << "/" << MORPHOLOGIES_DIRECTORY;
+        mkdir(path.str().c_str(), 0777);
+    }
+
     // Statistics directory
     if (writeStatistics)
     {

@@ -45,6 +45,7 @@ AppOptions* parseArguments(const int& argc, const char** argv)
     args->addDataArguments();
     args->addNeuronMorphologyBranchOrderArguments();
     args->addMorphologyAdjustmentParameters();
+    args->addMorphologyExportArguments();
     args->addPackingAlgorithmArguments();
     args->addProcessingArguments();
 
@@ -78,7 +79,7 @@ void run(int argc, const char** argv)
 
     // neuronMorphology->resampleSectionsSmartly();
 
-    neuronMorphology->exportToSWC(options->meshPrefix + WATERTIGHT_SUFFIX);
+    neuronMorphology->exportToSWC(options->morphologyPrefix);
 
     // exit(0);
 

@@ -96,6 +96,8 @@ public:
      */
     float getSomaMeanRadius() const;
 
+
+
     /**
      * @brief getSomaMinRadius
      * Gets the minimum radius of the soma.

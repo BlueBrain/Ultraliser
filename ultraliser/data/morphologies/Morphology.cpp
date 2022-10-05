@@ -874,6 +874,8 @@ void Morphology::exportToSWC(const std::string& prefix)
 
     // Close the file stream
     stream.close();
+
+    exit(0);
 }
 
 }

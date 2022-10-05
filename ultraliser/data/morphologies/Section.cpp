@@ -53,6 +53,16 @@ void Section::addParentIndex(const size_t index)
     _parentsIndices.push_back(index);
 }
 
+void Section::addParent(Section* section)
+{
+    _parents.push_back(section);
+}
+
+void Section::addChild(Section* section)
+{
+    _children.push_back(section);
+}
+
 void Section::clearParentsIndices()
 {
     _parentsIndices.clear();
@@ -75,6 +85,11 @@ bool Section::isRoot()
         return true;
     }
     return false;
+}
+
+size_t Section::getBranchingOrder() const
+{
+    return _branchingOrder;
 }
 
 void Section::addSample(Sample* sample)
@@ -646,36 +661,54 @@ void Section::verifyMinimumSampleRadius(const float& radius)
     }
 }
 
+void Section::compileSWCTableRecursively(size_t &currentSampleIndex,
+                                         const size_t& branchingSampleIndex,
+                                         Samples& samples)
+{
+    /// NOTE: Section samples are _samples, but the collecting list is samples
+
+    // If this section is root
+    if (isRoot())
+    {
+//        samples.push_back()
+    }
+}
+
 void Section::reIndexSectionTree(const Sections& sections, size_t &sampleIndex,
-                                 const size_t branchingSampleIndex, Samples& samples)
+                                 const size_t& branchingSampleIndex, Samples& samples)
 {
     // Set the indices of the samples of that section
     auto sectionSamples = getSamples();
 
     // Set index, parent index and append to the list, of the second sample
-    sectionSamples[0]->setIndex(sampleIndex);
-    sectionSamples[0]->setParentIndex(branchingSampleIndex);
+    sectionSamples[1]->setIndex(sampleIndex);
+    sectionSamples[1]->setParentIndex(branchingSampleIndex);
+    samples.push_back(sectionSamples[1]);
     sampleIndex++;
-    _samples.push_back(sectionSamples[0]);
+    std::cout << sampleIndex << " ";
 
     // The first sample of the section corresponds to the last sample of the parent section
-    for (size_t i = 1; i < sectionSamples.size(); ++i)
+    for (size_t i = 2; i < sectionSamples.size(); ++i)
     {
         // Set index, parent index and append to the list
         sectionSamples[i]->setIndex(sampleIndex);
         sectionSamples[i]->setParentIndex(sampleIndex - 1);
         sampleIndex++;
-        _samples.push_back(sectionSamples[i]);
+        std::cout << sampleIndex << " ";
+
+        samples.push_back(sectionSamples[i]);
     }
 
     // The branchingSampleIndex will be the same for all the children sections
-    const size_t childBranchingSampleIndex = _samples.back()->getIndex();
+    const size_t childBranchingSampleIndex = samples[samples.size() - 1]->getIndex();
 
     // Re-index the children in a recursive manner
-    for (size_t j = 0; j < getChildrenIndices().size(); ++j)
+    for (size_t i = 0; i < getChildrenIndices().size(); ++i)
     {
         // Get a reference to the child section
-        auto child = sections[getChildrenIndices()[j]];
+        auto& child = sections[getChildrenIndices()[i]];
+
+        LOG_SUCCESS("Section %d, [%d]", child->getIndex(), samples.size());
 
         // Re-index the children sections
         child->reIndexSectionTree(sections, sampleIndex, childBranchingSampleIndex, samples);

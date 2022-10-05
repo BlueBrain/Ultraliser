@@ -152,6 +152,11 @@ public:
     void addMeshExportArguments();
 
     /**
+     * @brief addMorphologyExportArguments
+     */
+    void addMorphologyExportArguments();
+
+    /**
      * @brief addLaplacianOperatorArguments
      */
     void addLaplacianOperatorArguments();

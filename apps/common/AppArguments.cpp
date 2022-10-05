@@ -603,6 +603,16 @@ void AppArguments::addLaplacianOperatorArguments()
     _options->laplacianIterations = _args->getIntegrValue(&laplacianIterations);
 }
 
+void AppArguments::addMorphologyExportArguments()
+{
+    Argument exportMorphology(
+                "--export-morphology",
+                ARGUMENT_TYPE::BOOL,
+                "Export the resampled morphology skeleton used to create the mesh in (.swc) format.");
+    _args->addArgument(&exportMorphology);
+    _options->exportMorphology = _args->getBoolValue(&exportMorphology);
+}
+
 void AppArguments::addMeshExportArguments()
 {
     Argument exportOBJ(
