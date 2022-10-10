@@ -77,16 +77,6 @@ void run(int argc, const char** argv)
     // Read the file into a morphology structure
     auto neuronMorphology = readNeuronMorphology(options->inputMorphologyPath);
 
-
-    //neuronMorphology->resampleSectionsToBeLines();
-
-    neuronMorphology->resampleSectionsAdaptively(true);
-    // neuronMorphology->resampleSectionsSmartly();
-
-    neuronMorphology->exportToSWC(options->morphologyPrefix);
-
-    // exit(0);
-
     // Generate the statistical analysis results of the input morphology as is
     if (options->writeStatistics)
         neuronMorphology->printStats(options->prefix, &options->statisticsPrefix);
@@ -97,13 +87,26 @@ void run(int argc, const char** argv)
     // Update the minimum sample radius to a given value
     neuronMorphology->verifyMinimumSampleRadius(options->minSampleRadius);
 
+    // Resample the morphology
+    neuronMorphology->resampleSectionsAdaptively(true);
+
+    // Collect the ROIs where the radii are small
+    auto regions = neuronMorphology->collectRegionsWithThinStructures(0.1);
+
     // Trim the neuron morphology following the branch order options
     if (options->axonBranchOrder < INT_MAX |
         options->basalBranchOrder < INT_MAX |
         options->apicalBranchOrder < INT_MAX)
     {
-        neuronMorphology->trim(
-            options->axonBranchOrder, options->basalBranchOrder, options->apicalBranchOrder);
+        neuronMorphology->trim(options->axonBranchOrder,
+                               options->basalBranchOrder,
+                               options->apicalBranchOrder);
+    }
+
+    // Export the morphology skeleton after the processing
+    if (options->exportMorphology)
+    {
+        neuronMorphology->exportToSWC(options->morphologyPrefix);
     }
 
     // Get relaxed bounding box to build the volume
@@ -139,6 +142,8 @@ void run(int argc, const char** argv)
     // Generate the reconstructde mesh, scaled and translated to the original
     // location
     auto mesh = DualMarchingCubes::generateMeshFromVolume(volume);
+
+    // mesh->refineROIs(regions);
 
     // Free the volume, we do not need it anymore
     delete volume;

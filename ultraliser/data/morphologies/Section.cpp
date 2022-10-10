@@ -569,7 +569,7 @@ void Section::resampleAdaptively(const bool& relaxed)
 
     // removeInnerSamples();
 
-    removeOverlappingSamples();
+    // removeOverlappingSamples();
 
     return;
 
