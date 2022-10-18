@@ -91,7 +91,7 @@ void run(int argc, const char** argv)
     neuronMorphology->resampleSectionsAdaptively(true);
 
     // Collect the ROIs where the radii are small
-    auto regions = neuronMorphology->collectRegionsWithThinStructures(0.1);
+    auto regions = neuronMorphology->collectRegionsWithThinStructures(0.2);
 
     // Trim the neuron morphology following the branch order options
     if (options->axonBranchOrder < INT_MAX |
@@ -143,13 +143,26 @@ void run(int argc, const char** argv)
     // location
     auto mesh = DualMarchingCubes::generateMeshFromVolume(volume);
 
-    // mesh->refineROIs(regions);
-
     // Free the volume, we do not need it anymore
     delete volume;
 
+    // Refine the ROIs
+    mesh->refineROIs(regions, 1);
+
+    // Write the mesh reconstructed from the marching cubes algorithm
+    if (!options->ignoreMarchingCubesMesh)
+        generateMarchingCubesMeshArtifacts(mesh, options);
+
+    // Apply laplacian smoothing
+    if (options->laplacianIterations > 0)
+        applySmoothingOperator(mesh, options);
+
+    // Create an optimized version of the mesh
+    if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)
+        generateOptimizedMeshWithROI(mesh, options, regions);
+
     // Generate the mesh artifacts
-    generateReconstructedMeshArtifacts(mesh, options);
+    // generateReconstructedMeshArtifacts(mesh, options);
 
     // Free
     delete mesh;

@@ -42,6 +42,18 @@ bool isTriangleInSphere(Vector3f p0, Vector3f p1, Vector3f p2,
                         const Vector3f& center, const float& radius);
 
 /**
+ * @brief isTriangleIntersectingSphere
+ * @param p0
+ * @param p1
+ * @param p2
+ * @param center
+ * @param radius
+ * @return
+ */
+bool isTriangleIntersectingSphere(Vector3f p0, Vector3f p1, Vector3f p2,
+                                  const Vector3f& center, const float& radius);
+
+/**
  * @brief computeTriangleSurfaceArea
  * @param p0
  * @param p1

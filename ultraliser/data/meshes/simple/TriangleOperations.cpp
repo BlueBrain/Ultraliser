@@ -47,6 +47,21 @@ bool isTriangleInSphere(Vector3f p0, Vector3f p1, Vector3f p2,
     return true;
 }
 
+bool isTriangleIntersectingSphere(Vector3f p0, Vector3f p1, Vector3f p2,
+                        const Vector3f& center, const float& radius)
+{
+    // If any of the points is not in the sphere, return false
+    if (isPointInSphere(p0, center, radius))
+        return true;
+    if (isPointInSphere(p1, center, radius))
+        return true;
+    if (isPointInSphere(p2, center, radius))
+        return true;
+
+    // Otherwise, return false
+    return false;
+}
+
 Vector3f computeNormal(Vector3f p0, Vector3f p1, Vector3f p2)
 {
     // Construct two vectors

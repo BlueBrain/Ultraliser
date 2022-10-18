@@ -381,8 +381,9 @@ public:
     /**
      * @brief refineROIs
      * @param regions
+     * @param iterations
      */
-    void refineROIs(const ROIs& regions);
+    void refineROIs(const ROIs& regions, const size_t &iterations = 1);
 
     /**
      * @brief coarse
@@ -426,6 +427,12 @@ public:
     void optimize(const size_t &optimizationIterations,
                   const int64_t &smoothingIterations,
                   const float& denseFactor);
+
+    void optimizeWithROIs(const size_t &optimizationIterations,
+                          const int64_t &smoothingIterations,
+                          const float& denseFactor,
+                          const ROIs &regions);
+
 
     /**
      * @brief improveTopology
@@ -525,7 +532,7 @@ public:
      */
     void applyLaplacianSmooth(const uint32_t &numIterations = 1,
                               const float& smoothLambda = 0.2,
-                              const float& inflateMu = 0.1);
+                              const float& inflateMu = 0.0);
 
     /**
      * @brief shrinkSurface
@@ -537,7 +544,7 @@ public:
                                 const Neighborhood faceNeighbors,
                                 const bool &shrink,
                                 const float& lambda = 0.5f,
-                                const float& mu = -0.4);
+                                const float& mu = -0.1);
 
     /**
      * @brief smoothSurface

@@ -704,7 +704,7 @@ ROIs Morphology::collectRegionsWithThinStructures(const float& threshold) const
     for (size_t i = 0; i < _sections.size(); ++i)
     {
         // Update the progress bar
-        LOOP_PROGRESS_FRACTION(PROGRESS, _sections.size());
+        // LOOP_PROGRESS_FRACTION(PROGRESS, _sections.size());
         PROGRESS_UPDATE;
 
         const Samples& samples = _sections[i]->getSamples();
@@ -712,8 +712,7 @@ ROIs Morphology::collectRegionsWithThinStructures(const float& threshold) const
         {
             if (samples[j]->getRadius() < threshold)
             {
-                // NOTE: We scale the region by 1.15 to guarantee that the triangles will be covered
-                regions.push_back(new ROI(samples[j]->getPosition(), samples[j]->getRadius() * 2.0));
+                regions.push_back(new ROI(samples[j]->getPosition(), samples[j]->getRadius() * 4.0));
             }
         }
     }

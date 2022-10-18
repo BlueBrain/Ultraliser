@@ -1374,6 +1374,12 @@ bool Volume::_testTriangleCubeIntersection(Mesh* mesh, size_t triangleIdx, const
     voxelCenter[1] = voxelOrigin[1] + voxelHalfSize[1];
     voxelCenter[2] = voxelOrigin[2] + voxelHalfSize[2];
 
+    double adjustedVoxelHalfSize[3];
+    float voxelOccupancy = 1;
+    voxelHalfSize[0] *= voxelOccupancy;
+    voxelHalfSize[1] *= voxelOccupancy;
+    voxelHalfSize[2] *= voxelOccupancy;
+
     // Triangle vertices
     double triangle[3][3];
 
@@ -1402,7 +1408,7 @@ bool Volume::_testSampleCubeIntersection(Sample* sample, const GridIndex& voxel)
     voxelCenter[0] = _pMin[0] + (voxel[0] * _voxelSize) + voxelHalfSize;
     voxelCenter[1] = _pMin[1] + (voxel[1] * _voxelSize) + voxelHalfSize;
     voxelCenter[2] = _pMin[2] + (voxel[2] * _voxelSize) + voxelHalfSize;
- 
+
     Vector3f position = sample->getPosition() - voxelCenter;
     position[0] = abs(position[0]);
     position[1] = abs(position[1]);
@@ -1426,6 +1432,8 @@ bool Volume::_testTriangleGridIntersection(AdvancedTriangle triangle,
     voxelOrigin[1] = _pMin[1] + (voxel[1] * _voxelSize);
     voxelOrigin[2] = _pMin[2] + (voxel[2] * _voxelSize);
 
+
+
     // Voxel half size
     double voxelHalfSize[3];
     voxelHalfSize[0] = _voxelSize * 0.5;
@@ -1437,6 +1445,13 @@ bool Volume::_testTriangleGridIntersection(AdvancedTriangle triangle,
     voxelCenter[0] = voxelOrigin[0] + voxelHalfSize[0];
     voxelCenter[1] = voxelOrigin[1] + voxelHalfSize[1];
     voxelCenter[2] = voxelOrigin[2] + voxelHalfSize[2];
+
+    double adjustedVoxelHalfSize[3];
+    float voxelOccupancy = 0.9;
+    voxelHalfSize[0] *= voxelOccupancy;
+    voxelHalfSize[1] *= voxelOccupancy;
+    voxelHalfSize[2] *= voxelOccupancy;
+
 
     // Construct an array to represent the data
     double triangleArray[3][3];
@@ -1453,7 +1468,7 @@ bool Volume::_testTriangleGridIntersection(AdvancedTriangle triangle,
     triangleArray[2][2] = triangle.v3()->z;
 
     // Test if the triangle and the voxel are intersecting or not
-    return checkTriangleBoxIntersection(voxelCenter, voxelHalfSize, triangleArray);
+    return checkTriangleBoxIntersection(voxelCenter, adjustedVoxelHalfSize, triangleArray);
 }
 
 size_t Volume::_clampIndex(size_t idx, size_t dimension)

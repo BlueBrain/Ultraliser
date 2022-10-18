@@ -309,11 +309,22 @@ void createWatertightMesh(const Mesh* mesh, const AppOptions* options)
 
 void generateOptimizedMeshWithROI(Mesh *mesh, const AppOptions* options, const ROIs& regions)
 {
-    mesh->optimizeAdapttivelyWithROI(options->optimizationIterations,
-                                     options->smoothingIterations,
-                                     options->flatFactor,
-                                     options->denseFactor,
-                                     regions);
+    // Further adaptive optimization
+    if (options->optimizeMeshAdaptively)
+    {
+        mesh->optimizeAdapttivelyWithROI(options->optimizationIterations,
+                                         options->smoothingIterations,
+                                         options->flatFactor,
+                                         options->denseFactor,
+                                         regions);
+    }
+    else
+    {
+        mesh->optimizeWithROIs(options->optimizationIterations,
+                               options->smoothingIterations,
+                               options->denseFactor,
+                               regions);
+    }
 
     if (!options->ignoreOptimizedMesh)
     {
@@ -380,6 +391,47 @@ void generateOptimizedMesh(Mesh *mesh, const AppOptions* options)
     }
 
 }
+
+void generateOptimizedMeshWithROI(Mesh *mesh, const AppOptions* options, ROIs regions)
+{
+    // Further adaptive optimization
+    if (options->optimizeMeshAdaptively)
+    {
+        mesh->optimizeAdapttivelyWithROI(options->optimizationIterations,
+                                         options->smoothingIterations,
+                                         options->flatFactor,
+                                         options->denseFactor, regions);
+    }
+    else
+    {
+        // Default optimization
+        if (options->optimizeMeshHomogenous)
+            mesh->optimizeWithROIs(options->optimizationIterations,
+                                   options->smoothingIterations,
+                                   options->denseFactor, regions);
+    }
+
+    if (!options->ignoreOptimizedMesh)
+    {
+        // Print the mesh statistcs
+        if (options->writeStatistics)
+            mesh->printStats(OPTIMIZED_STRING, &options->statisticsPrefix);
+
+        // Print the mesh statistcs
+        if (options->writeDistributions)
+            mesh->writeDistributions(OPTIMIZED_STRING, &options->distributionsPrefix);
+
+        // Export the mesh
+        if (options->exportOBJ || options->exportPLY || options->exportOFF || options->exportSTL)
+            mesh->exportMesh(options->meshPrefix + OPTIMIZED_SUFFIX,
+                             options->exportOBJ, options->exportPLY,
+                             options->exportOFF, options->exportSTL);
+    }
+
+}
+
+
+
 
 Volume* reconstructVolumeFromMesh(Mesh* inputMesh, const AppOptions* options,
                                   const bool& releaseInputMesh)

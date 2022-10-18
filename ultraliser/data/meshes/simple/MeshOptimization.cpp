@@ -1998,7 +1998,9 @@ void Mesh::refineSelectedTriangles(const std::vector< size_t > &trianglesIndices
 
         // If the triangles is in the markers list, then it will not be added
         if (triangleMarkers[tIndex - 1])
+        {
             continue;
+        }
         else
         {
             newTriangles[triangles.size() + nIndex] = _triangles[tIndex - 1];
@@ -2021,43 +2023,47 @@ void Mesh::refineSelectedTriangles(const std::vector< size_t > &trianglesIndices
     _triangles = newTriangles;
 }
 
-void Mesh::refineROIs(const ROIs& regions)
+void Mesh::refineROIs(const ROIs& regions, const size_t& iterations)
 {
     // Starting the timer
     TIMER_SET;
 
-    LOG_STATUS("Refining Mesh Surface - ROI");
-
-    // Selected triangles
-    std::vector< size_t > trianglesIndices;
-
-    // Select the triangles that are located within the ROI
-    for (size_t i = 0; i < _numberTriangles; ++i)
+    for (size_t it = 0; it < iterations; ++it)
     {
-        // Get the triangle
-        const auto& triangle = _triangles[i];
+        LOG_STATUS("Refining Mesh Surface - ROI [%d]", it);
 
-        // Get the vertices of the triangles
-        const auto v0 = _vertices[triangle[0]];
-        const auto v1 = _vertices[triangle[1]];
-        const auto v2 = _vertices[triangle[2]];
+        // Selected triangles
+        std::vector< size_t > trianglesIndices;
 
-        for (size_t j = 0; j < regions.size(); ++j)
+        // Select the triangles that are located within the ROI
+        for (size_t i = 0; i < _numberTriangles; ++i)
         {
-            const auto region = regions[j];
-            if (isTriangleInSphere(v0, v1, v2, region->center, region->radius))
+            // Get the triangle
+            const auto& triangle = _triangles[i];
+
+            // Get the vertices of the triangles
+            const auto v0 = _vertices[triangle[0]];
+            const auto v1 = _vertices[triangle[1]];
+            const auto v2 = _vertices[triangle[2]];
+
+            for (size_t j = 0; j < regions.size(); ++j)
             {
-                trianglesIndices.push_back(i);
+                const auto region = regions[j];
+                if (isTriangleIntersectingSphere(v0, v1, v2, region->center, region->radius))
+                {
+                    trianglesIndices.push_back(i);
+                }
             }
         }
+
+        // The triangles are already selected, now time to refine them
+        refineSelectedTriangles(trianglesIndices);
+
+        LOG_WARNING("selected traignles %d", trianglesIndices.size());
+        // Clear the selected triangles list
+        trianglesIndices.clear();
+        trianglesIndices.shrink_to_fit();
     }
-
-    // The triangles are already selected, now time to refine them
-    refineSelectedTriangles(trianglesIndices);
-
-    // Clear the selected triangles list
-    trianglesIndices.clear();
-    trianglesIndices.shrink_to_fit();
 
     // Statistics
     LOG_STATUS("Refinement");
@@ -2871,6 +2877,34 @@ void Mesh::optimize(const size_t &optimizationIterations,
     LOG_STATUS_IMPORTANT("Total Optimization");
     LOG_STATS(GET_TIME_SECONDS);
 }
+
+void Mesh::optimizeWithROIs(const size_t &optimizationIterations,
+                            const int64_t &smoothingIterations,
+                            const float& denseFactor,
+                            const ROIs& regions)
+{
+    LOG_TITLE("Mesh Optimization with ROIs");
+
+    // Starting the timer
+    TIMER_SET;
+
+    // Select the vertices in the ROI
+    _selectVerticesInROI(regions);
+
+    // Remove the unnecessary vertices in multiple iterations
+    coarseDense(denseFactor, optimizationIterations);
+
+    // Smooth surface
+    improveTopology(smoothingIterations);
+
+    // Statistics
+    _optimizationTime = GET_TIME_SECONDS;
+
+    // Statistics
+    LOG_STATUS_IMPORTANT("Total Optimization");
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
 
 void Mesh::optimizeUsingDefaultParameters()
 {

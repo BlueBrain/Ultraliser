@@ -349,9 +349,7 @@ void Section::removeOverlappingSamples()
     size_t index = 0;
     while(true)
     {
-
-        std::cout << index << " ";
-        if (index > _samples.size() - 2)
+        if (index >= _samples.size() - 1)
             break;
 
         auto sample0 = _samples[index];
@@ -366,47 +364,22 @@ void Section::removeOverlappingSamples()
         const auto delta = (p1 - p0).abs();
         const auto radiiSum = r0 + r1;
 
-        if (delta < 0.5 * radiiSum)
+        // If they are overlapping, then remove the second sample
+        if (delta < radiiSum)
         {
-            if (r0 < r1)
-            {
-                if (index == 0)
-                {
-                    // do noting, next
-                    index++;
-                }
-                else
-                {
-                    // remove sample0
-                    _samples.erase(_samples.begin() + index);
-                }
-            }
-            else
-            {
-                if (index == _samples.size() - 2)
-                {
-                    // do nothing
-                    break;
-                }
-                else
-                {
-                    _samples.erase(_samples.begin() + index + 1);
-                }
-            }
+            // The second sample must not be a terminal sample
+            if (index >= _samples.size() - 1)
+                break;
 
-            continue;
+            // Delete the second sample
+            _samples.erase(_samples.begin() + index + 1);
+
+            // Reset
+            index = 0;
         }
 
+        // Next sample
         index++;
-
-        std::cout << "\n";
-
-
-
-
-
-
-
     }
 }
 
@@ -569,7 +542,7 @@ void Section::resampleAdaptively(const bool& relaxed)
 
     // removeInnerSamples();
 
-    // removeOverlappingSamples();
+    removeOverlappingSamples();
 
     return;
 
