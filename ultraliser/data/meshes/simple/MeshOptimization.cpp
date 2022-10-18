@@ -279,38 +279,6 @@ void Mesh::_selectVerticesInROI(const ROIs& regions)
                 numberSelectedVertices, regions.size());
 }
 
-void Mesh::optimizeAdapttivelyWithROI(const size_t &optimizationIterations,
-                                      const size_t &smoothingIterations,
-                                      const float &flatCoarseFactor,
-                                      const float &denseFactor,
-                                      const ROIs &regions)
-{
-    LOG_TITLE("Adaptive Mesh Optimization (ROI)");
-
-    // Starting the timer
-    TIMER_SET;
-
-    // Select the vertices in the ROI
-    _selectVerticesInROI(regions);
-
-    // Coarse flat
-    coarseFlat(flatCoarseFactor, optimizationIterations);
-
-    // Coarse dense
-    coarseDense(denseFactor, optimizationIterations);
-
-    // Destroy the vertex markers
-    _destroyVertexMarkers();
-
-    // Smooth again
-    smooth(15, 150, smoothingIterations);
-    smoothNormals();
-
-    // Statistics
-    LOG_STATUS_IMPORTANT("Total Optimization");
-    LOG_STATS(GET_TIME_SECONDS);
-}
-
 bool Mesh::isValidVertex(const Vector3f& v)
 {
     if(isEqual(v.x(), VERTEX_DELETION_VALUE) ||
@@ -2030,14 +1998,17 @@ void Mesh::refineROIs(const ROIs& regions, const size_t& iterations)
 
     for (size_t it = 0; it < iterations; ++it)
     {
-        LOG_STATUS("Refining Mesh Surface - ROI [%d]", it);
+        LOG_STATUS("Refining Mesh Surface - ROI [%d]", it + 1);
 
         // Selected triangles
         std::vector< size_t > trianglesIndices;
 
         // Select the triangles that are located within the ROI
+        LOOP_STARTS("Selecting Intersecting Triangles");
         for (size_t i = 0; i < _numberTriangles; ++i)
         {
+            LOOP_PROGRESS(i, _numberTriangles);
+
             // Get the triangle
             const auto& triangle = _triangles[i];
 
@@ -2055,11 +2026,14 @@ void Mesh::refineROIs(const ROIs& regions, const size_t& iterations)
                 }
             }
         }
+        LOOP_DONE;
+        LOG_STATS(GET_TIME_SECONDS);
 
         // The triangles are already selected, now time to refine them
         refineSelectedTriangles(trianglesIndices);
 
-        LOG_WARNING("selected traignles %d", trianglesIndices.size());
+        LOG_WARNING("Selected traignles [%d]", trianglesIndices.size());
+
         // Clear the selected triangles list
         trianglesIndices.clear();
         trianglesIndices.shrink_to_fit();
@@ -2854,6 +2828,39 @@ void Mesh::optimizeAdaptively(const size_t &optimizationIterations,
     LOG_STATUS_IMPORTANT("Total Optimization");
     LOG_STATS(GET_TIME_SECONDS);
 }
+
+void Mesh::optimizeAdapttivelyWithROI(const size_t &optimizationIterations,
+                                      const size_t &smoothingIterations,
+                                      const float &flatCoarseFactor,
+                                      const float &denseFactor,
+                                      const ROIs &regions)
+{
+    LOG_TITLE("Adaptive Mesh Optimization (ROI)");
+
+    // Starting the timer
+    TIMER_SET;
+
+    // Select the vertices in the ROI
+    _selectVerticesInROI(regions);
+
+    // Coarse flat
+    coarseFlat(flatCoarseFactor, optimizationIterations);
+
+    // Coarse dense
+    coarseDense(denseFactor, optimizationIterations);
+
+    // Destroy the vertex markers
+    _destroyVertexMarkers();
+
+    // Smooth again
+    smooth(15, 150, smoothingIterations);
+    smoothNormals();
+
+    // Statistics
+    LOG_STATUS_IMPORTANT("Total Optimization");
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
 
 void Mesh::optimize(const size_t &optimizationIterations,
                     const int64_t &smoothingIterations,

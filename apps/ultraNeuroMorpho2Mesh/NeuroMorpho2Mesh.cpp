@@ -161,9 +161,6 @@ void run(int argc, const char** argv)
     if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)
         generateOptimizedMeshWithROI(mesh, options, regions);
 
-    // Generate the mesh artifacts
-    // generateReconstructedMeshArtifacts(mesh, options);
-
     // Free
     delete mesh;
     delete options;
