@@ -88,7 +88,7 @@ void run(int argc, const char** argv)
     neuronMorphology->verifyMinimumSampleRadius(options->minSampleRadius);
 
     // Resample the morphology
-    neuronMorphology->resampleSectionsAdaptively(true);
+    neuronMorphology->resampleSectionsAdaptively();
 
     // Collect the ROIs where the radii are small
     auto regions = neuronMorphology->collectRegionsWithThinStructures(0.2);

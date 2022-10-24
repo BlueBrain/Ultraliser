@@ -37,16 +37,15 @@ Morphology::Morphology()
 
 Morphology::~Morphology()
 {
-    for (auto section: _sections)
-    {
-        delete section;
-    }
-    _sections.clear();
-    for (auto sample: _samples)
-    {
-        delete sample;
-    }
+    // Release the samples
+    for (auto sample: _samples) { delete sample; }
     _samples.clear();
+    _samples.shrink_to_fit();
+
+    // Release the sections
+    for (auto section: _sections) { delete section; }
+    _sections.clear();
+    _sections.shrink_to_fit();
 }
 
 Sections Morphology::getSections() const
@@ -89,7 +88,7 @@ Sections Morphology::getSubsectionsInBoundingBox(const Section* section,
     const Samples samples = section->getSamples();
 
     size_t sampleIndex = 0;
-    while (1)
+    while (true)
     {
         // If the samples is located within the bounding box
         if (samples[sampleIndex]->isLocatedInBoundingBox(center, width, height, depth))
@@ -120,8 +119,6 @@ Sections Morphology::getSubsectionsInBoundingBox(const Section* section,
 
             // Clear the internalSamples to collect the rest of the section
             internalSamples.clear();
-
-
         }
 
         // Increment the sample index
@@ -185,9 +182,6 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section)
 
         // Only a single path
         paths.push_back(pathSamples);
-
-        // Done
-        return paths;
     }
 
     // If the section is root and has children
@@ -215,9 +209,6 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section)
             // Add the path
             paths.push_back(pathSamples);
         }
-
-        // Done
-        return paths;
     }
 
     // If the section is a leaf (has no children) node but has parents
@@ -233,21 +224,14 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section)
             Samples parentSamples = parentSection->getSamples();
 
             // Parent section samples
-            pathSamples.insert(pathSamples.begin(),
-                               parentSamples.begin(),
-                               parentSamples.end());
+            pathSamples.insert(pathSamples.begin(), parentSamples.begin(), parentSamples.end());
 
             // Section samples
-            pathSamples.insert(pathSamples.end(),
-                               sectionSamples.begin() + 1,
-                               sectionSamples.end());
+            pathSamples.insert(pathSamples.end(), sectionSamples.begin() + 1, sectionSamples.end());
 
             // Add the path
             paths.push_back(pathSamples);
         }
-
-        // Done
-        return paths;
     }
 
     // If the section has parents and children
@@ -269,9 +253,7 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section)
                 Samples childSamples = childSection->getSamples();
 
                 // Parent section samples
-                pathSamples.insert(pathSamples.begin(),
-                                   parentSamples.begin(),
-                                   parentSamples.end());
+                pathSamples.insert(pathSamples.begin(), parentSamples.begin(), parentSamples.end());
 
                 // Ignore the first and last samples to avoid duplicated
                 // samples along the poly-line. This is mandatory to be
@@ -281,20 +263,15 @@ Paths Morphology::getConnectedPathsFromParentsToChildren(const Section* section)
                                    sectionSamples.end() - 1);
 
                 // Child section samples
-                pathSamples.insert(pathSamples.end(),
-                                   childSamples.begin(),
-                                   childSamples.end());
+                pathSamples.insert(pathSamples.end(), childSamples.begin(), childSamples.end());
 
                 // Add the path
                 paths.push_back(pathSamples);
             }
         }
-
-        // Done
-        return paths;
     }
 
-    // Return the paths
+    // Return paths
     return paths;
 }
 
@@ -339,13 +316,12 @@ float Morphology::computeTotalVolume() const
     return volume;
 }
 
-void Morphology::computeMinMaxAvgSampleRadius(float& minSampleRadius,
-                                              float& maxSampleRadius,
-                                              float& avgSampleRadius) const
+void Morphology::computeMinMaxAvgSampleRadius(
+        float& minSampleRadius, float& maxSampleRadius, float& avgSampleRadius) const
 {
-    float minValue = std::numeric_limits<float>::max();
-    float maxValue = std::numeric_limits<float>::lowest();
-    float avgValue = 0.f;
+    auto minValue = std::numeric_limits< float >::max();
+    auto maxValue = std::numeric_limits< float >::lowest();
+    auto avgValue = 0.f;
 
     for (const Sample* sample: _samples)
     {
@@ -377,14 +353,13 @@ size_t Morphology::computeNumberSegments() const
     return numberSegments;
 }
 
-void Morphology::computeMinMaxAvgSegmentLength(float& minSegmentLength,
-                                               float& maxSegmentLength,
-                                               float& avgSegmentLength,
-                                               const size_t &numberMorphologySegments) const
+void Morphology::computeMinMaxAvgSegmentLength(
+        float& minSegmentLength, float& maxSegmentLength, float& avgSegmentLength,
+        const size_t &numberMorphologySegments) const
 {
-    float minValue = std::numeric_limits<float>::max();
-    float maxValue = std::numeric_limits<float>::lowest();
-    float avgValue = 0.f;
+    auto minValue = std::numeric_limits< float >::max();
+    auto maxValue = std::numeric_limits< float >::lowest();
+    auto avgValue = 0.f;
 
     for (const Section* section : _sections)
     {
@@ -408,13 +383,12 @@ void Morphology::computeMinMaxAvgSegmentLength(float& minSegmentLength,
     avgSegmentLength = avgValue / numberMorphologySegments;
 }
 
-void Morphology::computeMinMaxAvgSectionLength(float& minSectionLength,
-                                               float& maxSectionLength,
-                                               float& avgSectionLength) const
+void Morphology::computeMinMaxAvgSectionLength(
+        float& minSectionLength, float& maxSectionLength, float& avgSectionLength) const
 {
-    float minValue = std::numeric_limits<float>::max();
-    float maxValue = std::numeric_limits<float>::lowest();
-    float avgValue = 0.f;
+    auto minValue = std::numeric_limits< float >::max();
+    auto maxValue = std::numeric_limits< float >::lowest();
+    auto avgValue = 0.f;
 
     for (const Section* section : _sections)
     {
@@ -435,14 +409,13 @@ void Morphology::computeMinMaxAvgSectionLength(float& minSectionLength,
     avgSectionLength = avgValue / _sections.size();
 }
 
-void Morphology::computeMinMaxAvgSegmentSurfaceArea(float& minSegmentSurfaceArea,
-                                                    float& maxSegmentSurfaceArea,
-                                                    float& avgSegmentSurfaceArea,
-                                                    const size_t &numberMorphologySegments) const
+void Morphology::computeMinMaxAvgSegmentSurfaceArea(
+        float& minSegmentSurfaceArea, float& maxSegmentSurfaceArea, float& avgSegmentSurfaceArea,
+        const size_t &numberMorphologySegments) const
 {
-    float minValue = std::numeric_limits<float>::max();
-    float maxValue = std::numeric_limits<float>::lowest();
-    float avgValue = 0.f;
+    auto minValue = std::numeric_limits< float >::max();
+    auto maxValue = std::numeric_limits< float >::lowest();
+    auto avgValue = 0.f;
 
     for (const Section* section : _sections)
     {
@@ -466,13 +439,12 @@ void Morphology::computeMinMaxAvgSegmentSurfaceArea(float& minSegmentSurfaceArea
     avgSegmentSurfaceArea = avgValue / numberMorphologySegments;
 }
 
-void Morphology::computeMinMaxAvgSectionSurfaceArea(float& minSectionSurfaceArea,
-                                                    float& maxSectionSurfaceArea,
-                                                    float& avgSectionSurfaceArea) const
+void Morphology::computeMinMaxAvgSectionSurfaceArea(
+        float& minSectionSurfaceArea, float& maxSectionSurfaceArea, float& avgSectionSurfaceArea) const
 {
-    float minValue = std::numeric_limits<float>::max();
-    float maxValue = std::numeric_limits<float>::lowest();
-    float avgValue = 0.f;
+    auto minValue = std::numeric_limits< float >::max();
+    auto maxValue = std::numeric_limits< float >::lowest();
+    auto avgValue = 0.f;
 
     for (const Section* section : _sections)
     {
@@ -493,15 +465,13 @@ void Morphology::computeMinMaxAvgSectionSurfaceArea(float& minSectionSurfaceArea
     avgSectionSurfaceArea = avgValue / _sections.size();
 }
 
-
-void Morphology::computeMinMaxAvgSegmentVolume(float& minSegmentVolume,
-                                               float& maxSegmentVolume,
-                                               float& avgSegmentVolume,
-                                               const size_t& numberMorphologySegments) const
+void Morphology::computeMinMaxAvgSegmentVolume(
+        float& minSegmentVolume, float& maxSegmentVolume, float& avgSegmentVolume,
+        const size_t& numberMorphologySegments) const
 {
-    float minValue = std::numeric_limits<float>::max();
-    float maxValue = std::numeric_limits<float>::lowest();
-    float avgValue = 0.f;
+    auto minValue = std::numeric_limits< float >::max();
+    auto maxValue = std::numeric_limits< float >::lowest();
+    auto avgValue = 0.f;
 
     for (const Section* section : _sections)
     {
@@ -525,13 +495,12 @@ void Morphology::computeMinMaxAvgSegmentVolume(float& minSegmentVolume,
     avgSegmentVolume = avgValue / numberMorphologySegments;
 }
 
-void Morphology::computeMinMaxAvgSectionVolume(float& minSectionVolume,
-                                               float& maxSectionVolume,
-                                               float& avgSectionVolume) const
+void Morphology::computeMinMaxAvgSectionVolume(
+        float& minSectionVolume, float& maxSectionVolume, float& avgSectionVolume) const
 {
-    float minValue = std::numeric_limits<float>::max();
-    float maxValue = std::numeric_limits<float>::lowest();
-    float avgValue = 0.f;
+    auto minValue = std::numeric_limits< float >::max();
+    auto maxValue = std::numeric_limits< float >::lowest();
+    auto avgValue = 0.f;
 
     for (const Section* section : _sections)
     {
@@ -573,7 +542,7 @@ void Morphology::verifyMinimumSampleRadius(const float& radius)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Morphology::resampleSectionsUniformly(const float step)
+void Morphology::resampleSectionsUniformly(const float &stepSize)
 {
     LOG_STATUS("Resampling Morphology");
 
@@ -585,7 +554,7 @@ void Morphology::resampleSectionsUniformly(const float step)
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < _sections.size(); ++i)
     {
-        _sections[i]->resampleUniformly(step);
+        _sections[i]->resampleUniformly(stepSize);
 
         LOOP_PROGRESS(PROGRESS, _sections.size());
         PROGRESS_UPDATE;
@@ -615,7 +584,7 @@ void Morphology::resampleSectionsAdaptively(const bool& relaxed)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Morphology::resampleSectionsToBeLines()
+void Morphology::resampleSectionsKeepTerminalSamples()
 {
     LOG_STATUS("Resampling Morphology while Keeping Terminal Samples");
 
@@ -644,52 +613,6 @@ void Morphology::resampleSectionsToBeLines()
     LOG_SUCCESS("Number of Removed Sample(s) [%d]", totalNumberRemovedSamples);
 }
 
-void Morphology::resampleSectionsSmartly()
-{
-    LOG_STATUS("Resampling Morphology");
-
-    // Starting the timer
-    TIMER_SET;
-
-    std::vector< size_t > sectionCounter;
-    sectionCounter.resize(_sections.size());
-
-    LOOP_STARTS("Removing Redundant Samples")
-    PROGRESS_SET;
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _sections.size(); ++i)
-    {
-        sectionCounter[i] = _sections[i]->removeInnerSamples();
-
-        LOOP_PROGRESS(PROGRESS, _sections.size());
-        PROGRESS_UPDATE;
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    size_t totalNumberRemovedSamples = 0;
-    for (size_t i = 0; i < sectionCounter.size(); ++i)
-        totalNumberRemovedSamples += sectionCounter[i];
-    LOG_SUCCESS("Number of Redundant Sample(s) [%d]", totalNumberRemovedSamples);
-
-    LOOP_STARTS("Intepolating Long Sections")
-    PROGRESS_RESET;
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _sections.size(); ++i)
-    {
-        sectionCounter[i] = _sections[i]->interpolateLongSegments();
-
-        LOOP_PROGRESS(PROGRESS, _sections.size());
-        PROGRESS_UPDATE;
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    size_t totalNumberInterpolatedSamples = 0;
-    for (size_t i = 0; i < sectionCounter.size(); ++i)
-        totalNumberInterpolatedSamples += sectionCounter[i];
-    LOG_SUCCESS("Number of Added Sample(s) [%d]", totalNumberInterpolatedSamples);
-}
 
 ROIs Morphology::collectRegionsWithThinStructures(const float& threshold) const
 {
@@ -725,7 +648,6 @@ ROIs Morphology::collectRegionsWithThinStructures(const float& threshold) const
     return regions;
 }
 
-
 void Morphology::printDistributions(const std::string *prefix) const
 {
     // Starting the timer
@@ -752,11 +674,11 @@ void Morphology::printStats(const std::string &reference, const std::string *pre
     LOG_STATUS("Collecting Stats.");
 
     // Calculate the stats.
-    const float length = computeTotalLength();
-    const float area = computeTotalSurfaceArea();
-    const float volume = computeTotalVolume();
+    const auto length = computeTotalLength();
+    const auto area = computeTotalSurfaceArea();
+    const auto volume = computeTotalVolume();
 
-    const size_t numberSegments = computeNumberSegments();
+    const auto numberSegments = computeNumberSegments();
 
     float minSampleRadius, maxSampleRadius, avgSampleRadius;
     computeMinMaxAvgSampleRadius(minSampleRadius, maxSampleRadius, avgSampleRadius);
@@ -859,6 +781,7 @@ void Morphology::printStats(const std::string &reference, const std::string *pre
 
 void Morphology::exportToSWC(const std::string& prefix)
 {
+    // Generate the SWC table of the morphology to ensure the validity of the connection
     compileSWCTableRecursively();
 
     // Open the file
@@ -874,7 +797,8 @@ void Morphology::exportToSWC(const std::string& prefix)
     // Start the time
     TIMER_SET;
 
-    // Write the vertices
+    // Write the vertices, or samples.
+    /// Note that we start from the 1st sample, becuase the zero-th sample is AUXILIARY!
     LOOP_STARTS("Exporting Neuron Morphology");
     for (size_t i = 1; i < _samples.size(); ++i)
     {

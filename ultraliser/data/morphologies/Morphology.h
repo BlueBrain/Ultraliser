@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2022
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -70,11 +70,9 @@ public:
      * @return
      * A list of all the sections located within the given bounding box.
      */
-    Sections getSubsectionsInBoundingBox(const Section *section,
-                                         const Vector3f& center,
-                                         const float& width,
-                                         const float& height,
-                                         const float& depth) const;
+    Sections getSubsectionsInBoundingBox(
+            const Section *section, const Vector3f& center,
+            const float& width, const float& height, const float& depth) const;
 
     /**
      * @brief getSamples
@@ -261,11 +259,18 @@ public:
 
     /**
      * @brief resampleSectionsUniformly
-     * Resample each sections in the morphology uniformly with a fixed step.
-     * @param step
-     * A given step that will be used to sample the sections in the morphology.
+     * Resample each sections in the morphology uniformly with a fixed step size.
+     * @param stepSize
+     * A given step size that will be used to sample the sections in the morphology.
      */
-    void resampleSectionsUniformly(const float step);
+    void resampleSectionsUniformly(const float& stepSize);
+
+    /**
+     * @brief resampleSectionsKeepTerminalSamples
+     * Resample the morphological samples removing the internal samples and keeping the terminal
+     * samples, i.e. the first and last samples along the section.
+     */
+    void resampleSectionsKeepTerminalSamples();
 
     /**
      * @brief resampleSectionsAdaptively
@@ -275,13 +280,7 @@ public:
      * Relaxed resampling, if this flag is set to true, the resampling will be use the diameters
      * of the samples instead of their radii.
      */
-    void resampleSectionsAdaptively(const bool& relaxed);
-
-
-    void resampleSectionsSmartly();
-
-    void resampleSectionsToBeLines();
-
+    void resampleSectionsAdaptively(const bool& relaxed = true);
 
     /**
      * @brief printStats
@@ -303,8 +302,6 @@ public:
      */
     void printDistributions(const std::string *prefix) const;
 
-
-
     /**
      * @brief compileSWCTableRecursively
      * Re-creates the _samples list, by traversing the morphology tree and building SWC table.
@@ -312,8 +309,18 @@ public:
      */
     virtual void compileSWCTableRecursively() = 0;
 
+    /**
+     * @brief reIndexSamples
+     * Re-index the samples, i.e. re-calculate the indices of the samples in the morphology.
+     */
     virtual void reIndexSamples() = 0;
 
+    /**
+     * @brief exportToSWC
+     * Export the morphology to an SWC file.
+     * @param prefix
+     * Output file prefix.
+     */
     void exportToSWC(const std::string& prefix);
 
 protected:

@@ -821,6 +821,26 @@ void AppArguments::addMorphologyAdjustmentParameters()
                 "0.05");
     _args->addArgument(&minSampleRadius);
     _options->minSampleRadius = _args->getFloatValue(&minSampleRadius);
+
+    Argument minROIRadius(
+                "--roi-radius",
+                ARGUMENT_TYPE::FLOAT,
+                "The minimum radius of the regions of interest ROIs to select the  "
+                "The default value is 0.05 micron.",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "0.05");
+    _args->addArgument(&minSampleRadius);
+    _options->minSampleRadius = _args->getFloatValue(&minSampleRadius);
+
+
+    Argument autoParameters(
+                "--auto-parameters",
+                ARGUMENT_TYPE::BOOL,
+                "When the auto-parameters flag is set, the morphology per-processing, voxelization, "
+                "meshing and optimization parmeters will be automatically set to produce the most "
+                "optimized mesh.");
+    _args->addArgument(&autoParameters);
+    _options->autoParameters = _args->getBoolValue(&autoParameters);
 }
 
 AppOptions* AppArguments::getOptions()

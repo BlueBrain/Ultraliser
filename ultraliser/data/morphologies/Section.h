@@ -28,16 +28,25 @@
 namespace Ultraliser
 {
 
+// Forward declarations
 class Section;
 typedef std::vector< Section* > Sections;
 
+/**
+ * @brief The Section class
+ * A section is a list of connected morphological samples, where each sample defines a vertex.
+ */
 class Section
 {
 public:
 
     /**
      * @brief Section
+     * Constructor.
      * @param index
+     * The index of the section.
+     * @param type
+     * The type of the section
      */
     Section(const size_t &index, const PROCESS_TYPE& type);
 
@@ -45,14 +54,17 @@ public:
 
     /**
      * @brief getType
+     * Returns the type of the section.
      * @return
+     * The type of the section.
      */
     PROCESS_TYPE getType() const;
 
     /**
      * @brief setType
-     * Set the section type
-     * @param sectionType
+     * Set the section type.
+     * @param type
+     * The type of the section.
      */
     void setType(PROCESS_TYPE type);
 
@@ -151,7 +163,11 @@ public:
      */
     Sample* getLastSample() const;
 
-
+    /**
+     * @brief resampleSegment
+     * @param step
+     * @param samples
+     */
     void resampleSegment(const float& step, Samples& samples);
 
     /**
@@ -169,16 +185,28 @@ public:
      */
     void resampleAdaptively(const bool& relaxed = true);
 
-
+    /**
+     * @brief removeOverlappingSamples
+     */
     void removeOverlappingSamples();
 
-
+    /**
+     * @brief removeInnerSamples
+     * @return
+     */
     size_t removeInnerSamples();
 
+    /**
+     * @brief removeIntermediateSamples
+     * @return
+     */
     size_t removeIntermediateSamples();
 
+    /**
+     * @brief interpolateLongSegments
+     * @return
+     */
     size_t interpolateLongSegments();
-
 
     /**
      * @brief verifyMinimumSampleRadius
@@ -188,8 +216,11 @@ public:
      */
     void verifyMinimumSampleRadius(const float& radius);
 
+    /**
+     * @brief getMinimumSampleRadius
+     * @return
+     */
     float getMinimumSampleRadius() const;
-
 
     /**
      * @brief isRoot
