@@ -33,6 +33,16 @@ namespace Ultraliser
  */
 std::string formatSize(const size_t &size);
 
+/**
+ * @brief computeHstogram
+ * @param data
+ * @param nbins
+ * @param histogram
+ * @param binEdges
+ */
+void computeHstogram(const std::vector<float> data, const size_t nbins,
+                     std::vector< size_t > &histogram, std::vector< float > &binEdges);
+
 }
 
 // Conversion to a human readable format in a string
