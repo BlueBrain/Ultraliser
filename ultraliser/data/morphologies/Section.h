@@ -328,6 +328,46 @@ public:
      */
     size_t getBranchingOrder() const;
 
+
+    void analyzeSamplesRadii(float& radiusMinimum,
+                             float& radiusMaximum,
+                             float& radiusAverage,
+                             float& radiusRatio,
+                             size_t& numberSamples,
+                             size_t& numberZeroRadiusSamples,
+                             const float& radiusEpsilon = 1e-5f);
+
+    void optimizeSection()
+    {
+        // Initialization
+        float radiusMinimum;
+        float radiusMaximum;
+        float radiusAverage;
+        float radiusRatio;
+        size_t numberSamples;
+        size_t numberZeroRadiusSamples;
+
+        // Analyze the radii
+        analyzeSamplesRadii(radiusMinimum, radiusMaximum, radiusAverage,
+                            radiusRatio, numberSamples, numberZeroRadiusSamples);
+
+        // If all the samples of the section are zero, then the entire section is invalid
+        if (numberSamples == numberZeroRadiusSamples)
+        {
+
+        }
+
+        // If the section has any sample that has zero radius
+        if (numberZeroRadiusSamples > 0)
+        {
+
+        }
+
+    }
+
+
+
+
 private:
 
     /**

@@ -120,10 +120,21 @@ std::string getName(std::string &filePath, bool withExtension = false);
 
 /**
  * @brief writeFloatDistributionToFile
- *
  * @param filePath
+ * @param distribution
  */
-void writeFloatDistributionToFile(const std::string &filePath, std::vector<float> distribution);
+void writeFloatDistributionToFile(const std::string &filePath,
+                                  const std::vector< float > &distribution);
+
+/**
+ * @brief writeFloatHistogramToFile
+ * @param filePath
+ * @param histogram
+ * @param bins
+ */
+void writeFloatHistogramToFile(const std::string &filePath,
+                               const std::vector< size_t > &histogram,
+                               const std::vector< float > &bins);
 
 /**
  * @brief writeIntegerDistributionToFile

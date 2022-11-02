@@ -21,6 +21,7 @@
  **************************************************************************************************/
 
 #include "MorphologyStatistics.h"
+#include <utilities/Data.h>
 
 namespace Ultraliser
 {
@@ -29,6 +30,30 @@ MorphologyStatistics::MorphologyStatistics(const Morphology* morphology)
     : _morphology(morphology)
 {
     /// EMPTY CONSTRUCTOR
+}
+
+void MorphologyStatistics::computeSamplesRadiiHistogram(std::vector< size_t > &histogram,
+                                                        std::vector< float >&bins,
+                                                        const size_t &numberBins) const
+{
+    std::vector< float > data;
+    TIMER_SET;
+    LOOP_STARTS("Computing Samples Radii Histogram");
+    size_t progress = 0;
+
+    for (size_t i = 0; i <  _morphology->getSamples().size(); ++i)
+    {
+        const auto sample = _morphology->getSamples()[i];
+        if (sample->getType() == PROCESS_TYPE::NEURON_APICAL_DENDRITE ||
+            sample->getType() == PROCESS_TYPE::NEURON_BASAL_DENDRITE ||
+            sample->getType() == PROCESS_TYPE::NEURON_AXON)
+        {
+            data.push_back(sample->getRadius());
+        }
+    }
+
+    computeHistogram(data, numberBins, histogram, bins);
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 std::vector< float > MorphologyStatistics::computeSamplesRadiiDistribution() const
@@ -40,9 +65,8 @@ std::vector< float > MorphologyStatistics::computeSamplesRadiiDistribution() con
     TIMER_SET;
     LOOP_STARTS("Computing Samples Radii Distribution");
     size_t progress = 0;
-#ifdef ULTRALISER_USE_OPENMP
-    #pragma omp parallel for
-#endif
+
+    OMP_PARALLEL_FOR
     for (size_t i = 0; i < samples.size(); ++i)
     {
 #ifdef ULTRALISER_USE_OPENMP
@@ -329,6 +353,14 @@ void MorphologyStatistics::writeStatsDistributions(const std::string &prefix)
     File::writeFloatDistributionToFile(
                 prefix + SECTIONS_VOLUME + DISTRIBUTION_EXTENSION,
                 computeSectionsVolumeDistribution());
+
+    std::vector< float > bins;
+    std::vector< size_t > histograms;
+    computeSamplesRadiiHistogram(histograms, bins, 25);
+    File::writeFloatHistogramToFile(
+                prefix + SAMPLES_RADII + HISTOGRAM_EXTENSION,
+                histograms, bins);
+
 }
 
 }

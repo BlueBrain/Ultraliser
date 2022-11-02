@@ -686,4 +686,21 @@ void generateVolumeArtifacts(const Volume* volume, const AppOptions* options)
     }
 }
 
+void writeMorphologyAnalysisResults(const Morphology* morphology,
+                                    const AppOptions* options,
+                                    const std::string& annotation)
+{
+    // Generate the statistical analysis results of the input morphology as is
+    if (options->writeStatistics)
+    {
+        const std::string reference = options->prefix + "-" + annotation;
+        morphology->printStats(reference, &options->statisticsPrefix);
+    }
+
+    if (options->writeDistributions)
+    {
+        const std::string reference = options->distributionsPrefix + "-" + annotation;
+        morphology->printDistributions(&reference);
+    }
+}
 }

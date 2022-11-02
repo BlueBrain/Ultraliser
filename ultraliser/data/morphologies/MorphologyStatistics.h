@@ -38,6 +38,9 @@ public:
 
 public:
 
+    void computeSamplesRadiiHistogram(std::vector< size_t > &histogram,
+                                      std::vector< float > &bins,
+                                      const size_t &numberBins = 10) const;
     /**
      * @brief computeSamplesRadiiDistribution
      * @return

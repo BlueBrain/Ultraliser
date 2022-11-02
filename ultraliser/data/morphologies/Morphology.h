@@ -323,6 +323,15 @@ public:
      */
     void exportToSWC(const std::string& prefix);
 
+    void validate();
+
+
+
+
+void calculateAutoReconstructionParameters(float& recommendedMinimumSampleRadius,
+                                               float& recommendedVoxelsPerMicron);
+
+
 protected:
 
     /**

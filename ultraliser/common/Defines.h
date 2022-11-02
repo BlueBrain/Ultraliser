@@ -163,6 +163,7 @@
 #define SECTIONS_SURFACE_AREA                   STRING("-sections-surface-area")
 #define SEGMENTS_VOLUME                         STRING("-segments-volume")
 #define SECTIONS_VOLUME                         STRING("-sections-volume")
+#define NUMBER_HISTOGRAM_BINS                   10
 
 // OBJ flags
 #define OBJ_VERTEX_FLAG                         STRING("v")

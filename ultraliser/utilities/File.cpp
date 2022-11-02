@@ -385,15 +385,37 @@ std::string getName(std::string& filePath, bool withExtension)
 }
 
 void writeFloatDistributionToFile(const std::string &filePath,
-                                  std::vector< float > distribution)
+                                  const std::vector< float > &distribution)
 {
     std::ofstream outputStream(filePath.c_str());
     if (!outputStream.good())
         LOG_ERROR("Cannot write file [ %s ]", filePath.c_str());
 
-    for (size_t i = 0; i < distribution.size(); i++)
+    for (size_t i = 0; i < distribution.size(); ++i)
         if (distribution[i] > 0.f)
             outputStream << i << " " << distribution[i] << NEW_LINE;
+
+    // Close the stream
+    outputStream.close();
+}
+
+void writeFloatHistogramToFile(const std::string &filePath,
+                               const std::vector< size_t > &histogram,
+                               const std::vector< float > &bins)
+{
+    std::ofstream outputStream(filePath.c_str());
+    if (!outputStream.good())
+        LOG_ERROR("Cannot write file [ %s ]", filePath.c_str());
+
+    // Histogram
+    for (size_t i = 0; i < histogram.size(); ++i)
+        outputStream << histogram[i] << " ";
+    outputStream << NEW_LINE;
+
+    // Bins
+    for (size_t i = 0; i < bins.size(); ++i)
+        outputStream << bins[i] << " ";
+    outputStream << NEW_LINE;
 
     // Close the stream
     outputStream.close();
@@ -406,7 +428,7 @@ void writeIntegerDistributionToFile(const std::string &filePath,
     if (!outputStream.good())
         LOG_ERROR("Cannot write file [ %s ]", filePath.c_str());
 
-    for (size_t i = 0; i < distribution.size(); i++)
+    for (size_t i = 0; i < distribution.size(); ++i)
         if (distribution[i] > 0.f)
             outputStream << i << " " << distribution[i] << NEW_LINE;
 
@@ -467,7 +489,7 @@ char *readLineFromFile(FILE *in, bool exit_on_eof)
             if (exit_on_eof) LOG_ERROR("\nUnexpected end of file!\n");
             else return nullptr;
         }
-        else if (c != '\r') line[i++] = c;
+        else if (c != '\r') line[++i] = c;
     line[i] = '\0';
 
     if (i==MAX_READLINE_CHARS-1)

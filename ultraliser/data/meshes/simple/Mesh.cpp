@@ -710,7 +710,7 @@ void Mesh::smoothSurface(size_t numIterations)
     LOOP_STARTS("Smoothing")
     for (size_t i = 0; i < numIterations; ++i)
     {
-        shrinkOrInflateSurface(vertexNeighbours, faceNeighbours, true, 0.1);
+        shrinkOrInflateSurface(vertexNeighbours, faceNeighbours, true, 0.25);
         LOOP_PROGRESS(i, numIterations);
     }
     LOOP_DONE;

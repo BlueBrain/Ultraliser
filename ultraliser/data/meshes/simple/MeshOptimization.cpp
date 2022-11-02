@@ -1651,7 +1651,6 @@ void Mesh::smoothNormal(const int64_t n)
     {
         _vertices[n] = position / I2F(number);
     }
-
 }
 
 void Mesh::smoothNormals()
@@ -2573,8 +2572,7 @@ bool Mesh::coarse(const float& coarseRate,
                         }
                         if (firstNGR->next == nullptr) {
                             if (firstNGR->b != c) {
-                                LOG_ERROR("Some polygons are "
-                                          "NOT closed: @[%d]", n);
+                                LOG_ERROR("Some polygons are NOT closed: @[%d]", n);
                             }
                         }
 
@@ -2699,7 +2697,6 @@ bool Mesh::coarse(const float& coarseRate,
     }
 
     _numberVertices = startIndex;
-
     startIndex = 0;
     for (size_t n = 0; n < _numberTriangles; n++)
     {
@@ -2723,6 +2720,7 @@ bool Mesh::coarse(const float& coarseRate,
             triangleIndex[n] = -1;
         }
     }
+
     _numberTriangles = startIndex;
     for (size_t i = 0; i < _numberVertices; ++i)
     {

@@ -26,7 +26,6 @@
 #include <common/Common.h>
 #include <utilities/Utilities.h>
 
-
 namespace Ultraliser
 {
 
@@ -520,6 +519,57 @@ void Morphology::computeMinMaxAvgSectionVolume(
     maxSectionVolume = maxValue;
     avgSectionVolume = avgValue / _sections.size();
 }
+
+void Morphology::calculateAutoReconstructionParameters(float& recommendedMinimumSampleRadius,
+                                                       float& recommendedVoxelsPerMicron)
+{
+    // Calculate the histogram of the radii
+    std::vector< float > data;
+    for (size_t i = 0; i <  _samples.size(); ++i)
+    {
+        const auto sample = _samples[i];
+        if (sample->getType() == PROCESS_TYPE::NEURON_APICAL_DENDRITE ||
+            sample->getType() == PROCESS_TYPE::NEURON_BASAL_DENDRITE ||
+            sample->getType() == PROCESS_TYPE::NEURON_AXON)
+        {
+            data.push_back(sample->getRadius());
+        }
+    }
+
+    // Initially use 20 bins
+    constexpr auto numberBins = 25;
+    std::vector< size_t > histogram;
+    std::vector< float > bins;
+    computeHistogram(data, numberBins, histogram, bins);
+
+
+
+    // Calculate the minimum sample radius of the morphology, as of now
+    float currentMinimumSampleRadius = std::numeric_limits< float >::max();
+    for (const auto& sample: _samples)
+    {
+        if (sample->getRadius() < currentMinimumSampleRadius)
+        {
+            currentMinimumSampleRadius = sample->getRadius();
+        }
+    }
+}
+
+void Morphology::validate()
+{
+    // For every section
+
+    // Check if the section has zero-radius sample
+
+    // Check if the mean section diamster is not zero
+
+    // Check if the section maximum to minimum dimatere range is above threshold
+
+    // Check if the section length compared to its mean diamtere is valid
+
+    // Check if the section has zero-length segments
+}
+
 
 void Morphology::verifyMinimumSampleRadius(const float& radius)
 {

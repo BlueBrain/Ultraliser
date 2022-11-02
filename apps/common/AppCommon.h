@@ -212,4 +212,14 @@ Mesh* reconstructMeshFromVolume(Volume* volume, const AppOptions* options);
  */
 AdvancedMesh* reconstructAdvancedMeshFromVolume(Volume* volume, const AppOptions* options);
 
+
+/**
+ * @brief writeAnalysisResults
+ * @param options
+ * @param annotation
+ */
+void writeMorphologyAnalysisResults(const Morphology* morphology,
+                                    const AppOptions* options,
+                                    const std::string& annotation);
+
 }

@@ -77,12 +77,8 @@ void run(int argc, const char** argv)
     // Read the file into a morphology structure
     auto neuronMorphology = readNeuronMorphology(options->inputMorphologyPath);
 
-    // Generate the statistical analysis results of the input morphology as is
-    if (options->writeStatistics)
-        neuronMorphology->printStats(options->prefix, &options->statisticsPrefix);
-
-    if (options->writeDistributions)
-        neuronMorphology->printDistributions(&options->distributionsPrefix);
+    // Write the statistical anaylsis results of the original morphology
+    writeMorphologyAnalysisResults(neuronMorphology, options, "original");
 
     // Update the minimum sample radius to a given value
     neuronMorphology->verifyMinimumSampleRadius(options->minSampleRadius);
@@ -90,8 +86,12 @@ void run(int argc, const char** argv)
     // Resample the morphology
     neuronMorphology->resampleSectionsAdaptively();
 
+    // Write the statistical anaylsis results of the resampled morphology
+    // writeMorphologyAnalysisResults(neuronMorphology, options, "resampled");
+
+
     // Collect the ROIs where the radii are small
-    auto regions = neuronMorphology->collectRegionsWithThinStructures(0.2);
+    auto regions = neuronMorphology->collectRegionsWithThinStructures(options->minSampleRadius * 1.5);
 
     // Trim the neuron morphology following the branch order options
     if (options->axonBranchOrder < INT_MAX |
@@ -118,11 +118,17 @@ void run(int argc, const char** argv)
     // Calculate the volume resolution based on the largest dimension in the
     // morphology
     size_t resolution;
-    if (options->scaledResolution)
-        resolution = static_cast< size_t >(options->voxelsPerMicron * largestDimension);
-    else
-        resolution = options->volumeResolution;
-    LOG_WARNING("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);
+    // if (options->scaledResolution)
+    //    resolution = static_cast< size_t >(options->voxelsPerMicron * largestDimension);
+    //else
+    //    resolution = options->volumeResolution;
+
+    float voxelSize = (options->minSampleRadius * 2.0);
+    float voxelsPerMicron = 1.f / voxelSize;
+    resolution = voxelsPerMicron * largestDimension;
+
+    LOG_WARNING("Volume resolution [%d], Voxel size [%f], Largest dimension [%f]",
+                resolution, voxelSize, largestDimension);
 
     // Construct the volume
     Volume* volume = new Volume(pMinInput, pMaxInput, resolution, options->edgeGap,

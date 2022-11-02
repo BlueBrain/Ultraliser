@@ -48,7 +48,7 @@ std::string formatSize(const size_t &size)
     return stream.str();
 }
 
-void computeHstogram(const std::vector<float> data, const size_t nbins,
+void computeHistogram(const std::vector<float> data, const size_t nbins,
                      std::vector< size_t > &histogram, std::vector< float > &binEdges)
 {
     // Get the minimum value
@@ -95,7 +95,6 @@ void computeHstogram(const std::vector<float> data, const size_t nbins,
             if (data[j] >= value0 && data[j] < value1)
             {
                 yaxis[i] += 1;
-
             }
         }
     }

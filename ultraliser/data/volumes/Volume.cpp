@@ -1357,7 +1357,7 @@ int Volume::_triangleCubeSign(Mesh *mesh,
 bool Volume::_testTriangleCubeIntersection(Mesh* mesh, size_t triangleIdx, const GridIndex& voxel)
 {
     // Get the origin of the voxel
-    double  voxelOrigin[3];
+    double voxelOrigin[3];
     voxelOrigin[0] = _pMin[0] + (voxel[0] * _voxelSize);
     voxelOrigin[1] = _pMin[1] + (voxel[1] * _voxelSize);
     voxelOrigin[2] = _pMin[2] + (voxel[2] * _voxelSize);
@@ -1373,12 +1373,6 @@ bool Volume::_testTriangleCubeIntersection(Mesh* mesh, size_t triangleIdx, const
     voxelCenter[0] = voxelOrigin[0] + voxelHalfSize[0];
     voxelCenter[1] = voxelOrigin[1] + voxelHalfSize[1];
     voxelCenter[2] = voxelOrigin[2] + voxelHalfSize[2];
-
-    double adjustedVoxelHalfSize[3];
-    float voxelOccupancy = 1;
-    voxelHalfSize[0] *= voxelOccupancy;
-    voxelHalfSize[1] *= voxelOccupancy;
-    voxelHalfSize[2] *= voxelOccupancy;
 
     // Triangle vertices
     double triangle[3][3];

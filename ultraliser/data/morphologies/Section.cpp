@@ -541,6 +541,47 @@ void Section::resampleAdaptively(const bool& relaxed)
     removeOverlappingSamples();
 }
 
+void Section::analyzeSamplesRadii(float& radiusMinimum,
+                                  float& radiusMaximum,
+                                  float& radiusAverage,
+                                  float& radiusRatio,
+                                  size_t& numberSamples,
+                                  size_t& numberZeroRadiusSamples,
+                                  const float& radiusEpsilon)
+{
+    // Initialization
+    radiusMinimum = std::numeric_limits< float >::max();
+    radiusMaximum = std::numeric_limits< float >::lowest();
+    radiusAverage = 0;
+    numberSamples = _samples.size();
+    numberZeroRadiusSamples = 0;
+
+    // Collecting data
+    for (const auto& sample: _samples)
+    {
+        // Reference
+        const auto& sampleRadius = sample->getRadius();
+
+        // Minimum radius
+        if (sampleRadius < radiusMinimum)
+            radiusMinimum = sampleRadius;
+
+        // Maximum radius
+        if (sampleRadius > radiusMaximum)
+            radiusMaximum = sampleRadius;
+
+        // Update the average radius
+        radiusAverage += sampleRadius;
+
+        // Zero-radius sample
+        if (sampleRadius < radiusEpsilon)
+            numberZeroRadiusSamples++;
+    }
+
+    // Normalize the average radius
+    radiusAverage /= numberSamples;
+}
+
 float Section::getMinimumSampleRadius() const
 {
     // Initially, set it to maximum float value
