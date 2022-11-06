@@ -46,6 +46,17 @@ void AppArguments::addInputMeshArguments()
     _options->inputMeshPath = _args->getStringValue(&inputMesh);
 }
 
+void AppArguments::addTargetMeshArguments()
+{
+    Argument targetMesh(
+                "--target-mesh",
+                ARGUMENT_TYPE::STRING,
+                "The absolute path to the target mesh, with which the input mesh will be mapped to",
+                ARGUMENT_PRESENCE::MANDATORY);
+    _args->addArgument(&targetMesh);
+    _options->targetMeshPath = _args->getStringValue(&targetMesh);
+}
+
 void AppArguments::addInputMeshesDirectoryArguments()
 {
     Argument inputMeshesDirectory(

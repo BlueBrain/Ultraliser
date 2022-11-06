@@ -27,7 +27,6 @@
 #include <data/meshes/simple/primitives/Primitives.h>
 #include <data/morphologies/NeuronMorphology.h>
 #include <data/morphologies/AstrocyteMorphology.h>
-
 #include <data/morphologies/Section.h>
 #include <data/common/ROI.h>
 #include <data/structures/Neighbors.h>
@@ -718,6 +717,7 @@ public:
      */
     Triangle* _neighbors;
 
+
 private:
 
     /**
@@ -753,5 +753,6 @@ private:
     friend class MeshStatistics;
 };
 
-}
+void mapMeshes(const Mesh* from, Mesh* to);
 
+}

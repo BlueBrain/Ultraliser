@@ -890,4 +890,54 @@ Mesh::~Mesh()
     _releaseData();
 }
 
+
+void mapMeshes(const Mesh* target, Mesh* input)
+{
+    LOG_TITLE("Mapping Meshes");
+    TIMER_SET;
+
+    LOOP_STARTS("Mapping")
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (size_t j = 0; j < input->getNumberVertices(); ++j)
+    {
+        // Get a reference to the input vertex
+        auto& inputVertex = input->_vertices[j];
+
+        // The distance between the input vertex and the target mesh vertices
+        auto currentDistance = std::numeric_limits< float >::max();
+
+        // The index of the closest vertex located on the target mesh surface
+        size_t targetIndex = 0;
+
+        // Iterate over the target mesh
+        for (size_t i = 0; i < target->getNumberVertices(); ++i)
+        {
+            // Reference to the target vertex
+            const auto& targetVertex = target->_vertices[i];
+
+            // Compute the distance between the two vertices
+            float distance = inputVertex.distance(targetVertex);
+
+            // If this distance is smaller than the currentDistance, update
+            if (distance < currentDistance)
+            {
+                // Update the currentDistance value, for comparisons with the next vertices
+                currentDistance = distance;
+
+                // Update the index of the target
+                targetIndex = i;
+            }
+        }
+
+        // Update the coordinates of the input vertex to the target one
+        input->_vertices[j] = target->_vertices[targetIndex];
+
+        LOOP_PROGRESS(PROGRESS, input->getNumberVertices());
+        PROGRESS_UPDATE;
+     }
+     LOOP_DONE;
+     LOG_STATS(GET_TIME_SECONDS);
+}
+
 }

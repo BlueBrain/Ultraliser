@@ -68,6 +68,23 @@ void AppOptions::verifyInputMeshArgument()
     }
 }
 
+void AppOptions::verifyTargetMeshArgument()
+{
+    if (!File::exists(targetMeshPath))
+    {
+        LOG_ERROR("The file [ %s ] does NOT exist! ", targetMeshPath.c_str());
+    }
+
+    std::string path = targetMeshPath;
+    String::toLower(path);
+    if (!(String::subStringFound(path, ".obj") || String::subStringFound(path, ".ply") ||
+          String::subStringFound(path, ".stl") || String::subStringFound(path, ".off") ||
+          String::subStringFound(path, ".h5")))
+    {
+        LOG_ERROR("Unsupported mesh type [%s]!", targetMeshPath.c_str());
+    }
+}
+
 void AppOptions::verifyInputMeshesDirectoryArgument()
 {
     if (!Directory::exists(inputMeshesDirectory))

@@ -53,6 +53,11 @@ public:
     void addInputMeshArguments();
 
     /**
+     * @brief addTargetMeshArguments
+     */
+    void addTargetMeshArguments();
+
+    /**
      * @brief addInputMeshesDirectoryArguments
      */
     void addInputMeshesDirectoryArguments();

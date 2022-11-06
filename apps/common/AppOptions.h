@@ -57,6 +57,12 @@ public:
     void verifyInputMeshArgument();
 
     /**
+     * @brief verifyTargetMeshArgument
+     * Verifies the target mesh argument.
+     */
+    void verifyTargetMeshArgument();
+
+    /**
      * @brief verifyInputMeshesDirectoryArgument
      * Verifies the directory that contains a list of meshes.
      */
@@ -187,6 +193,12 @@ public:
      * An input mesh file path.
      */
     std::string inputMeshPath;
+
+    /**
+     * @brief targetMeshPath
+     * The path to the target mesh where an input mesh will be mapped to.
+     */
+    std::string targetMeshPath;
 
     /**
      * @brief inputVolumePath

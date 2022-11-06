@@ -164,6 +164,14 @@ float Vector3f::absSquared() const
            _elements[2] * _elements[2]);
 }
 
+float Vector3f::distance(const Vector3f& in) const
+{
+    auto xSquared = (in.x() - x()) * (in.x() - x());
+    auto ySquared = (in.y() - y()) * (in.y() - y());
+    auto zSquared = (in.z() - z()) * (in.z() - z());
+    return sqrtf(xSquared + ySquared + zSquared);
+}
+
 void Vector3f::normalize()
 {
     float norm = abs();

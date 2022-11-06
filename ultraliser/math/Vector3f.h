@@ -154,6 +154,13 @@ public:
     float absSquared() const;
 
     /**
+     * @brief distance
+     * @param in
+     * @return
+     */
+    float distance(const Vector3f& in) const;
+
+    /**
      * @brief normalize
      */
     void normalize();

@@ -148,6 +148,12 @@ public:
     ROIs collectRegionsWithThinStructures(const float &threshold) const;
 
     /**
+     * @brief computeMinimumSampleRadius
+     * @return
+     */
+    float computeMinimumSampleRadius() const;
+
+    /**
      * @brief computeMinMaxAvgSampleRadius
      * Computes the minimum, maximum and average sample radius in the morphology.
      * @param minSampleRadius

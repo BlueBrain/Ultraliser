@@ -48,6 +48,8 @@ AppOptions* parseArguments(const int& argc, const char** argv)
     args->addMorphologyExportArguments();
     args->addPackingAlgorithmArguments();
     args->addProcessingArguments();
+    args->addAutoParametersArguments();
+
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -89,10 +91,6 @@ void run(int argc, const char** argv)
     // Write the statistical anaylsis results of the resampled morphology
     // writeMorphologyAnalysisResults(neuronMorphology, options, "resampled");
 
-
-    // Collect the ROIs where the radii are small
-    auto regions = neuronMorphology->collectRegionsWithThinStructures(options->minSampleRadius * 1.5);
-
     // Trim the neuron morphology following the branch order options
     if (options->axonBranchOrder < INT_MAX |
         options->basalBranchOrder < INT_MAX |
@@ -115,20 +113,46 @@ void run(int argc, const char** argv)
     // Get the largest dimension
     float largestDimension = inputBB.getLargestDimension();
 
-    // Calculate the volume resolution based on the largest dimension in the
-    // morphology
+    // Calculate the grid resolution to ensure correct voxelization and optimized re-meshing
     size_t resolution;
-    // if (options->scaledResolution)
-    //    resolution = static_cast< size_t >(options->voxelsPerMicron * largestDimension);
-    //else
-    //    resolution = options->volumeResolution;
+    float minimumSampleRadius;
 
-    float voxelSize = (options->minSampleRadius * 2.0);
-    float voxelsPerMicron = 1.f / voxelSize;
-    resolution = voxelsPerMicron * largestDimension;
+    // After the analysis and morphology updates, you can safely now determine the resolution
+    if (options->autoParameters)
+    {
+        minimumSampleRadius = neuronMorphology->computeMinimumSampleRadius();
 
-    LOG_WARNING("Volume resolution [%d], Voxel size [%f], Largest dimension [%f]",
-                resolution, voxelSize, largestDimension);
+        // To capture the full details of the neuron, use the minimum sample radius
+        const auto voxelSize = minimumSampleRadius * 2.0;
+
+        // Construct the voxels per micron
+        const auto voxelsPerMicron = 1.f / voxelSize;
+
+        // Now, you can compute the resolution
+        resolution = voxelsPerMicron * largestDimension;
+    }
+    else
+    {
+        minimumSampleRadius = options->minSampleRadius;
+
+        // If using the scaled resolution, then detect how many voxels per microns
+        if (options->scaledResolution)
+            resolution = static_cast< size_t >(options->voxelsPerMicron * largestDimension);
+
+        // Otherwise, use the volume resolution specified by the user
+        else
+            resolution = options->volumeResolution;
+    }
+
+    // Collect the ROIs where the radii are small
+    ROIs regions;
+    regions = neuronMorphology->collectRegionsWithThinStructures(minimumSampleRadius * 4.0);
+
+    // Collect the ROIs where the radii are small
+    // auto regionsSub = neuronMorphology->collectRegionsWithThinStructures(minimumSampleRadius * 2.0);
+
+    LOG_WARNING("Volume Resolution [%d], Largest Dimension [%f], Min. Sample radius [%f]",
+                resolution, largestDimension, minimumSampleRadius);
 
     // Construct the volume
     Volume* volume = new Volume(pMinInput, pMaxInput, resolution, options->edgeGap,
@@ -152,7 +176,7 @@ void run(int argc, const char** argv)
     delete volume;
 
     // Refine the ROIs
-    mesh->refineROIs(regions, 1);
+    // mesh->refineROIs(regionsSub, 1);
 
     // Write the mesh reconstructed from the marching cubes algorithm
     if (!options->ignoreMarchingCubesMesh)

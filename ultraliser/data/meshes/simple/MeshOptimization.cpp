@@ -2839,7 +2839,10 @@ void Mesh::optimizeAdapttivelyWithROI(const size_t &optimizationIterations,
     TIMER_SET;
 
     // Select the vertices in the ROI
-    _selectVerticesInROI(regions);
+    if (regions.size() > 0)
+    {
+        _selectVerticesInROI(regions);
+    }
 
     // Coarse flat
     coarseFlat(flatCoarseFactor, optimizationIterations);
@@ -2894,7 +2897,10 @@ void Mesh::optimizeWithROIs(const size_t &optimizationIterations,
     TIMER_SET;
 
     // Select the vertices in the ROI
-    _selectVerticesInROI(regions);
+    if (regions.size() > 0)
+    {
+        _selectVerticesInROI(regions);
+    }
 
     // Remove the unnecessary vertices in multiple iterations
     coarseDense(denseFactor, optimizationIterations);

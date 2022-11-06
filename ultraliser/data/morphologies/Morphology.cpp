@@ -315,6 +315,22 @@ float Morphology::computeTotalVolume() const
     return volume;
 }
 
+float Morphology::computeMinimumSampleRadius() const
+{
+    auto minimumSampleRadius = std::numeric_limits< float >::max();
+    for (const auto section: _sections)
+    {
+        for (const auto sample: section->getSamples())
+        {
+            const auto sampleRadius = sample->getRadius();
+            if (sampleRadius < minimumSampleRadius)
+                minimumSampleRadius = sampleRadius;
+        }
+    }
+
+    return minimumSampleRadius;
+}
+
 void Morphology::computeMinMaxAvgSampleRadius(
         float& minSampleRadius, float& maxSampleRadius, float& avgSampleRadius) const
 {
@@ -663,7 +679,6 @@ void Morphology::resampleSectionsKeepTerminalSamples()
     LOG_SUCCESS("Number of Removed Sample(s) [%d]", totalNumberRemovedSamples);
 }
 
-
 ROIs Morphology::collectRegionsWithThinStructures(const float& threshold) const
 {
     // Regions of interest
@@ -678,14 +693,15 @@ ROIs Morphology::collectRegionsWithThinStructures(const float& threshold) const
     {
         // Update the progress bar
         // LOOP_PROGRESS_FRACTION(PROGRESS, _sections.size());
-        PROGRESS_UPDATE;
+        // PROGRESS_UPDATE;
 
         const Samples& samples = _sections[i]->getSamples();
         for (size_t j = 0; j < samples.size(); ++j)
         {
             if (samples[j]->getRadius() < threshold)
             {
-                regions.push_back(new ROI(samples[j]->getPosition(), samples[j]->getRadius() * 4.0));
+                regions.push_back(new ROI(samples[j]->getPosition(), samples[j]->getRadius() * 2.5));
+                // std::cout << "[" << samples[j]->getPosition().x() << ", " << samples[j]->getPosition().y() << "," << samples[j]->getPosition().z() << ", " << samples[j]->getRadius() * 4 << "],\n";
             }
         }
     }
