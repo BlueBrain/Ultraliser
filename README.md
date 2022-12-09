@@ -178,10 +178,10 @@ Co-director of the Blue Brain Project
 
 Should you have any questions concerning press enquiriries, please contact:
 
-__Kate Mullins__  
+__Evelyne Schmid__  
 Communications  
 Blue Brain Project  
-[kate.mullins@epfl.ch](kate.mullins@epfl.ch)
+[evelyne.schmidosborne@epfl.ch](evelyne.schmidosborne@epfl.ch)
 
 # References
 
