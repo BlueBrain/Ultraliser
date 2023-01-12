@@ -889,4 +889,10 @@ public:
     static SOLID_VOXELIZATION_AXIS getSolidvoxelizationAxis(const std::string &argumentString);
 };
 
+Volume* subtractVolume(const Volume* op1, const Volume* op2);
+
+
+
+Volume* getNextShell(Volume *currentShell, const Volume* currentVolume);
+
 }

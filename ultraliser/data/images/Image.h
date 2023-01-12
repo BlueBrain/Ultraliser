@@ -145,6 +145,23 @@ public:
     }
 
     /**
+     * @brief isFilled
+     * @param x
+     * @param y
+     * @return
+     */
+    bool isFilled(const size_t& x, const size_t& y)
+    {
+        // If the indicies are out-bounds, return 0
+        if(x >= getWidth()  || x < 0 || y >= getHeight() || y < 0)
+            return 0;
+
+        if (_data[(x + (_width * y))] > 0)
+            return true;
+        return 0;
+    }
+
+    /**
      * @brief writeEXR
      * @param prefix
      */
@@ -190,5 +207,23 @@ private:
      */
     uint8_t* _data;
 };
+
+
+
+struct Kernel1
+{
+    bool k0 = 0;
+    bool k1 = 1;
+    bool k2 = 0;
+
+    bool k3 = 1;
+    bool k4 = 1;
+    bool k5 = 1;
+
+    bool k6 = 0;
+    bool k7 = 1;
+    bool k8 = 0;
+};
+
 
 }

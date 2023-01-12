@@ -2866,4 +2866,119 @@ Volume::SOLID_VOXELIZATION_AXIS Volume::getSolidvoxelizationAxis(const std::stri
     }
 }
 
+Volume* subtractVolume(const Volume* op1, const Volume* op2)
+{
+    auto result = new Volume(op1->getWidth(), op1->getHeight(), op1->getDepth(),
+           op1->getPMin(), op1->getPMax(), op1->getType());
+
+    for (size_t i = 0; i < result->getNumberVoxels(); ++i)
+    {
+        result->clear(i);
+
+        auto op1Value = op1->isFilled(i);
+        auto op2Value = op2->isFilled(i);
+
+        if (op1Value && op2Value)
+        {
+            result->clear(i);
+        }
+
+        else if (op1Value && !op2Value)
+        {
+            result->fill(i);
+        }
+        else
+        {
+            result->clear(i);
+        }
+    }
+
+    return result;
+}
+
+Volume* getNextShell(Volume* currentShell, const Volume* currentVolume)
+{
+
+    std::vector< size_t > shellIds;
+
+    // Iterate over all the voxels in the shell and search for the filled ones
+    for (size_t i = 0; i < currentShell->getWidth(); ++i)
+    {
+        for (size_t j = 0; j < currentShell->getHeight(); ++j)
+        {
+            for (size_t k = 0; k < currentShell->getDepth(); ++k)
+            {
+                bool outlier;
+                size_t idx = currentShell->mapToIndex(i, j, k, outlier);
+
+                // If the voxel of the shell is not filled, then search for the next voxel
+                if (!currentShell->isFilled(idx)) continue;
+
+                // If the voxel is filled, then let's proceed
+                std::vector< Vector3f > filledVoxelsInVolume;
+
+                for (int a = -1; a < 2; ++a)
+                {
+                    for (int b = -1; b < 2; ++b)
+                    {
+                        for (int c = -1; c < 2; ++c)
+                        {
+                            bool outlier2;
+                            int idx2 = currentVolume->mapToIndex(i + a, j + b, k + c, outlier2);
+
+                            // If this voxel is an outlier, then search for the next voxel
+                            if (outlier2) continue;
+
+                            // std::cout << "!\n";
+
+
+                            if (currentVolume->isFilled(i + a, j + b, k + c))
+                            {
+                                // Candiate shell or boundary voxel, add it to the list
+                                filledVoxelsInVolume.push_back(Vector3f(i + a, j + b, k + c));
+                            }
+                        }
+                    }
+                }
+
+                // Find the nearest filled voxel to the i, j, k filled voxel
+                Vector3f nearestVoxel;
+                float smallest = 1e32;
+                for (size_t s = 0; s < filledVoxelsInVolume.size(); ++s)
+                {
+                    Vector3f shellVoxel(i, j, k);
+                    Vector3f solidVoxel = filledVoxelsInVolume[s];
+                    float distance =
+                            (shellVoxel.x() - solidVoxel.x()) * (shellVoxel.x() - solidVoxel.x()) +
+                            (shellVoxel.y() - solidVoxel.y()) * (shellVoxel.y() - solidVoxel.y()) +
+                            (shellVoxel.z() - solidVoxel.z()) * (shellVoxel.z() - solidVoxel.z());
+                    distance = std::sqrt(distance);
+
+                    if (distance < smallest)
+                    {
+                        smallest = distance;
+                        nearestVoxel = solidVoxel;
+                    }
+                }
+
+                shellIds.push_back(currentVolume->mapToIndex(nearestVoxel.x(), nearestVoxel.y(), nearestVoxel.z(), outlier));
+            }
+        }
+    }
+
+    // Clear the shell
+    for (size_t i = 0; i < currentShell->getNumberVoxels(); ++i)
+    {
+        currentShell->clear(i);
+    }
+
+    for (size_t i = 0; i <shellIds.size(); ++i)
+    {
+        currentShell->fill(shellIds[i]);
+    }
+
+    return currentShell;
+}
+
+
 }

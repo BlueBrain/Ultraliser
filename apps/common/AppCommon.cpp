@@ -44,7 +44,7 @@ Volume* createVolumeGrid(Mesh *mesh, const AppOptions* options)
 
     // Construct the volume
     return new Volume(pMinInput, pMaxInput, resolution, options->edgeGap,
-                      Ultraliser::VolumeGrid::getType(options->volumeType));
+                      VolumeGrid::getType(options->volumeType));
 }
 
 void computeBoundingBoxForMeshes(const std::string& boundsFile,
