@@ -37,6 +37,8 @@
 #include <data/meshes/simple/VolumeMesh.h>
 #include <data/meshes/simple/MeshOperations.h>
 #include <data/volumes/utilities/VolumeReader.h>
+#include <algorithms/skeletonization/Neighbors.hh>
+#include <algorithms/skeletonization/Thinning6Iterations.h>
 
 #ifdef ULTRALISER_USE_NRRD
 #include <nrrdloader/NRRDLoader.h>
@@ -2866,6 +2868,224 @@ Volume::SOLID_VOXELIZATION_AXIS Volume::getSolidvoxelizationAxis(const std::stri
     }
 }
 
+bool Volume::isBorderVoxel(const int64_t& x, const int64_t& y,const int64_t& z) const
+{
+    if(!isFilled(x, y, z))   return false;
+    if(!isFilled(x + 1, y, z)) return true;
+    if(!isFilled(x - 1, y, z)) return true;
+    if(!isFilled(x, y + 1, z)) return true;
+    if(!isFilled(x, y - 1, z)) return true;
+    if(!isFilled(x, y, z + 1)) return true;
+    if(!isFilled(x, y, z - 1)) return true;
+    return false;
+}
+
+
+
+void Volume::applyThinning()
+{
+    printf("Starting thinning process...\n");
+
+    int ndels;
+    int id;
+    int N = getNumberVoxels();
+
+    // Points to be deleted, with indices, should be a list
+    std::vector< Vec3ui_64 > borderVoxels;
+    std::vector< Vec3ui_64 > voxelsToBeDeleted;
+
+    int8_t volVec[26];
+
+    Thinning6Iterations *STV = new Thinning6Iterations();
+
+    TIMER_SET;
+
+    while(1)
+    {
+        ndels = 0;
+
+        for (size_t ix = 0; ix < getWidth(); ++ix)
+        {
+            for (size_t jy = 0; jy < getHeight(); ++jy)
+            {
+                for (size_t kz = 0; kz < getDepth(); ++kz)
+                {
+                    if (isBorderVoxel(ix, jy, kz))
+                    {
+                        borderVoxels.push_back(Vec3ui_64(ix, jy, kz));
+                    }
+                }
+
+            }
+
+        }
+
+        for (int direction = 6; direction--;)
+        {
+            for (size_t l = 0; l < borderVoxels.size(); ++l)
+            {
+                // ImageData -> GetPoint(borderVoxels[l],r);
+
+                // x = (int)r[0]; y = (int)r[1]; z = (int)r[2];
+                // v = ImageData -> GetScalarComponentAsDouble(x,y,z,0);
+                if (isFilled(borderVoxels[l].x(), borderVoxels[l].y(), borderVoxels[l].z()))
+                {
+                    OMP_PARALLEL_FOR
+                    for (size_t i = 0; i < 26; i++)
+                    {
+                        size_t idx, idy, idz;
+                        idx = borderVoxels[l].x() + VDX[i];
+                        idy = borderVoxels[l].y() + VDY[i];
+                        idz = borderVoxels[l].z() + VDZ[i];
+
+
+                        // vl = ImageData -> GetScalarComponentAsDouble(x+ssdx[i],y+ssdy[i],z+ssdz[i],0);
+                        if (isFilled(idx, idy, idz))
+                            volVec[i] = 1;
+                        else
+                            volVec[i] = 0;
+
+                        // volVec[i] = (vl) ? 1 : 0;
+                    }
+
+                    if ( STV -> matches(direction,volVec) )
+                        voxelsToBeDeleted.push_back(borderVoxels[l]);
+                }
+            }
+
+
+            for (size_t nn = 0; nn < voxelsToBeDeleted.size(); ++nn)
+            {
+                ndels++;
+                clear(voxelsToBeDeleted[nn].x(), voxelsToBeDeleted[nn].y(), voxelsToBeDeleted[nn].z());
+
+                //                ImageData -> GetPoint(voxelsToBeDeleted[nn], r);
+
+                //                x = (int)r[0];
+                //                y = (int)r[1];
+                //                z = (int)r[2];
+
+                //                ImageData -> SetScalarComponentFromDouble(x,y,z,0,0);
+            }
+            voxelsToBeDeleted.clear();
+        }
+
+        printf("\t# * Surface = %llu / #Deletions = %llu\n",(long long int)borderVoxels.size(),ndels);
+
+
+        borderVoxels.clear();
+
+        if (ndels == 0)
+            break;
+    }
+
+    delete STV;
+
+    printf("Thinning done!\n");
+    borderVoxels.clear();
+
+    LOG_STATS(GET_TIME_SECONDS);
+
+}
+
+
+
+
+
+
+
+size_t Volume::verifyN6(const int64_t& x, const int64_t& y,const int64_t& z) const
+{
+    size_t value = 0;
+
+    // N
+    if (isFilled(x, y, z + 1)) value++;
+
+    // S
+    if (isFilled(x, y, z - 1)) value++;
+
+    // U
+    if (isFilled(x, y + 1, z)) value++;
+
+    // D
+    if (isFilled(x, y - 1, z)) value++;
+
+    // E
+    if (isFilled(x + 1, y, z)) value++;
+
+    // W
+    if (isFilled(x - 1, y, z)) value++;
+
+    return value;
+}
+
+size_t Volume::verifyN18(const int64_t& x, const int64_t& y,const int64_t& z) const
+{
+    size_t value = verifyN6(x, y, z);
+
+    // N face
+    if (isFilled(x + 1, y, z + 1)) value++;
+    if (isFilled(x - 1, y, z + 1)) value++;
+    if (isFilled(x, y + 1, z + 1)) value++;
+    if (isFilled(x, y - 1, z + 1)) value++;
+
+    // S face
+    if (isFilled(x + 1, y, z - 1)) value++;
+    if (isFilled(x - 1, y, z - 1)) value++;
+    if (isFilled(x, y + 1, z - 1)) value++;
+    if (isFilled(x, y - 1, z - 1)) value++;
+
+    // E face
+    if (isFilled(x + 1, y + 1, z)) value++;
+    if (isFilled(x + 1, y - 1, z)) value++;
+
+    // W face
+    if (isFilled(x - 1, y + 1, z)) value++;
+    if (isFilled(x - 1, y - 1, z)) value++;
+
+    return value;
+
+}
+
+size_t Volume::verifyN26(const int64_t& x, const int64_t& y,const int64_t& z) const
+{
+    size_t value = verifyN18(x, y, z);
+
+    if (isFilled(x + 1, y + 1, z + 1)) value++;
+    if (isFilled(x + 1, y + 1, z - 1)) value++;
+
+    if (isFilled(x - 1, y + 1, z + 1)) value++;
+    if (isFilled(x - 1, y + 1, z - 1)) value++;
+
+    return value;
+}
+
+void verifyShell(Volume* shell, const Volume* solid)
+{
+    for (size_t i = 0; i < shell->getWidth(); ++i)
+    {
+        for (size_t j = 0; j < shell->getHeight(); ++j)
+        {
+            for (size_t k = 0; k < shell->getDepth(); ++k)
+            {
+                // We are at voxel p
+
+                // Does the voxel p has connection on the border of the solid volume
+                if (shell->isFilled(i, j, k))
+                {
+                    // If yes, then continue
+                    if (solid->verifyN26(i, j, k)) continue;
+
+                    // Else, set the voxel p with the value of 1
+                    shell->fillVoxel(i, j, k);
+
+                    // That's it
+                }
+            }
+        }
+    }
+}
+
 Volume* subtractVolume(const Volume* op1, const Volume* op2)
 {
     auto result = new Volume(op1->getWidth(), op1->getHeight(), op1->getDepth(),
@@ -2896,7 +3116,7 @@ Volume* subtractVolume(const Volume* op1, const Volume* op2)
     return result;
 }
 
-Volume* getNextShell(Volume* currentShell, const Volume* currentVolume)
+void getNextShell(Volume* currentShell, const Volume* currentVolume)
 {
 
     std::vector< size_t > shellIds;
@@ -2929,9 +3149,6 @@ Volume* getNextShell(Volume* currentShell, const Volume* currentVolume)
                             // If this voxel is an outlier, then search for the next voxel
                             if (outlier2) continue;
 
-                            // std::cout << "!\n";
-
-
                             if (currentVolume->isFilled(i + a, j + b, k + c))
                             {
                                 // Candiate shell or boundary voxel, add it to the list
@@ -2943,41 +3160,62 @@ Volume* getNextShell(Volume* currentShell, const Volume* currentVolume)
 
                 // Find the nearest filled voxel to the i, j, k filled voxel
                 Vector3f nearestVoxel;
+                bool filled = false;
                 float smallest = 1e32;
-                for (size_t s = 0; s < filledVoxelsInVolume.size(); ++s)
+                if (filledVoxelsInVolume.size() > 3)
                 {
-                    Vector3f shellVoxel(i, j, k);
-                    Vector3f solidVoxel = filledVoxelsInVolume[s];
-                    float distance =
-                            (shellVoxel.x() - solidVoxel.x()) * (shellVoxel.x() - solidVoxel.x()) +
-                            (shellVoxel.y() - solidVoxel.y()) * (shellVoxel.y() - solidVoxel.y()) +
-                            (shellVoxel.z() - solidVoxel.z()) * (shellVoxel.z() - solidVoxel.z());
-                    distance = std::sqrt(distance);
-
-                    if (distance < smallest)
+                    for (size_t s = 0; s < filledVoxelsInVolume.size(); ++s)
                     {
-                        smallest = distance;
-                        nearestVoxel = solidVoxel;
+                        Vector3f shellVoxel(i, j, k);
+                        Vector3f solidVoxel = filledVoxelsInVolume[s];
+                        float distance =
+                                (shellVoxel.x() - solidVoxel.x()) * (shellVoxel.x() - solidVoxel.x()) +
+                                (shellVoxel.y() - solidVoxel.y()) * (shellVoxel.y() - solidVoxel.y()) +
+                                (shellVoxel.z() - solidVoxel.z()) * (shellVoxel.z() - solidVoxel.z());
+                        distance = std::sqrt(distance);
+
+                        if (distance < smallest)
+                        {
+                            smallest = distance;
+                            nearestVoxel = solidVoxel;
+                        }
                     }
+
+                    if (smallest < 1e15)
+                        shellIds.push_back(currentVolume->mapToIndex(nearestVoxel.x(), nearestVoxel.y(), nearestVoxel.z(), outlier));
+                     else
+                        shellIds.push_back(currentVolume->mapToIndex(i, j, k, outlier));
+                }
+                else
+                {
+                    // shellIds.push_back(currentVolume->mapToIndex(i, j, k, outlier));
                 }
 
-                shellIds.push_back(currentVolume->mapToIndex(nearestVoxel.x(), nearestVoxel.y(), nearestVoxel.z(), outlier));
+
+                std::cout << filledVoxelsInVolume.size() << " "<< smallest << "\n";
+
+
             }
         }
     }
 
     // Clear the shell
+    if (shellIds.size() > 0)
+    {
     for (size_t i = 0; i < currentShell->getNumberVoxels(); ++i)
     {
         currentShell->clear(i);
     }
+    }
+    else
+        return;
 
     for (size_t i = 0; i <shellIds.size(); ++i)
     {
         currentShell->fill(shellIds[i]);
     }
 
-    return currentShell;
+
 }
 
 

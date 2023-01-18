@@ -612,6 +612,14 @@ public:
     VOLUME_TYPE getType() const { return _gridType; }
 
 
+    size_t verifyN6(const int64_t& x, const int64_t& y,const int64_t& z) const;
+    size_t verifyN18(const int64_t& x, const int64_t& y,const int64_t& z) const;
+    size_t verifyN26(const int64_t& x, const int64_t& y,const int64_t& z) const;
+    bool isBorderVoxel(const int64_t& x, const int64_t& y,const int64_t& z) const;
+
+    void applyThinning();
+
+
 private:
 
     /**
@@ -893,6 +901,9 @@ Volume* subtractVolume(const Volume* op1, const Volume* op2);
 
 
 
-Volume* getNextShell(Volume *currentShell, const Volume* currentVolume);
+void getNextShell(Volume *currentShell, const Volume* currentVolume);
+
+void verifyShell(Volume* shell, const Volume* solid);
+
 
 }
