@@ -423,9 +423,11 @@ public:
      * @return
      */
     size_t mapToIndex(const int64_t &x,
-                        const int64_t &y,
-                        const int64_t &z,
-                        bool &outlier) const;
+                      const int64_t &y,
+                      const int64_t &z,
+                      bool &outlier) const;
+
+    void mapToXYZ(const size_t index, size_t &x, size_t &y, size_t &z) const;
 
     /**
      * @brief fill

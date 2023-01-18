@@ -1676,6 +1676,41 @@ size_t Volume::mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z, 
     }
 }
 
+void Volume::mapToXYZ(const size_t index, size_t& x, size_t& y, size_t& z) const
+{
+
+    size_t iiid = index;
+    z = iiid/(getWidth()*getHeight());
+    iiid -= z*getWidth()*getHeight();
+
+    y = iiid/getWidth();
+    iiid -= y*getWidth();
+          x = iiid/1;
+
+          return;
+
+    x = index / (getHeight() * getDepth());
+    y = (index / getDepth()) % getHeight();
+    z = index % getDepth();
+
+
+
+
+
+
+
+
+//    j = (index - (k*WIDTH*HEIGHT))/WIDTH
+//    If you want the logic to be a little clearer, and don't need the original index, you can do
+
+
+
+
+
+
+}
+
+
 void Volume::project(const std::string prefix,
                      const bool xy, const bool xz, const bool zy,
                      const bool &projectColorCoded) const
@@ -2904,12 +2939,27 @@ void Volume::applyThinning()
     {
         ndels = 0;
 
+        // we can do it in chunks
+
         for (size_t ix = 0; ix < getWidth(); ++ix)
         {
             for (size_t jy = 0; jy < getHeight(); ++jy)
             {
                 for (size_t kz = 0; kz < getDepth(); ++kz)
                 {
+                    size_t idx, x, y, z;
+                    bool out;
+                    idx = mapToIndex(ix, jy, kz, out);
+
+                    if (ix > 20 && jy > 20 && kz > 20)
+                    {
+                    mapToXYZ(idx, x, y, z);
+
+                    printf(" %ld %ld %ld %ld %ld %ld %ld \n", ix, jy, kz, idx, x, y, z);
+                    exit(0);
+                    }
+
+
                     if (isBorderVoxel(ix, jy, kz))
                     {
                         borderVoxels.push_back(Vec3ui_64(ix, jy, kz));
