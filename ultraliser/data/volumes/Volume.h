@@ -428,9 +428,11 @@ public:
                       const int64_t &z,
                       bool &outlier) const;
 
-    std::vector< Vec3ui_64 > searchForBorderVoxels() const;
-    std::vector< Vec3ui_64 > searchForDeletableVoxels(std::vector<Vec3ui_64> &borderVoxels,
-            std::unique_ptr<Thinning6Iterations> &thinning, int direction, int8_t *vecVol) const;
+    std::vector< std::vector< Vec3ui_64> > searchForBorderVoxels() const;
+    std::vector< Vec3ui_64 > searchForDeletableVoxels(
+            std::vector< std::vector< Vec3ui_64> > &perSliceBorderVoxels,
+            std::unique_ptr<Thinning6Iterations> &thinning,
+            int direction, int8_t *vecVol) const;
 
 
 
@@ -621,9 +623,7 @@ public:
     VOLUME_TYPE getType() const { return _gridType; }
 
 
-    size_t verifyN6(const int64_t& x, const int64_t& y,const int64_t& z) const;
-    size_t verifyN18(const int64_t& x, const int64_t& y,const int64_t& z) const;
-    size_t verifyN26(const int64_t& x, const int64_t& y,const int64_t& z) const;
+
     bool isBorderVoxel(const int64_t& x, const int64_t& y,const int64_t& z) const;
 
     void applyThinning();
@@ -905,14 +905,4 @@ public:
      */
     static SOLID_VOXELIZATION_AXIS getSolidvoxelizationAxis(const std::string &argumentString);
 };
-
-Volume* subtractVolume(const Volume* op1, const Volume* op2);
-
-
-
-void getNextShell(Volume *currentShell, const Volume* currentVolume);
-
-void verifyShell(Volume* shell, const Volume* solid);
-
-
 }

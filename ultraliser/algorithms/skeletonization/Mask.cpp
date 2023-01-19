@@ -163,7 +163,7 @@ bool Mask::matches(const int8_t *vol, int8_t *vec)
     int v, q3 = 0;
     int i;
 
-    for (i=26;i--;)
+    for (size_t i = 0; i < 26; ++i)
     {
         v = vol[i];
 
@@ -192,10 +192,18 @@ bool Mask::matches(const int8_t *vol, int8_t *vec)
 // Verify if the rotations match.
 bool Mask::matches(const int8_t* subVolume)
 {
-    if (matches(subVolume, _mask0)) return true;
-    if (matches(subVolume, _mask90)) return true;
-    if (matches(subVolume, _mask180)) return true;
-    if (matches(subVolume, _mask270)) return true;
+    if (matches(subVolume, _mask0))
+        return true;
+
+    if (matches(subVolume, _mask90))
+        return true;
+
+    if (matches(subVolume, _mask180))
+        return true;
+
+    if (matches(subVolume, _mask270))
+        return true;
+
     return false;
 }
 

@@ -34,7 +34,7 @@ DirectionalMask::~DirectionalMask()
 
 bool DirectionalMask::matches(const int8_t *subVolume)
 {
-    for (int i = 6; i--;)
+    for (size_t i = 0; i < 6; ++i)
     {
         if (_baseMasks[i].matches(subVolume))
             return true;

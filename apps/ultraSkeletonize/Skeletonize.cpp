@@ -74,21 +74,6 @@ void run(int argc , const char** argv)
     auto prefix = options->projectionPrefix;
 
     // Create the volume from the mesh
-    auto surfaceVolume = createVolumeGrid(inputMesh, options);
-
-    // Surface voxelization
-    //surfaceVolume->surfaceVoxelization(inputMesh, true, true);
-    //solidVolume->solidVoxelization(options->voxelizationAxis);
-
-    //surfaceVolume->project(prefix + "_surface",
-//                    options->projectXY, options->projectXZ, options->projectZY,
-//                    options->projectColorCoded);
-
-//    surfaceVolume->exportToMesh(prefix + "_surface",
-//                                options->exportOBJ, options->exportPLY,
-//                                options->exportOFF, options->exportSTL);
-
-    // Create the volume from the mesh
     auto solidVolume = createVolumeGrid(inputMesh, options);
 
     // Surface voxelization
@@ -97,89 +82,18 @@ void run(int argc , const char** argv)
     solidVolume->project(prefix + "_solid",
                     options->projectXY, options->projectXZ, options->projectZY,
                     options->projectColorCoded);
-    solidVolume->solidVoxelization(options->voxelizationAxis);
-
     solidVolume->applyThinning();
 
     solidVolume->project(prefix + "_thin",
                     options->projectXY, options->projectXZ, options->projectZY,
                     options->projectColorCoded);
-    solidVolume->solidVoxelization(options->voxelizationAxis);
+
     solidVolume->writeVolumes(options->volumePrefix,
                          options->exportBitVolume,
                          options->exportUnsignedVolume,
                          options->exportFloatVolume,
                          options->exportNRRDVolume,
                          options->exportRawVolume);
-
-
-//    for (size_t i = 0; i < surfaceVolume->getWidth(); ++i)
-//    {
-//        for (size_t j = 0; j < surfaceVolume->getHeight(); ++j)
-//        {
-//            for (size_t k = 0; k < surfaceVolume->getWidth(); ++k)
-//            {
-//                if (solidVolume->isBorderVoxel(i, j, k))
-//                {
-//                    surfaceVolume->fill(i, j, k);
-//                }
-//            }
-//        }
-//    }
-
-//    surfaceVolume->project(prefix + "_border_it is",
-//                    options->projectXY, options->projectXZ, options->projectZY,
-//                    options->projectColorCoded);
-
-    return;
-
-//    solidVolume->exportToMesh(prefix + "_solid",
-//                              options->exportOBJ, options->exportPLY,
-//                              options->exportOFF, options->exportSTL);
-
-    // Difference, or inner solid volume
-    auto innerSolidVolume = subtractVolume(solidVolume, surfaceVolume);
-    innerSolidVolume->project(prefix + "_diff",
-                        options->projectXY, options->projectXZ, options->projectZY,
-                        options->projectColorCoded);
-
-
-    for (size_t i = 0; i < surfaceVolume->getWidth(); ++i)
-    {
-        for (size_t j = 0; j < surfaceVolume->getHeight(); ++j)
-        {
-            for (size_t k = 0; k < surfaceVolume->getWidth(); ++k)
-            {
-                if (surfaceVolume->isFilled(i, j , k))
-                {
-                    auto n26Voxels = surfaceVolume->verifyN26(i, j, k);
-                    std::cout << n26Voxels << " ";
-                }
-            }
-        }
-    }
-
-
-    return;
-
-    // Get next shell
-    for (size_t i = 0; i < 100; ++i)
-    {
-        getNextShell(surfaceVolume, innerSolidVolume);
-
-        surfaceVolume->project(prefix + "_shell_" + std::to_string(i),
-                           options->projectXY, options->projectXZ, options->projectZY,
-                           options->projectColorCoded);
-
-        innerSolidVolume = subtractVolume(innerSolidVolume, surfaceVolume);
-
-        // verify the shell with respect to the the diff volume
-        // verifyShell(nextShell, innerSolidVolume);
-
-
-
-
-    }
 }
 }
 
