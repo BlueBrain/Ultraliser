@@ -2903,6 +2903,54 @@ Volume::SOLID_VOXELIZATION_AXIS Volume::getSolidvoxelizationAxis(const std::stri
     }
 }
 
+std::vector< Vec3ui_64 >
+Volume::searchForDeletableVoxels(std::vector<Vec3ui_64> &borderVoxels, std::unique_ptr< Thinning6Iterations > &thinning, int direction, int8_t* vecVol) const
+{
+    std::vector< Vec3ui_64 > voxelsToBeDeleted;
+
+    for (size_t l = 0; l < borderVoxels.size(); ++l)
+    {
+        if (isFilled(borderVoxels[l].x(), borderVoxels[l].y(), borderVoxels[l].z()))
+        {
+            for (size_t i = 0; i < 26; i++)
+            {
+                size_t idx, idy, idz;
+                idx = borderVoxels[l].x() + VDX[i];
+                idy = borderVoxels[l].y() + VDY[i];
+                idz = borderVoxels[l].z() + VDZ[i];
+
+                vecVol[i] = isFilled(idx, idy, idz) ? 1 : 0;
+            }
+
+            if ( thinning -> matches(direction, vecVol) )
+                voxelsToBeDeleted.push_back(borderVoxels[l]);
+        }
+    }
+
+    return voxelsToBeDeleted;
+}
+
+std::vector< Vec3ui_64 > Volume::searchForBorderVoxels() const
+{
+    std::vector< Vec3ui_64 > borderVoxels;
+
+    for (size_t i = 0; i < getWidth(); ++i)
+    {
+        for (size_t j = 0; j < getHeight(); ++j)
+        {
+            for (size_t k = 0; k < getDepth(); ++k)
+            {
+                if (isBorderVoxel(i, j, k))
+                {
+                    borderVoxels.push_back(Vec3ui_64(i, j, k));
+                }
+            }
+        }
+    }
+
+    return borderVoxels;
+}
+
 bool Volume::isBorderVoxel(const int64_t& x, const int64_t& y,const int64_t& z) const
 {
     if(!isFilled(x, y, z))   return false;
@@ -2915,125 +2963,53 @@ bool Volume::isBorderVoxel(const int64_t& x, const int64_t& y,const int64_t& z) 
     return false;
 }
 
-
-
 void Volume::applyThinning()
 {
     printf("Starting thinning process...\n");
 
-    int ndels;
+
     int id;
     int N = getNumberVoxels();
 
     // Points to be deleted, with indices, should be a list
-    std::vector< Vec3ui_64 > borderVoxels;
-    std::vector< Vec3ui_64 > voxelsToBeDeleted;
+
+
 
     int8_t volVec[26];
 
-    Thinning6Iterations *STV = new Thinning6Iterations();
+    std::unique_ptr< Thinning6Iterations > STV = std::make_unique<Thinning6Iterations>();
 
     TIMER_SET;
-
     while(1)
     {
-        ndels = 0;
+        size_t numberDeletedVoxels = 0;
+        std::vector< Vec3ui_64 > borderVoxels = searchForBorderVoxels();
 
-        // we can do it in chunks
-
-        for (size_t ix = 0; ix < getWidth(); ++ix)
+        for (size_t direction = 0; direction < 6; direction++)
         {
-            for (size_t jy = 0; jy < getHeight(); ++jy)
+            // Search for the delerable voxels
+            std::vector< Vec3ui_64 > voxelsToBeDeleted = searchForDeletableVoxels(
+                        borderVoxels, STV, direction, volVec);
+
+            // Delete the voxels
+            for (size_t i = 0; i < voxelsToBeDeleted.size(); ++i)
             {
-                for (size_t kz = 0; kz < getDepth(); ++kz)
-                {
-                    size_t idx, x, y, z;
-                    bool out;
-                    idx = mapToIndex(ix, jy, kz, out);
-
-                    if (ix > 20 && jy > 20 && kz > 20)
-                    {
-                    mapToXYZ(idx, x, y, z);
-
-                    printf(" %ld %ld %ld %ld %ld %ld %ld \n", ix, jy, kz, idx, x, y, z);
-                    exit(0);
-                    }
-
-
-                    if (isBorderVoxel(ix, jy, kz))
-                    {
-                        borderVoxels.push_back(Vec3ui_64(ix, jy, kz));
-                    }
-                }
-
-            }
-
-        }
-
-        for (int direction = 6; direction--;)
-        {
-            for (size_t l = 0; l < borderVoxels.size(); ++l)
-            {
-                // ImageData -> GetPoint(borderVoxels[l],r);
-
-                // x = (int)r[0]; y = (int)r[1]; z = (int)r[2];
-                // v = ImageData -> GetScalarComponentAsDouble(x,y,z,0);
-                if (isFilled(borderVoxels[l].x(), borderVoxels[l].y(), borderVoxels[l].z()))
-                {
-                    OMP_PARALLEL_FOR
-                    for (size_t i = 0; i < 26; i++)
-                    {
-                        size_t idx, idy, idz;
-                        idx = borderVoxels[l].x() + VDX[i];
-                        idy = borderVoxels[l].y() + VDY[i];
-                        idz = borderVoxels[l].z() + VDZ[i];
-
-
-                        // vl = ImageData -> GetScalarComponentAsDouble(x+ssdx[i],y+ssdy[i],z+ssdz[i],0);
-                        if (isFilled(idx, idy, idz))
-                            volVec[i] = 1;
-                        else
-                            volVec[i] = 0;
-
-                        // volVec[i] = (vl) ? 1 : 0;
-                    }
-
-                    if ( STV -> matches(direction,volVec) )
-                        voxelsToBeDeleted.push_back(borderVoxels[l]);
-                }
-            }
-
-
-            for (size_t nn = 0; nn < voxelsToBeDeleted.size(); ++nn)
-            {
-                ndels++;
-                clear(voxelsToBeDeleted[nn].x(), voxelsToBeDeleted[nn].y(), voxelsToBeDeleted[nn].z());
-
-                //                ImageData -> GetPoint(voxelsToBeDeleted[nn], r);
-
-                //                x = (int)r[0];
-                //                y = (int)r[1];
-                //                z = (int)r[2];
-
-                //                ImageData -> SetScalarComponentFromDouble(x,y,z,0,0);
+                numberDeletedVoxels++;
+                clear(voxelsToBeDeleted[i].x(), voxelsToBeDeleted[i].y(), voxelsToBeDeleted[i].z());
             }
             voxelsToBeDeleted.clear();
         }
 
-        printf("\t# * Surface = %llu / #Deletions = %llu\n",(long long int)borderVoxels.size(),ndels);
+        printf("\t# * Surface = %lu / #Deletions = %lu\n", borderVoxels.size(), numberDeletedVoxels);
 
 
         borderVoxels.clear();
 
-        if (ndels == 0)
+        if (numberDeletedVoxels == 0)
             break;
     }
 
-    delete STV;
-
-    printf("Thinning done!\n");
-    borderVoxels.clear();
-
+    LOG_STATUS_IMPORTANT("ThinningStats.");
     LOG_STATS(GET_TIME_SECONDS);
 
 }

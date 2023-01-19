@@ -29,6 +29,7 @@
 #include <data/meshes/simple/Mesh.h>
 #include <data/volumes/utilities/VolumeType.hh>
 #include <data/volumes/utilities/VolumeData.hh>
+#include <algorithms/skeletonization/Thinning6Iterations.h>
 
 namespace Ultraliser
 {
@@ -426,6 +427,12 @@ public:
                       const int64_t &y,
                       const int64_t &z,
                       bool &outlier) const;
+
+    std::vector< Vec3ui_64 > searchForBorderVoxels() const;
+    std::vector< Vec3ui_64 > searchForDeletableVoxels(std::vector<Vec3ui_64> &borderVoxels,
+            std::unique_ptr<Thinning6Iterations> &thinning, int direction, int8_t *vecVol) const;
+
+
 
     void mapToXYZ(const size_t index, size_t &x, size_t &y, size_t &z) const;
 
