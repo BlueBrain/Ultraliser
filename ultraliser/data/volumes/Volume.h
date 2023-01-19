@@ -416,6 +416,7 @@ public:
      */
     void addVolumePass(const Volume* volume);
 
+    size_t mapTo1DIndexWithoutBoundCheck(const int64_t &x, const int64_t &y, const int64_t &z) const;
     /**
      * @brief mapToIndex
      * @param x

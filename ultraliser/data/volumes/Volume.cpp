@@ -1662,6 +1662,11 @@ bool Volume::isFilled(const int64_t &x, const int64_t &y, const int64_t &z) cons
         return isFilled(index);
 }
 
+size_t Volume::mapTo1DIndexWithoutBoundCheck(const int64_t &x, const int64_t &y, const int64_t &z) const
+{
+    return I2UI64(x + (getWidth() * y) + (getWidth() * getHeight() * z));
+}
+
 size_t Volume::mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z, bool& outlier) const
 {
     if(x >= getWidth()  || x < 0 || y >= getHeight() || y < 0 || z >= getDepth()  || z < 0)
@@ -2959,7 +2964,6 @@ Volume::searchForDeletableVoxels(std::vector< std::vector< Vec3ui_64 > > &perSli
                                  std::unique_ptr< Thinning6Iterations > &thinning,
                                  int direction, int8_t* vecVol) const
 {
-
     std::vector< Vec3ui_64 > voxelsToBeDeleted;
 
     for (size_t i = 0; i < perSliceBorderVoxels.size(); ++i)
@@ -3044,6 +3048,117 @@ void Volume::applyThinning()
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
-}
 
+
+    // Get the skeleton
+
+    // Get all the filled voxel
+
+    // Get the neighbour voxels
+
+    std::map< size_t, size_t > volumeMap;
+
+    struct GraphNode
+    {
+        GraphNode() {}
+        GraphNode(Vec3ui_64 point, size_t index)
+        {
+            p = point;
+            i = index;
+        }
+
+        size_t i;
+        Vec3ui_64 p;
+        bool visited = false;
+        bool isBranching = false;
+
+        std::vector< size_t > connections;
+    };
+
+    struct GraphEdge
+    {
+        GraphEdge() {}
+        GraphEdge(size_t index0, size_t index1)
+        {
+            p0Index = index0;
+            p1Index = index1;
+        }
+
+        size_t p0Index;
+        size_t p1Index;
+    };
+
+    // Construct all the nodes
+    size_t nodeIndex =0;
+    std::vector< GraphNode* > nodes;
+    for (size_t i = 0; i < getWidth(); ++i)
+    {
+        for (size_t j = 0; j < getHeight(); ++j)
+        {
+            for (size_t k = 0; k < getDepth(); ++k)
+            {
+                if (isFilled(i, j, k))
+                {
+                    size_t index = mapTo1DIndexWithoutBoundCheck(i, j, k);
+                    nodes.push_back(new GraphNode(Vec3ui_64(i, j, k), index));
+                    volumeMap.insert(std::pair<size_t, size_t>(index, nodeIndex));
+                    nodeIndex++;
+                }
+            }
+        }
+    }
+
+
+    size_t branchingPoints = 0;
+    // Construct all the edges from the nodes
+    std::vector< GraphEdge* > edges;
+    for (size_t i = 0; i < nodes.size(); ++i)
+    {
+        // Check if the node has been visited before
+        GraphNode* node = nodes[i];
+        if (node->visited)
+            continue;
+
+        size_t connectedEdges = 0;
+
+        // Search for the neighbours
+        for (size_t l = 0; l < 26; l++)
+        {
+            size_t idx, idy, idz;
+            idx = node->p.x() + VDX[l];
+            idy = node->p.y() + VDY[l];
+            idz = node->p.z() + VDZ[l];
+
+            if (isFilled(idx, idy, idz))
+            {
+                connectedEdges++;
+
+                // Find the index of p1
+                auto vIndex = mapTo1DIndexWithoutBoundCheck(idx, idy, idz);
+                auto nIndex = volumeMap.find(vIndex)->second;
+
+                node->connections.push_back(nIndex);
+
+                if (!nodes[nIndex]->visited)
+                    edges.push_back(new GraphEdge(node->i, nIndex));
+            }
+        }
+
+        if (connectedEdges > 2)
+        {
+            node->isBranching = true;
+            branchingPoints++;
+        }
+
+        node->visited = true;
+    }
+
+    std::cout << nodes.size() << " : Nodes \n";
+    std::cout << edges.size() << " : Edges \n";
+    std::cout << branchingPoints << " : Branching Points \n";
+
+
+    // Find edges between the branching points
+
+}
 }
