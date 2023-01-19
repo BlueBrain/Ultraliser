@@ -2990,6 +2990,95 @@ Volume::searchForDeletableVoxels(std::vector< std::vector< Vec3ui_64 > > &perSli
     return voxelsToBeDeleted;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+struct GraphEdge
+{
+    GraphEdge() {}
+    GraphEdge(size_t index, size_t index0, size_t index1)
+    {
+        i = index;
+        p0Index = index0;
+        p1Index = index1;
+    }
+
+    size_t i;
+    size_t p0Index;
+    size_t p1Index;
+};
+
+struct GraphNode
+{
+    GraphNode() {}
+    GraphNode(Vec3ui_64 point, size_t index)
+    {
+        p = point;
+        i = index;
+    }
+
+    size_t i;
+    Vec3ui_64 p;
+    bool visited = false;
+    bool isBranching = false;
+
+    std::vector< GraphEdge* > edges;
+};
+
+void constructBranch(const GraphNode* currentNode,
+                     const GraphEdge* currentEdge,
+                     std::vector< GraphNode* > nodes,
+                     std::vector< size_t >& branch)
+{
+//    std::cout << "b1 \n";
+
+    // Add the current branching point to the loop
+    branch.push_back(currentNode->i);
+
+    // Get the next node
+    const size_t p0 = currentEdge->p0Index;
+    const size_t p1 = currentEdge->p1Index;
+
+    size_t nextNodeIndex;
+    if (p0 == currentNode->i)
+        nextNodeIndex = p1;
+    else
+        nextNodeIndex = p0;
+
+    const GraphNode* nextNode = nodes[nextNodeIndex];
+
+    // Add the next point to the branch
+    branch.push_back(nextNodeIndex);
+
+    if (nextNode->edges.size() > 2)
+        return;
+    else
+    {
+        // Find the next continuing edge
+        GraphEdge* edge0 = nextNode->edges[0];
+        GraphEdge* edge1 = nextNode->edges[1];
+
+        const GraphEdge* connectingEdge = (currentEdge->i == edge0->i) ? edge1 : edge0;
+
+        constructBranch(nextNode, connectingEdge, nodes, branch);
+    }
+}
+
+
 void Volume::applyThinning()
 {
     // The thinning kernel that will be used to thin the volume
@@ -3058,35 +3147,6 @@ void Volume::applyThinning()
 
     std::map< size_t, size_t > volumeMap;
 
-    struct GraphNode
-    {
-        GraphNode() {}
-        GraphNode(Vec3ui_64 point, size_t index)
-        {
-            p = point;
-            i = index;
-        }
-
-        size_t i;
-        Vec3ui_64 p;
-        bool visited = false;
-        bool isBranching = false;
-
-        std::vector< size_t > connections;
-    };
-
-    struct GraphEdge
-    {
-        GraphEdge() {}
-        GraphEdge(size_t index0, size_t index1)
-        {
-            p0Index = index0;
-            p1Index = index1;
-        }
-
-        size_t p0Index;
-        size_t p1Index;
-    };
 
     // Construct all the nodes
     size_t nodeIndex =0;
@@ -3108,17 +3168,17 @@ void Volume::applyThinning()
         }
     }
 
-
     size_t branchingPoints = 0;
+    size_t edgeIndex = 0;
+
     // Construct all the edges from the nodes
     std::vector< GraphEdge* > edges;
     for (size_t i = 0; i < nodes.size(); ++i)
     {
         // Check if the node has been visited before
         GraphNode* node = nodes[i];
-        if (node->visited)
-            continue;
 
+        // Count the number of the connected edges to the node
         size_t connectedEdges = 0;
 
         // Search for the neighbours
@@ -3137,10 +3197,18 @@ void Volume::applyThinning()
                 auto vIndex = mapTo1DIndexWithoutBoundCheck(idx, idy, idz);
                 auto nIndex = volumeMap.find(vIndex)->second;
 
-                node->connections.push_back(nIndex);
+                // Construct the edge
+                auto edge = new GraphEdge(edgeIndex, node->i, nIndex);
+                edgeIndex++;
 
+                // Add the edge to the node, only to be able to access it later
+                node->edges.push_back(edge);
+
+                // If the node is not visited before, add the edge to the edge list
                 if (!nodes[nIndex]->visited)
-                    edges.push_back(new GraphEdge(node->i, nIndex));
+                {
+                    edges.push_back(edge);
+                }
             }
         }
 
@@ -3158,7 +3226,32 @@ void Volume::applyThinning()
     std::cout << branchingPoints << " : Branching Points \n";
 
 
-    // Find edges between the branching points
+    std::vector< std::vector< size_t > > branches;
+    // From every bifurcation point, start collecting the edges to construct the graph
+    for (size_t i = 0; i < nodes.size(); ++i)
+    {
+        // Keep a reference to the node ID
+        const GraphNode* node = nodes[i];
 
+        // Only for the branching points
+        if (node->isBranching)
+        {
+            // Get all the edges connected to the node
+            for (size_t j = 0; j < node->edges.size(); ++j)
+            {
+                const GraphEdge* edge = node->edges[j];
+
+                std::vector< size_t > branch;
+                constructBranch(node, edge, nodes, branch);
+                // branches.push_back(branch);
+            }
+        }
+    }
+
+    std::cout << branches.size() << "\n : Branches \n";
 }
+
+
+
+
 }
