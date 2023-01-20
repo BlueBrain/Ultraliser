@@ -28,12 +28,12 @@ namespace Ultraliser
 Volume* createVolumeGrid(Mesh *mesh, const AppOptions* options)
 {
     // Get relaxed bounding box to build the volume
-    Ultraliser::Vector3f pMinInput, pMaxInput;
+    Vector3f pMinInput, pMaxInput;
     mesh->computeBoundingBox(pMinInput, pMaxInput);
-    Vector3f meshBoundingBox = pMaxInput - pMinInput;
+    const auto& meshBoundingBox = pMaxInput - pMinInput;
 
     // Get the largest dimension
-    const float largestDimension = meshBoundingBox.getLargestDimension();
+    const auto largestDimension = meshBoundingBox.getLargestDimension();
 
     size_t resolution;
     if (options->scaledResolution)

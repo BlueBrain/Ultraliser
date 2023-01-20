@@ -3025,14 +3025,15 @@ struct GraphEdge
 struct GraphNode
 {
     GraphNode() {}
-    GraphNode(Vec3ui_64 point, size_t index)
+    GraphNode(Vector3f point, size_t index)
     {
         p = point;
         i = index;
     }
 
     size_t i;
-    Vec3ui_64 p;
+    Vector3f p;
+    float radius;
     bool visited = false;
     bool isBranching = false;
 
@@ -3090,6 +3091,47 @@ void Volume::applyThinning()
     // Parameters to calculate the loop progress
     size_t initialNumberVoxelsToBeDeleted = 0;
     size_t loopCounter = 0;
+
+    /// Get the surface shell of the volume
+    std::vector< Vector3f > shellPoints;
+    std::vector< std::vector< Vec3ui_64 > > perSliceSurfaceShell = searchForBorderVoxels();
+    for (size_t i = 0; i < perSliceSurfaceShell.size(); ++i)
+    {
+        for (size_t j = 0; j < perSliceSurfaceShell[i].size(); ++j)
+        {
+            const auto voxel = perSliceSurfaceShell[i][j];
+            shellPoints.push_back(Vector3f(voxel.x(), voxel.y(), voxel.z()));
+        }
+        perSliceSurfaceShell[i].clear();
+    }
+    perSliceSurfaceShell.clear();
+
+    // Compute the dimensions of the resulting volume mesh
+    Vector3f inputMeshbounds = _pMax - _pMin;
+    Vector3f inputMeshCenter = _pMin + inputMeshbounds * 0.5;
+
+    // Vector3f pMinVolume, pMaxVolume, boundsVolume;
+    Vector3f pMaxVolume(getWidth() * 1., getHeight() * 1., getDepth() * 1.);
+    Vector3f volumeCenter = (0.5f * pMaxVolume);
+    Vector3f scaleFactor = inputMeshbounds / pMaxVolume;
+
+    // Adjust the locations of the shell points
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < shellPoints.size(); ++i)
+    {
+        auto& point = shellPoints[i];
+
+        // Center at the origin
+        point -= volumeCenter;
+
+        // Scale
+        point.x() *= scaleFactor.x();
+        point.y() *= scaleFactor.y();
+        point.z() *= scaleFactor.z();
+
+        // Translate
+        point += inputMeshCenter;
+    }
 
     TIMER_SET;
     LOG_STATUS("Thinning Volume");
@@ -3160,13 +3202,82 @@ void Volume::applyThinning()
                 if (isFilled(i, j, k))
                 {
                     size_t index = mapTo1DIndexWithoutBoundCheck(i, j, k);
-                    nodes.push_back(new GraphNode(Vec3ui_64(i, j, k), index));
+
+                    Vector3f p(i * 1.f, j * 1.f, k * 1.f);
+                    p -= volumeCenter;
+                    p.x() *= scaleFactor.x();
+                    p.y() *= scaleFactor.y();
+                    p.z() *= scaleFactor.z();
+                    p += inputMeshCenter;
+
+                    nodes.push_back(new GraphNode(p, index));
                     volumeMap.insert(std::pair<size_t, size_t>(index, nodeIndex));
                     nodeIndex++;
                 }
             }
         }
     }
+
+
+    // Calculate the radii of every point
+    std::vector< float > nodesRadii;
+    nodesRadii.resize(nodes.size());
+
+    // OMP_PARALLEL_FOR
+    for (size_t i = 0; i < nodes.size(); ++i)
+    {
+        // std::cout << i << " ";
+        const auto& p = nodes[i]->p;
+        const Vector3f pNode(p.x(), p.y(), p.z());
+
+        float minimumDistance = 1e32;
+        for (size_t j = 0; j < shellPoints.size(); ++j)
+        {
+            const float distance = (pNode - shellPoints[j]).abs();
+
+            if (distance < minimumDistance)
+                minimumDistance = distance;
+        }
+        nodesRadii[i] = minimumDistance;
+    }
+
+
+    auto it = std::max_element(std::begin(nodesRadii), std::end(nodesRadii));
+    auto largestRadiusIndex = std::distance(std::begin(nodesRadii), it);
+
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < nodes.size(); ++i)
+    {
+        nodes[i]->radius = nodesRadii[i];
+    }
+
+    nodesRadii.clear();
+
+    // Rasterize a sphere
+    Vector3f pLargest(nodes[largestRadiusIndex]->p.x(),
+                      nodes[largestRadiusIndex]->p.y(),
+                      nodes[largestRadiusIndex]->p.z());
+
+    std::cout << pLargest.x() << " " << pLargest.y() << " " << pLargest.z() << " " << nodesRadii[largestRadiusIndex] << "\n";
+
+    Sample* sphere  = new Sample(pLargest, nodesRadii[largestRadiusIndex], 0);
+    _rasterize(sphere, _grid);
+
+    std::ofstream myfile;
+    myfile.open ("/ssd3/scratch/skeletonization-tests/output/radii.txt");
+    for (size_t i = 0; i < nodes.size(); ++i)
+    {
+        myfile << nodes[i]->p.x() << " "
+               << nodes[i]->p.y() << " "
+               << nodes[i]->p.z() << " "
+               << nodes[i]->radius << "\n";
+    }
+    myfile.close();
+
+
+
+    return;
+
 
     size_t branchingPoints = 0;
     size_t edgeIndex = 0;
@@ -3225,30 +3336,29 @@ void Volume::applyThinning()
     std::cout << edges.size() << " : Edges \n";
     std::cout << branchingPoints << " : Branching Points \n";
 
+//    std::vector< std::vector< size_t > > branches;
+//    // From every bifurcation point, start collecting the edges to construct the graph
+//    for (size_t i = 0; i < nodes.size(); ++i)
+//    {
+//        // Keep a reference to the node ID
+//        const GraphNode* node = nodes[i];
 
-    std::vector< std::vector< size_t > > branches;
-    // From every bifurcation point, start collecting the edges to construct the graph
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-        // Keep a reference to the node ID
-        const GraphNode* node = nodes[i];
+//        // Only for the branching points
+//        if (node->isBranching)
+//        {
+//            // Get all the edges connected to the node
+//            for (size_t j = 0; j < node->edges.size(); ++j)
+//            {
+//                const GraphEdge* edge = node->edges[j];
 
-        // Only for the branching points
-        if (node->isBranching)
-        {
-            // Get all the edges connected to the node
-            for (size_t j = 0; j < node->edges.size(); ++j)
-            {
-                const GraphEdge* edge = node->edges[j];
+//                std::vector< size_t > branch;
+//                constructBranch(node, edge, nodes, branch);
+//                // branches.push_back(branch);
+//            }
+//        }
+//    }
 
-                std::vector< size_t > branch;
-                constructBranch(node, edge, nodes, branch);
-                // branches.push_back(branch);
-            }
-        }
-    }
-
-    std::cout << branches.size() << "\n : Branches \n";
+//    std::cout << branches.size() << "\n : Branches \n";
 }
 
 
