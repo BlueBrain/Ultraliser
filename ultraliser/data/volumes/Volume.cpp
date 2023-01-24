@@ -3024,15 +3024,18 @@ struct GraphEdge
 
 struct GraphNode
 {
-    GraphNode() {}
-    GraphNode(Vector3f point, size_t index)
+    GraphNode() { }
+    GraphNode(Vector3f point, Vector3f voxel, size_t index)
     {
-        p = point;
+        pNode = point;
+        pVoxel = voxel;
         i = index;
     }
 
+    Vector3f pNode;
+    Vector3f pVoxel;
     size_t i;
-    Vector3f p;
+
     float radius;
     bool visited = false;
     bool isBranching = false;
@@ -3203,14 +3206,16 @@ void Volume::applyThinning()
                 {
                     size_t index = mapTo1DIndexWithoutBoundCheck(i, j, k);
 
-                    Vector3f p(i * 1.f, j * 1.f, k * 1.f);
-                    p -= volumeCenter;
-                    p.x() *= scaleFactor.x();
-                    p.y() *= scaleFactor.y();
-                    p.z() *= scaleFactor.z();
-                    p += inputMeshCenter;
+                    Vector3f pVoxel(i * 1.f, j * 1.f, k * 1.f);
 
-                    nodes.push_back(new GraphNode(p, index));
+                    Vector3f pNode(pVoxel);
+                    pNode -= volumeCenter;
+                    pNode.x() *= scaleFactor.x();
+                    pNode.y() *= scaleFactor.y();
+                    pNode.z() *= scaleFactor.z();
+                    pNode += inputMeshCenter;
+
+                    nodes.push_back(new GraphNode(pNode, pVoxel, index));
                     volumeMap.insert(std::pair<size_t, size_t>(index, nodeIndex));
                     nodeIndex++;
                 }
@@ -3223,17 +3228,13 @@ void Volume::applyThinning()
     std::vector< float > nodesRadii;
     nodesRadii.resize(nodes.size());
 
-    // OMP_PARALLEL_FOR
+    OMP_PARALLEL_FOR
     for (size_t i = 0; i < nodes.size(); ++i)
     {
-        // std::cout << i << " ";
-        const auto& p = nodes[i]->p;
-        const Vector3f pNode(p.x(), p.y(), p.z());
-
         float minimumDistance = 1e32;
         for (size_t j = 0; j < shellPoints.size(); ++j)
         {
-            const float distance = (pNode - shellPoints[j]).abs();
+            const float distance = (nodes[i]->pNode - shellPoints[j]).abs();
 
             if (distance < minimumDistance)
                 minimumDistance = distance;
@@ -3254,29 +3255,29 @@ void Volume::applyThinning()
     nodesRadii.clear();
 
     // Rasterize a sphere
-    Vector3f pLargest(nodes[largestRadiusIndex]->p.x(),
-                      nodes[largestRadiusIndex]->p.y(),
-                      nodes[largestRadiusIndex]->p.z());
+    Vector3f pLargest(nodes[largestRadiusIndex]->pNode.x(),
+                      nodes[largestRadiusIndex]->pNode.y(),
+                      nodes[largestRadiusIndex]->pNode.z());
 
-    std::cout << pLargest.x() << " " << pLargest.y() << " " << pLargest.z() << " " << nodesRadii[largestRadiusIndex] << "\n";
+    // std::cout << pLargest.x() << " " << pLargest.y() << " " << pLargest.z() << " " << nodesRadii[largestRadiusIndex] << "\n";
 
-    Sample* sphere  = new Sample(pLargest, nodesRadii[largestRadiusIndex], 0);
-    _rasterize(sphere, _grid);
+//    Sample* sphere  = new Sample(pLargest, nodesRadii[largestRadiusIndex], 0);
+//    _rasterize(sphere, _grid);
 
-    std::ofstream myfile;
-    myfile.open ("/ssd3/scratch/skeletonization-tests/output/radii.txt");
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-        myfile << nodes[i]->p.x() << " "
-               << nodes[i]->p.y() << " "
-               << nodes[i]->p.z() << " "
-               << nodes[i]->radius << "\n";
-    }
-    myfile.close();
+//    std::ofstream myfile;
+//    myfile.open ("/ssd3/scratch/skeletonization-tests/output/radii.txt");
+//    for (size_t i = 0; i < nodes.size(); ++i)
+//    {
+//        myfile << nodes[i]->p.x() << " "
+//               << nodes[i]->p.y() << " "
+//               << nodes[i]->p.z() << " "
+//               << nodes[i]->radius << "\n";
+//    }
+//    myfile.close();
 
 
 
-    return;
+ //   return;
 
 
     size_t branchingPoints = 0;
@@ -3296,9 +3297,9 @@ void Volume::applyThinning()
         for (size_t l = 0; l < 26; l++)
         {
             size_t idx, idy, idz;
-            idx = node->p.x() + VDX[l];
-            idy = node->p.y() + VDY[l];
-            idz = node->p.z() + VDZ[l];
+            idx = node->pVoxel.x() + VDX[l];
+            idy = node->pVoxel.y() + VDY[l];
+            idz = node->pVoxel.z() + VDZ[l];
 
             if (isFilled(idx, idy, idz))
             {
