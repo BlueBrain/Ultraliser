@@ -39,6 +39,7 @@
 #include <data/volumes/utilities/VolumeReader.h>
 #include <algorithms/skeletonization/Neighbors.hh>
 #include <algorithms/skeletonization/Thinning6Iterations.h>
+#include <data/meshes/simple/TriangleOperations.h>
 
 #ifdef ULTRALISER_USE_NRRD
 #include <nrrdloader/NRRDLoader.h>
@@ -1672,6 +1673,7 @@ size_t Volume::mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z, 
     if(x >= getWidth()  || x < 0 || y >= getHeight() || y < 0 || z >= getDepth()  || z < 0)
     {
         outlier = true;
+        std::cout << "BIG ISSUE \n";
         return 0;
     }
     else
@@ -3037,50 +3039,61 @@ struct GraphNode
     size_t i;
 
     float radius;
-    bool visited = false;
-    bool isBranching = false;
 
-    std::vector< GraphEdge* > edges;
+    // If the node has been visited before
+    bool visited = false;
+
+    // If the node represents a branching point
+    bool branching = false;
+
+    // If the node is located inside the soma
+    bool insideSoma = false;
+
+    // If the node is connected to soma (node of emanating branch from the soma)
+    bool connectedToSoma = false;
+
+    std::vector< GraphNode* > edgeNodes;
 };
 
-void constructBranch(const GraphNode* currentNode,
-                     const GraphEdge* currentEdge,
-                     std::vector< GraphNode* > nodes,
-                     std::vector< size_t >& branch)
-{
-//    std::cout << "b1 \n";
+//void constructBranch(const GraphNode* currentNode,
+//                     const GraphEdge* currentEdge,
+//                     std::vector< GraphNode* > nodes,
+//                     std::vector< size_t >& branch)
+//{
+////    std::cout << "b1 \n";
 
-    // Add the current branching point to the loop
-    branch.push_back(currentNode->i);
+//    // Add the current branching point to the loop
+//    branch.push_back(currentNode->i);
 
-    // Get the next node
-    const size_t p0 = currentEdge->p0Index;
-    const size_t p1 = currentEdge->p1Index;
+//    // Get the next node
+//    const size_t p0 = currentEdge->p0Index;
+//    const size_t p1 = currentEdge->p1Index;
 
-    size_t nextNodeIndex;
-    if (p0 == currentNode->i)
-        nextNodeIndex = p1;
-    else
-        nextNodeIndex = p0;
+//    size_t nextNodeIndex;
+//    if (p0 == currentNode->i)
+//        nextNodeIndex = p1;
+//    else
+//        nextNodeIndex = p0;
 
-    const GraphNode* nextNode = nodes[nextNodeIndex];
+//    const GraphNode* nextNode = nodes[nextNodeIndex];
 
-    // Add the next point to the branch
-    branch.push_back(nextNodeIndex);
+//    // Add the next point to the branch
+//    branch.push_back(nextNodeIndex);
 
-    if (nextNode->edges.size() > 2)
-        return;
-    else
-    {
-        // Find the next continuing edge
-        GraphEdge* edge0 = nextNode->edges[0];
-        GraphEdge* edge1 = nextNode->edges[1];
+//    if (nextNode->edges.size() > 2)
+//        return;
+//    else
+//    {
+//        // Find the next continuing edge
+//        GraphEdge* edge0 = nextNode->edges[0];
+//        GraphEdge* edge1 = nextNode->edges[1];
 
-        const GraphEdge* connectingEdge = (currentEdge->i == edge0->i) ? edge1 : edge0;
+//        const GraphEdge* connectingEdge = (currentEdge->i == edge0->i) ? edge1 : edge0;
 
-        constructBranch(nextNode, connectingEdge, nodes, branch);
-    }
-}
+//        constructBranch(nextNode, connectingEdge, nodes, branch);
+//    }
+//}
+
 
 
 void Volume::applyThinning()
@@ -3095,7 +3108,16 @@ void Volume::applyThinning()
     size_t initialNumberVoxelsToBeDeleted = 0;
     size_t loopCounter = 0;
 
-    /// Get the surface shell of the volume
+
+    // Compute the dimensions of the resulting volume mesh
+    const Vector3f inputMeshbounds = _pMax - _pMin;
+    const Vector3f inputMeshCenter = _pMin + inputMeshbounds * 0.5f;
+
+    // Vector3f pMinVolume, pMaxVolume, boundsVolume;
+    const Vector3f pMaxVolume(getWidth() * 1.f, getHeight() * 1.f, getDepth() * 1.f);
+    const Vector3f volumeCenter = (0.5f * pMaxVolume);
+    const Vector3f scaleFactor = inputMeshbounds / pMaxVolume;
+
     std::vector< Vector3f > shellPoints;
     std::vector< std::vector< Vec3ui_64 > > perSliceSurfaceShell = searchForBorderVoxels();
     for (size_t i = 0; i < perSliceSurfaceShell.size(); ++i)
@@ -3109,31 +3131,20 @@ void Volume::applyThinning()
     }
     perSliceSurfaceShell.clear();
 
-    // Compute the dimensions of the resulting volume mesh
-    Vector3f inputMeshbounds = _pMax - _pMin;
-    Vector3f inputMeshCenter = _pMin + inputMeshbounds * 0.5;
-
-    // Vector3f pMinVolume, pMaxVolume, boundsVolume;
-    Vector3f pMaxVolume(getWidth() * 1., getHeight() * 1., getDepth() * 1.);
-    Vector3f volumeCenter = (0.5f * pMaxVolume);
-    Vector3f scaleFactor = inputMeshbounds / pMaxVolume;
-
     // Adjust the locations of the shell points
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < shellPoints.size(); ++i)
     {
-        auto& point = shellPoints[i];
-
-        // Center at the origin
-        point -= volumeCenter;
+                // Center at the origin
+        shellPoints[i] -= volumeCenter;
 
         // Scale
-        point.x() *= scaleFactor.x();
-        point.y() *= scaleFactor.y();
-        point.z() *= scaleFactor.z();
+        shellPoints[i].x() *= scaleFactor.x();
+        shellPoints[i].y() *= scaleFactor.y();
+        shellPoints[i].z() *= scaleFactor.z();
 
         // Translate
-        point += inputMeshCenter;
+        shellPoints[i] += inputMeshCenter;
     }
 
     TIMER_SET;
@@ -3184,13 +3195,7 @@ void Volume::applyThinning()
     LOG_STATS(GET_TIME_SECONDS);
 
 
-    // Get the skeleton
-
-    // Get all the filled voxel
-
-    // Get the neighbour voxels
-
-    std::map< size_t, size_t > volumeMap;
+    std::map< size_t, size_t > volumeToNodeMap;
 
 
     // Construct all the nodes
@@ -3204,7 +3209,7 @@ void Volume::applyThinning()
             {
                 if (isFilled(i, j, k))
                 {
-                    size_t index = mapTo1DIndexWithoutBoundCheck(i, j, k);
+                    size_t voxelIndex = mapTo1DIndexWithoutBoundCheck(i, j, k);
 
                     Vector3f pVoxel(i * 1.f, j * 1.f, k * 1.f);
 
@@ -3215,14 +3220,13 @@ void Volume::applyThinning()
                     pNode.z() *= scaleFactor.z();
                     pNode += inputMeshCenter;
 
-                    nodes.push_back(new GraphNode(pNode, pVoxel, index));
-                    volumeMap.insert(std::pair<size_t, size_t>(index, nodeIndex));
+                    nodes.push_back(new GraphNode(pNode, pVoxel, voxelIndex));
+                    volumeToNodeMap.insert(std::pair<size_t, size_t>(voxelIndex, nodeIndex));
                     nodeIndex++;
                 }
             }
         }
     }
-
 
     // Calculate the radii of every point
     std::vector< float > nodesRadii;
@@ -3251,40 +3255,32 @@ void Volume::applyThinning()
     {
         nodes[i]->radius = nodesRadii[i];
     }
-
     nodesRadii.clear();
 
     // Rasterize a sphere
-    Vector3f pLargest(nodes[largestRadiusIndex]->pNode.x(),
-                      nodes[largestRadiusIndex]->pNode.y(),
-                      nodes[largestRadiusIndex]->pNode.z());
-
-    // std::cout << pLargest.x() << " " << pLargest.y() << " " << pLargest.z() << " " << nodesRadii[largestRadiusIndex] << "\n";
-
-//    Sample* sphere  = new Sample(pLargest, nodesRadii[largestRadiusIndex], 0);
-//    _rasterize(sphere, _grid);
-
-//    std::ofstream myfile;
-//    myfile.open ("/ssd3/scratch/skeletonization-tests/output/radii.txt");
-//    for (size_t i = 0; i < nodes.size(); ++i)
-//    {
-//        myfile << nodes[i]->p.x() << " "
-//               << nodes[i]->p.y() << " "
-//               << nodes[i]->p.z() << " "
-//               << nodes[i]->radius << "\n";
-//    }
-//    myfile.close();
+    Vector3f somaCenter(nodes[largestRadiusIndex]->pNode.x(),
+                        nodes[largestRadiusIndex]->pNode.y(),
+                        nodes[largestRadiusIndex]->pNode.z());
+    Vector3f somaCenterVoxel(nodes[largestRadiusIndex]->pVoxel.x(),
+                             nodes[largestRadiusIndex]->pVoxel.y(),
+                             nodes[largestRadiusIndex]->pVoxel.z());
+    const auto somaRadius = nodes[largestRadiusIndex]->radius;
+    Sample* somaSphere  = new Sample(somaCenter, somaRadius, 0);
 
 
 
- //   return;
 
 
-    size_t branchingPoints = 0;
+
+
+
+
     size_t edgeIndex = 0;
+    size_t terminalsNodes = 0;
+    size_t branchingNodes = 0;
 
-    // Construct all the edges from the nodes
-    std::vector< GraphEdge* > edges;
+    // Construct the graph and connect the nodes
+    // OMP_PARALLEL_FOR
     for (size_t i = 0; i < nodes.size(); ++i)
     {
         // Check if the node has been visited before
@@ -3296,46 +3292,141 @@ void Volume::applyThinning()
         // Search for the neighbours
         for (size_t l = 0; l < 26; l++)
         {
-            size_t idx, idy, idz;
-            idx = node->pVoxel.x() + VDX[l];
-            idy = node->pVoxel.y() + VDY[l];
-            idz = node->pVoxel.z() + VDZ[l];
+            size_t idx = node->pVoxel.x() + VDX[l];
+            size_t idy = node->pVoxel.y() + VDY[l];
+            size_t idz = node->pVoxel.z() + VDZ[l];
 
             if (isFilled(idx, idy, idz))
             {
                 connectedEdges++;
 
-                // Find the index of p1
-                auto vIndex = mapTo1DIndexWithoutBoundCheck(idx, idy, idz);
-                auto nIndex = volumeMap.find(vIndex)->second;
+                // Find the index of the voxel
+                const auto& voxelIndex = mapTo1DIndexWithoutBoundCheck(idx, idy, idz);
+
+                // Find the corresponding index of the node to access the node from the nodes list
+                const auto& nodeIndex = volumeToNodeMap.find(voxelIndex)->second;
 
                 // Construct the edge
-                auto edge = new GraphEdge(edgeIndex, node->i, nIndex);
+                auto edge = new GraphEdge(edgeIndex, node->i, nodeIndex);
                 edgeIndex++;
 
-                // Add the edge to the node, only to be able to access it later
-                node->edges.push_back(edge);
-
-                // If the node is not visited before, add the edge to the edge list
-                if (!nodes[nIndex]->visited)
-                {
-                    edges.push_back(edge);
-                }
+                // Add the node to the edgeNodes, only to be able to access it later
+                node->edgeNodes.push_back(nodes[nodeIndex]);
             }
+        }
+
+        if (connectedEdges == 1)
+        {
+            terminalsNodes++;
         }
 
         if (connectedEdges > 2)
         {
-            node->isBranching = true;
-            branchingPoints++;
+            node->branching = true;
+            branchingNodes++;
         }
 
         node->visited = true;
     }
 
-    std::cout << nodes.size() << " : Nodes \n";
-    std::cout << edges.size() << " : Edges \n";
-    std::cout << branchingPoints << " : Branching Points \n";
+    // Verify the nodes that are located within the soma
+    // OMP_PARALLEL_FOR
+    size_t insideSomaSample = 0;
+    for (size_t i = 0; i < nodes.size(); ++i)
+    {
+        GraphNode* node = nodes[i];
+
+        if (isPointInSphere(node->pNode, somaCenter, somaRadius))
+        {
+            node->insideSoma = true;
+            insideSomaSample++;
+        }
+    }
+
+    // Define the soma node
+    GraphNode* somaNode = new GraphNode(somaCenter, somaCenterVoxel, 0);
+
+
+    // OMP_PARALLEL_FOR
+    size_t arbors = 0;
+    for (size_t i = 0; i < nodes.size(); ++i)
+    {
+        GraphNode* node = nodes[i];
+
+        if (!node->insideSoma)
+        {
+            // Detect if the node is located on the soma
+            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
+            {
+                if (node->edgeNodes[j]->insideSoma)
+                {
+                    node->connectedToSoma = true;
+                    arbors++;
+                    break;
+                }
+            }
+
+            // Disconnect the samples that are located in the soma
+            std::vector< GraphNode* > edgeNodes;
+            bool connectToSomaNode = false;
+            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
+            {
+                // If the edge node is not located in the soma, then add it to the edgeNodes list
+                if (!node->edgeNodes[j]->insideSoma)
+                {
+                    edgeNodes.push_back(node->edgeNodes[j]);
+                }
+                else
+                {
+                    // Connect to the soma node flag
+                    connectToSomaNode = true;
+                }
+            }
+
+            // If connected to soma, then connect to soma
+            if (connectToSomaNode)
+            {
+                edgeNodes.push_back(somaNode);
+            }
+
+            // Clear the current edgeNodes vector
+            node->edgeNodes.clear();
+            node->edgeNodes.shrink_to_fit();
+
+            // Connect it to the new vector
+            node->edgeNodes = edgeNodes;
+        }
+    }
+
+    std::cout << "Terminals: " << terminalsNodes << "\n";
+    std::cout << "Nodes (Samples): " << nodes.size() << "\n";
+    std::cout << "Branching Nodes: " << branchingNodes << "\n";
+    std::cout << "Inside soma samples: " << insideSomaSample << "\n";
+    std::cout << "Arbors: " << arbors << "\n";
+
+    // Filter the nodes
+    std::vector< GraphNode* > filteredNodes;
+    for (size_t i = 0; i < nodes.size(); ++i)
+    {
+        if (nodes[i]->insideSoma)
+            continue;
+
+        filteredNodes.push_back(nodes[i]);
+    }
+
+    // Add the soma node to the list
+    filteredNodes.push_back(somaNode);
+
+    std::cout << "New Nodes (Samples): " << filteredNodes.size() << "\n";
+
+    nodes.clear();
+    nodes.shrink_to_fit();
+
+
+
+
+
+
 
 //    std::vector< std::vector< size_t > > branches;
 //    // From every bifurcation point, start collecting the edges to construct the graph
@@ -3360,8 +3451,11 @@ void Volume::applyThinning()
 //    }
 
 //    std::cout << branches.size() << "\n : Branches \n";
-}
 
+
+    _rasterize(somaSphere, _grid);
+
+}
 
 
 
