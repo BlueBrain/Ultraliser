@@ -3066,6 +3066,10 @@ struct Branch
     // A list of points
     std::vector< GraphNode* > nodes;
 
+    size_t index;
+
+    bool valid = true;
+
     Branch* parent = nullptr;
     std::vector< Branch* > children;
 };
@@ -3114,162 +3118,107 @@ Branch* buildBranchTillNextBranchingPoint(GraphNode* branchingNode, GraphNode* e
     return branch;
 }
 
-
-
-
-void buildBranchesRecursively(GraphNode* branchingNode, GraphNode* edgeNode, Branches& branches)
+Branch* buildBranch(GraphNode* firstNode, GraphNode* edgeNode)
 {
     Branch* branch = new Branch();
 
-    branch->nodes.push_back(branchingNode);
+    firstNode->visited = true;
+    edgeNode->visited = true;
+
+    branch->nodes.push_back(firstNode);
     branch->nodes.push_back(edgeNode);
 
     // If the node along the edge is a terminal, then append this branch to the list and return
-    if (edgeNode->terminal)
+    if (edgeNode->edgeNodes.size() == 1)
     {
-        branches.push_back(branch);
-        return;
+        return branch;
     }
 
     // If the node along the edge is a branching node, then append this branch to the list and
     // consider the next branch
-    else if (edgeNode->branching)
+    else if (edgeNode->edgeNodes.size() > 2)
     {
-        branches.push_back(branch);
-
-        for (size_t i = 0; i < edgeNode->edgeNodes.size(); ++i)
-        {
-            buildBranchesRecursively(edgeNode, edgeNode->edgeNodes[i], branches);
-        }
+        return branch;
     }
 
     // Otherwise, construct the branches from connected segments
     else
     {
-        GraphNode *aux0 = branchingNode;
-        GraphNode *aux1 = edgeNode;
+        // The previous node is the first node
+        GraphNode *previousNode = firstNode;
 
-        while (aux1->edgeNodes.size() == 2)
+        // The current node is the edge node
+        GraphNode *currentNode = edgeNode;
+
+        // Ensure that the current node has only two connected edges (or nodes)
+        while (true)
         {
-            auto n0 = aux1->edgeNodes[0];
-            auto n1 = aux1->edgeNodes[1];
+            // Get a reference to the connecting nodes to the current node
+            auto edgeNode0 = currentNode->edgeNodes[0];
+            auto edgeNode1 = currentNode->edgeNodes[1];
 
-            if (n0->index == aux0->index)
+            // Ignore the previous node
+            if (edgeNode0->index == previousNode->index)
             {
-                aux0 = aux1;
-                aux1 = n1;
+                previousNode = currentNode;
+                currentNode = edgeNode1;
             }
             else
             {
-                aux0 = aux1;
-                aux1 = n0;
+                previousNode = currentNode;
+                currentNode = edgeNode0;
             }
 
-            branch->nodes.push_back(aux1);
-        }
+            branch->nodes.push_back(currentNode);
+            currentNode->visited = true;
 
-        branches.push_back(branch);
-
-        // If the node along the edge is a terminal, then append this branch to the list and return
-        if (aux1->edgeNodes.size() == 1)
-        {
-            //std::cout << "A " << aux1->i << "\n";
-            return;
-        }
-
-        // If the node along the edge is a branching node, then append this branch to the list and
-        // consider the next branch
-        else if (aux1->edgeNodes.size() > 2)
-        {
-            //std::cout << "B " << aux1->i << "\n";
-            for (size_t i = 0; i < aux1->edgeNodes.size(); ++i)
-            {
-                buildBranchesRecursively(aux1, aux1->edgeNodes[i], branches);
-            }
+            if (!(currentNode->edgeNodes.size() == 2))
+                break;
         }
     }
-}
 
-void constructBranch(GraphNode* branchingNode, Branches& branches)
+    return branch;
+
+}
+Branches buildBranchesFromNodes(std::vector< GraphNode* > nodes)
 {
-    Branch* branch = new Branch();
-    branch->nodes.push_back(branchingNode);
+    Branches branches;
+    size_t branchIndex = 0;
 
-    // Search for the connected nodes
-    for (size_t i = 0; i < branchingNode->edgeNodes.size(); ++i)
+    // Construct the heirarichy to the terminal
+    for (size_t i = 0; i < nodes.size(); ++i)
     {
-        // Get a reference to the node
-        GraphNode* node = branchingNode->edgeNodes[i];
+        auto& node = nodes[i];
 
-        // Add this node to the game
-        branch->nodes.push_back(node);
-
-        // If this node is a branching or a terminal node, then add to the list and proceed
-        if (node->edgeNodes.size() == 1)
+        // The node must be branching
+        if (node->branching)
         {
-            branches.push_back(branch);
-            continue;
-        }
+            // Construct the branch
+            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
+            {
+                auto& edgeNode = node->edgeNodes[j];
+                {
+                    // If the edgeNode is visited before, then this branch has been reconstructed
+                    if (edgeNode->visited)
+                        continue;
 
-        else if (node->edgeNodes.size() == 2)
-        {
-//            buildBranchFromNode(node, )
-        }
+                    auto branch = buildBranch(node, edgeNode);
+                    branch->index = branchIndex;
+                    branchIndex++;
 
-        else if (node->edgeNodes.size() > 2)
-        {
-            branches.push_back(branch);
-            constructBranch(node, branches);
-        }
-
-        else
-        {
-            //
+                    branches.push_back(branch);
+                }
+            }
         }
     }
+
+    return branches;
 }
 
 
 
 
-//void constructBranch(const GraphNode* currentNode,
-//                     const GraphEdge* currentEdge,
-//                     std::vector< GraphNode* > nodes,
-//                     std::vector< size_t >& branch)
-//{
-////    std::cout << "b1 \n";
 
-//    // Add the current branching point to the loop
-//    branch.push_back(currentNode->i);
-
-//    // Get the next node
-//    const size_t p0 = currentEdge->p0Index;
-//    const size_t p1 = currentEdge->p1Index;
-
-//    size_t nextNodeIndex;
-//    if (p0 == currentNode->i)
-//        nextNodeIndex = p1;
-//    else
-//        nextNodeIndex = p0;
-
-//    const GraphNode* nextNode = nodes[nextNodeIndex];
-
-//    // Add the next point to the branch
-//    branch.push_back(nextNodeIndex);
-
-//    if (nextNode->edges.size() > 2)
-//        return;
-//    else
-//    {
-//        // Find the next continuing edge
-//        GraphEdge* edge0 = nextNode->edges[0];
-//        GraphEdge* edge1 = nextNode->edges[1];
-
-//        const GraphEdge* connectingEdge = (currentEdge->i == edge0->i) ? edge1 : edge0;
-
-//        constructBranch(nextNode, connectingEdge, nodes, branch);
-//    }
-//}
 
 
 
@@ -3446,13 +3395,14 @@ void Volume::applyThinning()
     const auto somaRadius = nodes[largestRadiusIndex]->radius;
     Sample* somaSphere  = new Sample(somaCenter, somaRadius, 0);
 
-
-    size_t edgeIndex = 0;
-    size_t terminalsNodes = 0;
-    size_t branchingNodes = 0;
+    std::cout << "Soma: "
+              << somaSphere->getPosition().x() << " "
+              << somaSphere->getPosition().y() << " "
+              << somaSphere->getPosition().z() << " "
+              << somaSphere->getRadius() << "\n";
 
     // Construct the graph and connect the nodes
-    // OMP_PARALLEL_FOR
+    OMP_PARALLEL_FOR
     for (size_t i = 0; i < nodes.size(); ++i)
     {
         // Check if the node has been visited before
@@ -3478,112 +3428,246 @@ void Volume::applyThinning()
                 // Find the corresponding index of the node to access the node from the nodes list
                 const auto& nodeIndex = volumeToNodeMap.find(voxelIndex)->second;
 
-                // Construct the edge
-                auto edge = new GraphEdge(edgeIndex, node->index, nodeIndex);
-                edgeIndex++;
-
                 // Add the node to the edgeNodes, only to be able to access it later
                 node->edgeNodes.push_back(nodes[nodeIndex]);
             }
         }
 
         if (connectedEdges == 1)
-        {
             node->terminal = true;
-            terminalsNodes++;
-        }
-
-        if (connectedEdges > 2)
-        {
+        else if (connectedEdges > 2)
             node->branching = true;
-            branchingNodes++;
-        }
 
-        node->visited = true;
     }
 
-    // Verify the nodes that are located within the soma
-    // OMP_PARALLEL_FOR
-    size_t insideSomaSample = 0;
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-        GraphNode* node = nodes[i];
+//    // Verify the nodes that are located within the soma
+//    // OMP_PARALLEL_FOR
+//    size_t insideSomaSample = 0;
+//    for (size_t i = 0; i < nodes.size(); ++i)
+//    {
+//        GraphNode* node = nodes[i];
 
-        if (isPointInSphere(node->pNode, somaCenter, somaRadius))
-        {
-            node->insideSoma = true;
-            insideSomaSample++;
-        }
-    }
+//        if (isPointInSphere(node->pNode, somaCenter, somaRadius))
+//        {
+//            node->insideSoma = true;
+//            insideSomaSample++;
+//        }
+//    }
 
-    // Define the soma node
+    // Build soma node
     GraphNode* somaNode = new GraphNode(somaCenter, somaCenterVoxel, nodeIndex++);
+    somaNode->radius = somaRadius;
     somaNode->isSoma = true;
+    nodes.push_back(somaNode);
 
-
-    // OMP_PARALLEL_FOR
-    size_t arbors = 0;
+    // Re-index the samples
+    OMP_PARALLEL_FOR
     for (size_t i = 0; i < nodes.size(); ++i)
     {
-        GraphNode* node = nodes[i];
+        nodes[i]->index = i;
+    }
 
-        if (!node->insideSoma)
+
+
+
+//    // OMP_PARALLEL_FOR
+//    size_t arbors = 0;
+//    for (size_t i = 0; i < nodes.size(); ++i)
+//    {
+//        GraphNode* node = nodes[i];
+
+//        if (!node->insideSoma)
+//        {
+//            // Detect if the node is located on the soma
+//            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
+//            {
+//                if (node->edgeNodes[j]->insideSoma)
+//                {
+//                    node->connectedToSoma = true;
+//                    arbors++;
+//                    break;
+//                }
+//            }
+
+//            // Disconnect the samples that are located in the soma
+//            std::vector< GraphNode* > edgeNodes;
+//            bool connectToSomaNode = false;
+//            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
+//            {
+//                // If the edge node is not located in the soma, then add it to the edgeNodes list
+//                if (!node->edgeNodes[j]->insideSoma)
+//                {
+//                    edgeNodes.push_back(node->edgeNodes[j]);
+//                }
+//                else
+//                {
+//                    // Connect to the soma node flag
+//                    connectToSomaNode = true;
+//                }
+//            }
+
+//            // If connected to soma, then connect to soma
+//            if (connectToSomaNode)
+//            {
+//                edgeNodes.push_back(somaNode);
+//            }
+
+//            // Clear the current edgeNodes vector
+//            node->edgeNodes.clear();
+//            node->edgeNodes.shrink_to_fit();
+
+//            // Connect it to the new vector
+//            node->edgeNodes = edgeNodes;
+//        }
+//    }
+
+    Branches branches = buildBranchesFromNodes(nodes);
+
+    std::cout << "Branches: " << branches.size() << "\n";
+    std::cout << "Nodes (Samples): " << nodes.size() << "\n";
+
+    // Filter the branches the are located inside the soma
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        auto& branch = branches[i];
+
+        size_t countSamplesInsideSoma = 0;
+        for (size_t j = 0; j < branch->nodes.size(); ++j)
         {
-            // Detect if the node is located on the soma
-            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
+            if (isPointInSphere(branch->nodes[j]->pNode, somaCenter, somaRadius))
             {
-                if (node->edgeNodes[j]->insideSoma)
+                branch->nodes[j]->insideSoma = true;
+                countSamplesInsideSoma++;
+            }
+        }
+
+        // If the count of the sample located inside the soma is zero, then it is a valid branch
+        if (countSamplesInsideSoma == 0)
+        {
+            branch->valid = true;
+        }
+
+        // If all the branch nodes are located inside the soma, then it is not valid
+        else if (countSamplesInsideSoma == branch->nodes.size())
+        {
+            branch->valid = false;
+        }
+
+        // Otherwise, it is a branch that is connected to the soma
+        else
+        {
+            std::vector< GraphNode* > newNodes;
+
+            // Get the first and last nodes
+            auto& firstNode = branch->nodes.front();
+            auto& lastNode = branch->nodes.back();
+
+            if (firstNode->insideSoma)
+            {
+                newNodes.push_back(somaNode);
+                for (size_t j = 0; j < branch->nodes.size(); ++j)
                 {
-                    node->connectedToSoma = true;
-                    arbors++;
-                    break;
+                    if (branch->nodes[j]->insideSoma)
+                        continue;
+                    else
+                    {
+                        newNodes.push_back(branch->nodes[j]);
+                    }
                 }
             }
-
-            // Disconnect the samples that are located in the soma
-            std::vector< GraphNode* > edgeNodes;
-            bool connectToSomaNode = false;
-            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
+            else if (lastNode->insideSoma)
             {
-                // If the edge node is not located in the soma, then add it to the edgeNodes list
-                if (!node->edgeNodes[j]->insideSoma)
+                for (size_t j = 0; j < branch->nodes.size(); ++j)
                 {
-                    edgeNodes.push_back(node->edgeNodes[j]);
+                    if (branch->nodes[j]->insideSoma)
+                        continue;
+                    else
+                    {
+                        newNodes.push_back(branch->nodes[j]);
+                    }
                 }
-                else
-                {
-                    // Connect to the soma node flag
-                    connectToSomaNode = true;
-                }
+                newNodes.push_back(somaNode);
             }
 
-            // If connected to soma, then connect to soma
-            if (connectToSomaNode)
-            {
-                edgeNodes.push_back(somaNode);
-            }
-
-            // Clear the current edgeNodes vector
-            node->edgeNodes.clear();
-            node->edgeNodes.shrink_to_fit();
-
-            // Connect it to the new vector
-            node->edgeNodes = edgeNodes;
+            branch->nodes.clear();
+            branch->nodes.shrink_to_fit();
+            branch->nodes = newNodes;
+            branch->valid = true;
         }
     }
 
-    std::cout << "Terminals: " << terminalsNodes << "\n";
-    std::cout << "Nodes (Samples): " << nodes.size() << "\n";
-    std::cout << "Branching Nodes: " << branchingNodes << "\n";
-    std::cout << "Inside soma samples: " << insideSomaSample << "\n";
-    std::cout << "Arbors: " << arbors << "\n";
 
-    // Filter the nodes
-    for (size_t i = 0; i < nodes.size(); ++i)
+
+
+
+
+
+    std::cout << "Writing \n";
+
+    std::fstream xstream;
+    xstream.open("/abdellah2/scratch/thinning/output/projections/nodes.txt", std::ios::out);
+
+    for (size_t i = 0; i < branches.size(); ++i)
     {
-         std::cout << nodes[i]->index << " ";
+        if (branches[i]->nodes.size() == 0)
+        {
+            std::cout << "Empty branch \n";
+            continue;
+        }
+
+        if (!branches[i]->valid)
+        {
+            std::cout << "Invalid branch \n";
+            continue;
+        }
+
+        xstream << "start\n";
+        for (size_t j = 0; j < branches[i]->nodes.size(); ++j)
+        {
+            auto& node0 = branches[i]->nodes[j];
+            xstream << node0->pNode.x() << " "
+                    << node0->pNode.y() << " "
+                    << node0->pNode.z() << " "
+                    << node0->radius << "\n";
+        }
+        xstream << "done\n";
+
     }
-    std::cout << "\n";
+
+    xstream.close();
+
+    return;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Filter the nodes
     std::vector< GraphNode* > filteredNodes;
@@ -3593,43 +3677,86 @@ void Volume::applyThinning()
             continue;
 
         filteredNodes.push_back(nodes[i]);
-
-        std::cout << nodes[i]->index << " ";
     }
 
     // Add the soma node to the list
     filteredNodes.push_back(somaNode);
-
     std::cout << "New Nodes (Samples): " << filteredNodes.size() << "\n";
 
     // nodes.clear();
     // nodes.shrink_to_fit();
 
 
-    Branches branches;
-    // Construct the heirarichy to the terminal
-    for (size_t i = 0; i < filteredNodes.size(); ++i)
+    std::fstream sstream;
+    sstream.open("/abdellah2/scratch/thinning/output/projections/file2.txt", std::ios::out);
+    for (size_t i = 0; i < nodes.size(); ++i)
     {
-        //
-        auto& node = filteredNodes[i];
 
-        // It must be a branching node
-        if (node->connectedToSoma)
-        {
-            // Construct the branch
-            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
-            {
-                auto& edgeNode = node->edgeNodes[j];
+        auto& node = nodes[i];
+        sstream << node->pNode.x() << " "
+               << node->pNode.y() << " "
+               << node->pNode.z() << " "
+               << node->radius << "\n";
 
-                if (edgeNode->isSoma)
-                    continue;
-                std::cout << node->index << " " << edgeNode->index << " \n";
-                buildBranchesRecursively(node, edgeNode, branches);
-            }
-        }
     }
 
+    sstream.close();
+
+
+
+//    // Construct the heirarichy to the terminal
+//    for (size_t i = 0; i < filteredNodes.size(); ++i)
+//    {
+//        //
+//        auto& node = filteredNodes[i];
+
+////        // It must be a branching node
+////        if (node->connectedToSoma)
+////        {
+////            // Construct the branch
+////            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
+////            {
+////                auto& edgeNode = node->edgeNodes[j];
+
+////                if (edgeNode->isSoma)
+////                    continue;
+
+////                std::cout << node->index << " " << edgeNode->index << " \n";
+////                buildBranchesRecursively(node, edgeNode, branches);
+////            }
+////        }
+
+
+//        if (node->branching)
+//        {
+//            // Construct the branch
+//            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
+//            {
+//                auto& edgeNode = node->edgeNodes[j];
+//                {
+//                    branches.push_back(buildBranch(node, edgeNode));
+//                }
+//            }
+//        }
+//    }
+
     std::cout << "Branches: " << branches.size() << "\n";
+
+    std::fstream stream;
+    stream.open("/abdellah2/scratch/thinning/output/projections/file.txt", std::ios::out);
+    for (size_t i = 0; i < branches.size(); i++)
+    {
+        for (size_t j =0; j < branches[i]->nodes.size(); ++j)
+        {
+            auto& node = branches[i]->nodes[j];
+            stream << node->pNode.x() << " "
+                   << node->pNode.y() << " "
+                   << node->pNode.z() << " "
+                   << node->radius << "\n";
+        }
+    }
+    stream.close();
+
 
 
 
