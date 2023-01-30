@@ -2064,6 +2064,29 @@ void Mesh::refineROIs(const ROIs& regions)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
+void Mesh::map(Mesh* toMesh)
+{
+    for (size_t i = 0; i < _numberVertices; ++i)
+    {
+        float minDistance = 1e32;
+        size_t minIndex;
+
+        for (size_t j = 0; j < toMesh->getNumberVertices(); ++j)
+        {
+            //  float distance = sqrt(bx * bx + by * by + bz * bz);
+            float distance = _vertices[i].distance(toMesh->getVertices()[j]);
+
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                minIndex = j;
+            }
+        }
+
+        _vertices[i] = toMesh->getVertices()[minIndex];
+    }
+}
+
 void Mesh::refine()
 {
     // Starting the timer

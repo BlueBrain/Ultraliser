@@ -22,6 +22,8 @@
 #include <Ultraliser.h>
 #include <AppCommon.h>
 #include <AppArguments.h>
+#include <data/meshes/simple/IcoSphere.h>
+
 
 namespace Ultraliser
 {
@@ -63,6 +65,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     return options;
 }
 
+
 void run(int argc , const char** argv)
 {
     // Parse the arguments and get the tool options
@@ -70,6 +73,14 @@ void run(int argc , const char** argv)
 
     // Load the input mesh
     auto inputMesh = loadInputMesh(options);
+
+
+
+   //
+
+
+
+
 
     auto prefix = options->projectionPrefix;
 
@@ -82,7 +93,28 @@ void run(int argc , const char** argv)
     solidVolume->project(prefix + "_solid",
                     options->projectXY, options->projectXZ, options->projectZY,
                     options->projectColorCoded);
-    solidVolume->applyThinning();
+
+
+    Vector3f somaCenter;
+    float somaRadius;
+
+    solidVolume->applyThinning(somaCenter, somaRadius);
+
+
+    // Map
+    Mesh* sample = new IcoSphere(3);
+    sample->scale(somaRadius, somaRadius, somaRadius);
+    sample->translate(somaCenter);
+
+    sample->map(inputMesh);
+
+    sample->exportMesh(options->volumePrefix, true);
+
+    solidVolume->surfaceVoxelization(sample, true, true);
+
+
+
+
 
     solidVolume->project(prefix + "_thin",
                     options->projectXY, options->projectXZ, options->projectZY,

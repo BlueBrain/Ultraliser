@@ -350,6 +350,8 @@ public:
      */
     void refine();
 
+    void map(Mesh* toMesh);
+
 
     void createEdgeList();
     /**
@@ -707,6 +709,9 @@ public:
 
 private:
 
+    // Mesh Statistics
+    friend class MeshStatistics;
+
     /**
      * @brief neighborList
      * Pointer to neighbour list.
@@ -720,6 +725,13 @@ private:
     std::vector< uint8_t > _vertexMarkers;
 
     /**
+     * @brief defaultOptimizationTime
+     */
+    double _optimizationTime;
+
+protected:
+
+    /**
      * @brief numberVertices
      * Number of vertices in the mesh.
      */
@@ -731,13 +743,8 @@ private:
      */
     size_t _numberTriangles;
 
-    /**
-     * @brief defaultOptimizationTime
-     */
-    double _optimizationTime;
 
-    // Mesh Statistics
-    friend class MeshStatistics;
+
 };
 
 }

@@ -627,7 +627,7 @@ public:
 
     bool isBorderVoxel(const int64_t& x, const int64_t& y,const int64_t& z) const;
 
-    void applyThinning();
+    void applyThinning(Vector3f &sCenter, float &sRadius);
 
 
 private:

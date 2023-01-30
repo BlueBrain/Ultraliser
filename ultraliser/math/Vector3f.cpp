@@ -192,6 +192,11 @@ void Vector3f::negate()
     _elements[2] = -_elements[2];
 }
 
+float Vector3f::distance(Vector3f rhs)
+{
+    return sqrt(sqr(x() - rhs.x()) + sqr(y() - rhs.y()) + sqr(z() - rhs.z()));
+}
+
 float Vector3f::getLargestDimension() const
 {
     // Initially, start with X

@@ -3222,7 +3222,7 @@ Branches buildBranchesFromNodes(std::vector< GraphNode* > nodes)
 
 
 
-void Volume::applyThinning()
+void Volume::applyThinning(Vector3f& sCenter, float& sRadius)
 {
     // The thinning kernel that will be used to thin the volume
     std::unique_ptr< Thinning6Iterations > thinningKernel = std::make_unique<Thinning6Iterations>();
@@ -3598,10 +3598,8 @@ void Volume::applyThinning()
     }
 
 
-
-
-
-
+    sCenter = somaCenter;
+    sRadius = somaRadius;
 
     std::cout << "Writing \n";
 

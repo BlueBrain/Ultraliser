@@ -176,6 +176,13 @@ public:
     void negate();
 
     /**
+     * @brief distance
+     * @param rhs
+     * @return
+     */
+    float distance(Vector3f rhs);
+
+    /**
      * @brief getLargestDimension
      * Gets the largest dimension in the vector.
      *
