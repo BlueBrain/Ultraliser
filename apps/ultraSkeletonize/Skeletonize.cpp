@@ -74,7 +74,6 @@ void run(int argc , const char** argv)
     // Load the input mesh
     auto inputMesh = loadInputMesh(options);
 
-
     auto prefix = options->projectionPrefix;
 
     // Create the volume from the mesh
@@ -88,22 +87,38 @@ void run(int argc , const char** argv)
                     options->projectColorCoded);
 
 
-    Vector3f somaCenter;
-    float somaRadius;
 
-    solidVolume->applyThinning(somaCenter, somaRadius);
 
+
+    // Get the border
+
+
+    std::vector< Vector3f > centers;
+    std::vector< float > radii;
+
+    std::vector< Vector3f > shellPoints = solidVolume->applyThinning(centers, radii);
+
+    solidVolume->clear();
 
     // Map
-    Mesh* sample = new IcoSphere(5);
-    sample->scale(somaRadius, somaRadius, somaRadius);
-    sample->translate(somaCenter);
+    for (size_t i = 0; i < centers.size(); ++i)
+    {
+        Mesh* sample = new IcoSphere(5);
+        sample->scale(radii[i], radii[i], radii[i]);
+        sample->translate(centers[i]);
 
-    sample->map(inputMesh);
+        sample->map(shellPoints);
 
-    sample->exportMesh(options->volumePrefix, true);
+        std::stringstream str;
+        str << options->volumePrefix << "_Soma_" << i;
 
-    solidVolume->surfaceVoxelization(sample, true, true);
+        sample->exportMesh(str.str(), true);
+        solidVolume->surfaceVoxelization(sample, true, true);
+        sample->~Mesh();
+    }
+
+    solidVolume->solidVoxelization(options->voxelizationAxis);
+
 
 
 

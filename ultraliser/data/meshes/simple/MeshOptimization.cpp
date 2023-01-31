@@ -2121,16 +2121,64 @@ void Mesh::refineROIs(const ROIs& regions)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Mesh::map(Mesh* toMesh)
+void Mesh::map(std::vector< Vector3f >& pointCloud)
 {
+    // Starting the timer
+    TIMER_SET;
+
+    LOG_STATUS("Mapping Vertices");
+
+    LOOP_STARTS("Mapping Loop");
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for (size_t i = 0; i < _numberVertices; ++i)
     {
-        float minDistance = 1e32;
-        size_t minIndex;
+        PROGRESS_UPDATE;
+        LOOP_PROGRESS(PROGRESS, _numberVertices);
+
+        float minDistance = std::numeric_limits<float>::max();
+        int64_t minIndex = -1;
+
+        for (size_t j = 0; j < pointCloud.size(); ++j)
+        {
+            float distance = _vertices[i].distance(pointCloud[j]);
+
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                minIndex = j;
+            }
+        }
+
+        _vertices[i] = pointCloud[minIndex];
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    LOG_STATUS("Mapping");
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
+void Mesh::map(Mesh* toMesh)
+{
+    // Starting the timer
+    TIMER_SET;
+
+    LOG_STATUS("Mapping Vertices");
+
+    LOOP_STARTS("Mapping Loop");
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _numberVertices; ++i)
+    {
+        PROGRESS_UPDATE;
+        LOOP_PROGRESS(PROGRESS, _numberVertices);
+
+        float minDistance = std::numeric_limits<float>::max();
+        int64_t minIndex = -1;
 
         for (size_t j = 0; j < toMesh->getNumberVertices(); ++j)
         {
-            //  float distance = sqrt(bx * bx + by * by + bz * bz);
             float distance = _vertices[i].distance(toMesh->getVertices()[j]);
 
             if (distance < minDistance)
@@ -2140,8 +2188,16 @@ void Mesh::map(Mesh* toMesh)
             }
         }
 
-        _vertices[i] = toMesh->getVertices()[minIndex];
+        _vertices[i].x() = toMesh->getVertices()[minIndex].x();
+        _vertices[i].y() = toMesh->getVertices()[minIndex].y();
+        _vertices[i].z() = toMesh->getVertices()[minIndex].z();
+
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    LOG_STATUS("Mapping");
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void Mesh::refine()

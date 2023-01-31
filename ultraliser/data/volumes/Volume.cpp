@@ -3313,7 +3313,7 @@ Branches buildBranchesFromNodes(std::vector< GraphNode* > nodes)
 
 
 
-void Volume::applyThinning(Vector3f& sCenter, float& sRadius)
+std::vector< Vector3f > Volume::applyThinning(std::vector< Vector3f > & centers, std::vector< float >& radii)
 {
     // The thinning kernel that will be used to thin the volume
     std::unique_ptr< Thinning6Iterations > thinningKernel = std::make_unique<Thinning6Iterations>();
@@ -3352,7 +3352,7 @@ void Volume::applyThinning(Vector3f& sCenter, float& sRadius)
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < shellPoints.size(); ++i)
     {
-                // Center at the origin
+        // Center at the origin
         shellPoints[i] -= volumeCenter;
 
         // Scale
@@ -3438,7 +3438,7 @@ void Volume::applyThinning(Vector3f& sCenter, float& sRadius)
                     pNode += inputMeshCenter;
 
                     nodes.push_back(new GraphNode(pNode, pVoxel, voxelIndex));
-                    volumeToNodeMap.insert(std::pair<size_t, size_t>(voxelIndex, nodeIndex));
+                    volumeToNodeMap.insert(std::pair< size_t, size_t >(voxelIndex, nodeIndex));
                     nodeIndex++;
                 }
             }
@@ -3691,8 +3691,8 @@ void Volume::applyThinning(Vector3f& sCenter, float& sRadius)
     }
 
 
-    sCenter = somaCenter;
-    sRadius = somaRadius;
+    // sCenter = somaCenter;
+    // sRadius = somaRadius;
 
 
 
@@ -3753,8 +3753,12 @@ void Volume::applyThinning(Vector3f& sCenter, float& sRadius)
         for (size_t j = 0; j < branches[i]->nodes.size(); ++j)
         {
             auto& node0 = branches[i]->nodes[j];
-            if (node0->radius > 1.5)
+            if (node0->radius >= 2.0)
             {
+
+                centers.push_back(Vector3f(node0->pNode.x(), node0->pNode.y(), node0->pNode.z()));
+                radii.push_back(node0->radius);
+
                 xstream << node0->pNode.x() << " "
                         << node0->pNode.y() << " "
                         << node0->pNode.z() << " "
@@ -3807,12 +3811,12 @@ void Volume::applyThinning(Vector3f& sCenter, float& sRadius)
 //    pMinV = pMin - (pMin * 0.1);
 //    pMaxV = pMax + (pMax * 0.1);
 
-    return;
+    return shellPoints;
 
     // Sample* somaRegion  = new Sample(somaCenter, somaRadius, 0);
 
     _rasterize(somaSphere, _grid);
-    return;
+    // return;
 
 
 

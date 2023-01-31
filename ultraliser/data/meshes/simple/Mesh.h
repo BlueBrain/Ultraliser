@@ -351,6 +351,7 @@ public:
     void refine();
 
     void map(Mesh* toMesh);
+    void map(std::vector< Vector3f >& pointCloud);
 
 
     void createEdgeList();
