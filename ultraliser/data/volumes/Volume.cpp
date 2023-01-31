@@ -3307,7 +3307,6 @@ Branches buildBranchesFromNodes(std::vector< GraphNode* > nodes)
 }
 
 
-<<<<<<< HEAD
 
 
 
@@ -3315,9 +3314,6 @@ Branches buildBranchesFromNodes(std::vector< GraphNode* > nodes)
 
 
 void Volume::applyThinning(Vector3f& sCenter, float& sRadius)
-=======
-void Volume::applyThinning(Vector3f& pMinV, Vector3f& pMaxV)
->>>>>>> Minor.
 {
     // The thinning kernel that will be used to thin the volume
     std::unique_ptr< Thinning6Iterations > thinningKernel = std::make_unique<Thinning6Iterations>();
@@ -3704,7 +3700,7 @@ void Volume::applyThinning(Vector3f& pMinV, Vector3f& pMaxV)
 
 //    std::cout << "Writing \n";
 
-//    std::fstream xstream;
+    std::fstream xstream;
 //    xstream.open("/abdellah2/scratch/thinning/output/projections/nodes.txt", std::ios::out);
 
 //    for (size_t i = 0; i < branches.size(); ++i)
@@ -3737,39 +3733,39 @@ void Volume::applyThinning(Vector3f& pMinV, Vector3f& pMaxV)
 //    xstream.close();
 
 
-//    xstream.open("/abdellah2/scratch/thinning/output/projections/radii.txt", std::ios::out);
+    xstream.open("/abdellah2/scratch/thinning/output/projections/radii.txt", std::ios::out);
 
-//    for (size_t i = 0; i < branches.size(); ++i)
-//    {
-//        if (branches[i]->nodes.size() == 0)
-//        {
-//            std::cout << "Empty branch \n";
-//            continue;
-//        }
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        if (branches[i]->nodes.size() == 0)
+        {
+            std::cout << "Empty branch \n";
+            continue;
+        }
 
-//        if (!branches[i]->valid)
-//        {
-//            std::cout << "Invalid branch \n";
-//            continue;
-//        }
+        if (!branches[i]->valid)
+        {
+            std::cout << "Invalid branch \n";
+            continue;
+        }
 
-//        //xstream << "start\n";
-//        for (size_t j = 0; j < branches[i]->nodes.size(); ++j)
-//        {
-//            auto& node0 = branches[i]->nodes[j];
-//            if (node0->radius > 1.5)
-//            {
-//                xstream << node0->pNode.x() << " "
-//                        << node0->pNode.y() << " "
-//                        << node0->pNode.z() << " "
-//                        << node0->radius << "\n";
-//            }
-//        }
-//        //xstream << "done\n";
+        //xstream << "start\n";
+        for (size_t j = 0; j < branches[i]->nodes.size(); ++j)
+        {
+            auto& node0 = branches[i]->nodes[j];
+            if (node0->radius > 1.5)
+            {
+                xstream << node0->pNode.x() << " "
+                        << node0->pNode.y() << " "
+                        << node0->pNode.z() << " "
+                        << node0->radius << "\n";
+            }
+        }
+        //xstream << "done\n";
 
-//    }
+    }
 
-//    xstream.close();
+    xstream.close();
 
 
 
@@ -3782,34 +3778,34 @@ void Volume::applyThinning(Vector3f& pMinV, Vector3f& pMaxV)
         }
     }
 
-    Vector3f pMin(1e10), pMax(-1e10);
+//    Vector3f pMin(1e10), pMax(-1e10);
 
-    for (size_t i = 0; i < somaRegion.size(); ++i)
-    {
-        const auto& p = somaRegion[i]->pNode;
-        const auto& r = somaRegion[i]->radius;
+//    for (size_t i = 0; i < somaRegion.size(); ++i)
+//    {
+//        const auto& p = somaRegion[i]->pNode;
+//        const auto& r = somaRegion[i]->radius;
 
-        if (p.x() - r < pMin.x())
-            pMin.x() = p.x() - r;
+//        if (p.x() - r < pMin.x())
+//            pMin.x() = p.x() - r;
 
-        if (p.y() - r < pMin.y())
-            pMin.y() = p.y() - r;
+//        if (p.y() - r < pMin.y())
+//            pMin.y() = p.y() - r;
 
-        if (p.z() - r < pMin.z())
-            pMin.z() = p.z() - r;
+//        if (p.z() - r < pMin.z())
+//            pMin.z() = p.z() - r;
 
-        if (p.x() + r > pMax.x())
-            pMax.x() = p.x() + r;
+//        if (p.x() + r > pMax.x())
+//            pMax.x() = p.x() + r;
 
-        if (p.y() + r > pMax.y())
-            pMax.y() = p.y() + r;
+//        if (p.y() + r > pMax.y())
+//            pMax.y() = p.y() + r;
 
-        if (p.z() + r > pMax.z())
-            pMax.z() = p.z() + r;
-    }
+//        if (p.z() + r > pMax.z())
+//            pMax.z() = p.z() + r;
+//    }
 
-    pMinV = pMin - (pMin * 0.1);
-    pMaxV = pMax + (pMax * 0.1);
+//    pMinV = pMin - (pMin * 0.1);
+//    pMaxV = pMax + (pMax * 0.1);
 
     return;
 

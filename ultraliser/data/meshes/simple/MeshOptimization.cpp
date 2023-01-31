@@ -1842,9 +1842,9 @@ void Mesh::subdivideTriangleAtCentroid(const size_t &triangleIndex,
     triangleList.push_back(t2);
 }
 
-void Mesh::subdivideTriangleAtEdges(const size_t &triangleIndex,
-                                    std::vector< Vector3f >& vertexList,
-                                    std::vector< Triangle >& triangleList)
+void Mesh::subdivideTriangleAtMidPoints(const size_t &triangleIndex,
+                                        std::vector< Vector3f >& vertexList,
+                                        std::vector< Triangle >& triangleList)
 {
     // Get the triangle
     const Triangle& t = _triangles[triangleIndex];
@@ -1901,6 +1901,63 @@ void Mesh::subdivideTriangleAtEdges(const size_t &triangleIndex,
     triangleList.push_back(t1);
     triangleList.push_back(t2);
     triangleList.push_back(t3);
+}
+
+void Mesh::subdivideTrianglseAtMidPoints()
+{
+    // New lists of vertices and triangles
+    std::vector< Vector3f > createdVertices;
+    std::vector< Triangle > createdTriangles;
+
+    // Subdivide all the triangles
+    for (size_t i = 0; i < _numberTriangles; ++i)
+    {
+        subdivideTriangleAtMidPoints(i, createdVertices, createdTriangles);
+    }
+
+    // Update the _vertices and _triangles lists
+    const size_t totalNumberVertices = _numberVertices + createdVertices.size();
+    const size_t totalNumberTriangles = createdTriangles.size();
+
+    // Allocate the new arrays
+    Vector3f* newVertices = new Vector3f[totalNumberVertices];
+    Triangle* newTriangles = new Triangle[totalNumberTriangles];
+
+    // Copy the old vertices to the new vertices list
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _numberVertices; ++i)
+    {
+        newVertices[i] = _vertices[i];
+    }
+
+    // Release the old vertices list
+    delete [] _vertices; _vertices = nullptr;
+
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < createdVertices.size(); ++i)
+    {
+        newVertices[_numberVertices + i] = createdVertices[i];
+    }
+
+    createdVertices.clear();
+    createdVertices.shrink_to_fit();
+
+    delete [] _triangles; _triangles = nullptr;
+
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < createdTriangles.size(); ++i)
+    {
+        newTriangles[i] = createdTriangles[i];
+    }
+
+    createdTriangles.clear();
+    createdTriangles.shrink_to_fit();
+
+    _numberVertices = totalNumberVertices;
+    _numberTriangles = totalNumberTriangles;
+
+    _vertices = newVertices;
+    _triangles = newTriangles;
 }
 
 void Mesh::refineSelectedTriangles(const std::vector< size_t > &trianglesIndices)

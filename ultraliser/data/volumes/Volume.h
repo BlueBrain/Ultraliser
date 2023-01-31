@@ -627,16 +627,11 @@ public:
 
     bool isBorderVoxel(const int64_t& x, const int64_t& y,const int64_t& z) const;
 
-<<<<<<< HEAD
     void applyThinning(Vector3f &sCenter, float &sRadius);
-=======
-    void applyThinning(Vector3f &pMinV, Vector3f &pMaxV);
     void surfaceVoxelizationReion(Mesh* mesh,
                                           const Vector3f& pMinRegion,
                                           const Vector3f& pMaxRegion,
                                           const bool& verbose = false);
->>>>>>> Minor.
-
 
 private:
 

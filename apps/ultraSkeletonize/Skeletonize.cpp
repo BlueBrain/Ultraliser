@@ -75,13 +75,6 @@ void run(int argc , const char** argv)
     auto inputMesh = loadInputMesh(options);
 
 
-
-   //
-
-
-
-
-
     auto prefix = options->projectionPrefix;
 
     // Create the volume from the mesh
@@ -94,7 +87,6 @@ void run(int argc , const char** argv)
                     options->projectXY, options->projectXZ, options->projectZY,
                     options->projectColorCoded);
 
-<<<<<<< HEAD
 
     Vector3f somaCenter;
     float somaRadius;
@@ -103,7 +95,7 @@ void run(int argc , const char** argv)
 
 
     // Map
-    Mesh* sample = new IcoSphere(3);
+    Mesh* sample = new IcoSphere(5);
     sample->scale(somaRadius, somaRadius, somaRadius);
     sample->translate(somaCenter);
 
@@ -113,20 +105,6 @@ void run(int argc , const char** argv)
 
     solidVolume->surfaceVoxelization(sample, true, true);
 
-
-=======
-    Vector3f pMinV, pMaxV;
-    solidVolume->applyThinning(pMinV, pMaxV);
-
-    //solidVolume->clear();
-
-    //pMinV.print();
-    //pMaxV.print();
-
-
-    //solidVolume->surfaceVoxelizationReion(inputMesh, pMinV, pMaxV, false);
-    //solidVolume->solidVoxelization(options->voxelizationAxis);
->>>>>>> Minor.
 
 
 

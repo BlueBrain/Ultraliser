@@ -365,14 +365,19 @@ public:
                                      std::vector< Triangle >& triangleList);
 
     /**
-     * @brief subdivideTriangleAtEdges
+     * @brief subdivideTriangleAtMidPoints
      * @param triangleIndex
      * @param vertexList
      * @param triangleList
      */
-    void subdivideTriangleAtEdges(const size_t& triangleIndex,
-                                  std::vector< Vector3f >& vertexList,
-                                  std::vector< Triangle >& triangleList);
+    void subdivideTriangleAtMidPoints(const size_t& triangleIndex,
+                                      std::vector< Vector3f >& vertexList,
+                                      std::vector< Triangle >& triangleList);
+
+
+    void subdivideTrianglseAtMidPoints();
+
+
 
     /**
      * @brief refineSelectedTriangles
