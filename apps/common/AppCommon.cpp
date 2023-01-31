@@ -32,6 +32,9 @@ Volume* createVolumeGrid(Mesh *mesh, const AppOptions* options)
     mesh->computeBoundingBox(pMinInput, pMaxInput);
     const auto& meshBoundingBox = pMaxInput - pMinInput;
 
+    pMinInput.print();
+    pMaxInput.print();
+
     // Get the largest dimension
     const auto largestDimension = meshBoundingBox.getLargestDimension();
 

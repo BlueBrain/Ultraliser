@@ -94,6 +94,7 @@ void run(int argc , const char** argv)
                     options->projectXY, options->projectXZ, options->projectZY,
                     options->projectColorCoded);
 
+<<<<<<< HEAD
 
     Vector3f somaCenter;
     float somaRadius;
@@ -113,6 +114,19 @@ void run(int argc , const char** argv)
     solidVolume->surfaceVoxelization(sample, true, true);
 
 
+=======
+    Vector3f pMinV, pMaxV;
+    solidVolume->applyThinning(pMinV, pMaxV);
+
+    //solidVolume->clear();
+
+    //pMinV.print();
+    //pMaxV.print();
+
+
+    //solidVolume->surfaceVoxelizationReion(inputMesh, pMinV, pMaxV, false);
+    //solidVolume->solidVoxelization(options->voxelizationAxis);
+>>>>>>> Minor.
 
 
 

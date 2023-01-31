@@ -494,6 +494,31 @@ void Volume::surfaceVoxelization(Mesh* mesh,
     }
 }
 
+void Volume::surfaceVoxelizationReion(Mesh* mesh,
+                                      const Vector3f& pMinRegion,
+                                      const Vector3f& pMaxRegion,
+                                      const bool& verbose)
+{
+    if (verbose) LOG_TITLE("Surface Voxelization");
+
+    // Start the timer
+    TIMER_SET;
+
+    if (verbose)
+        LOG_STATUS("Creating Volume Shell [%zu x %zu x %zu]",
+                   _grid->getWidth(), _grid->getHeight(), _grid->getDepth());
+
+    _rasterizeRegion(mesh , _grid, pMinRegion, pMaxRegion, verbose);
+    _surfaceVoxelizationTime = GET_TIME_SECONDS;
+
+    // Statistics
+    if (verbose)
+    {
+        LOG_STATUS_IMPORTANT("Rasterization Stats.");
+        LOG_STATS(_surfaceVoxelizationTime);
+    }
+}
+
 void Volume::surfaceVoxelizeNeuronMorphology(
     NeuronMorphology* neuronMorphology, const std::string& packingAlgorithm)
 {
@@ -1005,6 +1030,72 @@ void Volume::_rasterize(Mesh* mesh, VolumeGrid* grid, const bool& verbose)
                     GridIndex gi(I2I64(ix), I2I64(iy), I2I64(iz));
                     if (_testTriangleCubeIntersection(mesh, triangleIdx, gi))
                         grid->fillVoxel(I2I64(ix), I2I64(iy), I2I64(iz));
+                }
+            }
+        }
+    }
+    if (verbose) LOOP_DONE;
+}
+
+
+void Volume::_rasterizeRegion(Mesh* mesh, VolumeGrid* grid,
+                              const Vector3f& pMinRegion,
+                              const Vector3f& pMaxRegion,
+                              const bool& verbose)
+{
+    if (verbose) LOOP_STARTS("Rasterization");
+    size_t progress = 0;
+
+    for (size_t triangleIdx = 0; triangleIdx < mesh->getNumberTriangles(); ++triangleIdx)
+    {
+        ++progress;
+        if (verbose) LOOP_PROGRESS(progress, mesh->getNumberTriangles());
+
+        // Get the pMin and pMax of the triangle within the grid
+        int64_t pMinTriangle[3], pMaxTriangle[3];
+        _getBoundingBox(mesh, triangleIdx, pMinTriangle, pMaxTriangle);
+
+
+        // Get the indices of the grid that correspond to the bounding box
+        GridIndex vMin, vMax;
+        _vec2grid(pMinRegion, vMin);
+        _vec2grid(pMaxRegion, vMax);
+
+
+        int64_t tMin[3];
+        int64_t tMax[3];
+
+        tMin[0] = vMin[0]; tMin[1] = vMin[1]; tMin[2] = vMin[2];
+        tMax[0] = vMax[0]; tMax[1] = vMax[1]; tMax[2] = vMax[2];
+
+        tMin[0] = std::max(int64_t(0), tMin[0]);
+        tMax[0] = std::min(int64_t(_grid->getWidth() - 1) , tMax[0]);
+
+        tMin[1] = std::max(int64_t(0), tMin[1]);
+        tMax[1] = std::min(int64_t(_grid->getHeight() - 1) , tMax[1]);
+
+        tMin[2] = std::max(int64_t(0), tMin[2]);
+        tMax[2] = std::min(int64_t(_grid->getDepth() - 1) , tMax[2]);
+
+
+        // std::cout << pMinTriangle[0] << " " << pMinTriangle[1] << " " << pMinTriangle[2] << "\n";
+        if (pMinTriangle[0] >= tMin[0] &&
+            pMinTriangle[1] >= tMin[1] &&
+            pMinTriangle[2] >= tMin[2] &&
+            pMaxTriangle[0] <= tMax[0] &&
+            pMaxTriangle[1] <= tMax[1] &&
+            pMaxTriangle[2] <= tMax[2])
+        {
+            for (int64_t ix = pMinTriangle[0]; ix <= pMaxTriangle[0]; ++ix)
+            {
+                for (int64_t iy = pMinTriangle[1]; iy <= pMaxTriangle[1]; ++iy)
+                {
+                    for (int64_t iz = pMinTriangle[2]; iz <= pMaxTriangle[2]; ++iz)
+                    {
+                        GridIndex gi(I2I64(ix), I2I64(iy), I2I64(iz));
+                        if (_testTriangleCubeIntersection(mesh, triangleIdx, gi))
+                            grid->fillVoxel(I2I64(ix), I2I64(iy), I2I64(iz));
+                    }
                 }
             }
         }
@@ -3216,6 +3307,7 @@ Branches buildBranchesFromNodes(std::vector< GraphNode* > nodes)
 }
 
 
+<<<<<<< HEAD
 
 
 
@@ -3223,6 +3315,9 @@ Branches buildBranchesFromNodes(std::vector< GraphNode* > nodes)
 
 
 void Volume::applyThinning(Vector3f& sCenter, float& sRadius)
+=======
+void Volume::applyThinning(Vector3f& pMinV, Vector3f& pMaxV)
+>>>>>>> Minor.
 {
     // The thinning kernel that will be used to thin the volume
     std::unique_ptr< Thinning6Iterations > thinningKernel = std::make_unique<Thinning6Iterations>();
@@ -3470,6 +3565,8 @@ void Volume::applyThinning(Vector3f& sCenter, float& sRadius)
 
 
 
+
+
 //    // OMP_PARALLEL_FOR
 //    size_t arbors = 0;
 //    for (size_t i = 0; i < nodes.size(); ++i)
@@ -3601,40 +3698,124 @@ void Volume::applyThinning(Vector3f& sCenter, float& sRadius)
     sCenter = somaCenter;
     sRadius = somaRadius;
 
-    std::cout << "Writing \n";
 
-    std::fstream xstream;
-    xstream.open("/abdellah2/scratch/thinning/output/projections/nodes.txt", std::ios::out);
 
-    for (size_t i = 0; i < branches.size(); ++i)
+
+
+//    std::cout << "Writing \n";
+
+//    std::fstream xstream;
+//    xstream.open("/abdellah2/scratch/thinning/output/projections/nodes.txt", std::ios::out);
+
+//    for (size_t i = 0; i < branches.size(); ++i)
+//    {
+//        if (branches[i]->nodes.size() == 0)
+//        {
+//            std::cout << "Empty branch \n";
+//            continue;
+//        }
+
+//        if (!branches[i]->valid)
+//        {
+//            std::cout << "Invalid branch \n";
+//            continue;
+//        }
+
+//        xstream << "start\n";
+//        for (size_t j = 0; j < branches[i]->nodes.size(); ++j)
+//        {
+//            auto& node0 = branches[i]->nodes[j];
+//            xstream << node0->pNode.x() << " "
+//                    << node0->pNode.y() << " "
+//                    << node0->pNode.z() << " "
+//                    << node0->radius << "\n";
+//        }
+//        xstream << "done\n";
+
+//    }
+
+//    xstream.close();
+
+
+//    xstream.open("/abdellah2/scratch/thinning/output/projections/radii.txt", std::ios::out);
+
+//    for (size_t i = 0; i < branches.size(); ++i)
+//    {
+//        if (branches[i]->nodes.size() == 0)
+//        {
+//            std::cout << "Empty branch \n";
+//            continue;
+//        }
+
+//        if (!branches[i]->valid)
+//        {
+//            std::cout << "Invalid branch \n";
+//            continue;
+//        }
+
+//        //xstream << "start\n";
+//        for (size_t j = 0; j < branches[i]->nodes.size(); ++j)
+//        {
+//            auto& node0 = branches[i]->nodes[j];
+//            if (node0->radius > 1.5)
+//            {
+//                xstream << node0->pNode.x() << " "
+//                        << node0->pNode.y() << " "
+//                        << node0->pNode.z() << " "
+//                        << node0->radius << "\n";
+//            }
+//        }
+//        //xstream << "done\n";
+
+//    }
+
+//    xstream.close();
+
+
+
+    std::vector< GraphNode* > somaRegion;
+    for (size_t i = 0; i < nodes.size(); ++i)
     {
-        if (branches[i]->nodes.size() == 0)
+        if (nodes[i]->radius > 1.5)
         {
-            std::cout << "Empty branch \n";
-            continue;
+            somaRegion.push_back(nodes[i]);
         }
-
-        if (!branches[i]->valid)
-        {
-            std::cout << "Invalid branch \n";
-            continue;
-        }
-
-        xstream << "start\n";
-        for (size_t j = 0; j < branches[i]->nodes.size(); ++j)
-        {
-            auto& node0 = branches[i]->nodes[j];
-            xstream << node0->pNode.x() << " "
-                    << node0->pNode.y() << " "
-                    << node0->pNode.z() << " "
-                    << node0->radius << "\n";
-        }
-        xstream << "done\n";
-
     }
 
-    xstream.close();
+    Vector3f pMin(1e10), pMax(-1e10);
 
+    for (size_t i = 0; i < somaRegion.size(); ++i)
+    {
+        const auto& p = somaRegion[i]->pNode;
+        const auto& r = somaRegion[i]->radius;
+
+        if (p.x() - r < pMin.x())
+            pMin.x() = p.x() - r;
+
+        if (p.y() - r < pMin.y())
+            pMin.y() = p.y() - r;
+
+        if (p.z() - r < pMin.z())
+            pMin.z() = p.z() - r;
+
+        if (p.x() + r > pMax.x())
+            pMax.x() = p.x() + r;
+
+        if (p.y() + r > pMax.y())
+            pMax.y() = p.y() + r;
+
+        if (p.z() + r > pMax.z())
+            pMax.z() = p.z() + r;
+    }
+
+    pMinV = pMin - (pMin * 0.1);
+    pMaxV = pMax + (pMax * 0.1);
+
+    return;
+
+    // Sample* somaRegion  = new Sample(somaCenter, somaRadius, 0);
+
+    _rasterize(somaSphere, _grid);
     return;
 
 
@@ -3795,7 +3976,7 @@ void Volume::applyThinning(Vector3f& sCenter, float& sRadius)
 //    std::cout << branches.size() << "\n : Branches \n";
 
 
-    _rasterize(somaSphere, _grid);
+
 
 }
 
