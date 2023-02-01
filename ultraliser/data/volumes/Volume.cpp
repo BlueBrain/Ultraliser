@@ -3325,7 +3325,6 @@ std::vector< Vector3f > Volume::applyThinning(std::vector< Vector3f > & centers,
     size_t initialNumberVoxelsToBeDeleted = 0;
     size_t loopCounter = 0;
 
-
     // Compute the dimensions of the resulting volume mesh
     const Vector3f inputMeshbounds = _pMax - _pMin;
     const Vector3f inputMeshCenter = _pMin + inputMeshbounds * 0.5f;
@@ -3444,8 +3443,6 @@ std::vector< Vector3f > Volume::applyThinning(std::vector< Vector3f > & centers,
             }
         }
     }
-
-    std::cout << nodeIndex << " nodes \n";
 
     // Calculate the radii of every point
     std::vector< float > nodesRadii;
@@ -3782,34 +3779,7 @@ std::vector< Vector3f > Volume::applyThinning(std::vector< Vector3f > & centers,
         }
     }
 
-//    Vector3f pMin(1e10), pMax(-1e10);
 
-//    for (size_t i = 0; i < somaRegion.size(); ++i)
-//    {
-//        const auto& p = somaRegion[i]->pNode;
-//        const auto& r = somaRegion[i]->radius;
-
-//        if (p.x() - r < pMin.x())
-//            pMin.x() = p.x() - r;
-
-//        if (p.y() - r < pMin.y())
-//            pMin.y() = p.y() - r;
-
-//        if (p.z() - r < pMin.z())
-//            pMin.z() = p.z() - r;
-
-//        if (p.x() + r > pMax.x())
-//            pMax.x() = p.x() + r;
-
-//        if (p.y() + r > pMax.y())
-//            pMax.y() = p.y() + r;
-
-//        if (p.z() + r > pMax.z())
-//            pMax.z() = p.z() + r;
-//    }
-
-//    pMinV = pMin - (pMin * 0.1);
-//    pMaxV = pMax + (pMax * 0.1);
 
     return shellPoints;
 
