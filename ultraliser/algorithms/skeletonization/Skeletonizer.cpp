@@ -139,7 +139,7 @@ void Skeletonizer::_computeShellPoints()
     }
 }
 
-void Skeletonizer::constructGraph()
+SkeletonNodes Skeletonizer::constructGraph()
 {
     // The graph that will contain the nodes
     SkeletonNodes nodes;
@@ -264,16 +264,23 @@ void Skeletonizer::constructGraph()
     // Re-index the samples, for simplicity
     OMP_PARALLEL_FOR for (size_t i = 0; i < nodes.size(); ++i) { nodes[i]->index = i; }
 
+
+    return nodes;
+}
+
+void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
+{
+    SkeletonNode* somaNode = nodes.back();
+
+
     // Build the branches from the nodes
     SkeletonBranches branches = _buildBranchesFromNodes(nodes);
 
     std::cout << "Branches: " << branches.size() << "\n";
     std::cout << "Nodes (Samples): " << nodes.size() << "\n";
 
-    _somaMesh = _reconstructSoma(branches);
 
-//    Vector3f pMinSoma, pMaxSoma;
-//    _somaMesh->computeBoundingBox(pMinSoma, pMaxSoma);
+    _somaMesh = _reconstructSoma(branches);
 
     _volume->clear();
     _volume->surfaceVoxelization(_somaMesh, false, false);
@@ -345,7 +352,6 @@ void Skeletonizer::constructGraph()
         // Otherwise, it is a branch that is connected to the soma
         else
         {
-
             std::cout << "I am a root << " << countSamplesInsideSoma << "\n";
 
             SkeletonNodes newNodes;
@@ -394,14 +400,15 @@ void Skeletonizer::constructGraph()
     // Get the starting points of the branches
     std::vector< Vector3f > rootsStartingPoints;
 
+    SkeletonBranches possibleRoots;
+
     for (size_t i = 0; i < branches.size(); ++i)
     {
         const auto& branch = branches[i];
 
         if (branch->root)
         {
-            std::cout << "Root " << branches[i]->index <<"\n";
-            std::cout << branch->nodes.size() << "\n";
+            possibleRoots.push_back(branch);
 
             auto auxNode0 = branch->nodes.front();
 
@@ -420,7 +427,6 @@ void Skeletonizer::constructGraph()
         }
     }
 
-    std::cout << "Roots Starting Points: " << rootsStartingPoints.size() << "\n";
     Vector3f center(0.f);
     float radius = 0;
     for (size_t i = 0; i < rootsStartingPoints.size(); i++)
@@ -441,16 +447,150 @@ void Skeletonizer::constructGraph()
     printf("Soma: %f, [%f, %f, %f], Roots: %ld\n",
            center.x(), center.y(), center.z(), radius, rootsStartingPoints.size());
 
-
-
-    std::cout << "Sphere \n";
     _volume->clear();
     Mesh* sample = new IcoSphere(3);
     sample->scale(somaNode->radius, somaNode->radius, somaNode->radius);
     sample->translate(somaNode->point);
     _volume->surfaceVoxelization(sample);
     _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+
+    // Double loop to detect the connectivity of the branches
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        auto& iBranch = branches[i];
+
+        if (!iBranch->valid)
+            continue;
+
+        const auto& iFirsttNode = iBranch->nodes.front();
+        const auto& iLastNode = iBranch->nodes.back();
+
+        for (size_t j = 0; j < branches.size(); ++j)
+        {
+            const auto& jBranch = branches[j];
+
+            if (!jBranch->valid)
+                continue;
+
+            // Ignore the same branch
+            if (iBranch->index != jBranch->index)
+            {
+                const auto& jFirsttNode = jBranch->nodes.front();
+                const auto& jLastNode = jBranch->nodes.back();
+
+                // Child
+                if (iLastNode->index == jFirsttNode->index)
+                {
+                    iBranch->children.push_back(jBranch);
+                }
+
+                // Parent
+                if (iFirsttNode->index == jLastNode->index)
+                {
+                    iBranch->parents.push_back(jBranch);
+                }
+            }
+        }
+    }
+    _volume->clear();
+
+
+    std::fstream stream;
+    stream.open("/abdellah2/scratch/thinning/output/projections/radiii.txt", std::ios::out);
+
+
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        printf("Branch %ld, %ld parents, %ld children, %ld nodes, %ld p0Edges, %ld p1Edges, valid %d, root %d \n",
+               i, branches[i]->parents.size(), branches[i]->children.size(),
+               branches[i]->nodes.size(),
+               branches[i]->nodes.front()->edgeNodes.size(),
+               branches[i]->nodes.back()->edgeNodes.size(),
+               int(branches[i]->valid), int(branches[i]->root));
+
+        if (!branches[i]->valid) continue;
+
+        if (branches[i]->parents.size() == 0 && branches[i]->children.size() == 0)
+        {
+            for (auto& node: branches[i]->nodes)
+            {
+                stream << node->point.x() << " "
+                       << node->point.y() << " "
+                       << node->point.z() << " "
+                       << node->radius << "\n";
+
+                Mesh* sample = new IcoSphere(2);
+                sample->scale(node->radius, node->radius, node->radius);
+                sample->translate(node->point);
+                _volume->surfaceVoxelization(sample);
+                sample->~Mesh();
+            }
+       }
+    }
+    stream.close();
+    _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+
+
+
+
+
+//    // Re-arraning the branching
+//    for (size_t i = 0; i < possibleRoots.size(); ++i)
+//    {
+//        auto &nodes = possibleRoots[i]->nodes;
+
+//        if (nodes.size() == 0)
+//        {
+//            std::cout << "Issue \n";
+//        }
+//        else if (nodes.size() == 1)
+//        {
+//            std::cout << "Issue2 \n";
+//        }
+//        else if (nodes.size() > 1)
+//        {
+//            if (nodes[0]->isSoma)
+//            {
+//                // That's perfect
+//            }
+//            else
+//            {
+//                // Re-arrange the nodes in the branch
+//                std::reverse(nodes.begin(), nodes.end());
+//            }
+//        }
+//    }
 }
+
+
+void Skeletonizer::_buildAcyclicTree(SkeletonBranch* branch, SkeletonBranches& branches)
+{
+    // assert(branch->nodes == nullptr);
+
+    //
+    auto& nodes = branch->nodes;
+
+    if (nodes.back()->terminal)
+    {
+        return;
+    }
+
+    auto& lastNode = branch->nodes.back();
+
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        // Ignore the same branch
+        if (branch->index == branches[i]->index)
+            continue;
+    }
+
+
+
+
+
+
+}
+
 
 Mesh* Skeletonizer::_reconstructSoma(const SkeletonBranches& branches)
 {

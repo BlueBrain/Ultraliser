@@ -88,17 +88,25 @@ void run(int argc , const char** argv)
 
     Skeletonizer* skeletonizer = new Skeletonizer(inputMesh, solidVolume);
 
-    std::vector< Vector3f > shellPoints = skeletonizer->getShellPoints(); // solidVolume->applyThinning(centers, radii);
+    std::vector< Vector3f > shellPoints = skeletonizer->getShellPoints();
 
     // Get the border
 
     skeletonizer->applyVolumeThinning();
-    skeletonizer->constructGraph();
+    auto nodes = skeletonizer->constructGraph();
+    solidVolume->project(prefix + "_skeleton",
+                    options->projectXY, options->projectXZ, options->projectZY,
+                    options->projectColorCoded);
 
-    std::cout << "HOLA \n";
+    solidVolume->writeVolumes(options->volumePrefix + "_skeleton",
+                         options->exportBitVolume,
+                         options->exportUnsignedVolume,
+                         options->exportFloatVolume,
+                         options->exportNRRDVolume,
+                         options->exportRawVolume);
 
-    // solidVolume->clear();
 
+    skeletonizer->segmentComponents(nodes);
     solidVolume->project(prefix + "_sphere",
                     options->projectXY, options->projectXZ, options->projectZY,
                     options->projectColorCoded);

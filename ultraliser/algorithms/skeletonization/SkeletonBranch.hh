@@ -37,14 +37,13 @@ public:
 
     /**
      * @brief parent
-     * The parent branch.
-     * NOTE: CURRENTLY FOR NEURONS AND ASTROCYTES ONLY.
+     * A list of the parent branches.
      */
-    SkeletonBranch* parent = nullptr;
+    std::vector< SkeletonBranch* > parents;
 
     /**
      * @brief children
-     * A list of the children branches.
+     * A list of the child branches.
      */
     std::vector< SkeletonBranch* > children;
 

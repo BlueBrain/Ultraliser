@@ -23,12 +23,15 @@ public:
 
     void applyVolumeThinning();
 
-    void constructGraph();
+    SkeletonNodes constructGraph();
 
     Mesh* getSomaMesh() const
     {
         return _somaMesh;
     }
+
+    void segmentComponents(SkeletonNodes& nodes);
+
 private:
 
     void _computeShellPoints();
@@ -41,6 +44,9 @@ private:
     SkeletonBranch* _buildBranch(SkeletonNode* firstNode, SkeletonNode* edgeNode);
 
     Mesh* _reconstructSoma(const SkeletonBranches &branches);
+
+    void _buildAcyclicTree(SkeletonBranch* branch, SkeletonBranches &branches);
+
 
 
 private:
