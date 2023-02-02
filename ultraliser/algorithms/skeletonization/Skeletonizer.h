@@ -24,6 +24,9 @@ private:
 
     void _voxelizeMesh();
 
+    void _constructGraph();
+
+
 private:
 
     /**

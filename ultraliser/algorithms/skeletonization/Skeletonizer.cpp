@@ -1,5 +1,9 @@
 #include "Skeletonizer.h"
 #include <math/Vector.h>
+#include "SkeletonNode.hh"
+#include "SkeletonEdge.hh"
+#include "Neighbors.hh"
+
 
 namespace Ultraliser
 {
@@ -139,6 +143,119 @@ void Skeletonizer::_computeShellPoints()
     }
 }
 
+
+void Skeletonizer::_constructGraph()
+{
+    // Construct all the nodes
+    size_t nodeIndex = 0;
+    SkeletonNodes nodes;
+    std::map< size_t, size_t > volumeToNodeMap;
+    for (size_t i = 0; i < _volume->getWidth(); ++i)
+    {
+        for (size_t j = 0; j < _volume->getHeight(); ++j)
+        {
+            for (size_t k = 0; k < _volume->getDepth(); ++k)
+            {
+                if (_volume->isFilled(i, j, k))
+                {
+                    // Get the 1D index of the voxel
+                    size_t voxelIndex = _volume->mapTo1DIndexWithoutBoundCheck(i, j, k);
+
+                    // Get a point representing the center of the voxel (in the volume)
+                    Vector3f voxelPosition(i * 1.f, j * 1.f, k * 1.f);
+
+                    // Get a point in the same coordinate space of the mesh
+                    Vector3f nodePosition(voxelPosition);
+                    nodePosition -= _centerVolume;
+                    nodePosition.x() *= _scaleFactor.x();
+                    nodePosition.y() *= _scaleFactor.y();
+                    nodePosition.z() *= _scaleFactor.z();
+                    nodePosition += _centerMesh;
+
+                    // Add the node to the nodes list
+                    nodes.push_back(new SkeletonNode(voxelIndex, nodePosition, voxelPosition));
+
+                    // Mapper from voxel to node indices
+                    volumeToNodeMap.insert(std::pair< size_t, size_t >(voxelIndex, nodeIndex));
+
+                    // New node
+                    nodeIndex++;
+                }
+            }
+        }
+    }
+
+    // Calculate the radii of every node in the graph
+    std::vector< float > nodesRadii;
+    nodesRadii.resize(nodes.size());
+
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < nodes.size(); ++i)
+    {
+        float minimumDistance = 1e32;
+        for (size_t j = 0; j < _shellPoints.size(); ++j)
+        {
+            const float distance = (nodes[i]->point - _shellPoints[j]).abs();
+
+            if (distance < minimumDistance)
+            {
+                minimumDistance = distance;
+            }
+        }
+        nodesRadii[i] = minimumDistance;
+    }
+
+
+    auto it = std::max_element(std::begin(nodesRadii), std::end(nodesRadii));
+    auto largestRadiusIndex = std::distance(std::begin(nodesRadii), it);
+
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < nodes.size(); ++i)
+    {
+        nodes[i]->radius = nodesRadii[i];
+    }
+    nodesRadii.clear();
+
+
+    // Construct the graph and connect the nodes
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < nodes.size(); ++i)
+    {
+        // Check if the node has been visited before
+        SkeletonNode* node = nodes[i];
+
+        // Count the number of the connected edges to the node
+        size_t connectedEdges = 0;
+
+        // Search for the neighbours
+        for (size_t l = 0; l < 26; l++)
+        {
+            size_t idx = node->voxel.x() + VDX[l];
+            size_t idy = node->voxel.y() + VDY[l];
+            size_t idz = node->voxel.z() + VDZ[l];
+
+            if (_volume->isFilled(idx, idy, idz))
+            {
+                connectedEdges++;
+
+                // Find the index of the voxel
+                const auto& voxelIndex = _volume->mapTo1DIndexWithoutBoundCheck(idx, idy, idz);
+
+                // Find the corresponding index of the node to access the node from the nodes list
+                const auto& nodeIndex = volumeToNodeMap.find(voxelIndex)->second;
+
+                // Add the node to the edgeNodes, only to be able to access it later
+                node->edgeNodes.push_back(nodes[nodeIndex]);
+            }
+        }
+
+        if (connectedEdges == 1)
+            node->terminal = true;
+        else if (connectedEdges > 2)
+            node->branching = true;
+
+    }
+}
 
 
 }
