@@ -23,7 +23,7 @@ public:
 
     void applyVolumeThinning();
 
-    void constructGraph(std::vector< Vector3f > & centers, std::vector< float >& radii);
+    void constructGraph();
 
     Mesh* getSomaMesh() const
     {

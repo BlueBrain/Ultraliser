@@ -96,10 +96,9 @@ void run(int argc , const char** argv)
 
 
     // Get the border
-    std::vector< Vector3f > centers;
-    std::vector< float > radii;
+
     skeletonizer->applyVolumeThinning();
-    skeletonizer->constructGraph(centers, radii);
+    skeletonizer->constructGraph();
 
     // solidVolume->clear();
 

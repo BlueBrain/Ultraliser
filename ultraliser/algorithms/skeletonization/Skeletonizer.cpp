@@ -139,18 +139,25 @@ void Skeletonizer::_computeShellPoints()
     }
 }
 
-void Skeletonizer::constructGraph(std::vector< Vector3f > & centers, std::vector< float >& radii)
+void Skeletonizer::constructGraph()
 {
-    // Construct all the nodes
-    size_t nodeIndex = 0;
+    // The graph that will contain the nodes
     SkeletonNodes nodes;
-    std::map< size_t, size_t > volumeToNodeMap;
+
+    // Every constructed node must have an identifier, or index.
+    size_t nodeIndex = 0;
+
+    // Map to associate between the indices of the voxels and the nodes in the graph
+    std::map< size_t, size_t > indicesMapper;
+
+    // Search the filled voxels in the volume
     for (size_t i = 0; i < _volume->getWidth(); ++i)
     {
         for (size_t j = 0; j < _volume->getHeight(); ++j)
         {
             for (size_t k = 0; k < _volume->getDepth(); ++k)
             {
+                // If the voxel is filled
                 if (_volume->isFilled(i, j, k))
                 {
                     // Get the 1D index of the voxel
@@ -171,7 +178,7 @@ void Skeletonizer::constructGraph(std::vector< Vector3f > & centers, std::vector
                     nodes.push_back(new SkeletonNode(voxelIndex, nodePosition, voxelPosition));
 
                     // Mapper from voxel to node indices
-                    volumeToNodeMap.insert(std::pair< size_t, size_t >(voxelIndex, nodeIndex));
+                    indicesMapper.insert(std::pair< size_t, size_t >(voxelIndex, nodeIndex));
 
                     // New node
                     nodeIndex++;
@@ -180,14 +187,14 @@ void Skeletonizer::constructGraph(std::vector< Vector3f > & centers, std::vector
         }
     }
 
-    // Calculate the radii of every node in the graph
+    // Compute the approximate radii of all the nodes in the graph, based on the minimum distance
     std::vector< float > nodesRadii;
     nodesRadii.resize(nodes.size());
 
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < nodes.size(); ++i)
     {
-        float minimumDistance = 1e32;
+        float minimumDistance = std::numeric_limits< float >::max();
         for (size_t j = 0; j < _shellPoints.size(); ++j)
         {
             const float distance = (nodes[i]->point - _shellPoints[j]).abs();
@@ -197,36 +204,18 @@ void Skeletonizer::constructGraph(std::vector< Vector3f > & centers, std::vector
                 minimumDistance = distance;
             }
         }
+        nodes[i]->radius = minimumDistance;
         nodesRadii[i] = minimumDistance;
     }
 
+    // Obtain the node with the largest radius, candidate for soma
+    const auto iterator = std::max_element(std::begin(nodesRadii), std::end(nodesRadii));
+    const auto& index = std::distance(std::begin(nodesRadii), iterator);
+    const auto& largestNode = nodes[index];
 
-    auto it = std::max_element(std::begin(nodesRadii), std::end(nodesRadii));
-    auto largestRadiusIndex = std::distance(std::begin(nodesRadii), it);
-
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-        nodes[i]->radius = nodesRadii[i];
-    }
+    // Clear the auxiliary list
     nodesRadii.clear();
-
-    // Rasterize a sphere
-    Vector3f somaCenter(nodes[largestRadiusIndex]->point.x(),
-                        nodes[largestRadiusIndex]->point.y(),
-                        nodes[largestRadiusIndex]->point.z());
-    Vector3f somaCenterVoxel(nodes[largestRadiusIndex]->voxel.x(),
-                             nodes[largestRadiusIndex]->voxel.y(),
-                             nodes[largestRadiusIndex]->voxel.z());
-    const auto somaRadius = nodes[largestRadiusIndex]->radius;
-    Sample* somaSphere  = new Sample(somaCenter, somaRadius, 0);
-
-    std::cout << "Soma: "
-              << somaSphere->getPosition().x() << " "
-              << somaSphere->getPosition().y() << " "
-              << somaSphere->getPosition().z() << " "
-              << somaSphere->getRadius() << "\n";
-
+    nodesRadii.shrink_to_fit();
 
     // Construct the graph and connect the nodes
     OMP_PARALLEL_FOR
@@ -253,7 +242,7 @@ void Skeletonizer::constructGraph(std::vector< Vector3f > & centers, std::vector
                 const auto& voxelIndex = _volume->mapTo1DIndexWithoutBoundCheck(idx, idy, idz);
 
                 // Find the corresponding index of the node to access the node from the nodes list
-                const auto& nodeIndex = volumeToNodeMap.find(voxelIndex)->second;
+                const auto& nodeIndex = indicesMapper.find(voxelIndex)->second;
 
                 // Add the node to the edgeNodes, only to be able to access it later
                 node->edgeNodes.push_back(nodes[nodeIndex]);
@@ -267,96 +256,80 @@ void Skeletonizer::constructGraph(std::vector< Vector3f > & centers, std::vector
 
     }
 
-    // Build soma node
-    SkeletonNode* somaNode = new SkeletonNode(nodeIndex++, somaCenter, somaCenterVoxel);
-    somaNode->radius = somaRadius;
-    somaNode->isSoma = true;
-    nodes.push_back(somaNode);
-
     // Re-index the samples
     OMP_PARALLEL_FOR
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-        nodes[i]->index = i;
-    }
+    for (size_t i = 0; i < nodes.size(); ++i) { nodes[i]->index = i; }
 
+    // Build the branches from the nodes
     SkeletonBranches branches = _buildBranchesFromNodes(nodes);
 
     std::cout << "Branches: " << branches.size() << "\n";
     std::cout << "Nodes (Samples): " << nodes.size() << "\n";
 
-    // Filter the branches the are located inside the soma
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < branches.size(); ++i)
-    {
-        auto& branch = branches[i];
+     _somaMesh = _reconstructSoma(branches);
 
-        size_t countSamplesInsideSoma = 0;
-        for (size_t j = 0; j < branch->nodes.size(); ++j)
-        {
-            if (isPointInSphere(branch->nodes[j]->point, somaCenter, somaRadius))
-            {
-                branch->nodes[j]->insideSoma = true;
-                countSamplesInsideSoma++;
-            }
-        }
+    //    // Filter the branches the are located inside the soma
+    //    OMP_PARALLEL_FOR
+    //    for (size_t i = 0; i < branches.size(); ++i)
+    //    {
+    //        auto& branch = branches[i];
 
-        // If the count of the sample located inside the soma is zero, then it is a valid branch
-        if (countSamplesInsideSoma == 0)
-        {
-            branch->valid = true;
-        }
+    //        // If the count of the sample located inside the soma is zero, then it is a valid branch
+    //        if (countSamplesInsideSoma == 0)
+    //        {
+    //            branch->valid = true;
+    //        }
 
-        // If all the branch nodes are located inside the soma, then it is not valid
-        else if (countSamplesInsideSoma == branch->nodes.size())
-        {
-            branch->valid = false;
-        }
+    //        // If all the branch nodes are located inside the soma, then it is not valid
+    //        else if (countSamplesInsideSoma == branch->nodes.size())
+    //        {
+    //            branch->valid = false;
+    //        }
 
-        // Otherwise, it is a branch that is connected to the soma
-        else
-        {
-            SkeletonNodes newNodes;
+    //        // Otherwise, it is a branch that is connected to the soma
+    //        else
+    //        {
+    //            SkeletonNodes newNodes;
 
-            // Get the first and last nodes
-            auto& firstNode = branch->nodes.front();
-            auto& lastNode = branch->nodes.back();
+    //            // Get the first and last nodes
+    //            auto& firstNode = branch->nodes.front();
+    //            auto& lastNode = branch->nodes.back();
 
-            if (firstNode->insideSoma)
-            {
-                newNodes.push_back(somaNode);
-                for (size_t j = 0; j < branch->nodes.size(); ++j)
-                {
-                    if (branch->nodes[j]->insideSoma)
-                        continue;
-                    else
-                    {
-                        newNodes.push_back(branch->nodes[j]);
-                    }
-                }
-            }
-            else if (lastNode->insideSoma)
-            {
-                for (size_t j = 0; j < branch->nodes.size(); ++j)
-                {
-                    if (branch->nodes[j]->insideSoma)
-                        continue;
-                    else
-                    {
-                        newNodes.push_back(branch->nodes[j]);
-                    }
-                }
-                newNodes.push_back(somaNode);
-            }
+    //            if (firstNode->insideSoma)
+    //            {
+    //                newNodes.push_back(somaNode);
+    //                for (size_t j = 0; j < branch->nodes.size(); ++j)
+    //                {
+    //                    if (branch->nodes[j]->insideSoma)
+    //                        continue;
+    //                    else
+    //                    {
+    //                        newNodes.push_back(branch->nodes[j]);
+    //                    }
+    //                }
+    //            }
+    //            else if (lastNode->insideSoma)
+    //            {
+    //                for (size_t j = 0; j < branch->nodes.size(); ++j)
+    //                {
+    //                    if (branch->nodes[j]->insideSoma)
+    //                        continue;
+    //                    else
+    //                    {
+    //                        newNodes.push_back(branch->nodes[j]);
+    //                    }
+    //                }
+    //                newNodes.push_back(somaNode);
+    //            }
 
-            branch->nodes.clear();
-            branch->nodes.shrink_to_fit();
-            branch->nodes = newNodes;
-            branch->valid = true;
-        }
-    }
+    //            branch->nodes.clear();
+    //            branch->nodes.shrink_to_fit();
+    //            branch->nodes = newNodes;
+    //            branch->valid = true;
+    //        }
+    //    }
 
-    _somaMesh = _reconstructSoma(branches);
+
 }
 
 Mesh* Skeletonizer::_reconstructSoma(const SkeletonBranches& branches)
