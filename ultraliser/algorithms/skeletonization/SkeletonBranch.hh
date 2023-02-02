@@ -49,9 +49,11 @@ public:
     std::vector< SkeletonBranch* > children;
 
     /**
-     * @brief valid
-     * ?
+     * @brief root
+     * If this flag is set, this means that it is emanating from the soma
      */
+    bool root = false;
+
     bool valid = true;
 };
 

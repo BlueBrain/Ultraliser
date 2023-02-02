@@ -79,8 +79,6 @@ void run(int argc , const char** argv)
     // Create the volume from the mesh
     auto solidVolume = createVolumeGrid(inputMesh, options);
 
-    auto anotherVolume = createVolumeGrid(inputMesh, options);
-
     // Surface voxelization
     solidVolume->surfaceVoxelization(inputMesh, true, true);
     solidVolume->solidVoxelization(options->voxelizationAxis);
@@ -92,29 +90,34 @@ void run(int argc , const char** argv)
 
     std::vector< Vector3f > shellPoints = skeletonizer->getShellPoints(); // solidVolume->applyThinning(centers, radii);
 
-    std::cout  << shellPoints.size() << "\n";
-
-
     // Get the border
 
     skeletonizer->applyVolumeThinning();
     skeletonizer->constructGraph();
 
+    std::cout << "HOLA \n";
+
     // solidVolume->clear();
 
-    Mesh* somaMesh = skeletonizer->getSomaMesh();
-
-    // Map
-    anotherVolume->surfaceVoxelization(somaMesh, true, true);
-
-    anotherVolume->solidVoxelization(options->voxelizationAxis);
-    solidVolume->addVolumePass(anotherVolume);
-
-
-
-    solidVolume->project(prefix + "_combined",
+    solidVolume->project(prefix + "_sphere",
                     options->projectXY, options->projectXZ, options->projectZY,
                     options->projectColorCoded);
+
+
+    solidVolume->clear();
+
+    std::cout << "Soma Mesh\n";
+
+    Mesh* somaMesh = skeletonizer->getSomaMesh();
+    solidVolume->surfaceVoxelization(somaMesh);
+    solidVolume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+    solidVolume->project(prefix + "_soma_real",
+                    options->projectXY, options->projectXZ, options->projectZY,
+                    options->projectColorCoded);
+
+
+
+
 
     solidVolume->writeVolumes(options->volumePrefix,
                          options->exportBitVolume,
