@@ -2,10 +2,15 @@
 
 #include <data/meshes/simple/Mesh.h>
 #include <data/volumes/Volume.h>
+#include <algorithms/skeletonization/SkeletonNode.hh>
+#include <algorithms/skeletonization/SkeletonEdge.hh>
+#include <algorithms/skeletonization/SkeletonBranch.hh>
+#include <common/Headers.hh>
+#include <math/Vector3f.h>
+
 
 namespace Ultraliser
 {
-
 /**
  * @brief The Skeletonizer class
  */
@@ -18,13 +23,19 @@ public:
 
     void applyVolumeThinning();
 
+    void constructGraph(std::vector< Vector3f > & centers, std::vector< float >& radii);
+
 private:
 
     void _computeShellPoints();
 
     void _voxelizeMesh();
 
-    void _constructGraph();
+
+    SkeletonBranches _buildBranchesFromNodes(const SkeletonNodes& nodes);
+
+    SkeletonBranch* _buildBranch(SkeletonNode* firstNode, SkeletonNode* edgeNode);
+
 
 
 private:

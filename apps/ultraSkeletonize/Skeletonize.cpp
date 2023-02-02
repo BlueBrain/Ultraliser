@@ -23,6 +23,7 @@
 #include <AppCommon.h>
 #include <AppArguments.h>
 #include <data/meshes/simple/IcoSphere.h>
+#include <algorithms/skeletonization/Skeletonizer.h>
 
 
 namespace Ultraliser
@@ -65,7 +66,6 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     return options;
 }
 
-
 void run(int argc , const char** argv)
 {
     // Parse the arguments and get the tool options
@@ -79,6 +79,8 @@ void run(int argc , const char** argv)
     // Create the volume from the mesh
     auto solidVolume = createVolumeGrid(inputMesh, options);
 
+    auto anotherVolume = createVolumeGrid(inputMesh, options);
+
     // Surface voxelization
     solidVolume->surfaceVoxelization(inputMesh, true, true);
     solidVolume->solidVoxelization(options->voxelizationAxis);
@@ -86,19 +88,20 @@ void run(int argc , const char** argv)
                     options->projectXY, options->projectXZ, options->projectZY,
                     options->projectColorCoded);
 
+    Skeletonizer* skeletonizer = new Skeletonizer(inputMesh, solidVolume);
 
+    std::vector< Vector3f > shellPoints = skeletonizer->getShellPoints(); // solidVolume->applyThinning(centers, radii);
 
+    std::cout  << shellPoints.size() << "\n";
 
 
     // Get the border
-
-
     std::vector< Vector3f > centers;
     std::vector< float > radii;
+    skeletonizer->applyVolumeThinning();
+    skeletonizer->constructGraph(centers, radii);
 
-    std::vector< Vector3f > shellPoints = solidVolume->applyThinning(centers, radii);
-
-    solidVolume->clear();
+    // solidVolume->clear();
 
     // Map
     for (size_t i = 0; i < centers.size(); ++i)
@@ -113,17 +116,16 @@ void run(int argc , const char** argv)
         str << options->volumePrefix << "_Soma_" << i;
 
         sample->exportMesh(str.str(), true);
-        solidVolume->surfaceVoxelization(sample, true, true);
+        anotherVolume->surfaceVoxelization(sample, true, true);
         sample->~Mesh();
     }
 
-    solidVolume->solidVoxelization(options->voxelizationAxis);
+    anotherVolume->solidVoxelization(options->voxelizationAxis);
+    solidVolume->addVolumePass(anotherVolume);
 
 
 
-
-
-    solidVolume->project(prefix + "_thin",
+    solidVolume->project(prefix + "_combined",
                     options->projectXY, options->projectXZ, options->projectZY,
                     options->projectColorCoded);
 
