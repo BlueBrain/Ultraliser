@@ -103,22 +103,10 @@ void run(int argc , const char** argv)
 
     // solidVolume->clear();
 
+    Mesh* somaMesh = skeletonizer->getSomaMesh();
+
     // Map
-    for (size_t i = 0; i < centers.size(); ++i)
-    {
-        Mesh* sample = new IcoSphere(5);
-        sample->scale(radii[i], radii[i], radii[i]);
-        sample->translate(centers[i]);
-
-        sample->map(shellPoints);
-
-        std::stringstream str;
-        str << options->volumePrefix << "_Soma_" << i;
-
-        sample->exportMesh(str.str(), true);
-        anotherVolume->surfaceVoxelization(sample, true, true);
-        sample->~Mesh();
-    }
+    anotherVolume->surfaceVoxelization(somaMesh, true, true);
 
     anotherVolume->solidVoxelization(options->voxelizationAxis);
     solidVolume->addVolumePass(anotherVolume);

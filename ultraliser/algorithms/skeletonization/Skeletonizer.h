@@ -25,6 +25,10 @@ public:
 
     void constructGraph(std::vector< Vector3f > & centers, std::vector< float >& radii);
 
+    Mesh* getSomaMesh() const
+    {
+        return _somaMesh;
+    }
 private:
 
     void _computeShellPoints();
@@ -36,6 +40,7 @@ private:
 
     SkeletonBranch* _buildBranch(SkeletonNode* firstNode, SkeletonNode* edgeNode);
 
+    Mesh* _reconstructSoma(const SkeletonBranches &branches);
 
 
 private:
@@ -62,6 +67,8 @@ private:
     Vector3f _scaleFactor;
 
     std::vector< Vector3f > _shellPoints;
+
+    Mesh* _somaMesh = nullptr;
 
 
 };

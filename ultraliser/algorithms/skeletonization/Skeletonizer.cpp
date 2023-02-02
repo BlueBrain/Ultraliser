@@ -2,6 +2,7 @@
 #include <math/Vector.h>
 #include "Neighbors.hh"
 #include <data/meshes/simple/TriangleOperations.h>
+#include <data/meshes/simple/IcoSphere.h>
 
 namespace Ultraliser
 {
@@ -279,7 +280,6 @@ void Skeletonizer::constructGraph(std::vector< Vector3f > & centers, std::vector
         nodes[i]->index = i;
     }
 
-
     SkeletonBranches branches = _buildBranchesFromNodes(nodes);
 
     std::cout << "Branches: " << branches.size() << "\n";
@@ -356,37 +356,34 @@ void Skeletonizer::constructGraph(std::vector< Vector3f > & centers, std::vector
         }
     }
 
+    _somaMesh = _reconstructSoma(branches);
+}
+
+Mesh* Skeletonizer::_reconstructSoma(const SkeletonBranches& branches)
+{
+    Mesh* somaMesh = new Mesh();
 
     for (size_t i = 0; i < branches.size(); ++i)
     {
-        if (branches[i]->nodes.size() == 0)
-        {
-            std::cout << "Empty branch \n";
-            continue;
-        }
-
-        if (!branches[i]->valid)
-        {
-            std::cout << "Invalid branch \n";
-            continue;
-        }
-
-        //xstream << "start\n";
         for (size_t j = 0; j < branches[i]->nodes.size(); ++j)
         {
             auto& node0 = branches[i]->nodes[j];
             if (node0->radius >= 2.0)
             {
+                Mesh* sample = new IcoSphere(5);
+                sample->scale(node0->radius, node0->radius, node0->radius);
+                sample->translate(node0->point);
 
-                centers.push_back(Vector3f(node0->point.x(), node0->point.y(), node0->point.z()));
-                radii.push_back(node0->radius);
+                sample->map(_shellPoints);
+
+                somaMesh->append(sample);
+                sample->~Mesh();
             }
         }
-        //xstream << "done\n";
-
     }
-}
 
+    return somaMesh;
+}
 
 
 SkeletonBranches Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& nodes)
@@ -486,6 +483,7 @@ SkeletonBranch* Skeletonizer::_buildBranch(SkeletonNode* firstNode, SkeletonNode
     return branch;
 
 }
+
 
 
 }
