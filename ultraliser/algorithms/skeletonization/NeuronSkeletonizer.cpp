@@ -2,8 +2,8 @@
 
 namespace Ultraliser
 {
-NeuronSkeletonizer::NeuronSkeletonizer(const Mesh *mesh)
-    : Skeletonizer(mesh)
+NeuronSkeletonizer::NeuronSkeletonizer(const Mesh *mesh, Volume* volume)
+    : Skeletonizer(mesh, volume)
 {
 
 }

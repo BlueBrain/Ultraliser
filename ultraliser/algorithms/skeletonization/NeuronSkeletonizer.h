@@ -11,6 +11,7 @@ namespace Ultraliser
 class NeuronSkeletonizer : public Skeletonizer
 {
 public:
-    NeuronSkeletonizer(const Mesh* mesh);
+    NeuronSkeletonizer(const Mesh* mesh, Volume *volume);
+
 };
 }
