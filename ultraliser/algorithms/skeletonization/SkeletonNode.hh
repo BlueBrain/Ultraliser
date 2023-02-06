@@ -68,6 +68,8 @@ public:
      */
     bool visited = false;
 
+    size_t iVisit = 0;
+
     /**
      * @brief branching
      * If this flag is set, this node is a branching node, i.e. connected to more than two nodes.

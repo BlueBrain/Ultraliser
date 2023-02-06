@@ -105,6 +105,8 @@ void run(int argc , const char** argv)
                          options->exportNRRDVolume,
                          options->exportRawVolume);
 
+    solidVolume->exportToMesh(options->volumePrefix + "mesh", true);
+
 
     skeletonizer->segmentComponents(nodes);
     solidVolume->project(prefix + "_sphere",

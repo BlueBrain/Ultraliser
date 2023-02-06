@@ -54,6 +54,8 @@ public:
     bool root = false;
 
     bool valid = true;
+
+    bool duplicate = false;
 };
 
 /**

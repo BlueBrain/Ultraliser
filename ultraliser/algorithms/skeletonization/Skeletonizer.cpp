@@ -217,8 +217,11 @@ SkeletonNodes Skeletonizer::constructGraph()
     nodesRadii.clear();
     nodesRadii.shrink_to_fit();
 
+//    std::fstream stream;
+//    stream.open("/abdellah2/scratch/thinning/output/projections/branches2.txt", std::ios::out);
+
     // Construct the graph and connect the nodes
-    OMP_PARALLEL_FOR
+    // OMP_PARALLEL_FOR
     for (size_t i = 0; i < nodes.size(); ++i)
     {
         // Check if the node has been visited before
@@ -236,25 +239,39 @@ SkeletonNodes Skeletonizer::constructGraph()
 
             if (_volume->isFilled(idx, idy, idz))
             {
+//                stream << node->point.x() << " "
+//                       << node->point.y() << " "
+//                       << node->point.z() << " "
+//                       << node->radius << "\n";
+
+                // Connected edges
                 connectedEdges++;
 
                 // Find the index of the voxel
-                const auto& voxelIndex = _volume->mapTo1DIndexWithoutBoundCheck(idx, idy, idz);
+                const auto& vIndex = _volume->mapTo1DIndexWithoutBoundCheck(idx, idy, idz);
 
                 // Find the corresponding index of the node to access the node from the nodes list
-                const auto& nodeIndex = indicesMapper.find(voxelIndex)->second;
+                const auto& nIndex = indicesMapper.find(vIndex)->second;
 
                 // Add the node to the edgeNodes, only to be able to access it later
-                node->edgeNodes.push_back(nodes[nodeIndex]);
+                node->edgeNodes.push_back(nodes[nIndex]);
+
+//                stream << nodes[nIndex]->point.x() << " "
+//                       << nodes[nIndex]->point.y() << " "
+//                       << nodes[nIndex]->point.z() << " "
+//                       << nodes[nIndex]->radius << "\n";
+
             }
         }
 
         if (connectedEdges == 1)
             node->terminal = true;
+
         else if (connectedEdges > 2)
             node->branching = true;
 
     }
+    // stream.close();
 
     SkeletonNode* somaNode = new SkeletonNode();
     somaNode->index = nodeIndex++;
@@ -501,12 +518,12 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
 
     for (size_t i = 0; i < branches.size(); ++i)
     {
-        printf("Branch %ld, %ld parents, %ld children, %ld nodes, %ld p0Edges, %ld p1Edges, valid %d, root %d \n",
-               i, branches[i]->parents.size(), branches[i]->children.size(),
-               branches[i]->nodes.size(),
-               branches[i]->nodes.front()->edgeNodes.size(),
-               branches[i]->nodes.back()->edgeNodes.size(),
-               int(branches[i]->valid), int(branches[i]->root));
+        // printf("Branch %ld, %ld parents, %ld children, %ld nodes, %ld p0Edges, %ld p1Edges, valid %d, root %d \n",
+//               i, branches[i]->parents.size(), branches[i]->children.size(),
+//               branches[i]->nodes.size(),
+//               branches[i]->nodes.front()->edgeNodes.size(),
+//               branches[i]->nodes.back()->edgeNodes.size(),
+//               int(branches[i]->valid), int(branches[i]->root));
 
         if (!branches[i]->valid) continue;
 
@@ -531,8 +548,22 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
     _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
 
 
+    stream.open("/abdellah2/scratch/thinning/output/projections/branches.txt", std::ios::out);
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        stream << "start\n";
 
+        for (auto& node: branches[i]->nodes)
+        {
+            stream << node->point.x() << " "
+                   << node->point.y() << " "
+                   << node->point.z() << " "
+                   << node->radius << "\n";
+        }
+        stream << "end\n";
+    }
 
+    std::cout << "Branchs: " << branches.size() << "\b";
 
 //    // Re-arraning the branching
 //    for (size_t i = 0; i < possibleRoots.size(); ++i)
@@ -624,7 +655,7 @@ SkeletonBranches Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& node
     SkeletonBranches branches;
     size_t branchIndex = 0;
 
-    // Construct the heirarichy to the terminal
+    // Construct the hierarchy to the terminal
     for (size_t i = 0; i < nodes.size(); ++i)
     {
         auto& node = nodes[i];
@@ -632,20 +663,95 @@ SkeletonBranches Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& node
         // The node must be branching
         if (node->branching)
         {
-            // Construct the branch
-            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
+            // The node must be visited less number of times than its branching edges
+            if (node->iVisit < node->edgeNodes.size())
             {
-                auto& edgeNode = node->edgeNodes[j];
+                // Construct the branch, starting with the edge node
+                for (size_t j = 0; j < node->edgeNodes.size(); ++j)
                 {
-                    // If the edgeNode is visited before, then this branch has been reconstructed
-                    if (edgeNode->visited)
-                        continue;
+                    // Get a reference to the edge node
+                    auto& edgeNode = node->edgeNodes[j];
 
-                    auto branch = _buildBranch(node, edgeNode);
-                    branch->index = branchIndex;
-                    branchIndex++;
+                    if (edgeNode->iVisit >= edgeNode->edgeNodes.size()) continue;
 
-                    branches.push_back(branch);
+                    // If the edge node is a terminal
+                    if (edgeNode->terminal)
+                    {
+                        SkeletonBranch* branch = new SkeletonBranch();
+
+                        node->iVisit += 1;
+                        branch->nodes.push_back(node);
+
+                        edgeNode->iVisit += 1;
+                        branch->nodes.push_back(edgeNode);
+
+                        branches.push_back(branch);
+                    }
+
+                    // If the edge node is a branching node
+                    else if (edgeNode->branching)
+                    {
+                        SkeletonBranch* branch = new SkeletonBranch();
+
+                        node->iVisit += 1;
+                        branch->nodes.push_back(node);
+
+                        edgeNode->iVisit += 1;
+                        branch->nodes.push_back(edgeNode);
+
+                        branches.push_back(branch);
+                    }
+
+                    // If the edge node is an intermediate node
+                    else
+                    {
+                        // Ensure that the edge node is not visited before
+                        if (edgeNode->iVisit < 1)
+                        {
+                            SkeletonBranch* branch = new SkeletonBranch();
+
+                            node->iVisit += 1;
+                            branch->nodes.push_back(node);
+
+                            edgeNode->iVisit += 1;
+                            branch->nodes.push_back(edgeNode);
+
+                            // The previous node is the first node
+                            SkeletonNode *previousNode = node;
+
+                            // The current node is the edge node
+                            SkeletonNode *currentNode = edgeNode;
+
+                            // Ensure that the current node has only two connected edges (or nodes)
+                            while (true)
+                            {
+                                // Get a reference to the connecting nodes to the current node
+                                auto edgeNode0 = currentNode->edgeNodes[0];
+                                auto edgeNode1 = currentNode->edgeNodes[1];
+
+                                // Ignore the previous node
+                                if (edgeNode0->index == previousNode->index)
+                                {
+                                    previousNode = currentNode;
+                                    currentNode = edgeNode1;
+                                }
+                                else
+                                {
+                                    previousNode = currentNode;
+                                    currentNode = edgeNode0;
+                                }
+
+                                currentNode->iVisit += 1;
+                                branch->nodes.push_back(currentNode);
+
+                                if (!(currentNode->edgeNodes.size() == 2))
+                                    break;
+                            }
+
+                            branches.push_back(branch);
+                        }
+
+                    }
                 }
             }
         }
@@ -658,28 +764,34 @@ SkeletonBranch* Skeletonizer::_buildBranch(SkeletonNode* firstNode, SkeletonNode
 {
     SkeletonBranch* branch = new SkeletonBranch();
 
-    firstNode->visited = true;
-    edgeNode->visited = true;
-
+    firstNode->iVisit++;
     branch->nodes.push_back(firstNode);
-    branch->nodes.push_back(edgeNode);
 
-    // If the node along the edge is a terminal, then append this branch to the list and return
+    // If the node along the edge is a terminal, then return this branch
     if (edgeNode->edgeNodes.size() == 1)
     {
+        edgeNode->iVisit++;
+        branch->nodes.push_back(edgeNode);
+
         return branch;
     }
 
-    // If the node along the edge is a branching node, then append this branch to the list and
-    // consider the next branch
+    // If the node along the edge is a branching node, then return this branch
     else if (edgeNode->edgeNodes.size() > 2)
     {
+        edgeNode->iVisit++;
+        branch->nodes.push_back(edgeNode);
+
         return branch;
     }
 
-    // Otherwise, construct the branches from connected segments
+    // If the node along the edge is an intermediate between two branching points
     else
     {
+        // If the edge node has been visite before, then return
+        if (edgeNode->iVisit >= 1)
+            return nullptr;
+
         // The previous node is the first node
         SkeletonNode *previousNode = firstNode;
 
@@ -705,16 +817,17 @@ SkeletonBranch* Skeletonizer::_buildBranch(SkeletonNode* firstNode, SkeletonNode
                 currentNode = edgeNode0;
             }
 
+            currentNode->iVisit++;
             branch->nodes.push_back(currentNode);
-            currentNode->visited = true;
 
             if (!(currentNode->edgeNodes.size() == 2))
                 break;
         }
     }
 
-    return branch;
 
+
+    return branch;
 }
 
 
