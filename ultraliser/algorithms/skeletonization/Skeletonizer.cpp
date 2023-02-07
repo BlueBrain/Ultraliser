@@ -281,9 +281,18 @@ SkeletonNodes Skeletonizer::constructGraph()
     // Re-index the samples, for simplicity
     OMP_PARALLEL_FOR for (size_t i = 0; i < nodes.size(); ++i) { nodes[i]->index = i; }
 
-
     return nodes;
 }
+
+
+void Skeletonizer::_removeTriangleLoops(SkeletonNodes& nodes)
+{
+
+}
+
+
+
+
 
 void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
 {
@@ -325,7 +334,6 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
 
         size_t key = _volume->mapTo1DIndexWithoutBoundCheck(node->voxel.x(), node->voxel.y(), node->voxel.z());
         if (std::find(somaVoxels.begin(), somaVoxels.end(), key) != somaVoxels.end())
-        // if (std::count(somaVoxels.begin(), somaVoxels.end(), key))
         {
             insideSoma++;
 
@@ -487,18 +495,17 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
             const auto& jBranch = branches[j];
 
             if (!jBranch->valid)
-                continue;
+               continue;
 
             // Ignore the same branch
             if (iBranch->index != jBranch->index)
             {
-                const auto& jFirsttNode = jBranch->nodes.front();
+                const auto& jFirstNode = jBranch->nodes.front();
                 const auto& jLastNode = jBranch->nodes.back();
 
-                // Child
-                if (iLastNode->index == jFirsttNode->index)
+                if (iFirsttNode->index == jFirstNode->index)
                 {
-                    iBranch->children.push_back(jBranch);
+                    iBranch->parents.push_back(jBranch);
                 }
 
                 // Parent
@@ -506,9 +513,114 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
                 {
                     iBranch->parents.push_back(jBranch);
                 }
+
+                // Child
+                if (iLastNode->index == jFirstNode->index)
+                {
+                    iBranch->children.push_back(jBranch);
+                }
+
+                // Child
+                if (iLastNode->index == jLastNode->index)
+                {
+                    iBranch->children.push_back(jBranch);
+                }
             }
         }
     }
+
+
+
+    // Detect the branches
+    SkeletonBranches segments;
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        if (branches[i]->nodes.size() == 2)
+            segments.push_back(branches[i]);
+    }
+
+    for (size_t i = 0; i < segments.size(); ++i)
+    {
+        auto& s0 = segments[i];
+
+        auto& n0 = s0->nodes[0];
+        auto& n1 = s0->nodes[1];
+
+        auto& parents = s0->parents;
+        auto& children = s0->children;
+
+        std::cout << "Segment: " << n0->index << ", " << n1->index << "\n";
+
+        for (size_t j = 0; j < parents.size(); ++j)
+        {
+            SkeletonNode* parentNode;
+
+            auto n0Parent = parents[j]->nodes[0];
+            auto n1Parent = parents[j]->nodes[1];
+
+            // continue;
+            if (n0Parent->index == n0->index || n0Parent->index == n1->index)
+                parentNode = n1Parent;
+            else
+                parentNode = n0Parent;
+
+            std::cout << "\tParent: " << n0Parent->index << ", " << n1Parent->index << "\n";
+
+            for (size_t k = 0; k < children.size(); ++k)
+            {
+                SkeletonNode* childNode;
+
+                auto n0Child= children[k]->nodes[0];
+                auto n1Child = children[k]->nodes[1];
+
+                std::cout << "\t\t Child: " << n0Child->index << ", " << n1Child->index << "\n";
+
+
+                // continue;
+                if (n0Child->index == n0->index || n0Child->index == n1->index)
+                    childNode = n1Child;
+                else
+                    childNode = n0Child;
+
+                if (childNode->index == parentNode->index)
+                {
+                    std::cout << "There is a triangle \n";
+                }
+            }
+        }
+
+        // std::cout << "\n";
+
+    }
+
+
+
+    std::cout << "HOLOA \n";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     _volume->clear();
 
 

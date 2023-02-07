@@ -31,6 +31,8 @@ public:
     }
 
     void segmentComponents(SkeletonNodes& nodes);
+    void _removeTriangleLoops(SkeletonNodes& nodes);
+
 
 private:
 
