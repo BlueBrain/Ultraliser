@@ -56,11 +56,6 @@ public:
     bool valid = true;
 
     bool duplicate = false;
-
-
-
-
-    SkeletonNode* replacingNode = nullptr;
 };
 
 /**
