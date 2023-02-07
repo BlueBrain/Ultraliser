@@ -288,6 +288,8 @@ SkeletonNodes Skeletonizer::constructGraph()
 
                     if (n3->index == n0->index)
                     {
+                        if (n0->visited && n1->visited && n2->visited) continue;
+
                         auto center = (n0->point + n1->point + n2->point) / 3.f;
                         auto voxel = (n0->voxel + n1->voxel + n2->voxel) / 3.f;
                         auto radius = (n0->radius + n1->radius + n2->radius) / 3.f;
@@ -296,10 +298,16 @@ SkeletonNodes Skeletonizer::constructGraph()
                         nodeIndex++;
 
                         auxNode->radius = radius;
+                        auxNode->branching = true;
                         auxNode->edgeNodes.push_back(n0);
                         auxNode->edgeNodes.push_back(n1);
                         auxNode->edgeNodes.push_back(n2);
                         auxiliaryNodes.push_back(auxNode);
+
+                        n0->visited = true;
+                        n1->visited = true;
+                        n2->visited = true;
+
                     }
                 }
             }
@@ -370,6 +378,14 @@ SkeletonNodes Skeletonizer::constructGraph()
         edgeNode2->edgeNodes.shrink_to_fit();
         edgeNode2->edgeNodes = edgeNodes2;
     }
+
+    // Reset the status
+    for (size_t i = 0; i < nodes.size(); ++i)
+    {
+        nodes[i]->visited = false;
+    }
+
+
     return nodes;
 }
 
@@ -601,7 +617,7 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
 
 
     std::fstream stream;
-    stream.open("/abdellah2/scratch/thinning/output/projections/radiii.txt", std::ios::out);
+    stream.open("/ssd3/scratch/skeletonization-tests/input/output/radiii.txt", std::ios::out);
 
 
     for (size_t i = 0; i < branches.size(); ++i)
@@ -636,7 +652,7 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
     _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
 
 
-    stream.open("/abdellah2/scratch/thinning/output/projections/branches.txt", std::ios::out);
+    stream.open("/ssd3/scratch/skeletonization-tests/input/output/branches.txt", std::ios::out);
     for (size_t i = 0; i < branches.size(); ++i)
     {
         stream << "start\n";
