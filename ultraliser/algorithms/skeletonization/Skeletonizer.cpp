@@ -217,9 +217,6 @@ SkeletonNodes Skeletonizer::constructGraph()
     nodesRadii.clear();
     nodesRadii.shrink_to_fit();
 
-//    std::fstream stream;
-//    stream.open("/abdellah2/scratch/thinning/output/projections/branches2.txt", std::ios::out);
-
     // Construct the graph and connect the nodes
     // OMP_PARALLEL_FOR
     for (size_t i = 0; i < nodes.size(); ++i)
@@ -239,11 +236,6 @@ SkeletonNodes Skeletonizer::constructGraph()
 
             if (_volume->isFilled(idx, idy, idz))
             {
-//                stream << node->point.x() << " "
-//                       << node->point.y() << " "
-//                       << node->point.z() << " "
-//                       << node->radius << "\n";
-
                 // Connected edges
                 connectedEdges++;
 
@@ -255,12 +247,6 @@ SkeletonNodes Skeletonizer::constructGraph()
 
                 // Add the node to the edgeNodes, only to be able to access it later
                 node->edgeNodes.push_back(nodes[nIndex]);
-
-//                stream << nodes[nIndex]->point.x() << " "
-//                       << nodes[nIndex]->point.y() << " "
-//                       << nodes[nIndex]->point.z() << " "
-//                       << nodes[nIndex]->radius << "\n";
-
             }
         }
 
@@ -271,7 +257,6 @@ SkeletonNodes Skeletonizer::constructGraph()
             node->branching = true;
 
     }
-    // stream.close();
 
     SkeletonNode* somaNode = new SkeletonNode();
     somaNode->index = nodeIndex++;
@@ -282,7 +267,6 @@ SkeletonNodes Skeletonizer::constructGraph()
     OMP_PARALLEL_FOR for (size_t i = 0; i < nodes.size(); ++i) { nodes[i]->index = i; }
 
     const size_t lastNodeIndex = nodeIndex;
-
     SkeletonNodes auxiliaryNodes;
 
     // Tweak the nodes
@@ -329,13 +313,11 @@ SkeletonNodes Skeletonizer::constructGraph()
 
     for (size_t i = lastNodeIndex; i < nodes.size(); ++i)
     {
-
         auto& node = nodes[i];
 
         auto& edgeNode0 = node->edgeNodes[0];
         auto& edgeNode1 = node->edgeNodes[1];
         auto& edgeNode2 = node->edgeNodes[2];
-
 
         SkeletonNodes edgeNodes0;
         edgeNodes0.push_back(node);
@@ -349,7 +331,6 @@ SkeletonNodes Skeletonizer::constructGraph()
 
             edgeNodes0.push_back(edgeNode0->edgeNodes[j]);
         }
-
 
         edgeNode0->edgeNodes.clear();
         edgeNode0->edgeNodes.shrink_to_fit();
@@ -367,7 +348,6 @@ SkeletonNodes Skeletonizer::constructGraph()
 
             edgeNodes1.push_back(edgeNode1->edgeNodes[j]);
         }
-
 
         edgeNode1->edgeNodes.clear();
         edgeNode1->edgeNodes.shrink_to_fit();
@@ -392,16 +372,6 @@ SkeletonNodes Skeletonizer::constructGraph()
     }
     return nodes;
 }
-
-
-void Skeletonizer::_removeTriangleLoops(SkeletonNodes& nodes)
-{
-
-}
-
-
-
-
 
 void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
 {
@@ -613,6 +583,7 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
             const auto& jFirstNode = jBranch->nodes.front();
             const auto& jLastNode = jBranch->nodes.back();
 
+            // Child
             if (iLastNode->index == jFirstNode->index || iLastNode->index == jLastNode->index)
             {
                 iBranch->children.push_back(jBranch);
@@ -621,13 +592,8 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
             // Parent
             if (iFirstNode->index == jFirstNode->index || iFirstNode->index == jLastNode->index)
             {
-                // printf("%ld : %ld %ld \n", iFirstNode->index, jFirstNode->index, jLastNode->index);
                 iBranch->parents.push_back(jBranch);
             }
-
-            // Child
-
-
         }
     }
 
