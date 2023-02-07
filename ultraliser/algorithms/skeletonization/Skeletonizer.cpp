@@ -594,34 +594,6 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
 }
 
 
-void Skeletonizer::_buildAcyclicTree(SkeletonBranch* branch, SkeletonBranches& branches)
-{
-    // assert(branch->nodes == nullptr);
-
-    //
-    auto& nodes = branch->nodes;
-
-    if (nodes.back()->terminal)
-    {
-        return;
-    }
-
-    auto& lastNode = branch->nodes.back();
-
-    for (size_t i = 0; i < branches.size(); ++i)
-    {
-        // Ignore the same branch
-        if (branch->index == branches[i]->index)
-            continue;
-    }
-
-
-
-
-
-
-}
-
 
 Mesh* Skeletonizer::_reconstructSoma(const SkeletonBranches& branches)
 {
@@ -652,7 +624,10 @@ Mesh* Skeletonizer::_reconstructSoma(const SkeletonBranches& branches)
 
 SkeletonBranches Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& nodes)
 {
+    // A list to collect all the constructed branches from the skeleton graph
     SkeletonBranches branches;
+
+    // Used to index the branch
     size_t branchIndex = 0;
 
     // Construct the hierarchy to the terminal
@@ -685,6 +660,7 @@ SkeletonBranches Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& node
                         edgeNode->iVisit += 1;
                         branch->nodes.push_back(edgeNode);
 
+                        branch->index = branchIndex++;
                         branches.push_back(branch);
                     }
 
@@ -699,13 +675,14 @@ SkeletonBranches Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& node
                         edgeNode->iVisit += 1;
                         branch->nodes.push_back(edgeNode);
 
+                        branch->index = branchIndex++;
                         branches.push_back(branch);
                     }
 
                     // If the edge node is an intermediate node
                     else
                     {
-                        // Ensure that the edge node is not visited before
+                        // Ensure that the edge node is not visited before to make a branch
                         if (edgeNode->iVisit < 1)
                         {
                             SkeletonBranch* branch = new SkeletonBranch();
@@ -748,6 +725,7 @@ SkeletonBranches Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& node
                                     break;
                             }
 
+                            branch->index = branchIndex++;
                             branches.push_back(branch);
                         }
 
@@ -759,77 +737,5 @@ SkeletonBranches Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& node
 
     return branches;
 }
-
-SkeletonBranch* Skeletonizer::_buildBranch(SkeletonNode* firstNode, SkeletonNode* edgeNode)
-{
-    SkeletonBranch* branch = new SkeletonBranch();
-
-    firstNode->iVisit++;
-    branch->nodes.push_back(firstNode);
-
-    // If the node along the edge is a terminal, then return this branch
-    if (edgeNode->edgeNodes.size() == 1)
-    {
-        edgeNode->iVisit++;
-        branch->nodes.push_back(edgeNode);
-
-        return branch;
-    }
-
-    // If the node along the edge is a branching node, then return this branch
-    else if (edgeNode->edgeNodes.size() > 2)
-    {
-        edgeNode->iVisit++;
-        branch->nodes.push_back(edgeNode);
-
-        return branch;
-    }
-
-    // If the node along the edge is an intermediate between two branching points
-    else
-    {
-        // If the edge node has been visite before, then return
-        if (edgeNode->iVisit >= 1)
-            return nullptr;
-
-        // The previous node is the first node
-        SkeletonNode *previousNode = firstNode;
-
-        // The current node is the edge node
-        SkeletonNode *currentNode = edgeNode;
-
-        // Ensure that the current node has only two connected edges (or nodes)
-        while (true)
-        {
-            // Get a reference to the connecting nodes to the current node
-            auto edgeNode0 = currentNode->edgeNodes[0];
-            auto edgeNode1 = currentNode->edgeNodes[1];
-
-            // Ignore the previous node
-            if (edgeNode0->index == previousNode->index)
-            {
-                previousNode = currentNode;
-                currentNode = edgeNode1;
-            }
-            else
-            {
-                previousNode = currentNode;
-                currentNode = edgeNode0;
-            }
-
-            currentNode->iVisit++;
-            branch->nodes.push_back(currentNode);
-
-            if (!(currentNode->edgeNodes.size() == 2))
-                break;
-        }
-    }
-
-
-
-    return branch;
-}
-
-
 
 }
