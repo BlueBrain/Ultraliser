@@ -487,7 +487,7 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
         if (!iBranch->valid)
             continue;
 
-        const auto& iFirsttNode = iBranch->nodes.front();
+        const auto& iFirstNode = iBranch->nodes.front();
         const auto& iLastNode = iBranch->nodes.back();
 
         for (size_t j = 0; j < branches.size(); ++j)
@@ -498,37 +498,31 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
                continue;
 
             // Ignore the same branch
-            if (iBranch->index != jBranch->index)
+            if (iBranch->index == jBranch->index)
+                continue;
+
+            const auto& jFirstNode = jBranch->nodes.front();
+            const auto& jLastNode = jBranch->nodes.back();
+
+            if (iLastNode->index == jFirstNode->index || iLastNode->index == jLastNode->index)
             {
-                const auto& jFirstNode = jBranch->nodes.front();
-                const auto& jLastNode = jBranch->nodes.back();
-
-                if (iFirsttNode->index == jFirstNode->index)
-                {
-                    iBranch->parents.push_back(jBranch);
-                }
-
-                // Parent
-                if (iFirsttNode->index == jLastNode->index)
-                {
-                    iBranch->parents.push_back(jBranch);
-                }
-
-                // Child
-                if (iLastNode->index == jFirstNode->index)
-                {
-                    iBranch->children.push_back(jBranch);
-                }
-
-                // Child
-                if (iLastNode->index == jLastNode->index)
-                {
-                    iBranch->children.push_back(jBranch);
-                }
+                iBranch->children.push_back(jBranch);
             }
+
+            // Parent
+            if (iFirstNode->index == jFirstNode->index || iFirstNode->index == jLastNode->index)
+            {
+                // printf("%ld : %ld %ld \n", iFirstNode->index, jFirstNode->index, jLastNode->index);
+                iBranch->parents.push_back(jBranch);
+            }
+
+            // Child
+
+
         }
     }
 
+//    exit(0);
 
 
     // Detect the branches
@@ -538,6 +532,11 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
         if (branches[i]->nodes.size() == 2)
             segments.push_back(branches[i]);
     }
+
+
+
+
+    size_t nodeIndex = somaNode->index + 1;
 
     for (size_t i = 0; i < segments.size(); ++i)
     {
@@ -549,7 +548,7 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
         auto& parents = s0->parents;
         auto& children = s0->children;
 
-        std::cout << "Segment: " << n0->index << ", " << n1->index << "\n";
+        // std::cout << "Segment: " << n0->index << ", " << n1->index << " | "<< s0->nodes.size() << "," << parents.size() << ", " << children.size() << "\n";
 
         for (size_t j = 0; j < parents.size(); ++j)
         {
@@ -564,7 +563,7 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
             else
                 parentNode = n0Parent;
 
-            std::cout << "\tParent: " << n0Parent->index << ", " << n1Parent->index << "\n";
+            //std::cout << "\tParent: " << n0Parent->index << ", " << n1Parent->index << "\n";
 
             for (size_t k = 0; k < children.size(); ++k)
             {
@@ -573,7 +572,7 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
                 auto n0Child= children[k]->nodes[0];
                 auto n1Child = children[k]->nodes[1];
 
-                std::cout << "\t\t Child: " << n0Child->index << ", " << n1Child->index << "\n";
+                //std::cout << "\t\t Child: " << n0Child->index << ", " << n1Child->index << "\n";
 
 
                 // continue;
@@ -584,10 +583,29 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
 
                 if (childNode->index == parentNode->index)
                 {
-                    std::cout << "There is a triangle \n";
+                    auto& n2 = parentNode;
+
+                    // Construct the new node
+                    auto center = (n0->point + n1->point + n2->point) / 3;
+                    auto voxel = (n0->voxel + n1->voxel + n2->voxel) / 3;
+                    auto radius = (n0->radius + n1->radius + n2->radius) / 3;
+
+                    SkeletonNode* auxNode = new SkeletonNode(nodeIndex, center, voxel);
+
+                    // Adjust the branches
+                    auto& b1 = segments[i];
+                    auto& b2 = parents[j];
+                    auto& b3 = children[k];
+
+                    b1->replacingNode = auxNode;
+                    b2->replacingNode = auxNode;
+                    b3->replacingNode = auxNode;
                 }
             }
+
         }
+
+
 
         // std::cout << "\n";
 
@@ -772,7 +790,8 @@ SkeletonBranches Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& node
                         edgeNode->iVisit += 1;
                         branch->nodes.push_back(edgeNode);
 
-                        branch->index = branchIndex++;
+                        branch->index = branchIndex;
+                        branchIndex++;
                         branches.push_back(branch);
                     }
 
@@ -787,7 +806,8 @@ SkeletonBranches Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& node
                         edgeNode->iVisit += 1;
                         branch->nodes.push_back(edgeNode);
 
-                        branch->index = branchIndex++;
+                        branch->index = branchIndex;
+                        branchIndex++;
                         branches.push_back(branch);
                     }
 
@@ -837,7 +857,8 @@ SkeletonBranches Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& node
                                     break;
                             }
 
-                            branch->index = branchIndex++;
+                            branch->index = branchIndex;
+                            branchIndex++;
                             branches.push_back(branch);
                         }
 
