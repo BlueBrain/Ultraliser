@@ -76,6 +76,10 @@ void run(int argc , const char** argv)
 
     auto prefix = options->projectionPrefix;
 
+    inputMesh->smoothSurface(25);
+    inputMesh->exportMesh(prefix + "_mesh_srhrink", true);
+
+
     // Create the volume from the mesh
     auto solidVolume = createVolumeGrid(inputMesh, options);
 
@@ -86,15 +90,18 @@ void run(int argc , const char** argv)
                     options->projectXY, options->projectXZ, options->projectZY,
                     options->projectColorCoded);
 
-    Skeletonizer* skeletonizer = new Skeletonizer(inputMesh, solidVolume);
 
-    std::vector< Vector3f > shellPoints = skeletonizer->getShellPoints();
+    solidVolume->exportToMesh(prefix + "_grid", true);
+
+
+    Skeletonizer* skeletonizer = new Skeletonizer(inputMesh, solidVolume);
 
     // Get the border
 
     skeletonizer->applyVolumeThinning();
+
     auto nodes = skeletonizer->constructGraph();
-    solidVolume->project(prefix + "_skeleton",
+    solidVolume->project(prefix + "_skeleton_x",
                     options->projectXY, options->projectXZ, options->projectZY,
                     options->projectColorCoded);
 
@@ -106,7 +113,6 @@ void run(int argc , const char** argv)
                          options->exportRawVolume);
 
     solidVolume->exportToMesh(options->volumePrefix + "mesh", true);
-
 
     skeletonizer->segmentComponents(nodes);
     solidVolume->project(prefix + "_sphere",

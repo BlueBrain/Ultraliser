@@ -1488,7 +1488,7 @@ bool Volume::_testTriangleCubeIntersection(Mesh* mesh, size_t triangleIdx, const
         }
     }
 
-    // return checkTriangleBoxIntersection(voxelCenter, voxelHalfSize, triangle);
+    return checkTriangleBoxIntersection(voxelCenter, voxelHalfSize, triangle);
 
     // Test if the triangle and the voxel are intersecting or not
     if (!checkTriangleBoxIntersection(voxelCenter, voxelHalfSize, triangle))

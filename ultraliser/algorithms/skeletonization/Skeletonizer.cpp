@@ -266,131 +266,131 @@ SkeletonNodes Skeletonizer::constructGraph()
     // Re-index the samples, for simplicity
     OMP_PARALLEL_FOR for (size_t i = 0; i < nodes.size(); ++i) { nodes[i]->index = i; }
 
-    const size_t lastNodeIndex = nodeIndex;
-    SkeletonNodes auxiliaryNodes;
+//    const size_t lastNodeIndex = nodeIndex;
+//    SkeletonNodes auxiliaryNodes;
 
-    // Tweak the nodes
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-        auto& n0 = nodes[i];
+//    // Tweak the nodes
+//    for (size_t i = 0; i < nodes.size(); ++i)
+//    {
+//        auto& n0 = nodes[i];
 
-        for (size_t j = 0; j < n0->edgeNodes.size(); ++j)
-        {
-            auto& n1 = n0->edgeNodes[j];
+//        for (size_t j = 0; j < n0->edgeNodes.size(); ++j)
+//        {
+//            auto& n1 = n0->edgeNodes[j];
 
-            for (size_t k = 0; k < n1->edgeNodes.size(); ++k)
-            {
-                auto& n2 = n1->edgeNodes[k];
+//            for (size_t k = 0; k < n1->edgeNodes.size(); ++k)
+//            {
+//                auto& n2 = n1->edgeNodes[k];
 
-                for (size_t l = 0; l < n2->edgeNodes.size(); ++l)
-                {
-                    auto& n3 = n2->edgeNodes[l];
+//                for (size_t l = 0; l < n2->edgeNodes.size(); ++l)
+//                {
+//                    auto& n3 = n2->edgeNodes[l];
 
-                    if (n3->index == n0->index)
-                    {
-                        if (n0->visited && n1->visited && n2->visited) continue;
+//                    if (n3->index == n0->index)
+//                    {
+//                        if (n0->visited && n1->visited && n2->visited) continue;
 
-                        auto center = (n0->point + n1->point + n2->point) / 3.f;
-                        auto voxel = (n0->voxel + n1->voxel + n2->voxel) / 3.f;
-                        auto radius = (n0->radius + n1->radius + n2->radius) / 3.f;
+//                        auto center = (n0->point + n1->point + n2->point) / 3.f;
+//                        auto voxel = (n0->voxel + n1->voxel + n2->voxel) / 3.f;
+//                        auto radius = (n0->radius + n1->radius + n2->radius) / 3.f;
 
-                        SkeletonNode* auxNode = new SkeletonNode(nodeIndex, center, voxel);
-                        nodeIndex++;
+//                        SkeletonNode* auxNode = new SkeletonNode(nodeIndex, center, voxel);
+//                        nodeIndex++;
 
-                        auxNode->radius = radius;
-                        auxNode->branching = true;
-                        auxNode->edgeNodes.push_back(n0);
-                        auxNode->edgeNodes.push_back(n1);
-                        auxNode->edgeNodes.push_back(n2);
-                        auxiliaryNodes.push_back(auxNode);
+//                        auxNode->radius = radius;
+//                        auxNode->branching = true;
+//                        auxNode->edgeNodes.push_back(n0);
+//                        auxNode->edgeNodes.push_back(n1);
+//                        auxNode->edgeNodes.push_back(n2);
+//                        auxiliaryNodes.push_back(auxNode);
 
-                        n0->visited = true;
-                        n1->visited = true;
-                        n2->visited = true;
+//                        n0->visited = true;
+//                        n1->visited = true;
+//                        n2->visited = true;
 
-                    }
-                }
-            }
-        }
-    }
-    for (size_t i = 0; i < auxiliaryNodes.size(); ++i)
-    {
-        nodes.push_back(auxiliaryNodes[i]);
-    }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    for (size_t i = 0; i < auxiliaryNodes.size(); ++i)
+//    {
+//        nodes.push_back(auxiliaryNodes[i]);
+//    }
 
 
-    for (size_t i = lastNodeIndex; i < nodes.size(); ++i)
-    {
-        auto& node = nodes[i];
+//    for (size_t i = lastNodeIndex; i < nodes.size(); ++i)
+//    {
+//        auto& node = nodes[i];
 
-        // Get the edge nodes of the newly inserted node
-        auto& n0 = node->edgeNodes[0];
-        auto& n1 = node->edgeNodes[1];
-        auto& n2 = node->edgeNodes[2];
+//        // Get the edge nodes of the newly inserted node
+//        auto& n0 = node->edgeNodes[0];
+//        auto& n1 = node->edgeNodes[1];
+//        auto& n2 = node->edgeNodes[2];
 
-        // Update the edge nodes of n0
-        SkeletonNodes edgeNodes0;
-        edgeNodes0.push_back(node);
-        for (size_t j = 0; j < n0->edgeNodes.size(); ++j)
-        {
-            if (n0->edgeNodes[j]->index == n1->index)
-                continue;
+//        // Update the edge nodes of n0
+//        SkeletonNodes edgeNodes0;
+//        edgeNodes0.push_back(node);
+//        for (size_t j = 0; j < n0->edgeNodes.size(); ++j)
+//        {
+//            if (n0->edgeNodes[j]->index == n1->index)
+//                continue;
 
-            if (n0->edgeNodes[j]->index == n2->index)
-                continue;
+//            if (n0->edgeNodes[j]->index == n2->index)
+//                continue;
 
-            edgeNodes0.push_back(n0->edgeNodes[j]);
-        }
+//            edgeNodes0.push_back(n0->edgeNodes[j]);
+//        }
 
-        n0->edgeNodes.clear();
-        n0->edgeNodes.shrink_to_fit();
-        n0->edgeNodes = edgeNodes0;
+//        n0->edgeNodes.clear();
+//        n0->edgeNodes.shrink_to_fit();
+//        n0->edgeNodes = edgeNodes0;
 
-        SkeletonNodes edgeNodes1;
-        edgeNodes1.push_back(node);
-        for (size_t j = 0; j < n1->edgeNodes.size(); ++j)
-        {
-            if (n1->edgeNodes[j]->index == n0->index)
-                continue;
+//        SkeletonNodes edgeNodes1;
+//        edgeNodes1.push_back(node);
+//        for (size_t j = 0; j < n1->edgeNodes.size(); ++j)
+//        {
+//            if (n1->edgeNodes[j]->index == n0->index)
+//                continue;
 
-            if (n1->edgeNodes[j]->index == n2->index)
-                continue;
+//            if (n1->edgeNodes[j]->index == n2->index)
+//                continue;
 
-            edgeNodes1.push_back(n1->edgeNodes[j]);
-        }
+//            edgeNodes1.push_back(n1->edgeNodes[j]);
+//        }
 
-        n1->edgeNodes.clear();
-        n1->edgeNodes.shrink_to_fit();
-        n1->edgeNodes = edgeNodes1;
+//        n1->edgeNodes.clear();
+//        n1->edgeNodes.shrink_to_fit();
+//        n1->edgeNodes = edgeNodes1;
 
-        SkeletonNodes edgeNodes2;
-        edgeNodes2.push_back(node);
-        for (size_t j = 0; j < n2->edgeNodes.size(); ++j)
-        {
-            if (n2->edgeNodes[j]->index == n0->index)
-                continue;
+//        SkeletonNodes edgeNodes2;
+//        edgeNodes2.push_back(node);
+//        for (size_t j = 0; j < n2->edgeNodes.size(); ++j)
+//        {
+//            if (n2->edgeNodes[j]->index == n0->index)
+//                continue;
 
-            if (n2->edgeNodes[j]->index == n1->index)
-                continue;
+//            if (n2->edgeNodes[j]->index == n1->index)
+//                continue;
 
-            edgeNodes2.push_back(n2->edgeNodes[j]);
-        }
+//            edgeNodes2.push_back(n2->edgeNodes[j]);
+//        }
 
-        n2->edgeNodes.clear();
-        n2->edgeNodes.shrink_to_fit();
-        n2->edgeNodes = edgeNodes2;
-    }
+//        n2->edgeNodes.clear();
+//        n2->edgeNodes.shrink_to_fit();
+//        n2->edgeNodes = edgeNodes2;
+//    }
 
-    // Reset the status
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-        nodes[i]->visited = false;
+//    // Reset the status
+//    for (size_t i = 0; i < nodes.size(); ++i)
+//    {
+//        nodes[i]->visited = false;
 
-        if (nodes[i]->edgeNodes.size() > 2)
-            nodes[i]->branching = true;
-        else
-            nodes[i]->branching = false;
-    }
+//        if (nodes[i]->edgeNodes.size() > 2)
+//            nodes[i]->branching = true;
+//        else
+//            nodes[i]->branching = false;
+//    }
 
 
     return nodes;
@@ -659,7 +659,7 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
     _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
 
 
-    stream.open("/abdellah2/scratch/thinning/output/projections/branches.txt", std::ios::out);
+    stream.open("/ssd3/scratch/skeletonization-tests/input/output/projections/branches.txt", std::ios::out);
     for (size_t i = 0; i < branches.size(); ++i)
     {
         stream << "start\n";
@@ -848,26 +848,6 @@ SkeletonBranches Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& node
             }
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     return branches;
 }
