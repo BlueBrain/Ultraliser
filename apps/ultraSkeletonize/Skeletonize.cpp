@@ -24,7 +24,7 @@
 #include <AppArguments.h>
 #include <data/meshes/simple/IcoSphere.h>
 #include <algorithms/skeletonization/Skeletonizer.h>
-
+#include <geometry/Sphere.h>
 
 namespace Ultraliser
 {

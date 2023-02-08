@@ -323,66 +323,73 @@ SkeletonNodes Skeletonizer::constructGraph()
     {
         auto& node = nodes[i];
 
-        auto& edgeNode0 = node->edgeNodes[0];
-        auto& edgeNode1 = node->edgeNodes[1];
-        auto& edgeNode2 = node->edgeNodes[2];
+        // Get the edge nodes of the newly inserted node
+        auto& n0 = node->edgeNodes[0];
+        auto& n1 = node->edgeNodes[1];
+        auto& n2 = node->edgeNodes[2];
 
+        // Update the edge nodes of n0
         SkeletonNodes edgeNodes0;
         edgeNodes0.push_back(node);
-        for (size_t j = 0; j < edgeNode0->edgeNodes.size(); ++j)
+        for (size_t j = 0; j < n0->edgeNodes.size(); ++j)
         {
-            if (edgeNode0->edgeNodes[j]->index == edgeNode1->index)
+            if (n0->edgeNodes[j]->index == n1->index)
                 continue;
 
-            if (edgeNode0->edgeNodes[j]->index == edgeNode2->index)
+            if (n0->edgeNodes[j]->index == n2->index)
                 continue;
 
-            edgeNodes0.push_back(edgeNode0->edgeNodes[j]);
+            edgeNodes0.push_back(n0->edgeNodes[j]);
         }
 
-        edgeNode0->edgeNodes.clear();
-        edgeNode0->edgeNodes.shrink_to_fit();
-        edgeNode0->edgeNodes = edgeNodes0;
+        n0->edgeNodes.clear();
+        n0->edgeNodes.shrink_to_fit();
+        n0->edgeNodes = edgeNodes0;
 
         SkeletonNodes edgeNodes1;
         edgeNodes1.push_back(node);
-        for (size_t j = 0; j < edgeNode1->edgeNodes.size(); ++j)
+        for (size_t j = 0; j < n1->edgeNodes.size(); ++j)
         {
-            if (edgeNode1->edgeNodes[j]->index == edgeNode0->index)
+            if (n1->edgeNodes[j]->index == n0->index)
                 continue;
 
-            if (edgeNode1->edgeNodes[j]->index == edgeNode2->index)
+            if (n1->edgeNodes[j]->index == n2->index)
                 continue;
 
-            edgeNodes1.push_back(edgeNode1->edgeNodes[j]);
+            edgeNodes1.push_back(n1->edgeNodes[j]);
         }
 
-        edgeNode1->edgeNodes.clear();
-        edgeNode1->edgeNodes.shrink_to_fit();
-        edgeNode1->edgeNodes = edgeNodes1;
+        n1->edgeNodes.clear();
+        n1->edgeNodes.shrink_to_fit();
+        n1->edgeNodes = edgeNodes1;
 
         SkeletonNodes edgeNodes2;
         edgeNodes2.push_back(node);
-        for (size_t j = 0; j < edgeNode2->edgeNodes.size(); ++j)
+        for (size_t j = 0; j < n2->edgeNodes.size(); ++j)
         {
-            if (edgeNode2->edgeNodes[j]->index == edgeNode0->index)
+            if (n2->edgeNodes[j]->index == n0->index)
                 continue;
 
-            if (edgeNode2->edgeNodes[j]->index == edgeNode1->index)
+            if (n2->edgeNodes[j]->index == n1->index)
                 continue;
 
-            edgeNodes2.push_back(edgeNode2->edgeNodes[j]);
+            edgeNodes2.push_back(n2->edgeNodes[j]);
         }
 
-        edgeNode2->edgeNodes.clear();
-        edgeNode2->edgeNodes.shrink_to_fit();
-        edgeNode2->edgeNodes = edgeNodes2;
+        n2->edgeNodes.clear();
+        n2->edgeNodes.shrink_to_fit();
+        n2->edgeNodes = edgeNodes2;
     }
 
     // Reset the status
     for (size_t i = 0; i < nodes.size(); ++i)
     {
         nodes[i]->visited = false;
+
+        if (nodes[i]->edgeNodes.size() > 2)
+            nodes[i]->branching = true;
+        else
+            nodes[i]->branching = false;
     }
 
 
@@ -652,7 +659,7 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
     _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
 
 
-    stream.open("/ssd3/scratch/skeletonization-tests/input/output/branches.txt", std::ios::out);
+    stream.open("/abdellah2/scratch/thinning/output/projections/branches.txt", std::ios::out);
     for (size_t i = 0; i < branches.size(); ++i)
     {
         stream << "start\n";

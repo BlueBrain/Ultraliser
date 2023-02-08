@@ -23,3 +23,4 @@
 
 #include <geometry/Intersection.h>
 #include <geometry/Utilities.h>
+#include <geometry/Sphere.h>

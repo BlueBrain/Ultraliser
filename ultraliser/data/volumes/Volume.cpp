@@ -1488,8 +1488,20 @@ bool Volume::_testTriangleCubeIntersection(Mesh* mesh, size_t triangleIdx, const
         }
     }
 
+    // return checkTriangleBoxIntersection(voxelCenter, voxelHalfSize, triangle);
+
     // Test if the triangle and the voxel are intersecting or not
-    return checkTriangleBoxIntersection(voxelCenter, voxelHalfSize, triangle);
+    if (!checkTriangleBoxIntersection(voxelCenter, voxelHalfSize, triangle))
+        return false;
+
+    std::unique_ptr<Sphere> sphere = std::make_unique<Sphere>(
+                Vector3f(voxelCenter[0], voxelCenter[1], voxelCenter[2]), _voxelSize * 0.5);
+
+    Vector3f p1(triangle[0][0], triangle[0][1], triangle[0][2]),
+             p2(triangle[1][0], triangle[1][1], triangle[1][2]),
+             p3(triangle[2][0], triangle[2][1], triangle[2][2]);
+
+    return sphere->intersectsTriangle(p1, p2, p3);
 }
 
 bool Volume::_testSampleCubeIntersection(Sample* sample, const GridIndex& voxel)
