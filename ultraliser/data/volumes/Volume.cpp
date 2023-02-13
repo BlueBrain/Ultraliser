@@ -470,7 +470,8 @@ void Volume::_createGrid(void)
 
 void Volume::surfaceVoxelization(Mesh* mesh,
                                  const bool& verbose,
-                                 const bool parallel)
+                                 const bool parallel,
+                                 const float& sideRatio)
 {
     if (verbose) LOG_TITLE("Surface Voxelization");
 
@@ -481,9 +482,9 @@ void Volume::surfaceVoxelization(Mesh* mesh,
         LOG_STATUS("Creating Volume Shell [%zu x %zu x %zu]",
                    _grid->getWidth(), _grid->getHeight(), _grid->getDepth());
     if (parallel)
-        _rasterizeParallel(mesh, _grid);
+        _rasterizeParallel(mesh, _grid, sideRatio);
     else
-        _rasterize(mesh , _grid, verbose);
+        _rasterize(mesh , _grid, sideRatio, verbose);
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
 
     // Statistics
@@ -1007,7 +1008,64 @@ void Volume::surfaceVoxelization(const std::string &inputDirectory,
                processedMeshCount, meshFiles.size());
 }
 
-void Volume::_rasterize(Mesh* mesh, VolumeGrid* grid, const bool& verbose)
+
+
+std::vector< Vec3ui_64 > Volume::verifyBorderVoxels(Mesh* mesh,
+                                const float& sideRatio, const bool& verbose)
+{
+
+    std::vector< Vec3ui_64 > candidates;
+
+    if (verbose) LOOP_STARTS("Rasterization");
+    size_t progress = 0;
+
+    size_t allVoxels = 0, toBeRemoved = 0;
+
+    for (size_t triangleIdx = 0; triangleIdx < mesh->getNumberTriangles(); ++triangleIdx)
+    {
+        ++progress;
+        if (verbose) LOOP_PROGRESS(progress, mesh->getNumberTriangles());
+
+        // Get the pMin and pMax of the triangle within the grid
+        int64_t pMinTriangle[3], pMaxTriangle[3];
+        _getBoundingBox(mesh, triangleIdx, pMinTriangle, pMaxTriangle);
+
+
+        for (int64_t ix = pMinTriangle[0]; ix <= pMaxTriangle[0]; ++ix)
+        {
+            for (int64_t iy = pMinTriangle[1]; iy <= pMaxTriangle[1]; ++iy)
+            {
+                for (int64_t iz = pMinTriangle[2]; iz <= pMaxTriangle[2]; ++iz)
+                {
+                    GridIndex gi(I2I64(ix), I2I64(iy), I2I64(iz));
+
+                    auto fullTest = _testTriangleCubeIntersection(mesh, triangleIdx, gi);
+
+                    if (fullTest)
+                    {
+                        auto sideTest = _testTriangleCubeIntersection(mesh, triangleIdx, gi, sideRatio);
+
+                        if (!sideTest)
+                        {
+                            _grid->clearVoxel(I2I64(ix), I2I64(iy), I2I64(iz));
+                        }
+                        else
+                            _grid->fillVoxel(I2I64(ix), I2I64(iy), I2I64(iz));
+
+                    }
+
+                }
+            }
+        }
+    }
+    if (verbose) LOOP_DONE;
+
+    std::cout << computeNumberNonZeroVoxels() << "\n";
+
+    return candidates;
+}
+
+void Volume::_rasterize(Mesh* mesh, VolumeGrid* grid, const float& sideRatio, const bool& verbose)
 {
     if (verbose) LOOP_STARTS("Rasterization");
     size_t progress = 0;
@@ -1028,7 +1086,7 @@ void Volume::_rasterize(Mesh* mesh, VolumeGrid* grid, const bool& verbose)
                 for (int64_t iz = pMinTriangle[2]; iz <= pMaxTriangle[2]; ++iz)
                 {
                     GridIndex gi(I2I64(ix), I2I64(iy), I2I64(iz));
-                    if (_testTriangleCubeIntersection(mesh, triangleIdx, gi))
+                    if (_testTriangleCubeIntersection(mesh, triangleIdx, gi, sideRatio))
                         grid->fillVoxel(I2I64(ix), I2I64(iy), I2I64(iz));
                 }
             }
@@ -1146,7 +1204,7 @@ void Volume::_rasterize(Sample* sample0, Sample* sample1, VolumeGrid* grid, floa
     }
 }
 
-void Volume::_rasterizeParallel(Mesh* mesh, VolumeGrid* grid)
+void Volume::_rasterizeParallel(Mesh* mesh, VolumeGrid* grid, const float& sideRatio)
 {
     // Start the timer
     TIMER_SET;
@@ -1167,7 +1225,7 @@ void Volume::_rasterizeParallel(Mesh* mesh, VolumeGrid* grid)
                 for (int64_t iz = pMinTriangle[2]; iz <= pMaxTriangle[2]; iz++)
                 {
                     GridIndex gi(I2I64(ix), I2I64(iy), I2I64(iz));
-                    if (_testTriangleCubeIntersection(mesh, tIdx, gi))
+                    if (_testTriangleCubeIntersection(mesh, tIdx, gi, sideRatio))
                         grid->fillVoxel(I2I64(ix), I2I64(iy), I2I64(iz));
                 }
             }
@@ -1454,7 +1512,8 @@ int Volume::_triangleCubeSign(Mesh *mesh,
     return -1;
 }
 
-bool Volume::_testTriangleCubeIntersection(Mesh* mesh, size_t triangleIdx, const GridIndex& voxel)
+bool Volume::_testTriangleCubeIntersection(Mesh* mesh, size_t triangleIdx,
+                                           const GridIndex& voxel, const float &sideRatio)
 {
     // Get the origin of the voxel
     double  voxelOrigin[3];
@@ -1474,8 +1533,24 @@ bool Volume::_testTriangleCubeIntersection(Mesh* mesh, size_t triangleIdx, const
     voxelCenter[1] = voxelOrigin[1] + voxelHalfSize[1];
     voxelCenter[2] = voxelOrigin[2] + voxelHalfSize[2];
 
+//    auto v1 = mesh->getVertices()[mesh->getTriangles()[triangleIdx][0]];
+//    auto v2 = mesh->getVertices()[mesh->getTriangles()[triangleIdx][1]];
+//    auto v3 = mesh->getVertices()[mesh->getTriangles()[triangleIdx][2]];
+
     // Triangle vertices
     double triangle[3][3];
+
+//    triangle[0][0] = v1.x();
+//    triangle[0][1] = v1.y();
+//    triangle[0][2] = v1.z();
+
+//    triangle[1][0] = v2.x();
+//    triangle[1][1] = v2.y();
+//    triangle[1][2] = v2.z();
+
+//    triangle[2][0] = v3.x();
+//    triangle[2][1] = v3.y();
+//    triangle[2][2] = v3.z();
 
     // For each vertex in the triangle
     for (size_t i = 0; i < 3; ++i)
@@ -1488,20 +1563,11 @@ bool Volume::_testTriangleCubeIntersection(Mesh* mesh, size_t triangleIdx, const
         }
     }
 
+    voxelHalfSize[0] *= sideRatio;
+    voxelHalfSize[1] *= sideRatio;
+    voxelHalfSize[2] *= sideRatio;
+
     return checkTriangleBoxIntersection(voxelCenter, voxelHalfSize, triangle);
-
-    // Test if the triangle and the voxel are intersecting or not
-    if (!checkTriangleBoxIntersection(voxelCenter, voxelHalfSize, triangle))
-        return false;
-
-    std::unique_ptr<Sphere> sphere = std::make_unique<Sphere>(
-                Vector3f(voxelCenter[0], voxelCenter[1], voxelCenter[2]), _voxelSize * 0.5);
-
-    Vector3f p1(triangle[0][0], triangle[0][1], triangle[0][2]),
-             p2(triangle[1][0], triangle[1][1], triangle[1][2]),
-             p3(triangle[2][0], triangle[2][1], triangle[2][2]);
-
-    return sphere->intersectsTriangle(p1, p2, p3);
 }
 
 bool Volume::_testSampleCubeIntersection(Sample* sample, const GridIndex& voxel)

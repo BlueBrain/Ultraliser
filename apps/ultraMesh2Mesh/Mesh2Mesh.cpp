@@ -71,7 +71,6 @@ void run(int argc , const char** argv)
     // Load the input mesh
     auto inputMesh = loadInputMesh(options);
 
-
     // Creates the volume grid to start processing the mesh
     /// NOTE: The input mesh is release within this operation
     auto volume = reconstructVolumeFromMesh(inputMesh, options);

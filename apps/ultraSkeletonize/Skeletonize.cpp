@@ -76,15 +76,95 @@ void run(int argc , const char** argv)
 
     auto prefix = options->projectionPrefix;
 
-    inputMesh->smoothSurface(25);
-    inputMesh->exportMesh(prefix + "_mesh_srhrink", true);
-
 
     // Create the volume from the mesh
     auto solidVolume = createVolumeGrid(inputMesh, options);
 
     // Surface voxelization
-    solidVolume->surfaceVoxelization(inputMesh, true, true);
+    solidVolume->surfaceVoxelization(inputMesh, false, false, 1.0);
+    solidVolume->solidVoxelization(options->voxelizationAxis);
+    auto bordeVoxels = solidVolume->searchForBorderVoxels();
+    for (size_t i = 0; i < bordeVoxels.size(); ++i)
+    {
+        for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
+        {
+            auto voxel = bordeVoxels[i][j];
+            solidVolume->clear(voxel.x(), voxel.y(), voxel.z());
+        }
+        bordeVoxels[i].clear();
+    }
+    bordeVoxels.clear();
+
+    solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
+
+//    bordeVoxels = solidVolume->searchForBorderVoxels();
+//    solidVolume->clear();
+
+//    for (size_t i = 0; i < bordeVoxels.size(); ++i)
+//    {
+//        for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
+//        {
+//            auto voxel = bordeVoxels[i][j];
+//            solidVolume->fillVoxel(voxel.x(), voxel.y(), voxel.z());
+//        }
+//        bordeVoxels[i].clear();
+//    }
+//    bordeVoxels.clear();
+
+
+
+    //auto candidates = solidVolume->verifyBorderVoxels(inputMesh, 0.5, false);
+
+    // solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
+    solidVolume->exportToMesh(prefix + "_step_4", true);
+
+    exit(0);
+
+
+
+
+
+
+
+
+
+    solidVolume->project(prefix + "_solid",
+                    options->projectXY, options->projectXZ, options->projectZY,
+                    options->projectColorCoded);
+
+
+
+
+
+    exit(0);
+
+//    auto bordeVoxels = solidVolume->searchForBorderVoxels();
+
+
+
+
+
+
+//    for (size_t i = 0; i < bordeVoxels.size(); ++i)
+//    {
+//        for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
+//        {
+//            auto voxel = bordeVoxels[i][j];
+//            solidVolume->fill(voxel.x(), voxel.y(), voxel.z());
+
+////            if (solidVolume->isFilled(voxel.x(), voxel.y(), voxel.z()))
+////            {
+////                solidVolume->clear(voxel.x(), voxel.y(), voxel.z());
+////            }
+//        }
+//    }
+//    solidVolume->exportToMesh(prefix + "_border", true);
+
+    exit(0);
+
+
+
+
     solidVolume->solidVoxelization(options->voxelizationAxis);
     solidVolume->project(prefix + "_solid",
                     options->projectXY, options->projectXZ, options->projectZY,

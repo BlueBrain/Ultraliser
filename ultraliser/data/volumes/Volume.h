@@ -172,7 +172,8 @@ public:
      */
     void surfaceVoxelization(Mesh* mesh,
                              const bool& verbose = false,
-                             const bool parallel = false);
+                             const bool parallel = false,
+                             const float&sideRatio = 1.0);
 
     /**
      * @brief surfaceVoxelization
@@ -497,6 +498,10 @@ public:
     void printStats(const std::string &reference,
                           const std::string* prefix = nullptr) const;
 
+
+    std::vector< Vec3ui_64 > verifyBorderVoxels(Mesh* mesh,
+                                    const float& sideRatio, const bool& verbose);
+
 public:
 
     /**
@@ -718,7 +723,9 @@ private:
      * @param mesh
      * @param grid
      */
-    void _rasterize(Mesh* mesh, VolumeGrid* grid, const bool& verbose = false);
+    void _rasterize(Mesh* mesh, VolumeGrid* grid,
+                    const float &sideRatio = 1.0, const bool& verbose = false);
+
 
     void _rasterizeRegion(Mesh* mesh, VolumeGrid* grid,
                                   const Vector3f& pMinRegion,
@@ -749,7 +756,7 @@ private:
      * @param grid
      * @param verbose
      */
-    void _rasterizeParallel(Mesh* mesh, VolumeGrid* grid);
+    void _rasterizeParallel(Mesh* mesh, VolumeGrid* grid, const float &sideRatio = 1.0);
 
     /**
      * @brief floodFill2D
@@ -795,7 +802,7 @@ private:
      */
     bool _testTriangleCubeIntersection(Mesh* mesh,
                                        size_t tIdx,
-                                       const GridIndex& voxel);
+                                       const GridIndex& voxel, const float& sideRatio=1.0);
 
     /**
      * @brief _testSampleCubeIntersection
