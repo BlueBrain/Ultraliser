@@ -73,7 +73,7 @@ void run(int argc , const char** argv)
 
     // Load the input mesh
     auto inputMesh = loadInputMesh(options);
-    inputMesh->smoothSurface(10);
+    // inputMesh->smoothSurface(10);
 
     auto prefix = options->projectionPrefix;
 
@@ -84,18 +84,6 @@ void run(int argc , const char** argv)
     // Surface voxelization
     solidVolume->surfaceVoxelization(inputMesh, false, false, 1.0);
     solidVolume->solidVoxelization(options->voxelizationAxis);
-    auto bordeVoxels = solidVolume->searchForBorderVoxels();
-    for (size_t i = 0; i < bordeVoxels.size(); ++i)
-    {
-        for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
-        {
-            auto voxel = bordeVoxels[i][j];
-            solidVolume->clear(voxel.x(), voxel.y(), voxel.z());
-        }
-        bordeVoxels[i].clear();
-    }
-    bordeVoxels.clear();
-
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
     //solidVolume->exportToMesh(prefix + "_step_4", true);
 

@@ -36,8 +36,6 @@ void Skeletonizer::applyVolumeThinning()
     TIMER_SET;
     LOG_STATUS("Thinning Volume");
 
-    // A block of the volume that is scanned every iteration
-    int8_t volumeBlock[26];
 
     // The thinning kernel that will be used to thin the volume
     std::unique_ptr< Thinning6Iterations > thinningKernel = std::make_unique<Thinning6Iterations>();
@@ -60,7 +58,7 @@ void Skeletonizer::applyVolumeThinning()
             // Search for the delerable voxels
             std::vector< Vec3ui_64 > voxelsToBeDeleted =
                     _volume->searchForDeletableVoxels(
-                        borderVoxels, thinningKernel, direction, volumeBlock);
+                        borderVoxels, thinningKernel, direction);
 
             // Delete the voxels
             for (size_t i = 0; i < voxelsToBeDeleted.size(); ++i)

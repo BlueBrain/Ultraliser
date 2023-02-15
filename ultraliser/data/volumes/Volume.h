@@ -30,6 +30,8 @@
 #include <data/volumes/utilities/VolumeType.hh>
 #include <data/volumes/utilities/VolumeData.hh>
 #include <algorithms/skeletonization/Thinning6Iterations.h>
+#include <data/volumes/voxels/CandiateVoxel.h>
+
 
 namespace Ultraliser
 {
@@ -431,10 +433,19 @@ public:
                       bool &outlier) const;
 
     std::vector< std::vector< Vec3ui_64> > searchForBorderVoxels() const;
-    std::vector< Vec3ui_64 > searchForDeletableVoxels(
-            std::vector< std::vector< Vec3ui_64> > &perSliceBorderVoxels,
+
+    std::vector< CandidateVoxels > searchForCandidateVoxels() const;
+
+    CandidateVoxels searchForCandidateVoxelsOne() const;
+
+
+    std::vector< Vec3ui_64 > searchForDeletableVoxels(std::vector< std::vector< Vec3ui_64> > &perSliceBorderVoxels,
             std::unique_ptr<Thinning6Iterations> &thinning,
-            int direction, int8_t *vecVol) const;
+            int direction) const;
+
+    void confirmDeletableVoxels(CandidateVoxels& candidateVoxels,
+                                std::unique_ptr< Thinning6Iterations > &thinning,
+                                int direction) const;
 
 
 
@@ -483,6 +494,9 @@ public:
      * @return
      */
     bool isFilled(const int64_t &x, const int64_t &y, const int64_t &z) const;
+
+    bool isFilledWithoutBoundCheck(const int64_t &x, const int64_t &y, const int64_t &z) const;
+
 
     /**
      * @brief getFormatString

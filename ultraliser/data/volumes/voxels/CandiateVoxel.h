@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2023
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -21,7 +21,19 @@
 
 #pragma once
 
-#include <data/volumes/voxels/Voxel.h>
-#include <data/volumes/voxels/DMCVoxel.h>
-#include <data/volumes/voxels/MCVoxel.h>
-#include <data/volumes/voxels/CandiateVoxel.h>
+#include <common/Common.h>
+
+namespace Ultraliser
+{
+struct CandidateVoxel
+{
+public:
+    int64_t x;
+    int64_t y;
+    int64_t z;
+
+    bool deletable = false;
+};
+
+typedef std::vector< CandidateVoxel* > CandidateVoxels;
+}

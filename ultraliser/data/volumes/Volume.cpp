@@ -1832,6 +1832,11 @@ bool Volume::isFilled(const int64_t &x, const int64_t &y, const int64_t &z) cons
         return isFilled(index);
 }
 
+bool Volume::isFilledWithoutBoundCheck(const int64_t &x, const int64_t &y, const int64_t &z) const
+{
+   return isFilled(mapTo1DIndexWithoutBoundCheck(x, y, z));
+}
+
 size_t Volume::mapTo1DIndexWithoutBoundCheck(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     return I2UI64(x + (getWidth() * y) + (getWidth() * getHeight() * z));
@@ -1842,7 +1847,6 @@ size_t Volume::mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z, 
     if(x >= getWidth()  || x < 0 || y >= getHeight() || y < 0 || z >= getDepth()  || z < 0)
     {
         outlier = true;
-        std::cout << "BIG ISSUE \n";
         return 0;
     }
     else
@@ -3105,6 +3109,35 @@ bool Volume::isBorderVoxel(const int64_t& x, const int64_t& y,const int64_t& z) 
     return false;
 }
 
+std::vector< CandidateVoxels > Volume::searchForCandidateVoxels() const
+{
+    // This list will collect the border voxels per slice (along the width)
+    std::vector< CandidateVoxels > perSliceBorderVoxels;
+    perSliceBorderVoxels.resize(getWidth());
+
+    // Collect the border voxels per slice in parallel
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < getWidth(); ++i)
+    {
+        for (size_t j = 0; j < getHeight(); ++j)
+        {
+            for (size_t k = 0; k < getDepth(); ++k)
+            {
+                if (isBorderVoxel(i, j, k))
+                {
+                    CandidateVoxel* voxel = new CandidateVoxel();
+                    voxel->x = i;
+                    voxel->y = j;
+                    voxel->z = k;
+                    perSliceBorderVoxels[i].push_back(voxel);
+                }
+            }
+        }
+    }
+
+    return perSliceBorderVoxels;
+}
+
 std::vector< std::vector< Vec3ui_64 > > Volume::searchForBorderVoxels() const
 {
     // This list will collect the border voxels per slice (along the width)
@@ -3130,10 +3163,91 @@ std::vector< std::vector< Vec3ui_64 > > Volume::searchForBorderVoxels() const
     return perSliceBorderVoxels;
 }
 
+CandidateVoxels Volume::searchForCandidateVoxelsOne() const
+{
+    // This list will collect the border voxels per slice (along the width)
+    std::vector< CandidateVoxels > perSliceBorderVoxels;
+    perSliceBorderVoxels.resize(getWidth());
+
+    // Collect the border voxels per slice in parallel
+    // OMP_PARALLEL_FOR
+    for (size_t i = 0; i < getWidth(); ++i)
+    {
+        for (size_t j = 0; j < getHeight(); ++j)
+        {
+            for (size_t k = 0; k < getDepth(); ++k)
+            {
+                if (isBorderVoxel(i, j, k))
+                {
+                    CandidateVoxel* voxel = new CandidateVoxel();
+                    voxel->x = i;
+                    voxel->y = j;
+                    voxel->z = k;
+                    voxel->deletable = false;
+
+                    perSliceBorderVoxels[i].push_back(voxel);
+                }
+            }
+        }
+    }
+
+    size_t allSize = 0;
+    for (size_t i = 0; i < perSliceBorderVoxels.size(); ++i)
+    {
+        allSize += perSliceBorderVoxels[i].size();
+    }
+
+    CandidateVoxels candiateVoxels;
+    candiateVoxels.reserve(allSize);
+    for (size_t i = 0; i < perSliceBorderVoxels.size(); ++i)
+    {
+        candiateVoxels.insert(candiateVoxels.end(),
+                              perSliceBorderVoxels[i].begin(),
+                              perSliceBorderVoxels[i].end());
+
+        perSliceBorderVoxels[i].clear();
+        perSliceBorderVoxels[i].shrink_to_fit();
+    }
+
+    std::cout << "\nNumber: " << candiateVoxels.size() << "\n";
+
+    return candiateVoxels;
+}
+
+void Volume::confirmDeletableVoxels(CandidateVoxels& candidateVoxels,
+                                    std::unique_ptr< Thinning6Iterations > &thinning,
+                                    int direction) const
+{
+    // OMP_PARALLEL_FOR
+    for (size_t i = 0; i < candidateVoxels.size(); ++i)
+    {
+        // A block of the volume that is scanned every iteration
+        int8_t volumeBlock[26];
+
+        for (size_t k = 0; k < 26; k++)
+        {
+            size_t idx, idy, idz;
+            idx = candidateVoxels[i]->x + VDX[k];
+            idy = candidateVoxels[i]->y + VDY[k];
+            idz = candidateVoxels[i]->z + VDZ[k];
+
+            volumeBlock[k] = isFilledWithoutBoundCheck(idx, idy, idz) ? 1 : 0;
+        }
+
+        if (thinning->matches(direction, volumeBlock))
+        {
+            candidateVoxels[i]->deletable = true;
+        }
+    }
+}
+
+
+
+
 std::vector< Vec3ui_64 >
 Volume::searchForDeletableVoxels(std::vector< std::vector< Vec3ui_64 > > &perSliceBorderVoxels,
                                  std::unique_ptr< Thinning6Iterations > &thinning,
-                                 int direction, int8_t* vecVol) const
+                                 int direction) const
 {
     std::vector< Vec3ui_64 > voxelsToBeDeleted;
 
@@ -3141,7 +3255,10 @@ Volume::searchForDeletableVoxels(std::vector< std::vector< Vec3ui_64 > > &perSli
     {
         for (size_t j = 0; j < perSliceBorderVoxels[i].size(); ++j)
         {
-            OMP_PARALLEL_FOR
+            // A block of the volume that is scanned every iteration
+            int8_t volumeBlock[26];
+
+            // OMP_PARALLEL_FOR
             for (size_t k = 0; k < 26; k++)
             {
                 size_t idx, idy, idz;
@@ -3149,10 +3266,10 @@ Volume::searchForDeletableVoxels(std::vector< std::vector< Vec3ui_64 > > &perSli
                 idy = perSliceBorderVoxels[i][j].y() + VDY[k];
                 idz = perSliceBorderVoxels[i][j].z() + VDZ[k];
 
-                vecVol[k] = isFilled(idx, idy, idz) ? 1 : 0;
+                volumeBlock[k] = isFilledWithoutBoundCheck(idx, idy, idz) ? 1 : 0;
             }
 
-            if (thinning->matches(direction, vecVol))
+            if (thinning->matches(direction, volumeBlock))
             {
                 voxelsToBeDeleted.push_back(perSliceBorderVoxels[i][j]);
             }
@@ -3396,9 +3513,6 @@ std::vector< Vector3f > Volume::applyThinning(std::vector< Vector3f > & centers,
     // The thinning kernel that will be used to thin the volume
     std::unique_ptr< Thinning6Iterations > thinningKernel = std::make_unique<Thinning6Iterations>();
 
-    // A block of the volume that is scanned every iteration
-    int8_t volumeBlock[26];
-
     // Parameters to calculate the loop progress
     size_t initialNumberVoxelsToBeDeleted = 0;
     size_t loopCounter = 0;
@@ -3448,37 +3562,46 @@ std::vector< Vector3f > Volume::applyThinning(std::vector< Vector3f > & centers,
     while(1)
     {
         size_t numberDeletedVoxels = 0;
-        std::vector< std::vector< Vec3ui_64 > > perSliceBorderVoxels = searchForBorderVoxels();
+
+        // std::vector< std::vector< Vec3ui_64 > > perSliceBorderVoxels = searchForBorderVoxels();
+
+        CandidateVoxels candidateVoxels = searchForCandidateVoxelsOne();
+        std::cout << "Hola \n";
 
         for (size_t direction = 0; direction < 6; direction++)
         {
             // Search for the delerable voxels
-            std::vector< Vec3ui_64 > voxelsToBeDeleted =
-                    searchForDeletableVoxels(
-                        perSliceBorderVoxels, thinningKernel, direction, volumeBlock);
+            // std::vector< Vec3ui_64 > voxelsToBeDeleted =
+            //        searchForDeletableVoxels(
+            //            perSliceBorderVoxels, thinningKernel, direction);
+
+            confirmDeletableVoxels(candidateVoxels, thinningKernel, direction);
 
             // Delete the voxels
-            for (size_t i = 0; i < voxelsToBeDeleted.size(); ++i)
+            for (size_t i = 0; i < candidateVoxels.size(); ++i)
             {
-                numberDeletedVoxels++;
-                clear(voxelsToBeDeleted[i].x(), voxelsToBeDeleted[i].y(), voxelsToBeDeleted[i].z());
+                if (candidateVoxels[i]->deletable)
+                {
+                    numberDeletedVoxels++;
+                    clear(candidateVoxels[i]->x, candidateVoxels[i]->y, candidateVoxels[i]->z);
+                }
             }
 
             // Clear the container of the deleted voxels
-            voxelsToBeDeleted.clear();
+            // voxelsToBeDeleted.clear();
         }
 
         // Clear all the containers of the border voxels
-        for (size_t i = 0; i < perSliceBorderVoxels.size(); ++i)
-        {
-            perSliceBorderVoxels[i].clear();
-        }
-         perSliceBorderVoxels.clear();
+//        for (size_t i = 0; i < perSliceBorderVoxels.size(); ++i)
+//        {
+//            perSliceBorderVoxels[i].clear();
+//        }
+//         perSliceBorderVoxels.clear();
 
          // Updating the progess bar
         if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
-        LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
-                      initialNumberVoxelsToBeDeleted);
+        //LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
+        //              initialNumberVoxelsToBeDeleted);
 
         if (numberDeletedVoxels == 0)
             break;
