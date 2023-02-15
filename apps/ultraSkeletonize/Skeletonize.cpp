@@ -73,6 +73,7 @@ void run(int argc , const char** argv)
 
     // Load the input mesh
     auto inputMesh = loadInputMesh(options);
+    inputMesh->smoothSurface(10);
 
     auto prefix = options->projectionPrefix;
 
@@ -96,82 +97,13 @@ void run(int argc , const char** argv)
     bordeVoxels.clear();
 
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
-
-//    bordeVoxels = solidVolume->searchForBorderVoxels();
-//    solidVolume->clear();
-
-//    for (size_t i = 0; i < bordeVoxels.size(); ++i)
-//    {
-//        for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
-//        {
-//            auto voxel = bordeVoxels[i][j];
-//            solidVolume->fillVoxel(voxel.x(), voxel.y(), voxel.z());
-//        }
-//        bordeVoxels[i].clear();
-//    }
-//    bordeVoxels.clear();
-
-
-
-    //auto candidates = solidVolume->verifyBorderVoxels(inputMesh, 0.5, false);
-
-    // solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
-    solidVolume->exportToMesh(prefix + "_step_4", true);
-
-    exit(0);
-
-
-
-
-
-
-
-
+    //solidVolume->exportToMesh(prefix + "_step_4", true);
 
     solidVolume->project(prefix + "_solid",
                     options->projectXY, options->projectXZ, options->projectZY,
                     options->projectColorCoded);
 
-
-
-
-
-    exit(0);
-
-//    auto bordeVoxels = solidVolume->searchForBorderVoxels();
-
-
-
-
-
-
-//    for (size_t i = 0; i < bordeVoxels.size(); ++i)
-//    {
-//        for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
-//        {
-//            auto voxel = bordeVoxels[i][j];
-//            solidVolume->fill(voxel.x(), voxel.y(), voxel.z());
-
-////            if (solidVolume->isFilled(voxel.x(), voxel.y(), voxel.z()))
-////            {
-////                solidVolume->clear(voxel.x(), voxel.y(), voxel.z());
-////            }
-//        }
-//    }
-//    solidVolume->exportToMesh(prefix + "_border", true);
-
-    exit(0);
-
-
-
-
-    solidVolume->solidVoxelization(options->voxelizationAxis);
-    solidVolume->project(prefix + "_solid",
-                    options->projectXY, options->projectXZ, options->projectZY,
-                    options->projectColorCoded);
-
-
-    solidVolume->exportToMesh(prefix + "_grid", true);
+   // solidVolume->exportToMesh(prefix + "_grid", true);
 
 
     Skeletonizer* skeletonizer = new Skeletonizer(inputMesh, solidVolume);
@@ -181,46 +113,50 @@ void run(int argc , const char** argv)
     skeletonizer->applyVolumeThinning();
 
     auto nodes = skeletonizer->constructGraph();
-    solidVolume->project(prefix + "_skeleton_x",
+
+
+
+
+    solidVolume->project(prefix + "_skeletonsss",
                     options->projectXY, options->projectXZ, options->projectZY,
                     options->projectColorCoded);
 
-    solidVolume->writeVolumes(options->volumePrefix + "_skeleton",
-                         options->exportBitVolume,
-                         options->exportUnsignedVolume,
-                         options->exportFloatVolume,
-                         options->exportNRRDVolume,
-                         options->exportRawVolume);
+//    solidVolume->writeVolumes(options->volumePrefix + "_skeleton",
+//                         options->exportBitVolume,
+//                         options->exportUnsignedVolume,
+//                         options->exportFloatVolume,
+//                         options->exportNRRDVolume,
+//                         options->exportRawVolume);
 
-    solidVolume->exportToMesh(options->volumePrefix + "mesh", true);
+//    solidVolume->exportToMesh(options->volumePrefix + "mesh", true);
 
     skeletonizer->segmentComponents(nodes);
-    solidVolume->project(prefix + "_sphere",
-                    options->projectXY, options->projectXZ, options->projectZY,
-                    options->projectColorCoded);
-
-
-    solidVolume->clear();
-
-    std::cout << "Soma Mesh\n";
-
-    Mesh* somaMesh = skeletonizer->getSomaMesh();
-    solidVolume->surfaceVoxelization(somaMesh);
-    solidVolume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
-    solidVolume->project(prefix + "_soma_real",
-                    options->projectXY, options->projectXZ, options->projectZY,
-                    options->projectColorCoded);
+//    solidVolume->project(prefix + "_sphere",
+//                    options->projectXY, options->projectXZ, options->projectZY,
+//                    options->projectColorCoded);
 
 
 
+    std::cout << "Print soma \n";
 
 
-    solidVolume->writeVolumes(options->volumePrefix,
-                         options->exportBitVolume,
-                         options->exportUnsignedVolume,
-                         options->exportFloatVolume,
-                         options->exportNRRDVolume,
-                         options->exportRawVolume);
+
+//    Mesh* somaMesh = skeletonizer->getSomaMesh();
+//    solidVolume->clear();
+//    solidVolume->surfaceVoxelization(somaMesh);
+//    solidVolume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+//    solidVolume->project(prefix + "_somasegmented",
+//                    options->projectXY, options->projectXZ, options->projectZY,
+//                    options->projectColorCoded);
+
+//      std::cout << "Done \n";
+
+//    solidVolume->writeVolumes(options->volumePrefix,
+//                         options->exportBitVolume,
+//                         options->exportUnsignedVolume,
+//                         options->exportFloatVolume,
+//                         options->exportNRRDVolume,
+//                         options->exportRawVolume);
 }
 }
 

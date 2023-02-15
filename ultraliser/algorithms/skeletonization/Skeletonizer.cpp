@@ -139,6 +139,79 @@ void Skeletonizer::_computeShellPoints()
     }
 }
 
+
+void removeEdgeNode(SkeletonNode* node, SkeletonNode* edgeNodeMarkedForRemoval)
+{
+    auto it = std::find(node->edgeNodes.begin(), node->edgeNodes.end(), edgeNodeMarkedForRemoval);
+
+    if(it != node->edgeNodes.end())
+        node->edgeNodes.erase(it);
+    node->edgeNodes.shrink_to_fit();
+}
+
+void fixTriangle(SkeletonNodes& nodes,
+                 SkeletonNode* n1, SkeletonNode* n2, SkeletonNode* n3)
+{
+    SkeletonNode* centerNode = new SkeletonNode();
+    centerNode->point = (n1->point + n2->point + n3->point) / 3.f;
+
+    centerNode->index = nodes.back()->index + 1;
+    centerNode->branching = true;
+    centerNode->terminal = false;
+
+    removeEdgeNode(n1, n2); removeEdgeNode(n1, n3);
+    removeEdgeNode(n2, n1); removeEdgeNode(n2, n3);
+    removeEdgeNode(n3, n1); removeEdgeNode(n3, n2);
+
+    centerNode->edgeNodes.push_back(n1);
+    centerNode->edgeNodes.push_back(n2);
+    centerNode->edgeNodes.push_back(n3);
+
+    n1->edgeNodes.push_back(centerNode);
+    n2->edgeNodes.push_back(centerNode);
+    n3->edgeNodes.push_back(centerNode);
+
+    nodes.push_back(centerNode);
+}
+
+bool areConnected(const SkeletonNode* n1, const SkeletonNode* n2)
+{
+    for (size_t i = 0; i < n1->edgeNodes.size(); ++i)
+    {
+        if (n1->edgeNodes[i]->index == n2->index)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool isTriangleNode(const SkeletonNode* n, SkeletonNodes& connectedEdgeNodes)
+{
+    for (size_t i = 0; i < n->edgeNodes.size(); ++i)
+    {
+        for (size_t j = 0; j < n->edgeNodes.size(); ++j)
+        {
+            if (i == j) continue;
+            if (n->edgeNodes[i]->index == n->index) continue;
+            if (n->edgeNodes[j]->index == n->index) continue;
+
+            if (areConnected(n->edgeNodes[i], n->edgeNodes[j]))
+            {
+                connectedEdgeNodes.push_back(n->edgeNodes[j]);
+                connectedEdgeNodes.push_back(n->edgeNodes[i]);
+
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+
+
 SkeletonNodes Skeletonizer::constructGraph()
 {
     // The graph that will contain the nodes
@@ -253,144 +326,70 @@ SkeletonNodes Skeletonizer::constructGraph()
         if (connectedEdges == 1)
             node->terminal = true;
 
-        else if (connectedEdges > 2)
+        if (connectedEdges > 2)
             node->branching = true;
 
     }
 
+    std::cout << "Trignale Nodes \n";
+
+    // Remove the triangular configurations
+
+    const size_t currentNodesSize = nodes.size();
+    for (size_t i = 0; i < currentNodesSize; ++i)
+    {
+        if (nodes[i]->branching)
+        {
+            SkeletonNodes sideNodes;
+            if (isTriangleNode(nodes[i], sideNodes))
+            {
+                if (nodes[i]->visited) continue;
+
+                auto& n1 = nodes[i];
+                auto& n2 = sideNodes[0];
+                auto& n3 = sideNodes[1];
+
+                fixTriangle(nodes, n1, n2, n3);
+
+                if (n1->edgeNodes.size() > 2)
+                    n1->branching = true;
+                else
+                    n1->branching = false;
+
+                if (n2->edgeNodes.size() > 2)
+                    n2->branching = true;
+                else
+                    n2->branching = false;
+
+                if (n3->edgeNodes.size() > 2)
+                    n3->branching = true;
+                else
+                    n3->branching = false;
+
+                n1->visited = true;
+                n2->visited = true;
+                n3->visited = true;
+            }
+        }
+    }
+
+    for (size_t i = 0; i < nodes.size(); ++i)
+    {
+        nodes[i]->visited = false;
+    }
+
+    std::cout << currentNodesSize << ", " << nodes.size() << "\n";
+    std::cout << "Trignale Nodes Done \n";
+
+
     SkeletonNode* somaNode = new SkeletonNode();
-    somaNode->index = nodeIndex++;
+    somaNode->index = nodes.back()->index + 1;
     somaNode->isSoma = true;
     nodes.push_back(somaNode);
 
-    // Re-index the samples, for simplicity
-    OMP_PARALLEL_FOR for (size_t i = 0; i < nodes.size(); ++i) { nodes[i]->index = i; }
+     // Re-index the samples, for simplicity
+     // OMP_PARALLEL_FOR for (size_t i = 0; i < nodes.size(); ++i) { nodes[i]->index = i; }
 
-//    const size_t lastNodeIndex = nodeIndex;
-//    SkeletonNodes auxiliaryNodes;
-
-//    // Tweak the nodes
-//    for (size_t i = 0; i < nodes.size(); ++i)
-//    {
-//        auto& n0 = nodes[i];
-
-//        for (size_t j = 0; j < n0->edgeNodes.size(); ++j)
-//        {
-//            auto& n1 = n0->edgeNodes[j];
-
-//            for (size_t k = 0; k < n1->edgeNodes.size(); ++k)
-//            {
-//                auto& n2 = n1->edgeNodes[k];
-
-//                for (size_t l = 0; l < n2->edgeNodes.size(); ++l)
-//                {
-//                    auto& n3 = n2->edgeNodes[l];
-
-//                    if (n3->index == n0->index)
-//                    {
-//                        if (n0->visited && n1->visited && n2->visited) continue;
-
-//                        auto center = (n0->point + n1->point + n2->point) / 3.f;
-//                        auto voxel = (n0->voxel + n1->voxel + n2->voxel) / 3.f;
-//                        auto radius = (n0->radius + n1->radius + n2->radius) / 3.f;
-
-//                        SkeletonNode* auxNode = new SkeletonNode(nodeIndex, center, voxel);
-//                        nodeIndex++;
-
-//                        auxNode->radius = radius;
-//                        auxNode->branching = true;
-//                        auxNode->edgeNodes.push_back(n0);
-//                        auxNode->edgeNodes.push_back(n1);
-//                        auxNode->edgeNodes.push_back(n2);
-//                        auxiliaryNodes.push_back(auxNode);
-
-//                        n0->visited = true;
-//                        n1->visited = true;
-//                        n2->visited = true;
-
-//                    }
-//                }
-//            }
-//        }
-//    }
-//    for (size_t i = 0; i < auxiliaryNodes.size(); ++i)
-//    {
-//        nodes.push_back(auxiliaryNodes[i]);
-//    }
-
-
-//    for (size_t i = lastNodeIndex; i < nodes.size(); ++i)
-//    {
-//        auto& node = nodes[i];
-
-//        // Get the edge nodes of the newly inserted node
-//        auto& n0 = node->edgeNodes[0];
-//        auto& n1 = node->edgeNodes[1];
-//        auto& n2 = node->edgeNodes[2];
-
-//        // Update the edge nodes of n0
-//        SkeletonNodes edgeNodes0;
-//        edgeNodes0.push_back(node);
-//        for (size_t j = 0; j < n0->edgeNodes.size(); ++j)
-//        {
-//            if (n0->edgeNodes[j]->index == n1->index)
-//                continue;
-
-//            if (n0->edgeNodes[j]->index == n2->index)
-//                continue;
-
-//            edgeNodes0.push_back(n0->edgeNodes[j]);
-//        }
-
-//        n0->edgeNodes.clear();
-//        n0->edgeNodes.shrink_to_fit();
-//        n0->edgeNodes = edgeNodes0;
-
-//        SkeletonNodes edgeNodes1;
-//        edgeNodes1.push_back(node);
-//        for (size_t j = 0; j < n1->edgeNodes.size(); ++j)
-//        {
-//            if (n1->edgeNodes[j]->index == n0->index)
-//                continue;
-
-//            if (n1->edgeNodes[j]->index == n2->index)
-//                continue;
-
-//            edgeNodes1.push_back(n1->edgeNodes[j]);
-//        }
-
-//        n1->edgeNodes.clear();
-//        n1->edgeNodes.shrink_to_fit();
-//        n1->edgeNodes = edgeNodes1;
-
-//        SkeletonNodes edgeNodes2;
-//        edgeNodes2.push_back(node);
-//        for (size_t j = 0; j < n2->edgeNodes.size(); ++j)
-//        {
-//            if (n2->edgeNodes[j]->index == n0->index)
-//                continue;
-
-//            if (n2->edgeNodes[j]->index == n1->index)
-//                continue;
-
-//            edgeNodes2.push_back(n2->edgeNodes[j]);
-//        }
-
-//        n2->edgeNodes.clear();
-//        n2->edgeNodes.shrink_to_fit();
-//        n2->edgeNodes = edgeNodes2;
-//    }
-
-//    // Reset the status
-//    for (size_t i = 0; i < nodes.size(); ++i)
-//    {
-//        nodes[i]->visited = false;
-
-//        if (nodes[i]->edgeNodes.size() > 2)
-//            nodes[i]->branching = true;
-//        else
-//            nodes[i]->branching = false;
-//    }
 
 
     return nodes;
@@ -406,6 +405,43 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
 
     std::cout << "Branches: " << branches.size() << "\n";
     std::cout << "Nodes (Samples): " << nodes.size() << "\n";
+
+    std::fstream stream;
+    stream.open("/abdellah2/scratch/thinning/output/projections/branches.txt", std::ios::out);
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        stream << "start\n";
+
+        for (auto& node: branches[i]->nodes)
+        {
+            stream << node->point.x() << " "
+                   << node->point.y() << " "
+                   << node->point.z() << " "
+                   << node->radius << "\n";
+        }
+        stream << "end\n";
+    }
+    stream.close();
+
+    std::cout << "Branchs: " << branches.size() << "\n";
+
+    return;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     _somaMesh = _reconstructSoma(branches);
@@ -518,68 +554,95 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
             branch->root = true;
             branch->valid = true;
         }
-
-        // std::cout << i << "/" << branches.size() << "\n";
     }
 
     std::cout << "Detecting Starting Points\n";
 
-    // Get the starting points of the branches
-    std::vector< Vector3f > rootsStartingPoints;
+//    // Get the starting points of the branches
+//    std::vector< Vector3f > rootsStartingPoints;
 
-    SkeletonBranches possibleRoots;
+//    SkeletonBranches possibleRoots;
 
+//    std::cout << branches.size() << " \n";
+//    for (size_t i = 0; i < branches.size(); ++i)
+//    {
+//        const auto& branch = branches[i];
+//        std::cout << i << " ";
+
+//        if (branch->root)
+//        {
+//            possibleRoots.push_back(branch);
+
+//            if (branch->nodes.size() ==0) continue;
+
+//            auto auxNode0 = branch->nodes.front();
+
+//            if (auxNode0->isSoma)
+//            {
+//                auto& rootStartingNode = branch->nodes[1];
+//                somaNode->edgeNodes.push_back(rootStartingNode);
+//                rootsStartingPoints.push_back(rootStartingNode->point);
+//            }
+//            else
+//            {
+//                auto& rootStartingNode = branch->nodes[branch->nodes.size() - 2];
+//                somaNode->edgeNodes.push_back(rootStartingNode);
+//                rootsStartingPoints.push_back(rootStartingNode->point);
+//            }
+//        }
+//    }
+
+//    std::cout << "Detecting Starting Points DONE\n";
+
+
+//    Vector3f center(0.f);
+//    float radius = 0;
+//    for (size_t i = 0; i < rootsStartingPoints.size(); i++)
+//    {
+//        center += rootsStartingPoints[i];
+//    }
+
+//    center = center / rootsStartingPoints.size();
+//    for (size_t i = 0; i < rootsStartingPoints.size(); i++)
+//    {
+//        radius += rootsStartingPoints[i].distance(center);
+//    }
+//    radius = radius / rootsStartingPoints.size();
+
+//    somaNode->point = center;
+//    somaNode->radius = radius;
+
+//    printf("Soma: %f, [%f, %f, %f], Roots: %ld\n",
+//           center.x(), center.y(), center.z(), radius, rootsStartingPoints.size());
+
+
+
+    stream.open("/abdellah2/scratch/thinning/output/projections/branches.txt", std::ios::out);
     for (size_t i = 0; i < branches.size(); ++i)
     {
-        const auto& branch = branches[i];
+        stream << "start\n";
 
-        if (branch->root)
+        for (auto& node: branches[i]->nodes)
         {
-            possibleRoots.push_back(branch);
-
-            auto auxNode0 = branch->nodes.front();
-
-            if (auxNode0->isSoma)
-            {
-                auto& rootStartingNode = branch->nodes[1];
-                somaNode->edgeNodes.push_back(rootStartingNode);
-                rootsStartingPoints.push_back(rootStartingNode->point);
-            }
-            else
-            {
-                auto& rootStartingNode = branch->nodes[branch->nodes.size() - 2];
-                somaNode->edgeNodes.push_back(rootStartingNode);
-                rootsStartingPoints.push_back(rootStartingNode->point);
-            }
+            stream << node->point.x() << " "
+                   << node->point.y() << " "
+                   << node->point.z() << " "
+                   << node->radius << "\n";
         }
+        stream << "end\n";
     }
+    stream.close();
 
-    Vector3f center(0.f);
-    float radius = 0;
-    for (size_t i = 0; i < rootsStartingPoints.size(); i++)
-    {
-        center += rootsStartingPoints[i];
-    }
+    std::cout << "Branchs: " << branches.size() << "\n";
 
-    center = center / rootsStartingPoints.size();
-    for (size_t i = 0; i < rootsStartingPoints.size(); i++)
-    {
-        radius += rootsStartingPoints[i].distance(center);
-    }
-    radius = radius / rootsStartingPoints.size();
 
-    somaNode->point = center;
-    somaNode->radius = radius;
 
-    printf("Soma: %f, [%f, %f, %f], Roots: %ld\n",
-           center.x(), center.y(), center.z(), radius, rootsStartingPoints.size());
-
-    _volume->clear();
-    Mesh* sample = new IcoSphere(3);
-    sample->scale(somaNode->radius, somaNode->radius, somaNode->radius);
-    sample->translate(somaNode->point);
-    _volume->surfaceVoxelization(sample);
-    _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+//    _volume->clear();
+//    Mesh* sample = new IcoSphere(3);
+//    sample->scale(somaNode->radius, somaNode->radius, somaNode->radius);
+//    sample->translate(somaNode->point);
+//    _volume->surfaceVoxelization(sample);
+//    _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
 
     // Double loop to detect the connectivity of the branches
     for (size_t i = 0; i < branches.size(); ++i)
@@ -620,61 +683,42 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
         }
     }
 
-    _volume->clear();
+    std::cout << "Heirarichy \n";
+
+     return;
 
 
-    std::fstream stream;
-    stream.open("/ssd3/scratch/skeletonization-tests/input/output/radiii.txt", std::ios::out);
+//    stream.open("/ssd3/scratch/skeletonization-tests/input/output/radiii.txt", std::ios::out);
 
 
-    for (size_t i = 0; i < branches.size(); ++i)
-    {
-        // printf("Branch %ld, %ld parents, %ld children, %ld nodes, %ld p0Edges, %ld p1Edges, valid %d, root %d \n",
-//               i, branches[i]->parents.size(), branches[i]->children.size(),
-//               branches[i]->nodes.size(),
-//               branches[i]->nodes.front()->edgeNodes.size(),
-//               branches[i]->nodes.back()->edgeNodes.size(),
-//               int(branches[i]->valid), int(branches[i]->root));
-
-        if (!branches[i]->valid) continue;
-
-        if (branches[i]->parents.size() == 0 && branches[i]->children.size() == 0)
-        {
-            for (auto& node: branches[i]->nodes)
-            {
-                stream << node->point.x() << " "
-                       << node->point.y() << " "
-                       << node->point.z() << " "
-                       << node->radius << "\n";
-
-                Mesh* sample = new IcoSphere(2);
-                sample->scale(node->radius, node->radius, node->radius);
-                sample->translate(node->point);
-                _volume->surfaceVoxelization(sample);
-                sample->~Mesh();
-            }
-       }
-    }
-    stream.close();
-    _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+//    for (size_t i = 0; i < branches.size(); ++i)
+//    {
 
 
-    stream.open("/ssd3/scratch/skeletonization-tests/input/output/projections/branches.txt", std::ios::out);
-    for (size_t i = 0; i < branches.size(); ++i)
-    {
-        stream << "start\n";
+//        if (!branches[i]->valid) continue;
 
-        for (auto& node: branches[i]->nodes)
-        {
-            stream << node->point.x() << " "
-                   << node->point.y() << " "
-                   << node->point.z() << " "
-                   << node->radius << "\n";
-        }
-        stream << "end\n";
-    }
+//        if (branches[i]->parents.size() == 0 && branches[i]->children.size() == 0)
+//        {
+//            for (auto& node: branches[i]->nodes)
+//            {
+//                stream << node->point.x() << " "
+//                       << node->point.y() << " "
+//                       << node->point.z() << " "
+//                       << node->radius << "\n";
 
-    std::cout << "Branchs: " << branches.size() << "\b";
+//                Mesh* sample = new IcoSphere(2);
+//                sample->scale(node->radius, node->radius, node->radius);
+//                sample->translate(node->point);
+//                _volume->surfaceVoxelization(sample);
+//                sample->~Mesh();
+//            }
+//       }
+//    }
+//    stream.close();
+//    _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+
+
+
 
 //    // Re-arraning the branching
 //    for (size_t i = 0; i < possibleRoots.size(); ++i)
