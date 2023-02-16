@@ -40,6 +40,7 @@
 #include <algorithms/skeletonization/Neighbors.hh>
 #include <algorithms/skeletonization/Thinning6Iterations.h>
 #include <data/meshes/simple/TriangleOperations.h>
+#include <algorithm>
 
 #ifdef ULTRALISER_USE_NRRD
 #include <nrrdloader/NRRDLoader.h>
@@ -1858,38 +1859,19 @@ size_t Volume::mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z, 
 
 void Volume::mapToXYZ(const size_t index, size_t& x, size_t& y, size_t& z) const
 {
+    size_t idx = index;
+    z = idx / (getWidth() * getHeight());
+    idx -= z * getWidth() * getHeight();
 
-    size_t iiid = index;
-    z = iiid/(getWidth()*getHeight());
-    iiid -= z*getWidth()*getHeight();
-
-    y = iiid/getWidth();
-    iiid -= y*getWidth();
-          x = iiid/1;
-
+    y = idx / getWidth();
+    idx -= y * getWidth();
+          x = idx/1;
           return;
 
     x = index / (getHeight() * getDepth());
     y = (index / getDepth()) % getHeight();
     z = index % getDepth();
-
-
-
-
-
-
-
-
-//    j = (index - (k*WIDTH*HEIGHT))/WIDTH
-//    If you want the logic to be a little clearer, and don't need the original index, you can do
-
-
-
-
-
-
 }
-
 
 void Volume::project(const std::string prefix,
                      const bool xy, const bool xz, const bool zy,
@@ -3085,31 +3067,158 @@ Volume::SOLID_VOXELIZATION_AXIS Volume::getSolidvoxelizationAxis(const std::stri
 
 bool Volume::isBorderVoxel(const int64_t& x, const int64_t& y,const int64_t& z) const
 {
-    if(!isFilled(x, y, z))
+    if(!isFilledWithoutBoundCheck(x, y, z))
         return false;
 
-    if(!isFilled(x + 1, y, z))
+    if(!isFilledWithoutBoundCheck(x + 1, y, z))
         return true;
 
-    if(!isFilled(x - 1, y, z))
+    if(!isFilledWithoutBoundCheck(x - 1, y, z))
         return true;
 
-    if(!isFilled(x, y + 1, z))
+    if(!isFilledWithoutBoundCheck(x, y + 1, z))
         return true;
 
-    if(!isFilled(x, y - 1, z))
+    if(!isFilledWithoutBoundCheck(x, y - 1, z))
         return true;
 
-    if(!isFilled(x, y, z + 1))
+    if(!isFilledWithoutBoundCheck(x, y, z + 1))
         return true;
 
-    if(!isFilled(x, y, z - 1))
+    if(!isFilledWithoutBoundCheck(x, y, z - 1))
         return true;
 
     return false;
 }
 
 std::vector< CandidateVoxels > Volume::searchForCandidateVoxels() const
+{
+    // This list will collect the border voxels per slice (along the width)
+    std::vector< CandidateVoxels > perSliceBorderVoxels;
+    perSliceBorderVoxels.reserve(getWidth());
+
+    // Collect the border voxels per slice in parallel
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < getWidth(); ++i)
+    {
+        auto& borderVoxel = perSliceBorderVoxels[i];
+
+        for (size_t j = 0; j < getHeight(); ++j)
+        {
+            for (size_t k = 0; k < getDepth(); ++k)
+            {
+                if (isBorderVoxel(i, j, k))
+                {
+                    CandidateVoxel* voxel = new CandidateVoxel();
+                    voxel->x = i;
+                    voxel->y = j;
+                    voxel->z = k;
+                    voxel->deletable = false;
+                    borderVoxel.push_back(voxel);
+                }
+            }
+        }
+    }
+
+    return perSliceBorderVoxels;
+}
+
+
+#include <algorithm>
+size_t Volume::deleteCandidateVoxels(std::unique_ptr< Thinning6Iterations > &thinning)
+{
+    size_t numberDeletedVoxels = 0;
+
+    // This list will collect the border voxels per slice (along the width)
+    std::vector< CandidateVoxels > perSliceBorderVoxels;
+    perSliceBorderVoxels.resize(getWidth());
+
+    // Collect the border voxels per slice in parallel
+
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < getWidth(); ++i)
+    {
+        for (size_t j = 0; j < getHeight(); ++j)
+        {
+            for (size_t k = 0; k < getDepth(); ++k)
+            {
+                if (isBorderVoxel(i, j, k))
+                {
+                    CandidateVoxel* voxel = new CandidateVoxel();
+                    voxel->x = i;
+                    voxel->y = j;
+                    voxel->z = k;
+                    voxel->deletable = false;
+
+                    perSliceBorderVoxels[i].push_back(voxel);
+                }
+
+            }
+        }
+    }
+
+    for (size_t direction = 0; direction < 6; direction++)
+    {
+        #pragma omp parallel for
+        for (size_t i = 0; i < perSliceBorderVoxels.size(); ++i)
+        {
+             size_t j, k;
+            for (j = 0; j < perSliceBorderVoxels[i].size(); ++j)
+            {
+                // A block of the volume that is scanned every iteration
+                int8_t volumeBlock[26];
+
+                for (k = 0; k < 26; k++)
+                {
+                    size_t idx, idy, idz;
+
+                    idx = perSliceBorderVoxels[i][j]->x + VDX[k];
+                    idy = perSliceBorderVoxels[i][j]->y + VDY[k];
+                    idz = perSliceBorderVoxels[i][j]->z + VDZ[k];
+
+                    volumeBlock[k] = isFilledWithoutBoundCheck(idx, idy, idz) ? 1 : 0;
+                }
+
+                if (thinning->matches(direction, volumeBlock))
+                {
+                    perSliceBorderVoxels[i][j]->deletable = true;
+                }
+            }
+        }
+
+        for (size_t i = 0; i < perSliceBorderVoxels.size(); ++i)
+        {
+            for (size_t j = 0; j < perSliceBorderVoxels[i].size(); ++j)
+            {
+                if (perSliceBorderVoxels[i][j]->deletable)
+                {
+                    numberDeletedVoxels++;
+                    clear(perSliceBorderVoxels[i][j]->x,
+                          perSliceBorderVoxels[i][j]->y,
+                          perSliceBorderVoxels[i][j]->z);
+
+                    perSliceBorderVoxels[i][j]->deletable = false;
+                }
+            }
+        }
+    }
+
+    // Clear the border voxels (list of lists)
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < perSliceBorderVoxels.size(); ++i)
+    {
+        perSliceBorderVoxels[i].clear();
+        perSliceBorderVoxels[i].shrink_to_fit();
+    }
+
+    perSliceBorderVoxels.clear();
+    perSliceBorderVoxels.shrink_to_fit();
+
+
+    return numberDeletedVoxels;
+}
+
+CandidateVoxels Volume::searchForCandidateVoxelsOne() const
 {
     // This list will collect the border voxels per slice (along the width)
     std::vector< CandidateVoxels > perSliceBorderVoxels;
@@ -3129,14 +3238,36 @@ std::vector< CandidateVoxels > Volume::searchForCandidateVoxels() const
                     voxel->x = i;
                     voxel->y = j;
                     voxel->z = k;
+                    voxel->deletable = false;
+
                     perSliceBorderVoxels[i].push_back(voxel);
                 }
+
             }
         }
     }
 
-    return perSliceBorderVoxels;
+    size_t allSize = 0;
+    for (size_t i = 0; i < perSliceBorderVoxels.size(); ++i)
+    {
+        allSize += perSliceBorderVoxels[i].size();
+    }
+
+    CandidateVoxels candiateVoxels;
+    candiateVoxels.reserve(allSize);
+    for (size_t i = 0; i < perSliceBorderVoxels.size(); ++i)
+    {
+        candiateVoxels.insert(candiateVoxels.end(),
+                              perSliceBorderVoxels[i].begin(),
+                              perSliceBorderVoxels[i].end());
+
+        perSliceBorderVoxels[i].clear();
+        perSliceBorderVoxels[i].shrink_to_fit();
+    }
+
+    return candiateVoxels;
 }
+
 
 std::vector< std::vector< Vec3ui_64 > > Volume::searchForBorderVoxels() const
 {
@@ -3163,56 +3294,6 @@ std::vector< std::vector< Vec3ui_64 > > Volume::searchForBorderVoxels() const
     return perSliceBorderVoxels;
 }
 
-CandidateVoxels Volume::searchForCandidateVoxelsOne() const
-{
-    // This list will collect the border voxels per slice (along the width)
-    std::vector< CandidateVoxels > perSliceBorderVoxels;
-    perSliceBorderVoxels.resize(getWidth());
-
-    // Collect the border voxels per slice in parallel
-    // OMP_PARALLEL_FOR
-    for (size_t i = 0; i < getWidth(); ++i)
-    {
-        for (size_t j = 0; j < getHeight(); ++j)
-        {
-            for (size_t k = 0; k < getDepth(); ++k)
-            {
-                if (isBorderVoxel(i, j, k))
-                {
-                    CandidateVoxel* voxel = new CandidateVoxel();
-                    voxel->x = i;
-                    voxel->y = j;
-                    voxel->z = k;
-                    voxel->deletable = false;
-
-                    perSliceBorderVoxels[i].push_back(voxel);
-                }
-            }
-        }
-    }
-
-    size_t allSize = 0;
-    for (size_t i = 0; i < perSliceBorderVoxels.size(); ++i)
-    {
-        allSize += perSliceBorderVoxels[i].size();
-    }
-
-    CandidateVoxels candiateVoxels;
-    candiateVoxels.reserve(allSize);
-    for (size_t i = 0; i < perSliceBorderVoxels.size(); ++i)
-    {
-        candiateVoxels.insert(candiateVoxels.end(),
-                              perSliceBorderVoxels[i].begin(),
-                              perSliceBorderVoxels[i].end());
-
-        perSliceBorderVoxels[i].clear();
-        perSliceBorderVoxels[i].shrink_to_fit();
-    }
-
-    std::cout << "\nNumber: " << candiateVoxels.size() << "\n";
-
-    return candiateVoxels;
-}
 
 void Volume::confirmDeletableVoxels(CandidateVoxels& candidateVoxels,
                                     std::unique_ptr< Thinning6Iterations > &thinning,
@@ -3227,6 +3308,7 @@ void Volume::confirmDeletableVoxels(CandidateVoxels& candidateVoxels,
         for (size_t k = 0; k < 26; k++)
         {
             size_t idx, idy, idz;
+
             idx = candidateVoxels[i]->x + VDX[k];
             idy = candidateVoxels[i]->y + VDY[k];
             idz = candidateVoxels[i]->z + VDZ[k];
@@ -3241,9 +3323,6 @@ void Volume::confirmDeletableVoxels(CandidateVoxels& candidateVoxels,
     }
 }
 
-
-
-
 std::vector< Vec3ui_64 >
 Volume::searchForDeletableVoxels(std::vector< std::vector< Vec3ui_64 > > &perSliceBorderVoxels,
                                  std::unique_ptr< Thinning6Iterations > &thinning,
@@ -3251,20 +3330,22 @@ Volume::searchForDeletableVoxels(std::vector< std::vector< Vec3ui_64 > > &perSli
 {
     std::vector< Vec3ui_64 > voxelsToBeDeleted;
 
+
     for (size_t i = 0; i < perSliceBorderVoxels.size(); ++i)
     {
         for (size_t j = 0; j < perSliceBorderVoxels[i].size(); ++j)
         {
+            const auto& borderVoxel = perSliceBorderVoxels[i][j];
+
             // A block of the volume that is scanned every iteration
             int8_t volumeBlock[26];
 
-            // OMP_PARALLEL_FOR
+            //
             for (size_t k = 0; k < 26; k++)
             {
-                size_t idx, idy, idz;
-                idx = perSliceBorderVoxels[i][j].x() + VDX[k];
-                idy = perSliceBorderVoxels[i][j].y() + VDY[k];
-                idz = perSliceBorderVoxels[i][j].z() + VDZ[k];
+                const auto idx = borderVoxel[0] + VDX[k];
+                const auto idy = borderVoxel[1] + VDY[k];
+                const auto idz = borderVoxel[2] + VDZ[k];
 
                 volumeBlock[k] = isFilledWithoutBoundCheck(idx, idy, idz) ? 1 : 0;
             }

@@ -77,7 +77,6 @@ void run(int argc , const char** argv)
 
     auto prefix = options->projectionPrefix;
 
-
     // Create the volume from the mesh
     auto solidVolume = createVolumeGrid(inputMesh, options);
 
@@ -87,9 +86,9 @@ void run(int argc , const char** argv)
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
     //solidVolume->exportToMesh(prefix + "_step_4", true);
 
-    solidVolume->project(prefix + "_solid",
-                    options->projectXY, options->projectXZ, options->projectZY,
-                    options->projectColorCoded);
+//    solidVolume->project(prefix + "_solid",
+//                    options->projectXY, options->projectXZ, options->projectZY,
+//                    options->projectColorCoded);
 
    // solidVolume->exportToMesh(prefix + "_grid", true);
 
@@ -105,9 +104,9 @@ void run(int argc , const char** argv)
 
 
 
-    solidVolume->project(prefix + "_skeletonsss",
-                    options->projectXY, options->projectXZ, options->projectZY,
-                    options->projectColorCoded);
+//    solidVolume->project(prefix + "_skeletonsss",
+//                    options->projectXY, options->projectXZ, options->projectZY,
+//                    options->projectColorCoded);
 
 //    solidVolume->writeVolumes(options->volumePrefix + "_skeleton",
 //                         options->exportBitVolume,

@@ -438,6 +438,9 @@ public:
 
     CandidateVoxels searchForCandidateVoxelsOne() const;
 
+    size_t deleteCandidateVoxels(std::unique_ptr< Thinning6Iterations > &thinning);
+
+
 
     std::vector< Vec3ui_64 > searchForDeletableVoxels(std::vector< std::vector< Vec3ui_64> > &perSliceBorderVoxels,
             std::unique_ptr<Thinning6Iterations> &thinning,

@@ -31,6 +31,8 @@ Skeletonizer::Skeletonizer(const Mesh *mesh,
     _computeShellPoints();
 }
 
+#include<ctime>
+
 void Skeletonizer::applyVolumeThinning()
 {
     TIMER_SET;
@@ -38,7 +40,9 @@ void Skeletonizer::applyVolumeThinning()
 
 
     // The thinning kernel that will be used to thin the volume
+
     std::unique_ptr< Thinning6Iterations > thinningKernel = std::make_unique<Thinning6Iterations>();
+    LOG_STATUS("Thinning Starting");
 
     // Parameters to calculate the loop progress
     size_t initialNumberVoxelsToBeDeleted = 0;
@@ -48,52 +52,95 @@ void Skeletonizer::applyVolumeThinning()
     LOOP_PROGRESS(0, 100);
     while(1)
     {
-        size_t numberDeletedVoxels = 0;
+        size_t numberDeletedVoxels = _volume->deleteCandidateVoxels(thinningKernel);
 
-        // Search for the border voxels, for this iteration
-        std::vector< std::vector< Vec3ui_64 > > borderVoxels = _volume->searchForBorderVoxels();
+        // Updating the progess bar
+       if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
+       LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
+                     initialNumberVoxelsToBeDeleted);
 
-        for (size_t direction = 0; direction < 6; direction++)
-        {
-            // Search for the delerable voxels
-            std::vector< Vec3ui_64 > voxelsToBeDeleted =
-                    _volume->searchForDeletableVoxels(
-                        borderVoxels, thinningKernel, direction);
+       if (numberDeletedVoxels == 0)
+           break;
 
-            // Delete the voxels
-            for (size_t i = 0; i < voxelsToBeDeleted.size(); ++i)
-            {
-                numberDeletedVoxels++;
-                _volume->clear(voxelsToBeDeleted[i].x(),
-                               voxelsToBeDeleted[i].y(),
-                               voxelsToBeDeleted[i].z());
-            }
-
-            // Clear the container of the deleted voxels
-            voxelsToBeDeleted.clear();
-        }
-
-        // Clear the border voxels (list of lists)
-        for (size_t i = 0; i < borderVoxels.size(); ++i)
-        {
-            borderVoxels[i].clear();
-            borderVoxels[i].shrink_to_fit();
-        }
-        borderVoxels.clear();
-        borderVoxels.shrink_to_fit();
-
-         // Updating the progess bar
-        if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
-        LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
-                      initialNumberVoxelsToBeDeleted);
-
-        if (numberDeletedVoxels == 0)
-            break;
-
-        loopCounter++;
+       loopCounter++;
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
+
+
+
+
+
+
+
+
+//    while(1)
+//    {
+//        size_t numberDeletedVoxels = 0;
+
+////        // Search for the border voxels, for this iteration
+////        std::cout << "\n1 ";
+////        std::vector< std::vector< Vec3ui_64 > > borderVoxels = _volume->searchForBorderVoxels();
+////        std::cout << "1 \n";
+
+//        std::cout << "\n1 ";
+//        auto candidateVoxels = _volume->searchForCandidateVoxelsOne();
+//        std::cout << "1 \n";
+
+//        for (size_t direction = 0; direction < 6; direction++)
+//        {
+//            // Search for the delerable voxels
+////            std::vector< Vec3ui_64 > voxelsToBeDeleted =
+////                    _volume->searchForDeletableVoxels(
+////                        borderVoxels, thinningKernel, direction);
+
+//            _volume->confirmDeletableVoxels(candidateVoxels, thinningKernel, direction);
+
+//            // Delete the voxels
+////            for (size_t i = 0; i < voxelsToBeDeleted.size(); ++i)
+////            {
+////                numberDeletedVoxels++;
+////                _volume->clear(voxelsToBeDeleted[i].x(),
+////                               voxelsToBeDeleted[i].y(),
+////                               voxelsToBeDeleted[i].z());
+////            }
+
+//            for (size_t i = 0; i < candidateVoxels.size(); ++i)
+//            {
+//                if (candidateVoxels[i]->deletable)
+//                {
+//                    numberDeletedVoxels++;
+//                    _volume->clear(candidateVoxels[i]->x,
+//                                   candidateVoxels[i]->y,
+//                                   candidateVoxels[i]->z);
+
+//                    candidateVoxels[i]->deletable = false;
+//                }
+//            }
+//        }
+
+//         // Clear the border voxels (list of lists)
+////        for (size_t i = 0; i < borderVoxels.size(); ++i)
+////        {
+////            borderVoxels[i].clear();
+////            borderVoxels[i].shrink_to_fit();
+////        }
+
+//        candidateVoxels.clear();
+//        candidateVoxels.shrink_to_fit();
+
+//         // Updating the progess bar
+//        if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
+//        LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
+//                      initialNumberVoxelsToBeDeleted);
+
+//        if (numberDeletedVoxels == 0)
+//            break;
+
+//        loopCounter++;
+//    }
+//    LOOP_DONE;
+//    LOG_STATS(GET_TIME_SECONDS);
 }
 
 std::vector< Vector3f > Skeletonizer::getShellPoints()
@@ -152,6 +199,7 @@ void fixTriangle(SkeletonNodes& nodes,
 {
     SkeletonNode* centerNode = new SkeletonNode();
     centerNode->point = (n1->point + n2->point + n3->point) / 3.f;
+    centerNode->radius = (n1->radius + n2->radius + n3->radius) / 3.f;
 
     centerNode->index = nodes.back()->index + 1;
     centerNode->branching = true;

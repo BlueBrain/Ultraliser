@@ -133,7 +133,7 @@ void Mask::rotate(int8_t input[26], int8_t *output,char axis)
     // Auxiliary matrix to store the indices after the rotation
     int aux[3][3][3];
 
-    OMP_PARALLEL_FOR
+    // OMP_PARALLEL_FOR
     for (size_t i = 0; i < 26; ++i)
     {
         // Get the index after the rotation operation (3D rotation with 90 degrees)
@@ -146,7 +146,7 @@ void Mask::rotate(int8_t input[26], int8_t *output,char axis)
     }
 
     // Update the output vector
-    OMP_PARALLEL_FOR
+    // OMP_PARALLEL_FOR
     for (size_t i =0; i < 26; ++i)
         output[i] = aux[VDX[i] + 1][VDY[i] + 1][VDZ[i] + 1];
 }
@@ -163,7 +163,7 @@ bool Mask::matches(const int8_t *vol, int8_t *vec)
     int v, q3 = 0;
     int i;
 
-    for (size_t i = 0; i < 26; ++i)
+    for (uint8_t i = 0; i < 26; ++i)
     {
         v = vol[i];
 
