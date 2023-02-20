@@ -1,11 +1,11 @@
 # Introduction
 
-_Ultraliser_ is an __unconditionally robust__ and __high performance__ framework dedicated primarily to **_in silico_ neuroscience** research. 
-_Ultraliser_ is capable of generating high fidelity and multiscale 3D models (surface meshes and annotated volumes) of neuroscientific data, such as: nuclei, mitochondria, endoplasmic reticula, 
+_Ultraliser_ is an __unconditionally robust__ and __high-performance__ framework dedicated primarily to **_in silico_ neuroscience** research. 
+_Ultraliser_ is capable of generating high fidelity and multiscale 3D models (surface meshes and annotated volumes) of neuroscientific data, such as nuclei, mitochondria, endoplasmic reticula, 
 neurons, astrocytes, pericytes, neuronal branches with dendritic spines, minicolumns with thousands of neurons and large networks of cerebral vasculature - with realistic geometries. 
 
 _Ultraliser_ implements an effective __voxelization-based remeshing engine__ that can rasterize non-watertight surface meshes - in the 
-form of __triangular soups__ - into high resolution volumes, with which we can reconstruct topologically accurate, adaptively optimized 
+form of __triangular soups__ - into high-resolution volumes, with which we can reconstruct topologically accurate, adaptively optimized, 
 and watertight surface manifolds. 
 
 In addition to their importance for accurate quantitative analysis, the resulting models are primarily intended to automate the 
@@ -17,25 +17,25 @@ Annotated volumetric tissue models are also used in _in silico_ imaging studies,
 
 ## Features 
 
-+ Reconstruction of high fidelity, optimized<sup>1</sup> and two-manifold watertight<sup>2</sup> triangular mesh models from non-watertight inputs represented by polygonal soups. 
++ Reconstruction of high fidelity, optimized<sup>1</sup>, and two-manifold watertight<sup>2</sup> triangular mesh models from non-watertight inputs represented by polygonal soups. 
 + Surface mesh smoothing and optimization using [Laplacian operators](https://en.wikipedia.org/wiki/Laplacian_smoothing) and feature-preserving adaptive mesh optimization<sup>1</sup>.
-+ Reconstruction of large-scale volumetric models<sup>3</sup> from non-watertight input meshes using high performance [surface and solid voxelization](Mesh-Voxelization). 
++ Reconstruction of large-scale volumetric models<sup>3</sup> from non-watertight input meshes using high-performance [surface and solid voxelization](Mesh-Voxelization). 
 + Reconstruction of optimized and smooth surface meshes from input volumes using parallel implementations of the standard marching cubes<sup>4</sup> algorithm and the advanced dual marching cubes<sup>5</sup> algorithm. 
 + Reconstruction of optimized and smooth surface meshes from input binary masks of segmented data. 
-+ Reconstruction of geometrically realistic watertight mesh models of spiny neurons from corresponding morphological skeletons<sup>6</sup> .
-+ Reconstruction of geometrically realistic watertight mesh models of complete astroglial cells<sup>8</sup>  (with endfeet) from input morphological skeletons and endfeet surface patches<sup>9</sup> .        
-+ Reconstruction of high-fidelity, optimized and multi-partitioned vascular meshes from fragmented and large-scale vascular network graphs<sup>7</sup>. 
-+ Morphology, mesh and volume quantitative and qualitative analysis. 
-+ Generation of color-coded multi-axis projections of spatial data (morphologies, meshes and volumes) for visual analytics. 
++ Reconstruction of geometrically realistic watertight mesh models of spiny neurons from corresponding morphological skeletons<sup>6</sup>.
++ Reconstruction of geometrically realistic watertight mesh models of complete astroglial cells<sup>8</sup>  (with endfeet) from input morphological skeletons and endfeet surface patches<sup>9</sup>.        
++ Reconstruction of high-fidelity, optimized, and multi-partitioned vascular meshes from fragmented and large-scale vascular network graphs<sup>7</sup>. 
++ Morphology, mesh, and volume quantitative and qualitative analysis. 
++ Generation of color-coded multi-axis projections of spatial data (morphologies, meshes, and volumes) for visual analytics. 
 
 ## Documentation 
 
-Exhaustive user documentation, including step-by-step examples and detailed explanation of the 
+Exhaustive user documentation, including step-by-step examples and detailed explanations of the 
 command line options, is available on the [Wiki](https://github.com/BlueBrain/Ultraliser/wiki) of this repository.
 
 ## Installation
 
-Installation instructions are detailed in this [page on the Wiki](https://github.com/BlueBrain/Ultraliser/wiki/Installation). 
+Installation instructions are detailed on this [page on the Wiki](https://github.com/BlueBrain/Ultraliser/wiki/Installation). 
 
 ### Software Dependencies 
 
@@ -43,29 +43,29 @@ Installation instructions are detailed in this [page on the Wiki](https://github
 * [libTIFF](http://www.libtiff.org/), which gives support for the Tag Image File Format (TIFF), a widely used format for storing image data.
 * [libhdf5](https://support.hdfgroup.org/HDF5/doc/cpplus_RM/index.html), or the Hierarchical Data Format 5 (HDF5) library for storing data.
 * [Eigen3](https://eigen.tuxfamily.org/), a template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms.
-* [BZip2](https://www.sourceware.org/bzip2/), a high quality data compressor.  
+* [BZip2](https://www.sourceware.org/bzip2/), a high-quality data compressor.  
 * [ZLIB](https://docs.python.org/3/library/zlib.html), for data compression. 
 * [FMT](https://github.com/fmtlib/fmt), a formatting library providing a fast and safe alternative to C stdio and C++ iostreams.
-* [GLM](https://github.com/g-truc/glm), a header only C++ mathematics library for graphics software based on the OpenGL Shading Language (GLSL) specifications.
+* [GLM](https://github.com/g-truc/glm), a header-only C++ mathematics library for graphics software based on the OpenGL Shading Language (GLSL) specifications.
 
 ### Supported Operating Systems 
 
 _Ultraliser_ has been tested on Unix-based operating systems including:
 
-* Ubuntu 18.04, Ubuntu 20.04, Ubuntu 21.04 and Ubuntu 22.04.
+* Ubuntu 18.04, Ubuntu 20.04, Ubuntu 21.04, and Ubuntu 22.04.
 * RHEL7, RHEL8. 
 * macOS 10.12 Sierra, 10.13 High Sierra,  10.14 Mojave, 10.15 Catalina.
 
 
 # Known Bugs or Feature Requests
 
-Please refer to the [github issue tracker](https://github.com/BlueBrain/Ultraliser/issues?utf8=%E2%9C%93&q=) for fixed and open bugs. User can also report any bugs and request new features needed for their research. We are happy to provide direct [support](#contact) . 
+Please refer to the [Github issue tracker](https://github.com/BlueBrain/Ultraliser/issues?utf8=%E2%9C%93&q=) for fixed and open bugs. Users can also report any bugs and request new features needed for their research. We are happy to provide direct [support](#contact). 
 
 # License 
 
 _Ultraliser_ is available to download and use under the GNU General Public License, version 3 ([GPL](https://www.gnu.org/licenses/gpl.html), or “free software”). 
-The code is open sourced with approval from the open sourcing committee and principal coordinators of the Blue Brain Project in March 2021. 
-See file [LICENSE](https://github.com/BlueBrain/Ultraliser/blob/master/LICENSE) for the full license.
+The code is open-sourced with approval from the open-sourcing committee and principal coordinators of the Blue Brain Project in March 2021. 
+See the file [LICENSE](https://github.com/BlueBrain/Ultraliser/blob/master/LICENSE) for the full license.
 
 # Citation
 
@@ -136,9 +136,9 @@ Financial support was provided by competitive research funding from [King Abdull
 
 * The volume reconstruction code is an extension to the work of [Marwan Abdellah's](http://marwan-abdellah.com/) [PhD (In silico Brain Imaging: Physically-plausible Methods for Visualizing Neocortical Microcircuitry)](https://infoscience.epfl.ch/record/232444?ln=en). 
 
-* The mesh optimization code in _Ultraliser_ is based on the routiens provided by the [GAMer (Geometry-preserving Adaptive MeshER) library](http://fetk.org/codes/gamer/). GAMer is developed by _Z. Yu, M. Holst, Y. Cheng, and J.A. McCammon_, and can be redistributed and modified under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or any later version.
+* The mesh optimization code in _Ultraliser_ is based on the routines provided by the [GAMer (Geometry-preserving Adaptive MeshER) library](http://fetk.org/codes/gamer/). GAMer is developed by _Z. Yu, M. Holst, Y. Cheng, and J.A. McCammon_, and can be redistributed and modified under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License or any later version.
 
-* The watertighness verification code in _Ultraliser_ is based on an extended version of the [MeshFix library](https://github.com/MarcoAttene/MeshFix-V2.1). MeshFix is developed by _Marco Attene_, Consiglio Nazionale delle Ricerche, Istituto di Matematica Applicata e Tecnologie Informatiche, Sezione di Genova, IMATI-GE / CNR, and can be redistributed and modified under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or any later version.    
+* The watertighness verification code in _Ultraliser_ is based on an extended version of the [MeshFix library](https://github.com/MarcoAttene/MeshFix-V2.1). MeshFix is developed by _Marco Attene_, Consiglio Nazionale delle Ricerche, Istituto di Matematica Applicata e Tecnologie Informatiche, Sezione di Genova, IMATI-GE / CNR, and can be redistributed and modified under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License or any later version.    
 
 * The mesh analysis code is implemented based on the metrics described in [The Verdict Geometric Quality Library](https://coreform.com/papers/verdict_quality_library.pdf). 
 
@@ -146,7 +146,7 @@ Financial support was provided by competitive research funding from [King Abdull
 
 * The values of the colormaps used to generate the color-coded projections are obtained from the [matplotlib](https://matplotlib.org/) library.
 
-* The H5 morphology samples are available with permissions from the [Blue Brain Project, Ecole Polytechnique Federale de Lausanne (EPFL)](https://www.epfl.ch/research/domains/bluebrain/).
+* The H5 morphology samples are available with permission from the [Blue Brain Project, Ecole Polytechnique Federale de Lausanne (EPFL)](https://www.epfl.ch/research/domains/bluebrain/).
 
 * The SWC morphology samples of neurons and astrocytes are available from NeuroMorpho.Org. [NeuroMorpho.Org](neuromorpho.org) is a centrally curated inventory or repository of digitally reconstructed neurons associated with peer-reviewed publications.
 
@@ -161,9 +161,9 @@ Arthur W. Toga, Juan R. Cebral, Giorgio A. Ascoli.
 Digital reconstruction and morphometric analysis of human brain arterial vasculature from magnetic 
 resonance angiography. NeuroImage, 82, 170-181, (2013)](http://dx.doi.org/10.1016/j.neuroimage.2013.05.089). 
 
-* The VMV vascular morphologies are available with permissions from [Pablo Blinder, Department of Neurobiology, Faculty of Life Sciences at Tel Aviv University](https://english.tau.ac.il/profile/pb). 
+* The VMV vascular morphologies are available with permission from [Pablo Blinder, Department of Neurobiology, Faculty of Life Sciences at Tel Aviv University](https://english.tau.ac.il/profile/pb). 
 
-* The H5 vascular morphologies are available with permissions from the 
+* The H5 vascular morphologies are available with permission from the 
 [Blue Brain Project](https://bluebrain.epfl.ch/page-52063.html), 
 [Ecole Polytechnique Federale de Lausanne (EPFL)](https://www.epfl.ch/). The original dataset 
 courtesy of [Bruno Weber](https://www.neuroscience.uzh.ch/en/about/people/steering/Weber.html), 
@@ -172,7 +172,7 @@ University of Zurich, Switzerland.
 * Cortical meshes (in H5 format) are courtesy of the [MICrONS Consortium](https://www.microns-explorer.org/) including 
 [Seung Lab](http://seunglab.org/), 
 [Brain-map.org](https://brain-map.org) - [Allen Institute for Brain Science](https://alleninstitute.org/), 
-[Tolias Lab](https://toliaslab.org/) and [IARPA Microns](https://www.iarpa.gov/index.php/research-programs/microns). 
+[Tolias Lab](https://toliaslab.org/), and [IARPA Microns](https://www.iarpa.gov/index.php/research-programs/microns). 
     * The cortical mm^3 datasets are available from the following pulication:
         * MICrONs Consortium et al. Functional connectomics spanning multiple areas of mouse visual cortex. bioRxiv 2021.07.28.454025; doi: https://doi.org/10.1101/2021.07.28.454025
     * Layer 2/3 datasets are available from the following publications:
@@ -185,10 +185,10 @@ Full attributions and acknowledgements are available in the [ACKNOWLEDGEMENTS fi
 
 # Contact
 
-For more information on _Ultraliser_, comments or suggestions, please contact:
+For more information on _Ultraliser_, comments, or suggestions, please contact:
 
 __Marwan Abdellah__  
-Scientific Visualiation Engineer  
+Scientific Visualization Engineer  
 Blue Brain Project  
 [marwan.abdellah@epfl.ch](marwan.abdellah@epfl.ch) 
  
@@ -196,7 +196,7 @@ __Felix Schürmann__
 Co-director of the Blue Brain Project    
 [felix.schuermann@epfl.ch](felix.schuermann@epfl.ch) 
 
-Should you have any questions concerning press enquiriries, please contact:
+Should you have any questions concerning press inquiries, please contact:
 
 __Evelyne Schmid__  
 Communications  
