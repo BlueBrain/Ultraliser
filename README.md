@@ -81,7 +81,7 @@ See the file [LICENSE](https://github.com/BlueBrain/Ultraliser/blob/master/LICEN
 If you use this software, kindly use the following ${\mathrm{B{\scriptstyle{IB}} T_{\displaystyle E}X}}$ entry for citation:
 
 ```
-@article{Abdellah2022Ultraliser,
+@article{abdellah2023ultraliser,
     author = {Abdellah, Marwan and Garc{\'\i}a Cantero, Juan Jos{\'e} and Roman Guerrero, Nadir 
     and Foni, Alessandro and Coggan, Jay S. and Cal{\`\i}, Corrado and Agus, Marco and 
     Zisis, Eleftherios and Keller, Daniel and Hadwiger, Markus and Magistretti, Pierre and 
@@ -89,19 +89,17 @@ If you use this software, kindly use the following ${\mathrm{B{\scriptstyle{IB}}
     title = {Ultraliser: a framework for creating multiscale, high-fidelity and geometrically 
     realistic 3D models for in silico neuroscience},
     journal = {Briefings in Bioinformatics},
-    year = {2022},
-    month = {11},
-    issn = {1477-4054},
-    doi = {10.1093/bib/bbac491},
-    url = {https://doi.org/10.1093/bib/bbac491},
-    note = {bbac491},
-    eprint = {https://academic.oup.com/bib/advance-article-pdf/doi/10.1093/bib/bbac491/47309216/bbac491.pdf},
+    volume={24},
+    number={1},
+    pages={bbac491},
+    year={2023},
+    publisher={Oxford University Press}
 }
 ```
 
 The initial revision of the manuscript was archived on bioRxiv
 ```
-@article {Abdellah2022.07.27.501675,
+@article {abdellah2022.07.27.501675,
     author = {Abdellah, Marwan and Garc{\'\i}a Cantero, Juan Jos{\'e} and Roman Guerrero, Nadir 
     and Foni, Alessandro and Coggan, Jay S. and Cal{\`\i}, Corrado and Agus, Marco and 
     Zisis, Eleftherios and Keller, Daniel and Hadwiger, Markus and Magistretti, Pierre and 
