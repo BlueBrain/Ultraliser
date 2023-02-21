@@ -1,3 +1,9 @@
+
+<p align="center">
+        <img src="docs/banner.jpeg" width=600>
+</p>
+ 
+
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7105941.svg)](https://doi.org/10.5281/zenodo.7105941)
 
 
