@@ -7,7 +7,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7105941.svg)](https://doi.org/10.5281/zenodo.7105941)
 
 
-# Introduction
+# Ultraliser
 
 _Ultraliser_ is an __unconditionally robust__ and __high-performance__ framework dedicated primarily to **_in silico_ neuroscience** research. 
 _Ultraliser_ is capable of generating high fidelity and multiscale 3D models (surface meshes and annotated volumes) of neuroscientific data, such as nuclei, mitochondria, endoplasmic reticula, 
