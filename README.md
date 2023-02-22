@@ -4,6 +4,8 @@
 </p>
  
 
+
+[![DOI](https://zenodo.org/badge/DOI/10.1093/bib.bbac491.svg)](https://doi.org/10.1093/bib/bbac491)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7105941.svg)](https://doi.org/10.5281/zenodo.7105941)
 
 
