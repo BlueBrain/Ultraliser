@@ -19,103 +19,83 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef SIMCRUSHER_SPARSEVOXELOCTREE_H
-#define SIMCRUSHER_SPARSEVOXELOCTREE_H
+#pragma once
 
 #include <cstdint>
 
-#include <ultraliser/math/Vector3f.h>
+#include <math/Vector3f.h>
 
-#include "../util/Point3D.h"
-#include "../util/Bounds.h"
+#include "Bounds.h"
 #include "SparseOctreeNode.h"
 
-namespace sc
+namespace Ultraliser
 {
 class SparseOctree
-{  
-  public:
-    /*
-      * Constructs an empty octree with zero-dimension
-      * and zero depth
-      */ 
-    SparseOctree();
-    
-    /*
-      * Constructs a sparse octree which will allow to
-      * voxelize the space within the given bounds at 
-      * a maximun given resolution
-      */
-    SparseOctree(const Point3DF& minBound,
-                  const Point3DF& maxBound,
-                  const uint8_t maxDepth);
+{
+public:
+    /**
+     * @brief  Construct an Sparse octree to voxelize the given axis-aligned space bounds until a given maximum depth.
+     *
+     * @param minBound Minimum XYZ of the axis aligned bounds to voxelize.
+     * @param maxBound Maximum XYZ of the axis aligned bounds to voxelize.
+     * @param maxDepth Max children depth to reach.
+     */
+    SparseOctree(const Bounds &bounds, uint8_t maxDepth);
 
-    /*
-      * Initializes the octree to the given bounds 
-      * and max depth. Any previous content is
-      * discarded
-      */ 
-    void init(const Point3DF& minBound,
-              const Point3DF& maxBound,
-              const uint8_t maxDepth);
+    /**
+     * @brief Returns the root node of the sparse octree
+     *
+     * @return const SparseOctreeNode&
+     */
+    const SparseOctreeNode &getRoot() const;
 
-    /*
-      * Returns a const reference to the root node
-      */
-    SparseOctreeNode& getRoot();
-
-    /*
-      * Returns a const reference to the root node
-      */
-    const SparseOctreeNode& getRoot() const;
-
-    /*
-      * Returns the octree maximun allowed depth
-      */
+    /**
+     * @brief Returns the sparse octree max depth.
+     *
+     * @return uint8_t
+     */
     uint8_t getMaxDepth() const;
 
-    /*
-      * Returns the octree's bounds
-      */
-    const Bounds3DF& getBounds() const;
+    /**
+     * @brief Returns the sparse octree spatial bounds
+     *
+     * @return const Bounds<float>&
+     */
+    const Bounds &getBounds() const;
 
-    /*
-      * Returns the octree's 3D size
-      */
-    const Point3DF& get3DSize() const;
+    /**
+     * @brief Voxelizes a point into the sparse octree if its inside the octree bounds.
+     *
+     * @param point The point to voxelize
+     */
+    void voxelizePoint(const Vector3f &point);
 
-    /*
-      * Attempts to voxelize the given value in the 3D space
-      * represented by the octree if the given points falls within it
-      */
-    //void voxelizePoint(const Point3DF& p, const uint8_t value);
+    /**
+     * @brief Voxelizes a triangle into the sparse octree, if it is fully inside the octree
+     * bounds.
+     *
+     * @param a Triangle vertex 1
+     * @param b Triangle vertex 2
+     * @param c Triangle vertex 3
+     */
+    void voxelizeTriangle(const Vector3f &a, const Vector3f &b, const Vector3f &c);
 
-    /*
-      * Attempts to sample the value at the given point if it
-      * falls within the bounds of the octree
-      */ 
-    //uint8_t sample(const Point3DF& p) const;
+    /**
+     * @brief Samples the octree at a given position, and returns true if it falls within a leaf node.
+     *
+     * @param p 3D point to sample
+     * @return true if the point is within any octree leaf node
+     */
+    bool sample(const Vector3f &p) const;
 
-    /*
-      * Triggers the compact of the octree from the leaf nodes in a 
-      * bottom-to-top manner
-      */ 
+    /**
+     * @brief Compacts the octree by collapsing parents with 8 children into leaf nodes recursively.
+     */
     void compact();
 
-    /*
-      * Prints octree stats on standard output
-      * (memory size, number of nodes, number of leaf nodes)
-      */
-    void printStats() const;
-
-  protected:
-    Bounds3DF _volumeBounds;
-    Point3DF _volumeSize;
-
+protected:
+    Bounds _bounds;
     uint8_t _maxDepth;
-
     SparseOctreeNode _root;
 };
 }
-
-#endif

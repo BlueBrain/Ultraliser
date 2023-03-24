@@ -1,9 +1,9 @@
-####################################################################################################
+# ###################################################################################################
 # Copyright (c) 2016 - 2021
 # Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
 #
 # Author(s)
-#       Marwan Abdellah <marwan.abdellah@epfl.ch>
+# Marwan Abdellah <marwan.abdellah@epfl.ch>
 #
 # For complete list of authors, please see AUTHORS.md
 #
@@ -21,7 +21,7 @@
 # if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301 USA.
 # You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
-####################################################################################################
+# ###################################################################################################
 
 # ultraMask2Mesh
 if(${ULTRALISER_USE_TIFF})
@@ -56,7 +56,7 @@ add_subdirectory(ultraMeshQualityChecker)
 
 # ultraH5MeshConverter
 if(${ULTRALISER_USE_H5})
-add_subdirectory(ultraH5MeshConverter)
+    add_subdirectory(ultraH5MeshConverter)
 else(${ULTRALISER_USE_H5})
     message(STATUS "ultraH5MeshConverter will not be compiled. Missing H5!")
 endif(${ULTRALISER_USE_H5})
@@ -78,3 +78,5 @@ add_subdirectory(ultraAnalysis)
 
 # ultraResampling
 add_subdirectory(ultraResampling)
+
+add_subdirectory(testSVO)
