@@ -1,9 +1,9 @@
-####################################################################################################
+# ###################################################################################################
 # Copyright (c) 2016 - 2021
 # Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
 #
 # Author(s)
-#       Marwan Abdellah <marwan.abdellah@epfl.ch>
+# Marwan Abdellah <marwan.abdellah@epfl.ch>
 #
 # For complete list of authors, please see AUTHORS.md
 #
@@ -21,7 +21,7 @@
 # if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301 USA.
 # You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
-####################################################################################################
+# ###################################################################################################
 
 # Ultraliser library
 set(ULTRALISER_LIBRARY "ultraliser")
@@ -32,33 +32,36 @@ set(ULTRALISER_HEADER_FILES "")
 
 # A list of the directories that will be scaned
 set(DIRECTORIES "algorithms"
-                "algorithms/simulation"
-                "arguments"
-                "common"
-                "data"
-                "data/common"
-                "data/structures"
-                "data/images"
-                "data/meshes"
-                "data/meshes/advanced"
-                "data/meshes/advanced/math"
-                "data/meshes/advanced/primitives"
-                "data/meshes/advanced/io"
-                "data/meshes/simple"
-                "data/meshes/simple/primitives"
-                "data/meshes/simple/io"
-                "data/morphologies"
-                "data/morphologies/h5"
-                "data/morphologies/swc"
-                "data/morphologies/vmv"
-                "data/volumes"
-                "data/volumes/grids"
-                "data/volumes/utilities"
-                "data/volumes/voxels"
-                "geometry"
-                "math"
-                "microscopes"
-                "utilities"
+    "algorithms/simulation"
+    "arguments"
+    "common"
+    "data"
+    "data/common"
+    "data/structures"
+    "data/images"
+    "data/meshes"
+    "data/meshes/advanced"
+    "data/meshes/advanced/math"
+    "data/meshes/advanced/primitives"
+    "data/meshes/advanced/io"
+    "data/meshes/simple"
+    "data/meshes/simple/primitives"
+    "data/meshes/simple/io"
+    "data/morphologies"
+    "data/morphologies/h5"
+    "data/morphologies/swc"
+    "data/morphologies/vmv"
+    "data/sparsevoxeloctree"
+    "data/sparsevoxeloctree/common"
+    "data/sparsevoxeloctree/manipulators"
+    "data/volumes"
+    "data/volumes/grids"
+    "data/volumes/utilities"
+    "data/volumes/voxels"
+    "geometry"
+    "math"
+    "microscopes"
+    "utilities"
 )
 
 # Removing the include directory from the build one
@@ -68,23 +71,23 @@ file(REMOVE ${CMAKE_BINARY_DIR}/include)
 foreach(DIRECTORY in ${DIRECTORIES})
     # Source files
     file(GLOB SOURCES
-            "${DIRECTORY}/*.c" "${DIRECTORY}/*.cpp" "${DIRECTORY}/*.hpp")
+        "${DIRECTORY}/*.c" "${DIRECTORY}/*.cpp" "${DIRECTORY}/*.hpp")
     list(APPEND ULTRALISER_SOURCE_FILES ${SOURCES})
 
     # Header files
     file(GLOB HEADERS
-            "${DIRECTORY}/*.h" "${DIRECTORY}/*.hh")
+        "${DIRECTORY}/*.h" "${DIRECTORY}/*.hh")
     list(APPEND ULTRALISER_HEADER_FILES ${HEADERS})
 
     # Copy the header files to the build directory for the apps
     file(COPY ${DIRECTORY}
-            DESTINATION ${CMAKE_BINARY_DIR}/include
-            FILES_MATCHING PATTERN "*.h" PATTERN "*.hh")
+        DESTINATION ${CMAKE_BINARY_DIR}/include
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hh")
 endforeach()
 
 # Copy the interface
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Ultraliser.h
-          ${CMAKE_BINARY_DIR}/include/Ultraliser.h COPYONLY)
+    ${CMAKE_BINARY_DIR}/include/Ultraliser.h COPYONLY)
 
 # Add the current directory to include directories
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})

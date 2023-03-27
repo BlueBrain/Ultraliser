@@ -21,151 +21,197 @@
 
 #include "Window.h"
 
-#include "WindowInput.h"
+#include <iostream>
 
-namespace scr
+namespace
+{
+struct CameraConstants
+{
+    static constexpr float movementSpeed = 0.5f;
+};
+
+svorender::Window *getWindowHandle(GLFWwindow *window)
+{
+    auto win = reinterpret_cast<svorender::Window *>(glfwGetWindowUserPointer(window));
+    if (!win)
+    {
+        throw std::runtime_error("WindowInput: GLFWwindow User pointer is null");
+    }
+
+    return win;
+}
+
+void keyboardCallbackFunc(GLFWwindow *window, int key, int scanCode, int action, int mods)
+{
+    auto win = getWindowHandle(window);
+    win->onKeyboardPress(key, scanCode, action, mods);
+}
+
+void mouseInputCallbackFunc(GLFWwindow *window, int button, int action, int mods)
+{
+    auto win = getWindowHandle(window);
+    win->onMousePress(button, action, mods);
+}
+
+void mouseMovementCallbackFunc(GLFWwindow *window, double xpos, double ypos)
+{
+    auto win = getWindowHandle(window);
+    win->onMouseMove(static_cast<int>(xpos), static_cast<int>(ypos));
+}
+
+void scrollCallbackFunc(GLFWwindow *window, double xOffset, double yOffset)
+{
+    auto win = getWindowHandle(window);
+    win->onMouseScroll(xOffset, yOffset);
+}
+
+void resizeCallbackFunc(GLFWwindow *window, int width, int height)
+{
+    auto win = getWindowHandle(window);
+    win->onWindowResize(width, height);
+}
+
+void errorCallback(int errorCode, const char *message)
+{
+    std::cerr << "GLFW Error received!" << std::endl;
+    std::cerr << "\tCode " << errorCode << std::endl;
+    std::cerr << "\tMessage: " << message << std::endl;
+}
+}
+
+namespace svorender
 {
 
-  Window::Window(const uint32_t width, 
-                 const uint32_t height, 
-                 const std::string& title)
-   : _winWidth(width)
-   , _winHeight(height)
-   , _window(nullptr)
-   , _camera(std::unique_ptr<Camera>(new Camera(1.f, 500.f, 30.f)))
-   , _mouseButtonPressed(-1)
-   , _lastMouseX(-1)
-   , _lastMouseY(-1)
-  {
-    initContext(title);
-    initOpenGL();
-    _camera->onScreenResize(width, height);
-  }
+Window::Window(const uint32_t width, const uint32_t height, const std::string &title)
+    : _winWidth(width)
+    , _winHeight(height)
+    , _window(nullptr)
+    , _camera(1.f, 500.f, 30.f)
+    , _mouseButtonPressed(-1)
+    , _lastMouseX(-1)
+    , _lastMouseY(-1)
+{
+    _initContext(title);
+    _initOpenGL();
+    _camera.onScreenResize(width, height);
+}
 
-  void Window::onWindowResize(const uint32_t width, const uint32_t height)
-  {
+void Window::onWindowResize(uint32_t width, uint32_t height)
+{
     _winWidth = width;
     _winHeight = height;
-
-    _camera->onScreenResize(width, height);
-
+    _camera.onScreenResize(width, height);
     glViewport(0, 0, width, height);
-  }
+}
 
-  void Window::onKeyboardPress(SCR_UNUSED const char key, 
-                               SCR_UNUSED const int scanMode, 
-                               SCR_UNUSED const int action, 
-                               SCR_UNUSED const int mods)
-  {
- 
-  }
+void Window::onKeyboardPress(char key, int scanMode, int action, int mods)
+{
+    (void)key;
+    (void)scanMode;
+    (void)action;
+    (void)mods;
+}
 
-  void Window::onMousePress(const int button, const int action, const int mods)
-  {
+void Window::onMousePress(int button, int action, int mods)
+{
     (void)mods;
     switch (action)
     {
-      case GLFW_PRESS:
+    case GLFW_PRESS:
         _mouseButtonPressed = button;
         break;
-      case GLFW_RELEASE:
-        _mouseButtonPressed = (button == _mouseButtonPressed)? 
-                              -1 : _mouseButtonPressed;
+    case GLFW_RELEASE:
+        _mouseButtonPressed = (button == _mouseButtonPressed) ? -1 : _mouseButtonPressed;
         _lastMouseX = -1;
         _lastMouseY = -1;
         break;
     }
-  }
+}
 
-  void Window::onMouseMove(const int xpos, const int ypos)
-  {
-    if(_mouseButtonPressed != 0)
-      return;
+void Window::onMouseMove(int xpos, int ypos)
+{
+    if (_mouseButtonPressed != 0)
+        return;
 
-    if(_lastMouseX == -1 || _lastMouseY == -1)
+    if (_lastMouseX == -1 || _lastMouseY == -1)
     {
-      _lastMouseX = xpos;
-      _lastMouseY = ypos;
-      return;
+        _lastMouseX = xpos;
+        _lastMouseY = ypos;
+        return;
     }
 
-    const int deltaX = xpos - _lastMouseX;
-    const int deltaY = ypos - _lastMouseY;
-
-    const float deltaRotX= -static_cast<float>(deltaY) * CAMERA_MOV_SPEED * 0.01  ;
-    const float deltaRotY= -static_cast<float>(deltaX) * CAMERA_MOV_SPEED * 0.01;
-
-    const glm::vec3 deltaRot (deltaRotX, deltaRotY, 0.f);
-    _camera->updateRotation(deltaRot);
+    auto deltaX = xpos - _lastMouseX;
+    auto deltaY = ypos - _lastMouseY;
+    auto deltaRotX = -static_cast<float>(deltaY) * CameraConstants::movementSpeed * 0.01;
+    auto deltaRotY = -static_cast<float>(deltaX) * CameraConstants::movementSpeed * 0.01;
+    auto deltaRot = glm::vec3(deltaRotX, deltaRotY, 0.f);
+    _camera.updateRotation(deltaRot);
 
     _lastMouseX = xpos;
     _lastMouseY = ypos;
-  }
+}
 
-  void Window::onMouseScroll(SCR_UNUSED const float xoffset, 
-                             SCR_UNUSED const float yoffset)
-  {
+void Window::onMouseScroll(float xoffset, float yoffset)
+{
+    (void)xoffset;
+    _camera.onZoom(static_cast<float>(yoffset));
+}
 
-      (void)xoffset;
-      _camera->onZoom(static_cast<float>(yoffset));
-  }
-
-  void Window::renderLoop()
-  {
-    while(!glfwWindowShouldClose(_window))
+void Window::renderLoop()
+{
+    while (!glfwWindowShouldClose(_window))
     {
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-      
-      _camera->update();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-      for(const auto& model : _models)
-      {
-        model->bind();
-        model->renderModel(*_camera.get());
-      }
+        _camera.update();
 
-      glfwPollEvents();
-      glfwSwapBuffers(_window);
+        for (auto &model : _models)
+        {
+            model->render(_camera);
+        }
+
+        glfwPollEvents();
+        glfwSwapBuffers(_window);
     }
-  }
+}
 
-  uint32_t Window::width() const
-  {
+uint32_t Window::width() const
+{
     return _winWidth;
-  }
+}
 
-  uint32_t Window::height() const
-  {
+uint32_t Window::height() const
+{
     return _winHeight;
-  }
+}
 
-  void Window::setCamera(const float nearPlane, 
-                         const float farPlane, 
-                         const float fov)
-  {
-    _camera.reset(new Camera(nearPlane, farPlane, fov));
-  }
+void Window::setCamera(const float nearPlane, const float farPlane, const float fov)
+{
+    _camera = Camera(nearPlane, farPlane, fov);
+}
 
-  void Window::addModel(CubeMesh* mesh, Material* material)
-  {
-    _models.push_back(std::unique_ptr<Model>(new Model(mesh, material)));
-  }
+void Window::addModel(std::unique_ptr<Model> model)
+{
+    _models.push_back(std::move(model));
+}
 
-  Camera& Window::getCamera()
-  {
-    return *_camera.get();
-  }
+Camera &Window::getCamera()
+{
+    return _camera;
+}
 
-  const Camera& Window::getCamera() const
-  {
-    return *_camera.get();
-  }
+const Camera &Window::getCamera() const
+{
+    return _camera;
+}
 
-  void Window::initContext(const std::string& windowTitle)
-  {
-    if(!glfwInit())
-      throw std::runtime_error("Window: Could not initialize GLFW");
-    
+void Window::_initContext(const std::string &windowTitle)
+{
+    if (!glfwInit())
+    {
+        throw std::runtime_error("Window: Could not initialize GLFW");
+    }
+
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -193,15 +239,15 @@ namespace scr
 
     glfwSwapInterval(1);
 
-    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         glfwTerminate();
         throw std::runtime_error("Window: Could not load OpenGL");
     }
-  }
+}
 
-  void Window::initOpenGL()
-  {
+void Window::_initOpenGL()
+{
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -210,5 +256,5 @@ namespace scr
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_CULL_FACE);
     glViewport(0, 0, _winWidth, _winHeight);
-  }
+}
 }

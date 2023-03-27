@@ -19,8 +19,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef SIMCRUSHERRENDERER_TEXTURE3D_H
-#define SIMCRUSHERRENDERER_TEXTURE3D_H
+#pragma once
 
 #include <glad/glad.h>
 
@@ -29,12 +28,12 @@
 #include <cstdint>
 #include <vector>
 
-namespace scr
+namespace svorender
 {
 class Texture3D
 {
 public:
-    Texture3D(const uint32_t dimX, const uint32_t dimY, const uint32_t dimZ, const std::vector<uint8_t> &volumeData);
+    Texture3D(uint32_t dimX, uint32_t dimY, uint32_t dimZ, const std::vector<uint8_t> &volumeData);
 
     void bind() const;
     void unbind() const;
@@ -55,5 +54,3 @@ private:
     GLuint64 _oglTextureHandle;
 };
 }
-
-#endif

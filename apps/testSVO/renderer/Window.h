@@ -19,8 +19,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef SIMCRUSHERRENDERER_WINDOW_H
-#define SIMCRUSHERRENDERER_WINDOW_H
+#pragma once
 
 #include <glad/glad.h>
 
@@ -31,60 +30,48 @@
 #include <string>
 #include <vector>
 
-#include "Common.h"
 #include "Camera.h"
 #include "Model.h"
 
-namespace scr
+namespace svorender
 {
-  class Window
-  {
-    public:
-      Window(const uint32_t width, 
-              const uint32_t height, 
-              const std::string& title = "SimCrusher Volume Visual Debugger");
+class Window
+{
+public:
+    Window(const uint32_t width, const uint32_t height, const std::string &title = "SVO Visualizer");
 
-      void onWindowResize(const uint32_t width, const uint32_t height);
-      void onKeyboardPress(SCR_UNUSED const char key, 
-                           SCR_UNUSED const int scanMode, 
-                           SCR_UNUSED const int action, 
-                           SCR_UNUSED const int mods);
-      void onMousePress(const int button, const int action, const int mods);
-      void onMouseMove(const int xpos, const int ypos);
-      void onMouseScroll(SCR_UNUSED const float xoffset, 
-                         SCR_UNUSED const float yoffset);
+    void onWindowResize(uint32_t width, uint32_t height);
+    void onKeyboardPress(char key, int scanMode, int action, int mods);
+    void onMousePress(int button, int action, int mods);
+    void onMouseMove(int xpos, int ypos);
+    void onMouseScroll(float xoffset, float yoffset);
 
-      void renderLoop();
+    void renderLoop();
 
-      uint32_t width() const;
-      uint32_t height() const;
+    uint32_t width() const;
+    uint32_t height() const;
 
-      void setCamera(const float nearPlane, 
-                     const float farPlane, 
-                     const float fov);
-      void addModel(CubeMesh* mesh, Material* material);
+    void setCamera(const float nearPlane, const float farPlane, const float fov);
+    void addModel(std::unique_ptr<Model> model);
 
-      Camera& getCamera();
-      const Camera& getCamera() const;
-    
-    private:
-      void initContext(const std::string& windowTitle);
-      void initOpenGL();
+    Camera &getCamera();
+    const Camera &getCamera() const;
 
-    private:
-      uint32_t _winWidth;
-      uint32_t _winHeight;
+private:
+    void _initContext(const std::string &windowTitle);
+    void _initOpenGL();
 
-      GLFWwindow * _window;
+private:
+    uint32_t _winWidth;
+    uint32_t _winHeight;
 
-      std::unique_ptr<Camera> _camera;
-      std::vector<std::unique_ptr<Model>> _models;
+    GLFWwindow *_window;
 
-      int _mouseButtonPressed;
-      int _lastMouseX;
-      int _lastMouseY;
-      
-  };
+    Camera _camera;
+    std::vector<std::unique_ptr<Model>> _models;
+
+    int _mouseButtonPressed;
+    int _lastMouseX;
+    int _lastMouseY;
+};
 }
-
-#endif

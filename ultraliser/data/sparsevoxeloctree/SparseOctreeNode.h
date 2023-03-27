@@ -28,23 +28,10 @@
 
 namespace Ultraliser
 {
-struct SparseOctreeNodeSlot
-{
-    static constexpr uint8_t root = 0;
-    static constexpr const uint8_t backBottomLeft = 1;
-    static constexpr const uint8_t backBottomRight = 2;
-    static constexpr const uint8_t backTopLeft = 4;
-    static constexpr const uint8_t backTopRight = 8;
-    static constexpr const uint8_t frontBottomLeft = 16;
-    static constexpr const uint8_t frontBottomRight = 32;
-    static constexpr const uint8_t frontTopLeft = 64;
-    static constexpr const uint8_t frontTopRight = 128;
-};
-
 class SparseOctreeNode
 {
 public:
-    SparseOctreeNode(uint8_t slotMask);
+    explicit SparseOctreeNode(uint8_t slotMask);
 
     /**
      * @brief Transform node into leaf node if it has 8 children
@@ -54,11 +41,20 @@ public:
     /**
      * @brief Return a specific children of this node
      *
-     * @param index Index of the node in the children list
+     * @param index Index of the node in the children list. Access bounds are not checked.
      * @return SparseOctreeNode&
      */
     SparseOctreeNode &getChild(size_t index);
     const SparseOctreeNode &getChild(size_t index) const;
+
+    /**
+     * @brief Tries to find a children by the slot it occupies.
+     *
+     * @param slot The slot of the children
+     * @return SparseOctreeNode* if found, nullptr otherwise
+     */
+    SparseOctreeNode *findChild(uint8_t slot);
+    const SparseOctreeNode *findChild(uint8_t slot) const;
 
     /**
      * @brief Returns the number of children on this node
@@ -68,18 +64,26 @@ public:
     size_t getNumChildren() const;
 
     /**
-     * @brief Return the children mask. The children mask is 1 byte flag indicating which children are present.
+     * @brief Return the children mask. The children mask is 1 byte flag indicating which child slots are present.
      *
      * @return uint8_t
      */
     uint8_t getChildrenMask() const;
 
     /**
-     * @brief Adds a new children node.
+     * @brief Adds a new children node. If the node already has a children on that slot, this function has no effect.
      *
-     * @param node
+     * @param slot The slot the node will occupy.
      */
     void addChildNode(uint8_t slot);
+
+    /**
+     * @brief Adds a new children leaf node (It appears on its children mask, but the node itself is not created). If
+     * the node already has a children on that slot, this function has no effect.
+     *
+     * @param slot The slot the node will occupy.
+     */
+    void addChildLeaf(uint8_t slot);
 
     /**
      * @brief Returns the node slot mask. The slot mask is bit flag that indicates the position relative to the
@@ -97,8 +101,6 @@ public:
     bool isLeaf() const;
 
 private:
-    friend class SparseOctree;
-
     uint8_t _slotMask;
     uint8_t _childMask;
     std::vector<SparseOctreeNode> _children;

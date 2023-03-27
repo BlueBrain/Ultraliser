@@ -1,9 +1,9 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2023
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
- *      Marwan Abdellah < marwan.abdellah@epfl.ch >
+ *      Nadir Roman Guerrero < nadir.romanguerrero@epfl.ch >
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -21,9 +21,20 @@
 
 #pragma once
 
-#include <data/common/CommonData.h>
-#include <data/images/Images.h>
-#include <data/meshes/Meshes.h>
-#include <data/morphologies/Morphologies.h>
-#include <data/sparsevoxeloctree/SparseVoxelOctree.h>
-#include <data/volumes/Volumes.h>
+#include <data/sparsevoxeloctree/SparseOctree.h>
+
+namespace Ultraliser
+{
+class TriangleVoxelizer
+{
+public:
+    explicit TriangleVoxelizer(SparseOctree &octree);
+
+    void voxelize(const Vector3f &a, const Vector3f &b, const Vector3f &c);
+
+private:
+    SparseOctreeNode &_root;
+    const Ultraliser::Bounds &_rootBounds;
+    uint8_t _maxDepth;
+};
+}

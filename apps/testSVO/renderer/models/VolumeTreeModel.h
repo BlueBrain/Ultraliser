@@ -19,16 +19,27 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef SIMCRUSHERRENDERER_COMMON_H
-#define SIMCRUSHERRENDERER_COMMON_H
+#pragma once
 
-#define BUFFER_OFFSET(offset) (static_cast<char*>(0) + (offset))
+#include "../CubeMesh.h"
+#include "../Model.h"
+#include "../Shader.h"
+#include "../Texture3D.h"
 
-#define SCR_UNUSED __attribute__((unused))
+namespace svorender
+{
+class VolumeTreeModel : public Model
+{
+public:
+    VolumeTreeModel(const glm::vec3 &min, const glm::vec3 &max, Texture3D volume);
 
-#define CAMERA_MOV_SPEED 0.5f
+    void render(const Camera &camera) override;
 
-#include <iostream>
-#define DEBUGGL(message) std::cout << message << " " << glGetError() << std::endl;
-
-#endif
+private:
+    glm::vec3 _min;
+    glm::vec3 _max;
+    Texture3D _volume;
+    CubeMesh _mesh;
+    Shader _shader;
+};
+}

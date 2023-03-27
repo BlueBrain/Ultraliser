@@ -24,6 +24,34 @@
 #include <algorithm>
 #include <cassert>
 
+namespace
+{
+class ChildFinder
+{
+public:
+    template<typename Container>
+    static auto find(Container &&children, uint8_t childrenMask, uint8_t childSlot)
+    {
+        if (!(childrenMask & childSlot))
+        {
+            return static_cast<decltype(children.data())>(nullptr);
+        }
+
+        uint8_t i = 1;
+        size_t index = 0;
+        while (childSlot > i)
+        {
+            if (i & childrenMask)
+            {
+                ++index;
+            }
+            i <<= 1;
+        }
+        return &children[index];
+    }
+};
+}
+
 namespace Ultraliser
 {
 SparseOctreeNode::SparseOctreeNode(uint8_t slotMask)
@@ -55,6 +83,16 @@ const SparseOctreeNode &SparseOctreeNode::getChild(size_t index) const
     return _children[index];
 }
 
+SparseOctreeNode *SparseOctreeNode::findChild(uint8_t slot)
+{
+    return ChildFinder::find(_children, _childMask, slot);
+}
+
+const SparseOctreeNode *SparseOctreeNode::findChild(uint8_t slot) const
+{
+    return ChildFinder::find(_children, _childMask, slot);
+}
+
 size_t SparseOctreeNode::getNumChildren() const
 {
     return _children.size();
@@ -76,10 +114,12 @@ void SparseOctreeNode::addChildNode(uint8_t slot)
     _children.emplace_back(slot);
 
     // Sort children based on slot mask to keep access ordering correct
-    std::sort(
-        _children.begin(),
-        _children.end(),
-        [](const auto &a, const auto &b) { return a.getSlotMask() < b.getSlotMask(); });
+    std::sort(_children.begin(), _children.end(), [](auto &a, auto &b) { return a.getSlotMask() < b.getSlotMask(); });
+}
+
+void SparseOctreeNode::addChildLeaf(uint8_t slot)
+{
+    _childMask |= slot;
 }
 
 uint8_t SparseOctreeNode::getSlotMask() const

@@ -19,32 +19,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef SIMCRUSHERRENDERER_MODEL_H
-#define SIMCRUSHERRENDERER_MODEL_H
+#pragma once
 
 #include "Camera.h"
-#include "CubeMesh.h"
-#include "Material.h"
 
-namespace scr
+namespace svorender
 {
-  class Model
-  {
-    public:
-      Model(CubeMesh* mesh,
-            Material* material);
-
-      ~Model();
-
-      void bind() const;
-      void unbind() const;
-
-      void renderModel(const Camera& camera);
-
-    private:
-      CubeMesh* _mesh;
-      Material* _material;
-  };
+class Model
+{
+public:
+    virtual void render(const Camera &camera) = 0;
+};
 }
-
-#endif

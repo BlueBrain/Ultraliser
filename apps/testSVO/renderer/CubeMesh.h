@@ -19,8 +19,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef SIMCRUSHERRENDERER_CUBEMESH_H
-#define SIMCRUSHERRENDERER_CUBEMESH_H
+#pragma once
 
 #include <glm/glm.hpp>
 
@@ -28,30 +27,23 @@
 
 #include <vector>
 
-namespace scr
+namespace svorender
 {
-  class CubeMesh
-  {
-    public:
-      CubeMesh(const glm::vec3& min, const glm::vec3& max);
+class CubeMesh
+{
+public:
+    CubeMesh(const glm::vec3 &min = glm::vec3(0.f), const glm::vec3 &max = glm::vec3(1.f));
 
-      void bind() const;
-      void unbind() const;
+    void bind() const;
+    void unbind() const;
 
-      void destroy();
+    void destroy();
 
-    private:
-      void generate(std::vector<float>& vertexBuffer,
-                    std::vector<uint32_t>& faceBuffer);
-      void enableAttributes();
-            
-    private:
-      const glm::vec3 _min;
-      const glm::vec3 _max;
+private:
+    void _enableAttributes();
 
-      GLuint _gpuMeshVAO;
-      GLuint _buffers[2];
-  };
+private:
+    GLuint _gpuMeshVAO;
+    GLuint _buffers[2];
+};
 }
-
-#endif

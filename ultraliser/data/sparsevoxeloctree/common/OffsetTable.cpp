@@ -1,9 +1,9 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2023
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
- *      Marwan Abdellah < marwan.abdellah@epfl.ch >
+ *      Nadir Roman Guerrero < nadir.romanguerrero@epfl.ch >
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -19,11 +19,52 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#pragma once
+#include "OffsetTable.h"
 
-#include <data/common/CommonData.h>
-#include <data/images/Images.h>
-#include <data/meshes/Meshes.h>
-#include <data/morphologies/Morphologies.h>
-#include <data/sparsevoxeloctree/SparseVoxelOctree.h>
-#include <data/volumes/Volumes.h>
+#include <array>
+#include <cassert>
+
+namespace
+{
+class OffsetTableComputer
+{
+public:
+    static std::array<uint8_t, 2048> compute()
+    {
+        auto result = std::array<uint8_t, 2048>();
+        result.fill(Ultraliser::OffsetTable::noEntry);
+
+        for (size_t i = 0; i < 256; ++i)
+        {
+            auto idx = i << 3;
+            auto offset = 0ul;
+
+            for (size_t j = 0; j < 8; ++j)
+            {
+                auto mask = (1ul << j);
+                if ((i & mask))
+                {
+                    result[idx + j] = offset;
+                    offset++;
+                }
+            }
+        }
+
+        return result;
+    }
+};
+
+struct OffsetTableStorage
+{
+    inline static const std::array<uint8_t, 2048> data = OffsetTableComputer::compute();
+};
+}
+
+namespace Ultraliser
+{
+uint8_t OffsetTable::of(size_t tableIndex)
+{
+    assert(tableIndex < 2048);
+    return OffsetTableStorage::data[tableIndex];
+}
+}

@@ -1,6 +1,6 @@
 {
     "cmake.configureSettings": {
-        "glm_DIR": "/home/nroman/Programs/GLM/cmake/glm"
+        "glm_DIR": "/home/nadir/Programs/GLM/cmake/glm"
     },
     "files.associations": {
         "limits": "cpp",
@@ -68,7 +68,13 @@
         "cfenv": "cpp",
         "typeindex": "cpp",
         "valarray": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "cassert": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "numbers": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

@@ -19,62 +19,59 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef SIMCRUSHERRENDERER_SHADER_H
-#define SIMCRUSHERRENDERER_SHADER_H
+#pragma once
 
 #include <glad/glad.h>
 
 #include <glm/glm.hpp>
 
-#include <string>
 #include <cstdint>
 #include <functional>
+#include <string>
 #include <unordered_map>
 
-namespace scr
+namespace svorender
 {
-  struct ShaderConfig
-  {
+
+struct ShaderConfig
+{
     std::string vertexShader;
     std::string geometryShader;
     std::string fragmentShader;
-  };
+};
 
-  class Shader
-  {
-    public:
-      Shader(const ShaderConfig& sc);
+class Shader
+{
+public:
+    Shader(const ShaderConfig &sc);
 
-      void bind() const;
-      void unbind() const;
+    void bind() const;
+    void unbind() const;
 
-      void set(const std::string& name, const int value) const;
-      void set(const std::string& name, const float value) const;
-      void set(const std::string& name, const glm::vec3& value) const;
-      void set(const std::string& name, const glm::vec4& value) const;
-      void set(const std::string& name, const glm::mat3& value) const;
-      void set(const std::string& name, const glm::mat4& value) const;
-      void set(const std::string& name, const GLuint64 handle) const;
+    void set(const std::string &name, const int value) const;
+    void set(const std::string &name, const float value) const;
+    void set(const std::string &name, const glm::vec3 &value) const;
+    void set(const std::string &name, const glm::vec4 &value) const;
+    void set(const std::string &name, const glm::mat3 &value) const;
+    void set(const std::string &name, const glm::mat4 &value) const;
+    void set(const std::string &name, const GLuint64 handle) const;
 
-      void destroy();
+    void destroy();
 
-    private:
-      void loadShaderCode(const std::string& filePath, std::string& buffer);
-      GLuint compileShader(const std::string& filePath, GLenum shaderType);
-      void compileAndLink(const ShaderConfig& sc);
-      void parseInputs();
-      bool getUniformId(const std::string& name, GLuint& buf) const;
+private:
+    void loadShaderCode(const std::string &filePath, std::string &buffer);
+    GLuint compileShader(const std::string &filePath, GLenum shaderType);
+    void compileAndLink(const ShaderConfig &sc);
+    void parseInputs();
+    bool getUniformId(const std::string &name, GLuint &buf) const;
 
-    private:
-      GLuint _oglShader;
-      GLuint _oglvShader;
-      GLuint _oglgShader;
-      GLuint _oglfShader;
+private:
+    GLuint _oglShader;
+    GLuint _oglvShader;
+    GLuint _oglgShader;
+    GLuint _oglfShader;
 
-      std::unordered_map<std::string, GLuint> _attribs;
-      std::unordered_map<std::string, GLuint> _uniforms;
-      
-  };
+    std::unordered_map<std::string, GLuint> _attribs;
+    std::unordered_map<std::string, GLuint> _uniforms;
+};
 }
-
-#endif

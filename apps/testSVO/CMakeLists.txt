@@ -28,28 +28,22 @@ set(VOXELVIEWER_SOURCES
   testSVO.cpp
   renderer/Camera.cpp
   renderer/CubeMesh.cpp
-  renderer/Material.cpp
-  renderer/Model.cpp
   renderer/Shader.cpp
   renderer/Texture3D.cpp
   renderer/Window.cpp
-  renderer/WindowInput.cpp
-  renderer/materials/BoundRenderMaterial.cpp
-  renderer/materials/VolumeMaterial.cpp
+  renderer/models/NodeTreeModel.cpp
+  renderer/models/VolumeTreeModel.cpp
 )
 
 set(VOXELVIEWER_HEADERS
   renderer/Camera.h
-  renderer/Common.h
   renderer/CubeMesh.h
-  renderer/Material.h
   renderer/Model.h
   renderer/Shader.h
   renderer/Texture3D.h
   renderer/Window.h
-  renderer/WindowInput.h
-  renderer/materials/BoundRenderMaterial.h
-  renderer/materials/VolumeMaterial.h
+  renderer/models/NodeTreeModel.h
+  renderer/models/VolumeTreeModel.h
 )
 
 include_directories(${CMAKE_BINARY_DIR}/include)
@@ -61,7 +55,7 @@ target_link_libraries(voxelviewer ${CMAKE_DL_LIBS} glad glfw)
 
 target_include_directories(voxelviewer PRIVATE ${GLM_INCLUDE_DIRS})
 
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/shaders DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/shaders DESTINATION ${CMAKE_BINARY_DIR}/bin)
 
 add_custom_command(TARGET voxelviewer POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:voxelviewer>

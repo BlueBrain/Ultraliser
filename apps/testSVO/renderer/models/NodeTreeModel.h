@@ -19,29 +19,31 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef SIMCRUSHERRENDERER_VOLUMEMATERIAL_H
-#define SIMCRUSHERRENDERER_VOLUMEMATERIAL_H
+#pragma once
 
-#include "../Material.h"
-#include "../Texture3D.h"
+#include "../CubeMesh.h"
+#include "../Model.h"
+#include "../Shader.h"
 
-#include <stdexcept>
+#include <vector>
 
-namespace scr
+namespace svorender
 {
-class VolumeMaterial : public Material
+class NodeTreeModel : public Model
 {
 public:
-    VolumeMaterial(Shader *shader, Texture3D *texture);
-    void setBounds(const glm::vec3 &min, const glm::vec3 &max);
+    NodeTreeModel();
 
-    void render(const Camera &camera, const Model &model);
+    void addNode(const glm::vec3 &position, float scale);
+    void render(const Camera &camera) override;
 
 private:
-    Texture3D *_volume;
-    glm::vec3 _minBound;
-    glm::vec3 _maxBound;
+    CubeMesh _mesh;
+    Shader _shader;
+    GLuint _nodeDataBuffer = GL_INVALID_VALUE;
+    GLuint _drawCommandBuffer = GL_INVALID_VALUE;
+
+    std::vector<glm::vec4> _nodes;
+    bool _dirty = false;
 };
 }
-
-#endif

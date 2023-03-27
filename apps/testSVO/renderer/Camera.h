@@ -24,44 +24,44 @@
 
 #include <glm/glm.hpp>
 
-namespace scr
+namespace svorender
 {
-  class Camera
-  {
-    public:
-      Camera(const float nearPlane, const float farPlane, const float fov);
+class Camera
+{
+public:
+    Camera(float nearPlane, float farPlane, float fov);
 
-      void setPosition(const glm::vec3& position);
-      void updatePosition(const glm::vec3& deltaPos);
-      void setRotation(const glm::vec3& axisAngles);
-      void updateRotation(const glm::vec3& deltaAxisAngles);
+    void setPosition(const glm::vec3 &position);
+    void updatePosition(const glm::vec3 &deltaPos);
+    void setRotation(const glm::vec3 &axisAngles);
+    void updateRotation(const glm::vec3 &deltaAxisAngles);
 
-      const glm::mat4& getViewMatrix() const;
-      const glm::mat4& getProjectionMatrix() const;
+    const glm::mat4 &getViewMatrix() const;
+    const glm::mat4 &getProjectionMatrix() const;
 
-      void onScreenResize(const uint32_t width, const uint32_t height);
-      void onZoom(const float val);
+    void onScreenResize(uint32_t width, uint32_t height);
+    void onZoom(float val);
 
-      void update();
+    void update();
 
-    private:
-      void updateProjectionMatrix();
+private:
+    void updateProjectionMatrix();
 
-    private:
-      const float _near;
-      const float _far;
-      float _fov;
+private:
+    float _near;
+    float _far;
+    float _fov;
 
-      float _aspectRatio;
+    float _aspectRatio;
 
-      glm::vec3 _position;
-      glm::vec3 _rotation;
+    glm::vec3 _position;
+    glm::vec3 _rotation;
 
-      glm::mat4 _viewMatrix;
-      glm::mat4 _projectionMatrix;
+    glm::mat4 _viewMatrix;
+    glm::mat4 _projectionMatrix;
 
-      bool _dirty;
-  };
+    bool _dirty;
+};
 }
 
 #endif

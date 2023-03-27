@@ -10,6 +10,7 @@ layout (location = 0) out vec4 outColor;
 
 // Object space light direction
 uniform vec3 lightDirection;
+//const vec3 lightDirection = vec3(-1.0, 1.0, 1.0);
 // Object space volume max and min bounds
 uniform vec3 localMinBound;
 uniform vec3 localMaxBound;
@@ -181,11 +182,11 @@ float raymarch(in vec3 pos,
  * Peforms a raymarch from a valid hit position within the volume
  * towards the light direction to compute shadows
  */
-vec4 shadeSample(in vec3 volumeHitPos, in float color)
+vec4 shadeSample(in vec3 volumeHitPos)
 {
   vec3 dummy;
-  const float shadeSample = raymarch(volumeHitPos, lightDirection, dummy);
-  return vec4(vec3(color,0,0) * (shadeSample > 0.0? 0.5 : 1.0), 1.0);
+  const float shadeSample = raymarch(volumeHitPos, normalize(lightDirection), dummy);
+  return vec4(vec3(1,0,0) * (shadeSample > 0.0? 0.5 : 1.0), 1.0);
 }
 
 /**
@@ -197,6 +198,6 @@ void main( void )
   
   vec3 rayHitPos;
   float s = raymarch(inLocalPos, localSpaceRayDir, rayHitPos);
-  outColor = s > 0.0? shadeSample(rayHitPos, s) : vec4(0.0);
+  outColor = s > 0.0? shadeSample(rayHitPos) : vec4(0.0);
   //outColor = vec4(1,0,0,1);
 }

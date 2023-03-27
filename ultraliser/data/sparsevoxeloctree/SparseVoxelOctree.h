@@ -1,9 +1,9 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2023
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
- *      Marwan Abdellah < marwan.abdellah@epfl.ch >
+ *      Nadir Roman Guerrero < nadir.romanguerrero@epfl.ch >
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -21,9 +21,11 @@
 
 #pragma once
 
-#include <data/common/CommonData.h>
-#include <data/images/Images.h>
-#include <data/meshes/Meshes.h>
-#include <data/morphologies/Morphologies.h>
-#include <data/sparsevoxeloctree/SparseVoxelOctree.h>
-#include <data/volumes/Volumes.h>
+#include "Bounds.h"
+#include "SparseOctree.h"
+#include "SparseOctreeNode.h"
+#include "common/SparseOctreeNodeBounds.h"
+#include "manipulators/FloodFiller.h"
+#include "manipulators/PointSampler.h"
+#include "manipulators/PointVoxelizer.h"
+#include "manipulators/TriangleVoxelizer.h"

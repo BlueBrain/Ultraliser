@@ -21,275 +21,189 @@
 
 #include <iostream>
 
-#include "renderer/Common.h"
 #include "renderer/Window.h"
-#include "renderer/materials/BoundRenderMaterial.h"
-#include "renderer/materials/VolumeMaterial.h"
+#include "renderer/models/NodeTreeModel.h"
+#include "renderer/models/VolumeTreeModel.h"
 
-#include <cstdlib>
 #include <queue>
 
 #include <Ultraliser.h>
 
-class SparseNodeBounds
+class NodeTreeModelFactory
 {
 public:
-    static Ultraliser::Bounds fromParentBounds(const Ultraliser::Bounds &parentBounds, uint8_t slotMask)
+    static std::unique_ptr<svorender::Model> create(Ultraliser::SparseOctree &octree)
     {
-        auto left = slotMask & Ultraliser::SparseOctreeNodeSlot::backBottomLeft
-            || slotMask & Ultraliser::SparseOctreeNodeSlot::backTopLeft
-            || slotMask & Ultraliser::SparseOctreeNodeSlot::frontBottomLeft
-            || slotMask & Ultraliser::SparseOctreeNodeSlot::frontTopLeft;
-        auto bottom = slotMask & Ultraliser::SparseOctreeNodeSlot::backBottomLeft
-            || slotMask & Ultraliser::SparseOctreeNodeSlot::backBottomRight
-            || slotMask & Ultraliser::SparseOctreeNodeSlot::frontBottomLeft
-            || slotMask & Ultraliser::SparseOctreeNodeSlot::frontBottomRight;
-        auto back = slotMask < Ultraliser::SparseOctreeNodeSlot::frontBottomLeft;
+        auto model = std::make_unique<svorender::NodeTreeModel>();
 
-        auto xMult = left ? 0.f : 1.f;
-        auto yMult = bottom ? 0.f : 1.f;
-        auto zMult = back ? 0.f : 1.f;
-        auto mult = Ultraliser::Vector3f(xMult, yMult, zMult);
+        auto root = QueueVoxelNode{&octree.getRoot(), octree.getBounds()};
+        std::queue<QueueVoxelNode> queue;
+        queue.push(root);
 
-        auto min = parentBounds.getMin();
-        auto center = parentBounds.getCenter();
-        auto halfSize = center - min;
-
-        auto childMin = min + halfSize * mult;
-        auto childMax = center + halfSize * mult;
-        return Ultraliser::Bounds(childMin, childMax);
-    }
-};
-
-struct QueueVoxelNode
-{
-    Ultraliser::SparseOctreeNode *node;
-    Ultraliser::Bounds bounds;
-};
-
-std::vector<scr::CubeMesh> getIntermediateVoxelMehes(Ultraliser::SparseOctree &octree)
-{
-    Ultraliser::SparseOctreeNode *node = &octree.getRoot();
-    QueueVoxelNode root;
-    root.node = node;
-    root.bounds = octree.getBounds();
-    std::queue<QueueVoxelNode> q;
-    q.push(root);
-
-    std::vector<scr::CubeMesh> result;
-
-    while (!q.empty())
-    {
-        QueueVoxelNode n = q.front();
-        q.pop();
-
-        // Only add if its not a leaf node
-        if (n.node->isLeaf())
+        while (!queue.empty())
         {
-            continue;
-        }
+            auto voxel = queue.front();
+            queue.pop();
 
-        auto &min = n.bounds.getMin();
-        auto &max = n.bounds.getMax();
-        result.emplace_back(glm::vec3(min.x(), min.y(), min.z()), glm::vec3(max.x(), max.y(), max.z()));
-
-        for (size_t i = 0; i < n.node->getNumChildren(); ++i)
-        {
-            auto &childNode = n.node->getChild(i);
-            QueueVoxelNode newQueueNode;
-            newQueueNode.node = &childNode;
-            newQueueNode.bounds = SparseNodeBounds::fromParentBounds(n.bounds, childNode.getSlotMask());
-            q.push(newQueueNode);
-        }
-    }
-
-    return result;
-}
-
-// Samples the octree into a regular grid (3D Texture)
-std::vector<uint8_t> octreeToVolumeData(const sc::SparseOctree &tree)
-{
-    const uint32_t gridResolution = 1 << tree.getMaxDepth();
-    const sc::Point3DF &srcSize = tree.get3DSize();
-    const glm::vec3 size(srcSize.x, srcSize.y, srcSize.z);
-
-    const sc::Point3DF treeMinBound = tree.getBounds().min;
-
-    // Cell size
-    const float dx = size.x / static_cast<float>(gridResolution);
-    const float dy = size.y / static_cast<float>(gridResolution);
-    const float dz = size.z / static_cast<float>(gridResolution);
-
-    // Cell center
-    const float centerx = dx / 2.f;
-    const float centery = dy / 2.f;
-    const float centerz = dz / 2.f;
-
-    const uint32_t frameLen = gridResolution * gridResolution;
-
-    const sc::VoxelPointTest algorithm;
-
-    std::vector<uint8_t> result;
-    result.resize(gridResolution * gridResolution * gridResolution, 0u);
-
-    for (size_t i = 0; i < gridResolution; i++)
-    {
-        for (size_t j = 0; j < gridResolution; j++)
-        {
-            for (size_t k = 0; k < gridResolution; k++)
+            if (voxel.node->isLeaf())
             {
-                const sc::Point3DF samplePoint =
-                    treeMinBound + sc::Point3DF(dx * k + centerx, dy * j + centery, dz * i + centerz);
+                continue;
+            }
 
-                const uint8_t sample = sc::sampleShape(tree, algorithm, sc::PointShape(samplePoint));
+            auto &min = voxel.bounds.getMin();
+            auto &max = voxel.bounds.getMax();
+            auto scale = _componentWiseMax(max - min);
+            model->addNode(glm::vec3(min.x(), min.y(), min.z()), scale);
 
-                result[frameLen * i + gridResolution * j + k] = sample;
+            _addNodeChildren(voxel, queue);
+        }
+
+        return model;
+    }
+
+private:
+    struct QueueVoxelNode
+    {
+        Ultraliser::SparseOctreeNode *node;
+        Ultraliser::Bounds bounds;
+    };
+
+    static float _componentWiseMax(const Ultraliser::Vector3f &v)
+    {
+        if (v.x() > v.y() && v.x() > v.z())
+        {
+            return v.x();
+        }
+        if (v.y() > v.z())
+        {
+            return v.y();
+        }
+        return v.z();
+    }
+
+    static void _addNodeChildren(QueueVoxelNode &voxel, std::queue<QueueVoxelNode> &queue)
+    {
+        auto node = voxel.node;
+        for (size_t i = 0; i < node->getNumChildren(); ++i)
+        {
+            auto &child = node->getChild(i);
+            QueueVoxelNode newNode;
+            newNode.node = &child;
+            newNode.bounds = Ultraliser::SparseOctreeNodeBounds::fromParentBounds(voxel.bounds, child.getSlotMask());
+            queue.push(newNode);
+        }
+    }
+};
+
+class VolumeTreeModelFactory
+{
+public:
+    static std::unique_ptr<svorender::Model> create(const Ultraliser::SparseOctree &octree)
+    {
+        auto &bounds = octree.getBounds();
+        auto min = glm::vec3(bounds.getMin().x(), bounds.getMin().y(), bounds.getMin().z());
+        auto max = glm::vec3(bounds.getMax().x(), bounds.getMax().y(), bounds.getMax().z());
+
+        auto texture = _generateTexture(octree);
+
+        return std::make_unique<svorender::VolumeTreeModel>(min, max, std::move(texture));
+    }
+
+private:
+    static svorender::Texture3D _generateTexture(const Ultraliser::SparseOctree &octree)
+    {
+        auto resolution = static_cast<uint32_t>(1 << octree.getMaxDepth());
+        auto values = _sample(octree);
+        return svorender::Texture3D(resolution, resolution, resolution, values);
+    }
+
+    static std::vector<uint8_t> _sample(const Ultraliser::SparseOctree &tree)
+    {
+        auto gridResolution = static_cast<uint32_t>(1 << tree.getMaxDepth());
+        auto &bounds = tree.getBounds();
+        auto srcSize = bounds.getDimensions();
+        auto size = glm::vec3(srcSize.x(), srcSize.y(), srcSize.z());
+        auto &treeMinBound = bounds.getMin();
+
+        // Cell size
+        auto dx = size.x / static_cast<float>(gridResolution);
+        auto dy = size.y / static_cast<float>(gridResolution);
+        auto dz = size.z / static_cast<float>(gridResolution);
+
+        // Cell center
+        auto centerx = dx * 0.5f;
+        auto centery = dy * 0.5f;
+        auto centerz = dz * 0.5f;
+
+        auto frameLen = gridResolution * gridResolution;
+
+        auto result = std::vector<uint8_t>(gridResolution * gridResolution * gridResolution, 0u);
+        auto sampler = Ultraliser::PointSampler(tree);
+
+        for (size_t i = 0; i < gridResolution; i++)
+        {
+            for (size_t j = 0; j < gridResolution; j++)
+            {
+                for (size_t k = 0; k < gridResolution; k++)
+                {
+                    auto localPoint = Ultraliser::Vector3f(dx * k + centerx, dy * j + centery, dz * i + centerz);
+                    auto samplePoint = treeMinBound + localPoint;
+                    auto filled = sampler.sample(samplePoint);
+                    result[frameLen * i + gridResolution * j + k] = filled ? 1 : 0;
+                }
             }
         }
+
+        return result;
+    }
+};
+
+int main(int argc, char **argv)
+{
+    (void)argc;
+    (void)argv;
+
+    auto minS = Ultraliser::Vector3f(-50.0f);
+    auto maxS = Ultraliser::Vector3f(50.0f);
+    auto bounds = Ultraliser::Bounds(minS, maxS);
+    auto depth = static_cast<uint8_t>(8);
+    auto octree = Ultraliser::SparseOctree(bounds, depth);
+    auto volSizeRaw = bounds.getDimensions();
+    auto volumeSize = glm::vec3(volSizeRaw.x(), volSizeRaw.y(), volSizeRaw.z());
+
+    auto pointsToVoxelize = std::vector<Ultraliser::Vector3f>{
+        Ultraliser::Vector3f(40.f),
+        Ultraliser::Vector3f(-40.f),
+        Ultraliser::Vector3f(5.f),
+        Ultraliser::Vector3f(100.f),
+        Ultraliser::Vector3f(50.0f),
+        Ultraliser::Vector3f(-50.0f),
+        Ultraliser::Vector3f(0.f)};
+
+    auto pointVoxelizer = Ultraliser::PointVoxelizer(octree);
+
+    for (auto &p : pointsToVoxelize)
+    {
+        pointVoxelizer.voxelize(p);
     }
 
-    return result;
-}
+    auto a = Ultraliser::Vector3f(0.f, 1.f, 10.f);
+    auto b = Ultraliser::Vector3f(5.f, 1.f, 0.f);
+    auto c = Ultraliser::Vector3f(-5.f, 1.f, 0.f);
 
-int main(SCR_UNUSED int argc, SCR_UNUSED char **argv)
-{
-    std::cout << "Creating Octree..." << std::endl;
-
-    const sc::Point3DF minS(-50.0f);
-    const sc::Point3DF maxS(50.0f);
-    const uint8_t depth = 8;
-    sc::SparseOctree octree(minS, maxS, depth);
-    const sc::Point3DF volSizeRaw = octree.get3DSize();
-    const glm::vec3 volumeSize(volSizeRaw.x, volSizeRaw.y, volSizeRaw.z);
-
-    // Points to voxelize
-    std::vector<sc::Point3DF> pointsToSample = {
-        sc::Point3DF(40.f),
-        sc::Point3DF(-40.f),
-        sc::Point3DF(5.f),
-        sc::Point3DF(100.f),
-        sc::Point3DF(50.0f),
-        sc::Point3DF(-50.0f),
-        sc::Point3DF(0.f)};
-
-    sc::VoxelPointTest algorithm;
-    for (const auto &p : pointsToSample)
-        sc::voxelizeShape(octree, algorithm, sc::PointShape(p), rand() % 255);
-
-    const float minBound = 0.0f;
-    const float maxBound = 10.0f;
-    const float depth = 8;
-    const auto minS = sc::Point3DF(minBound);
-    const auto maxS = sc::Point3DF(maxBound);
-    const float voxelSize = 0.0390625f;
-    sc::SparseOctree octree(minS, maxS, depth);
-    sc::VoxelPointTest voxelPointTest;
-    const uint8_t testValue = 128u;
-    const glm::vec3 volumeSize(maxBound - minBound);
-
-    sc::voxelizeShape(octree, voxelPointTest, sc::PointShape(sc::Point3DF(minBound + voxelSize * 0.5f)), testValue);
-    sc::voxelizeShape(
-        octree,
-        voxelPointTest,
-        sc::PointShape(
-            sc::Point3DF(minBound + voxelSize * 1.5f, minBound + voxelSize * 0.5f, minBound + voxelSize * 0.5f)),
-        testValue);
-    sc::voxelizeShape(
-        octree,
-        voxelPointTest,
-        sc::PointShape(
-            sc::Point3DF(minBound + voxelSize * 1.5f, minBound + voxelSize * 1.5f, minBound + voxelSize * 0.5f)),
-        testValue);
-    sc::voxelizeShape(
-        octree,
-        voxelPointTest,
-        sc::PointShape(
-            sc::Point3DF(minBound + voxelSize * 0.5f, minBound + voxelSize * 1.5f, minBound + voxelSize * 0.5f)),
-        testValue);
-    sc::voxelizeShape(
-        octree,
-        voxelPointTest,
-        sc::PointShape(
-            sc::Point3DF(minBound + voxelSize * 0.5f, minBound + voxelSize * 0.5f, minBound + voxelSize * 1.5f)),
-        testValue);
-    sc::voxelizeShape(
-        octree,
-        voxelPointTest,
-        sc::PointShape(
-            sc::Point3DF(minBound + voxelSize * 1.5f, minBound + voxelSize * 0.5f, minBound + voxelSize * 1.5f)),
-        testValue);
-    sc::voxelizeShape(
-        octree,
-        voxelPointTest,
-        sc::PointShape(
-            sc::Point3DF(minBound + voxelSize * 1.5f, minBound + voxelSize * 1.5f, minBound + voxelSize * 1.5f)),
-        testValue);
-    sc::voxelizeShape(
-        octree,
-        voxelPointTest,
-        sc::PointShape(
-            sc::Point3DF(minBound + voxelSize * 0.5f, minBound + voxelSize * 1.5f, minBound + voxelSize * 1.5f)),
-        0u); // should be zero
-
-    octree.compact();
-
-    auto sample = sc::sampleShape(
-        octree,
-        voxelPointTest,
-        sc::PointShape(
-            sc::Point3DF(minBound + voxelSize * 0.5f, minBound + voxelSize * 1.5f, minBound + voxelSize * 1.5f)));
-    std::cout << "Sampled: " << static_cast<int>(sample) << std::endl;
-
-    std::cout << "Sparse Octree:" << std::endl;
-    octree.printStats();
-
-    sc::GPUSparseOctree gpuOctree(octree);
-    std::cout << "GPU Sparse Octree:" << std::endl;
-    gpuOctree.printStats();
+    auto triangleVoxelizer = Ultraliser::TriangleVoxelizer(octree);
+    triangleVoxelizer.voxelize(a, b, c);
 
     // ==================================================================================
 
-    scr::Window newWindow(1024, 1024);
+    svorender::Window newWindow(1024, 1024);
 
-    // BOUNDING BOXES FOR INTERMEDIATE VOXELS
-    scr::ShaderConfig wire;
-    wire.vertexShader = "./shaders/boundrenderV.glsl";
-    wire.geometryShader = "./shaders/boundrenderG.glsl";
-    wire.fragmentShader = "./shaders/boundrenderF.glsl";
-    scr::Shader wireShader(wire);
-    scr::BoundRenderMaterial wireMat(&wireShader);
-    std::vector<scr::CubeMesh> parentVoxelMeshes = getIntermediateVoxelMehes(octree);
-    for (auto &parentMeshes : parentVoxelMeshes)
-    {
-        newWindow.addModel(&parentMeshes, &wireMat);
-    }
+    newWindow.addModel(NodeTreeModelFactory::create(octree));
+    newWindow.addModel(VolumeTreeModelFactory::create(octree));
 
-    // VOLUME
-    scr::CubeMesh boundBox(glm::vec3(minS.x, minS.y, minS.z), glm::vec3(maxS.x, maxS.y, maxS.z));
-    scr::ShaderConfig sc;
-    sc.vertexShader = "./shaders/volrenderV.glsl";
-    sc.fragmentShader = "./shaders/volrenderF.glsl";
-    scr::Shader shader(sc);
-    const uint32_t resolution = 1 << octree.getMaxDepth();
-    const std::vector<uint8_t> volData = octreeToVolumeData(octree);
-    scr::Texture3D volume(resolution, resolution, resolution, volData);
-    scr::VolumeMaterial volumeMat(&shader, &volume);
-    volumeMat.setBounds(glm::vec3(minS.x, minS.y, minS.z), glm::vec3(maxS.x, maxS.y, maxS.z));
-    newWindow.addModel(&boundBox, &volumeMat);
-
-    // CAMERA
-    const float len = glm::length(volumeSize);
-    newWindow.getCamera().setPosition(glm::vec3(0.f, 0.f, -len));
-
-    newWindow.addModel(&boundBox, &wireMat);
+    newWindow.getCamera().setPosition(glm::vec3(0.f, 0.f, -glm::length(volumeSize)));
 
     newWindow.renderLoop();
 
-    return 0;
-}
-* /
-
-    int main()
-{
     return 0;
 }
