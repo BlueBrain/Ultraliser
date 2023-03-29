@@ -36,6 +36,11 @@ PointSampler::PointSampler(const SparseOctree &octree)
 {
 }
 
+uint32_t PointSampler::getResolution() const
+{
+    return _gridSize;
+}
+
 bool PointSampler::sample(const Vector3f &point) const
 {
     auto gridPos = PointToGridPosition::convert(point, _boundMin, _oneOverBoundsDims, _gridSize);
@@ -53,23 +58,26 @@ bool PointSampler::sample(const Vec3ui_32 &gridPosition) const
 
     auto node = &_root;
 
-    for (uint32_t i = 0; i < _maxDepth; ++i)
+    while (true)
     {
-        if (node->isLeaf())
-        {
-            break;
-        }
-
         auto mask = traverser.next();
-        size_t targetChild = mask.x() + mask.y() + mask.z();
-        auto tableIdx = (static_cast<size_t>(node->getChildrenMask()) << 3) + targetChild;
-        auto childOffset = OffsetTable::of(tableIdx);
 
-        if (childOffset == OffsetTable::noEntry)
+        auto targetChild = mask.x() + mask.y() + mask.z();
+        auto slot = static_cast<uint8_t>(1 << targetChild);
+        auto childrenMask = node->getChildrenMask();
+
+        if (!(childrenMask & slot))
         {
             return false;
         }
 
+        if (node->getNumChildren() == 0)
+        {
+            break;
+        }
+
+        auto tableIdx = (static_cast<size_t>(childrenMask) << 3) + targetChild;
+        auto childOffset = OffsetTable::of(tableIdx);
         node = &(node->getChild(childOffset));
     }
 

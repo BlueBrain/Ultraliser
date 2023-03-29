@@ -86,7 +86,7 @@ Window::Window(const uint32_t width, const uint32_t height, const std::string &t
     : _winWidth(width)
     , _winHeight(height)
     , _window(nullptr)
-    , _camera(1.f, 500.f, 30.f)
+    , _camera(1.f, 10000.f, 30.f)
     , _mouseButtonPressed(-1)
     , _lastMouseX(-1)
     , _lastMouseY(-1)

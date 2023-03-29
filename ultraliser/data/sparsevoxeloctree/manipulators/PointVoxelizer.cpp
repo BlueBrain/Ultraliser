@@ -61,15 +61,17 @@ void PointVoxelizer::voxelize(const Vec3ui_32 &gridPosition)
         auto childOffset = OffsetTable::of(tableIdx);
 
         // The point falls where there are no children
-        if (childOffset == OffsetTable::noEntry && (i + 1) <= _maxDepth)
+        if (childOffset == OffsetTable::noEntry)
         {
-            // uint8_t targetChildMask = (1 << (xShift + yShift + zShift));
-            uint8_t targetChildMask = 1;
-            targetChildMask <<= mask.x();
-            targetChildMask <<= mask.y();
-            targetChildMask <<= mask.z();
+            auto targetChildSlot = static_cast<uint8_t>(1 << targetChild);
 
-            node->addChildNode(targetChildMask);
+            if (i + 1 == _maxDepth)
+            {
+                node->addChildLeaf(targetChildSlot);
+                return;
+            }
+
+            node->addChildNode(targetChildSlot);
             tableIdx = (static_cast<size_t>(node->getChildrenMask()) << 3) + targetChild;
             childOffset = OffsetTable::of(tableIdx);
         }

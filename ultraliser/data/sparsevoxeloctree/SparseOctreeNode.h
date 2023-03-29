@@ -93,13 +93,6 @@ public:
      */
     uint8_t getSlotMask() const;
 
-    /**
-     * @brief Returns wether this node is a leaf node.
-     *
-     * @return true if the node has no children, false otherwise.
-     */
-    bool isLeaf() const;
-
 private:
     uint8_t _slotMask;
     uint8_t _childMask;

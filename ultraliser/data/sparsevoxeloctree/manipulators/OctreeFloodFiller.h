@@ -19,9 +19,18 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#include "FloodFiller.h"
+#pragma once
+
+#include <data/sparsevoxeloctree/SparseOctree.h>
 
 namespace Ultraliser
 {
+
+class OctreeFloodFiller
+{
+public:
+    static SparseOctree createMold(const SparseOctree &octree);
+    static void fill(SparseOctree &octree);
+};
 
 }

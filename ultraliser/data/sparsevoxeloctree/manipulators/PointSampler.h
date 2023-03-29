@@ -30,6 +30,7 @@ class PointSampler
 {
 public:
     explicit PointSampler(const SparseOctree &octree);
+    uint32_t getResolution() const;
     bool sample(const Vector3f &point) const;
     bool sample(const Vec3ui_32 &gridCoordinates) const;
 

@@ -61,7 +61,7 @@ class TriangleVoxelizationAlgorithm
 private:
     struct TestNodeData
     {
-        Ultraliser::SparseOctreeNode &parent;
+        Ultraliser::SparseOctreeNode *parent;
         Ultraliser::Bounds bounds;
         uint8_t slot;
         uint8_t depth;
@@ -85,17 +85,17 @@ public:
             return;
         }
 
-        _tryVoxelize(_root, _rootBounds, triangle, 0);
+        _tryVoxelize(&_root, _rootBounds, triangle, 0);
         while (!_queue.empty())
         {
             auto &next = _queue.front();
-            if (next.depth + 1 == _maxDepth)
+            /*if (next.depth == _maxDepth)
             {
                 _queue.pop();
                 continue;
-            }
+            }*/
 
-            auto &node = *next.parent.findChild(next.slot);
+            auto node = next.parent->findChild(next.slot);
             auto &bounds = next.bounds;
             _tryVoxelize(node, bounds, triangle, next.depth);
             _queue.pop();
@@ -104,12 +104,13 @@ public:
 
 private:
     void _tryVoxelize(
-        Ultraliser::SparseOctreeNode &node,
+        Ultraliser::SparseOctreeNode *node,
         const Ultraliser::Bounds &nodeBounds,
         const TriangleVertices &triangle,
         uint8_t nodeDepth)
     {
         auto nextDepth = static_cast<uint8_t>(nodeDepth + 1);
+
         for (size_t i = 0; i < 8; ++i)
         {
             auto slot = static_cast<uint8_t>(1 << i);
@@ -118,7 +119,14 @@ private:
             {
                 continue;
             }
-            node.addChildNode(slot);
+
+            if (nextDepth == _maxDepth)
+            {
+                node->addChildLeaf(slot);
+                return;
+            }
+
+            node->addChildNode(slot);
             _queue.push({node, childBounds, slot, nextDepth});
         }
     }

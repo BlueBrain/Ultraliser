@@ -50,6 +50,34 @@ public:
         return &children[index];
     }
 };
+
+class CompacterVerifier
+{
+public:
+    static bool isCompactable(const Ultraliser::SparseOctreeNode &node)
+    {
+        if (node.getNumChildren() == 8)
+        {
+            for (size_t i = 0; i < 8; ++i)
+            {
+                auto &child = node.getChild(i);
+                if (child.getNumChildren() > 0 || child.getChildrenMask() != 0)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        if (node.getNumChildren() == 0 && node.getChildrenMask() == 0xff)
+        {
+            return true;
+        }
+
+        return false;
+    }
+};
+
 }
 
 namespace Ultraliser
@@ -62,13 +90,13 @@ SparseOctreeNode::SparseOctreeNode(uint8_t slotMask)
 
 void SparseOctreeNode::compact()
 {
-    if (_children.size() < 8)
+    if (!CompacterVerifier::isCompactable(*this))
     {
         return;
     }
 
     _children.clear();
-    _childMask = 0;
+    _childMask = 0xff;
 }
 
 SparseOctreeNode &SparseOctreeNode::getChild(size_t index)
@@ -125,10 +153,5 @@ void SparseOctreeNode::addChildLeaf(uint8_t slot)
 uint8_t SparseOctreeNode::getSlotMask() const
 {
     return _slotMask;
-}
-
-bool SparseOctreeNode::isLeaf() const
-{
-    return _children.empty();
 }
 }

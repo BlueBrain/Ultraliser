@@ -42,20 +42,15 @@ public:
 
         while (!queue.empty())
         {
-            auto voxel = queue.front();
-            queue.pop();
-
-            if (voxel.node->isLeaf())
-            {
-                continue;
-            }
+            auto &voxel = queue.front();
 
             auto &min = voxel.bounds.getMin();
             auto &max = voxel.bounds.getMax();
             auto scale = _componentWiseMax(max - min);
             model->addNode(glm::vec3(min.x(), min.y(), min.z()), scale);
-
             _addNodeChildren(voxel, queue);
+
+            queue.pop();
         }
 
         return model;
@@ -163,36 +158,39 @@ int main(int argc, char **argv)
     (void)argc;
     (void)argv;
 
-    auto minS = Ultraliser::Vector3f(-50.0f);
-    auto maxS = Ultraliser::Vector3f(50.0f);
-    auto bounds = Ultraliser::Bounds(minS, maxS);
-    auto depth = static_cast<uint8_t>(8);
-    auto octree = Ultraliser::SparseOctree(bounds, depth);
-    auto volSizeRaw = bounds.getDimensions();
-    auto volumeSize = glm::vec3(volSizeRaw.x(), volSizeRaw.y(), volSizeRaw.z());
+    auto mesh = Ultraliser::Mesh("/home/nroman/Desktop/morphology_1.obj");
+    auto minS = Ultraliser::Vector3f();
+    auto maxS = Ultraliser::Vector3f();
+    mesh.computeBoundingBox(minS, maxS);
 
-    auto pointsToVoxelize = std::vector<Ultraliser::Vector3f>{
-        Ultraliser::Vector3f(40.f),
-        Ultraliser::Vector3f(-40.f),
-        Ultraliser::Vector3f(5.f),
-        Ultraliser::Vector3f(100.f),
-        Ultraliser::Vector3f(50.0f),
-        Ultraliser::Vector3f(-50.0f),
-        Ultraliser::Vector3f(0.f)};
+    auto octree = Ultraliser::SparseOctree(Ultraliser::Bounds(minS, maxS), 8);
+    auto triangleVoxelizer = Ultraliser::TriangleVoxelizer(octree);
 
-    auto pointVoxelizer = Ultraliser::PointVoxelizer(octree);
-
-    for (auto &p : pointsToVoxelize)
+    auto triangles = mesh.getTriangles();
+    auto vertices = mesh.getVertices();
+    for (size_t i = 0; i < mesh.getNumberTriangles(); ++i)
     {
-        pointVoxelizer.voxelize(p);
+        auto triangle = triangles[i];
+        auto a = vertices[triangle.x()];
+        auto b = vertices[triangle.y()];
+        auto c = vertices[triangle.z()];
+        triangleVoxelizer.voxelize(a, b, c);
     }
 
-    auto a = Ultraliser::Vector3f(0.f, 1.f, 10.f);
-    auto b = Ultraliser::Vector3f(5.f, 1.f, 0.f);
-    auto c = Ultraliser::Vector3f(-5.f, 1.f, 0.f);
-
-    auto triangleVoxelizer = Ultraliser::TriangleVoxelizer(octree);
-    triangleVoxelizer.voxelize(a, b, c);
+    std::cout << "Before compacting" << std::endl;
+    Ultraliser::OctreeStatsPrinter::print(octree);
+    std::cout << std::endl;
+    std::cout << "After compacting" << std::endl;
+    octree.compact();
+    Ultraliser::OctreeStatsPrinter::print(octree);
+    std::cout << std::endl;
+    std::cout << "After filling" << std::endl;
+    Ultraliser::OctreeFloodFiller::fill(octree);
+    Ultraliser::OctreeStatsPrinter::print(octree);
+    std::cout << std::endl;
+    std::cout << "After compacting" << std::endl;
+    octree.compact();
+    Ultraliser::OctreeStatsPrinter::print(octree);
 
     // ==================================================================================
 
@@ -201,6 +199,8 @@ int main(int argc, char **argv)
     newWindow.addModel(NodeTreeModelFactory::create(octree));
     newWindow.addModel(VolumeTreeModelFactory::create(octree));
 
+    auto volSizeRaw = octree.getBounds().getDimensions();
+    auto volumeSize = glm::vec3(volSizeRaw.x(), volSizeRaw.y(), volSizeRaw.z());
     newWindow.getCamera().setPosition(glm::vec3(0.f, 0.f, -glm::length(volumeSize)));
 
     newWindow.renderLoop();

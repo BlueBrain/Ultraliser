@@ -21,7 +21,13 @@
 
 #pragma once
 
+#include <data/sparsevoxeloctree/SparseOctree.h>
+
 namespace Ultraliser
 {
-
+class OctreeStatsPrinter
+{
+public:
+    static void print(const SparseOctree &octree);
+};
 }
