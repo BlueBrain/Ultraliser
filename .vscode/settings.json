@@ -1,6 +1,6 @@
 {
     "cmake.configureSettings": {
-        "glm_DIR": "/home/nroman/Programs/GLM/cmake/glm"
+        "glm_DIR": "/home/nadir/Programs/GLM/cmake/glm"
     },
     "files.associations": {
         "limits": "cpp",

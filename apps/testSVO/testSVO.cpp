@@ -135,6 +135,7 @@ private:
         auto result = std::vector<uint8_t>(gridResolution * gridResolution * gridResolution, 0u);
         auto sampler = Ultraliser::PointSampler(tree);
 
+#pragma omp parallel for
         for (size_t i = 0; i < gridResolution; i++)
         {
             for (size_t j = 0; j < gridResolution; j++)
@@ -153,46 +154,94 @@ private:
     }
 };
 
+class MorphologyOctreeFactory
+{
+public:
+    static Ultraliser::SparseOctree create(uint8_t maxDepth)
+    {
+        auto morphology = _readMorphology();
+        auto bounds = _getMorhpologyBounds(*morphology);
+        auto resolution = 1u << maxDepth;
+        auto octree = Ultraliser::SparseOctree(bounds, maxDepth);
+
+        Ultraliser::NeuronMorphologyVoxelizer::voxelize(octree, *morphology);
+
+        return octree;
+    }
+
+private:
+    static std::unique_ptr<Ultraliser::NeuronMorphology> _readMorphology()
+    {
+        auto morphologyPath = "/home/nadir/Desktop/dend-oh140807_A0_idG_axon-mpg141017_a1-2_idC.swc";
+        auto reader = Ultraliser::NeuronSWCReader(morphologyPath);
+        return std::unique_ptr<Ultraliser::NeuronMorphology>(reader.getMorphology());
+    }
+
+    static Ultraliser::Bounds _getMorhpologyBounds(const Ultraliser::NeuronMorphology &morphology)
+    {
+        auto min = Ultraliser::Vector3f();
+        auto max = Ultraliser::Vector3f();
+        auto dims = Ultraliser::Vector3f();
+        auto center = Ultraliser::Vector3f();
+        morphology.getBoundingBox(min, max, dims, center);
+        return Ultraliser::Bounds(min, max);
+    }
+};
+
+class TestOctreeFactory
+{
+public:
+    static Ultraliser::SparseOctree create()
+    {
+        auto min = Ultraliser::Vector3f(-40.f);
+        auto max = Ultraliser::Vector3f(40.f);
+        auto bounds = Ultraliser::Bounds(min, max);
+        auto depth = static_cast<uint8_t>(3);
+        auto octree = Ultraliser::SparseOctree(bounds, depth);
+
+        auto voxelizer = Ultraliser::PointVoxelizer(octree);
+
+        auto resolution = 1 << depth;
+
+        auto testPoint = Ultraliser::Vector3f(30.f);
+        voxelizer.voxelize(testPoint);
+        voxelizer.voxelize(testPoint);
+
+        return octree;
+    }
+};
+
+class OctreeOptimizer
+{
+public:
+    static void optimize(Ultraliser::SparseOctree &octree)
+    {
+        std::cout << "Before compacting" << std::endl;
+        Ultraliser::OctreeStatsPrinter::print(octree);
+        std::cout << std::endl;
+        std::cout << "After compacting" << std::endl;
+        octree.compact();
+        Ultraliser::OctreeStatsPrinter::print(octree);
+        std::cout << std::endl;
+        std::cout << "After filling" << std::endl;
+        Ultraliser::OctreeFloodFiller::fill(octree);
+        Ultraliser::OctreeStatsPrinter::print(octree);
+        std::cout << std::endl;
+        std::cout << "After compacting" << std::endl;
+        octree.compact();
+        Ultraliser::OctreeStatsPrinter::print(octree);
+    }
+};
+
 int main(int argc, char **argv)
 {
     (void)argc;
     (void)argv;
 
-    auto mesh = Ultraliser::Mesh("/home/nroman/Desktop/morphology_1.obj");
-    auto minS = Ultraliser::Vector3f();
-    auto maxS = Ultraliser::Vector3f();
-    mesh.computeBoundingBox(minS, maxS);
+    auto octree = MorphologyOctreeFactory::create(8);
+    // auto octree = TestOctreeFactory::create();
 
-    auto octree = Ultraliser::SparseOctree(Ultraliser::Bounds(minS, maxS), 8);
-    auto triangleVoxelizer = Ultraliser::TriangleVoxelizer(octree);
-
-    auto triangles = mesh.getTriangles();
-    auto vertices = mesh.getVertices();
-    for (size_t i = 0; i < mesh.getNumberTriangles(); ++i)
-    {
-        auto triangle = triangles[i];
-        auto a = vertices[triangle.x()];
-        auto b = vertices[triangle.y()];
-        auto c = vertices[triangle.z()];
-        triangleVoxelizer.voxelize(a, b, c);
-    }
-
-    std::cout << "Before compacting" << std::endl;
-    Ultraliser::OctreeStatsPrinter::print(octree);
-    std::cout << std::endl;
-    std::cout << "After compacting" << std::endl;
-    octree.compact();
-    Ultraliser::OctreeStatsPrinter::print(octree);
-    std::cout << std::endl;
-    std::cout << "After filling" << std::endl;
-    Ultraliser::OctreeFloodFiller::fill(octree);
-    Ultraliser::OctreeStatsPrinter::print(octree);
-    std::cout << std::endl;
-    std::cout << "After compacting" << std::endl;
-    octree.compact();
-    Ultraliser::OctreeStatsPrinter::print(octree);
-
-    // ==================================================================================
+    // OctreeOptimizer::optimize(octree);
 
     svorender::Window newWindow(1024, 1024);
 

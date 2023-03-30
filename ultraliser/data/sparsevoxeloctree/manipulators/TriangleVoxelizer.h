@@ -23,6 +23,8 @@
 
 #include <data/sparsevoxeloctree/SparseOctree.h>
 
+#include <data/meshes/simple/Mesh.h>
+
 namespace Ultraliser
 {
 class TriangleVoxelizer
@@ -36,5 +38,11 @@ private:
     SparseOctreeNode &_root;
     const Ultraliser::Bounds &_rootBounds;
     uint8_t _maxDepth;
+};
+
+class MeshVoxelizer
+{
+public:
+    static void voxelize(SparseOctree &octree, const Mesh &mesh);
 };
 }

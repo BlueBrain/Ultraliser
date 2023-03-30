@@ -61,7 +61,7 @@ public:
             for (size_t i = 0; i < 8; ++i)
             {
                 auto &child = node.getChild(i);
-                if (child.getNumChildren() > 0 || child.getChildrenMask() != 0)
+                if (child.getChildrenMask() != 0 && child.getChildrenMask() != 0xff)
                 {
                     return false;
                 }

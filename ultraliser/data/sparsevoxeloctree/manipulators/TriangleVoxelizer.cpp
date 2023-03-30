@@ -153,4 +153,24 @@ void TriangleVoxelizer::voxelize(const Vector3f &a, const Vector3f &b, const Vec
     auto voxelizer = TriangleVoxelizationAlgorithm(_root, _rootBounds, _maxDepth);
     voxelizer.tryVoxelize({a, b, c});
 }
+
+void MeshVoxelizer::voxelize(SparseOctree &octree, const Mesh &mesh)
+{
+    auto numTriangles = mesh.getNumberTriangles();
+    auto triangles = mesh.getTriangles();
+    auto vertices = mesh.getVertices();
+
+    auto voxelizer = TriangleVoxelizer(octree);
+
+    for (size_t i = 0; i < mesh.getNumberTriangles(); ++i)
+    {
+        auto triangles = mesh.getTriangles();
+        auto vertices = mesh.getVertices();
+        auto triangle = triangles[i];
+        auto a = vertices[triangle.x()];
+        auto b = vertices[triangle.y()];
+        auto c = vertices[triangle.z()];
+        voxelizer.voxelize(a, b, c);
+    }
+}
 }

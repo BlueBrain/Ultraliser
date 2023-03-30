@@ -21,14 +21,14 @@
 
 #pragma once
 
-#include "Bounds.h"
-#include "SparseOctree.h"
-#include "SparseOctreeNode.h"
-#include "common/PointToGridPosition.h"
-#include "common/SparseOctreeNodeBounds.h"
-#include "manipulators/MorphologyVoxelizer.h"
-#include "manipulators/OctreeFloodFiller.h"
-#include "manipulators/OctreeStatsPrinter.h"
-#include "manipulators/PointSampler.h"
-#include "manipulators/PointVoxelizer.h"
-#include "manipulators/TriangleVoxelizer.h"
+#include <data/morphologies/NeuronMorphology.h>
+#include <data/sparsevoxeloctree/SparseOctree.h>
+
+namespace Ultraliser
+{
+class NeuronMorphologyVoxelizer
+{
+public:
+    static void voxelize(SparseOctree &octree, const NeuronMorphology &morphology);
+};
+}

@@ -76,6 +76,11 @@ void PointVoxelizer::voxelize(const Vec3ui_32 &gridPosition)
             childOffset = OffsetTable::of(tableIdx);
         }
 
+        if (i + 1 == _maxDepth)
+        {
+            return;
+        }
+
         node = &(node->getChild(childOffset));
     }
 }
