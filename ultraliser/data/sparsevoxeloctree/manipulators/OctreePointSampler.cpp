@@ -19,7 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#include "PointSampler.h"
+#include "OctreePointSampler.h"
 
 #include <data/sparsevoxeloctree/common/OffsetTable.h>
 #include <data/sparsevoxeloctree/common/PointToGridPosition.h>
@@ -27,7 +27,7 @@
 
 namespace Ultraliser
 {
-PointSampler::PointSampler(const SparseOctree &octree)
+OctreePointSampler::OctreePointSampler(const SparseOctree &octree)
     : _root(octree.getRoot())
     , _boundMin(octree.getBounds().getMin())
     , _oneOverBoundsDims(1.f / octree.getBounds().getDimensions())
@@ -36,18 +36,18 @@ PointSampler::PointSampler(const SparseOctree &octree)
 {
 }
 
-uint32_t PointSampler::getResolution() const
+uint32_t OctreePointSampler::getResolution() const
 {
     return _gridSize;
 }
 
-bool PointSampler::sample(const Vector3f &point) const
+bool OctreePointSampler::sample(const Vector3f &point) const
 {
     auto gridPos = PointToGridPosition::convert(point, _boundMin, _oneOverBoundsDims, _gridSize);
     return sample(gridPos);
 }
 
-bool PointSampler::sample(const Vec3ui_32 &gridPosition) const
+bool OctreePointSampler::sample(const Vec3ui_32 &gridPosition) const
 {
     if (gridPosition.x() > _gridSize || gridPosition.y() > _gridSize || gridPosition.z() > _gridSize)
     {

@@ -133,7 +133,7 @@ private:
         auto frameLen = gridResolution * gridResolution;
 
         auto result = std::vector<uint8_t>(gridResolution * gridResolution * gridResolution, 0u);
-        auto sampler = Ultraliser::PointSampler(tree);
+        auto sampler = Ultraliser::OctreePointSampler(tree);
 
 #pragma omp parallel for
         for (size_t i = 0; i < gridResolution; i++)
@@ -150,6 +150,8 @@ private:
             }
         }
 
+        result[0] = 1;
+
         return result;
     }
 };
@@ -164,7 +166,7 @@ public:
         auto resolution = 1u << maxDepth;
         auto octree = Ultraliser::SparseOctree(bounds, maxDepth);
 
-        Ultraliser::NeuronMorphologyVoxelizer::voxelize(octree, *morphology);
+        Ultraliser::OctreeNeuronMorphologyVoxelizer::voxelize(octree, *morphology);
 
         return octree;
     }
@@ -181,10 +183,122 @@ private:
     {
         auto min = Ultraliser::Vector3f();
         auto max = Ultraliser::Vector3f();
-        auto dims = Ultraliser::Vector3f();
+        auto dim = Ultraliser::Vector3f();
         auto center = Ultraliser::Vector3f();
-        morphology.getBoundingBox(min, max, dims, center);
+        morphology.getBoundingBox(min, max, dim, center);
+
+        size_t greatest = 0;
+        for (size_t i = 1; i < 3; ++i)
+        {
+            if (dim[i] > dim[greatest])
+            {
+                greatest = i;
+            }
+        }
+
+        for (size_t i = 0; i < 3; ++i)
+        {
+            auto halfDiff = (dim[greatest] - dim[i]) * 0.5f;
+            min[i] -= halfDiff;
+            max[i] += halfDiff;
+        }
+
         return Ultraliser::Bounds(min, max);
+    }
+};
+
+class MeshOctreeFactory
+{
+public:
+    static Ultraliser::SparseOctree create(uint8_t depth)
+    {
+        auto path = "/home/nadir/Desktop/morphology_1.obj";
+        auto mesh = Ultraliser::Mesh(path);
+
+        auto min = Ultraliser::Vector3f();
+        auto max = Ultraliser::Vector3f();
+        mesh.computeBoundingBox(min, max);
+        auto bounds = Ultraliser::Bounds(min, max);
+
+        auto octree = Ultraliser::SparseOctree(bounds, depth);
+
+        Ultraliser::OctreeMeshVoxelizer::voxelize(octree, mesh);
+
+        return octree;
+    }
+};
+
+class TestCompactOctreeFactory
+{
+public:
+    static Ultraliser::SparseOctree create()
+    {
+        auto min = Ultraliser::Vector3f(-40.f);
+        auto max = Ultraliser::Vector3f(40.f);
+        auto bounds = Ultraliser::Bounds(min, max);
+        auto depth = static_cast<uint8_t>(3);
+        auto octree = Ultraliser::SparseOctree(bounds, depth);
+
+        auto voxelizer = Ultraliser::OctreePointVoxelizer(octree);
+
+        auto resolution = 1 << depth;
+        auto start = Ultraliser::Vec3ui_32(4);
+        auto end = Ultraliser::Vec3ui_32(resolution);
+
+        for (uint32_t x = start.x(); x < end.x(); ++x)
+        {
+            for (uint32_t y = start.y(); y < end.y(); ++y)
+            {
+                for (uint32_t z = start.z(); z < end.z(); ++z)
+                {
+                    auto point = Ultraliser::Vec3ui_32(x, y, z);
+                    voxelizer.voxelize(point);
+                }
+            }
+        }
+
+        return octree;
+    }
+};
+
+class TestFillableOctreeFactory
+{
+public:
+    static Ultraliser::SparseOctree create()
+    {
+        auto min = Ultraliser::Vector3f(-40.f);
+        auto max = Ultraliser::Vector3f(40.f);
+        auto bounds = Ultraliser::Bounds(min, max);
+        auto depth = static_cast<uint8_t>(3);
+        auto octree = Ultraliser::SparseOctree(bounds, depth);
+
+        auto voxelizer = Ultraliser::OctreePointVoxelizer(octree);
+
+        auto resolution = 1 << depth;
+        auto start = Ultraliser::Vec3ui_32(4);
+        auto end = Ultraliser::Vec3ui_32(resolution);
+
+        for (uint32_t x = start.x(); x < end.x(); ++x)
+        {
+            for (uint32_t y = start.y(); y < end.y(); ++y)
+            {
+                for (uint32_t z = start.z(); z < end.z(); ++z)
+                {
+                    auto borderX = (x == start.x() || x == end.x() - 1);
+                    auto borderY = (y == start.y() || y == end.y() - 1);
+                    auto borderZ = (z == start.x() || z == end.z() - 1);
+                    if (!borderX && !borderY && !borderZ)
+                    {
+                        continue;
+                    }
+
+                    auto point = Ultraliser::Vec3ui_32(x, y, z);
+                    voxelizer.voxelize(point);
+                }
+            }
+        }
+
+        return octree;
     }
 };
 
@@ -199,7 +313,7 @@ public:
         auto depth = static_cast<uint8_t>(3);
         auto octree = Ultraliser::SparseOctree(bounds, depth);
 
-        auto voxelizer = Ultraliser::PointVoxelizer(octree);
+        auto voxelizer = Ultraliser::OctreePointVoxelizer(octree);
 
         auto resolution = 1 << depth;
 
@@ -218,17 +332,17 @@ public:
     {
         std::cout << "Before compacting" << std::endl;
         Ultraliser::OctreeStatsPrinter::print(octree);
-        std::cout << std::endl;
+
         std::cout << "After compacting" << std::endl;
-        octree.compact();
+        Ultraliser::OctreeCompacter::compact(octree);
         Ultraliser::OctreeStatsPrinter::print(octree);
-        std::cout << std::endl;
+
         std::cout << "After filling" << std::endl;
         Ultraliser::OctreeFloodFiller::fill(octree);
         Ultraliser::OctreeStatsPrinter::print(octree);
-        std::cout << std::endl;
+
         std::cout << "After compacting" << std::endl;
-        octree.compact();
+        Ultraliser::OctreeCompacter::compact(octree);
         Ultraliser::OctreeStatsPrinter::print(octree);
     }
 };
@@ -238,10 +352,8 @@ int main(int argc, char **argv)
     (void)argc;
     (void)argv;
 
-    auto octree = MorphologyOctreeFactory::create(8);
-    // auto octree = TestOctreeFactory::create();
-
-    // OctreeOptimizer::optimize(octree);
+    auto octree = MorphologyOctreeFactory::create(10);
+    OctreeOptimizer::optimize(octree);
 
     svorender::Window newWindow(1024, 1024);
 

@@ -29,7 +29,7 @@ namespace Ultraliser
 class OctreeFloodFiller
 {
 public:
-    static SparseOctree createMold(const SparseOctree &octree);
+    static SparseOctree generateFilling(const SparseOctree &octree);
     static void fill(SparseOctree &octree);
 };
 

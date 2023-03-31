@@ -23,9 +23,6 @@
 
 #include "common/SparseOctreeNodeSlot.h"
 
-#include <queue>
-#include <stack>
-
 namespace Ultraliser
 {
 SparseOctree::SparseOctree(const Bounds &bounds, uint8_t maxDepth)
@@ -54,33 +51,54 @@ const Bounds &SparseOctree::getBounds() const
 {
     return _bounds;
 }
-
-void SparseOctree::compact()
+/*
+SparseOctree::VolumeView::VolumeView(SparseOctree &octree)
+    : _octree(octree)
+    , _sampler(octree)
+    , _voxelSize(octree.getBounds().getDimensions() / static_cast<float>(1 << octree.getMaxDepth()))
 {
-    std::stack<SparseOctreeNode *> nonLeafNodes;
-
-    std::queue<SparseOctreeNode *> searchQueue;
-    searchQueue.push(&_root);
-
-    // gather nodes with children
-    while (!searchQueue.empty())
-    {
-        SparseOctreeNode *node = searchQueue.front();
-        searchQueue.pop();
-        for (size_t i = 0; i < node->getNumChildren(); ++i)
-        {
-            searchQueue.push(&node->getChild(i));
-        }
-
-        nonLeafNodes.push(node);
-    }
-
-    // compact from bottom to top
-    while (!nonLeafNodes.empty())
-    {
-        SparseOctreeNode *node = nonLeafNodes.top();
-        nonLeafNodes.pop();
-        node->compact();
-    }
 }
+
+int64_t SparseOctree::VolumeView::getWidth() const
+{
+    return static_cast<int64_t>(1 << _octree.getMaxDepth());
+}
+
+int64_t SparseOctree::VolumeView::getHeight() const
+{
+    return getWidth();
+}
+
+int64_t SparseOctree::VolumeView::getDepth() const
+{
+    return getWidth();
+}
+
+uint64_t SparseOctree::VolumeView::getValueUI64(int64_t x, int64_t y, int64_t z) const
+{
+    assert(x > -1 && x < getWidth());
+    assert(y > -1 && y < getHeight());
+    assert(z > -1 && z < getDepth());
+
+    auto point = Vec3ui_32(I2UI32(x), I2UI32(y), I2UI32(z));
+    return _sampler.sample(point) ? 1 : 0;
+}
+
+void SparseOctree::VolumeView::getVoxelBoundingBox(int64_t x, int64_t y, int64_t z, Vector3f &min, Vector3f &max) const
+{
+    assert(x > -1 && x < getWidth());
+    assert(y > -1 && y < getHeight());
+    assert(z > -1 && z < getDepth());
+
+    auto oneOverResolution = 1.f / getWidth();
+    auto delta = Vector3f(x * oneOverResolution, y * oneOverResolution, z * oneOverResolution);
+
+    auto &bounds = _octree.getBounds();
+    auto dimensions = bounds.getDimensions();
+    auto offset = dimensions * delta;
+
+    min = bounds.getMin() + offset;
+    max = min + _voxelSize;
+}
+*/
 }

@@ -21,14 +21,24 @@
 
 #pragma once
 
-#include <data/morphologies/NeuronMorphology.h>
 #include <data/sparsevoxeloctree/SparseOctree.h>
+#include <math/Vector.h>
 
 namespace Ultraliser
 {
-class NeuronMorphologyVoxelizer
+class OctreePointVoxelizer
 {
 public:
-    static void voxelize(SparseOctree &octree, const NeuronMorphology &morphology);
+    explicit OctreePointVoxelizer(SparseOctree &octree);
+
+    void voxelize(const Vector3f &point);
+    void voxelize(const Vec3ui_32 &gridPosition);
+
+private:
+    SparseOctreeNode &_root;
+    Vector3f _boundMin;
+    Vector3f _oneOverBoundsDims;
+    uint8_t _maxDepth;
+    uint64_t _gridSize;
 };
 }

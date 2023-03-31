@@ -25,6 +25,31 @@
 #include <queue>
 #include <vector>
 
+namespace
+{
+class MemorySize
+{
+public:
+    inline static std::vector<std::string_view> units = {"b", "Kb", "Mb", "Gb"};
+
+    static std::string reduceUnit(size_t bytes)
+    {
+        size_t unitIndex = 0;
+        auto pivot = static_cast<double>(bytes);
+
+        constexpr auto invUnitStep = 1.0 / 1024.0;
+
+        while (unitIndex + 1 < units.size() && pivot > 1024.0)
+        {
+            pivot *= invUnitStep;
+            ++unitIndex;
+        }
+
+        return std::to_string(pivot) + " " + std::string(units[unitIndex]);
+    }
+};
+}
+
 namespace Ultraliser
 {
 void OctreeStatsPrinter::print(const SparseOctree &octree)
@@ -73,5 +98,7 @@ void OctreeStatsPrinter::print(const SparseOctree &octree)
     std::cout << "\tGrid resolution: \t" << (1u << octree.getMaxDepth()) << "\n";
     std::cout << "\tIntermediate nodes: \t" << numIntermediateNodes << "\n";
     std::cout << "\tLeaf nodes: \t" << numLeafNodes << std::endl;
+    std::cout << "\tTotal memory: " << MemorySize::reduceUnit(numIntermediateNodes * sizeof(SparseOctreeNode)) << "\n";
+    std::cout << std::endl;
 }
 }

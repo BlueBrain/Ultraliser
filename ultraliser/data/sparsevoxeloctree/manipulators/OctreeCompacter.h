@@ -21,15 +21,13 @@
 
 #pragma once
 
-#include "Bounds.h"
-#include "SparseOctree.h"
-#include "SparseOctreeNode.h"
-#include "common/PointToGridPosition.h"
-#include "common/SparseOctreeNodeBounds.h"
-#include "manipulators/OctreeCompacter.h"
-#include "manipulators/OctreeFloodFiller.h"
-#include "manipulators/OctreeMorphologyVoxelizer.h"
-#include "manipulators/OctreePointSampler.h"
-#include "manipulators/OctreePointVoxelizer.h"
-#include "manipulators/OctreeStatsPrinter.h"
-#include "manipulators/OctreeTriangleVoxelizer.h"
+#include <data/sparsevoxeloctree/SparseOctree.h>
+
+namespace Ultraliser
+{
+class OctreeCompacter
+{
+public:
+    static void compact(SparseOctree &octree);
+};
+}

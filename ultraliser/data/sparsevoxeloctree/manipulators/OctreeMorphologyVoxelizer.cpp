@@ -19,10 +19,10 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#include "MorphologyVoxelizer.h"
+#include "OctreeMorphologyVoxelizer.h"
 
-#include "PointVoxelizer.h"
-#include "TriangleVoxelizer.h"
+#include "OctreePointVoxelizer.h"
+#include "OctreeTriangleVoxelizer.h"
 
 #include <data/sparsevoxeloctree/common/PointToGridPosition.h>
 
@@ -107,7 +107,7 @@ public:
     }
 
 private:
-    Ultraliser::PointVoxelizer _voxelizer;
+    Ultraliser::OctreePointVoxelizer _voxelizer;
     Ultraliser::Vector3f _oneOverBoundsDims;
     Ultraliser::Vector3f _minBound;
     uint32_t _resolution;
@@ -117,12 +117,12 @@ private:
 
 namespace Ultraliser
 {
-void NeuronMorphologyVoxelizer::voxelize(SparseOctree &octree, const NeuronMorphology &morphology)
+void OctreeNeuronMorphologyVoxelizer::voxelize(SparseOctree &octree, const NeuronMorphology &morphology)
 {
     auto sampleVoxelizer = MorphologySampleVoxelizer(octree);
 
-    auto somaMesh = Ultraliser::Mesh(&morphology);
-    Ultraliser::MeshVoxelizer::voxelize(octree, somaMesh);
+    auto somaMesh = new Ultraliser::Mesh(&morphology);
+    Ultraliser::OctreeMeshVoxelizer::voxelize(octree, *somaMesh);
 
     auto sections = morphology.getSections();
     for (size_t i = 0; i < sections.size(); ++i)
@@ -142,7 +142,8 @@ void NeuronMorphologyVoxelizer::voxelize(SparseOctree &octree, const NeuronMorph
         }
 
         // Rasterize a polyline representing the section samples
-        Ultraliser::MeshVoxelizer::voxelize(octree, Ultraliser::Mesh(samples));
+        auto sampleMesh = new Ultraliser::Mesh(samples);
+        Ultraliser::OctreeMeshVoxelizer::voxelize(octree, *sampleMesh);
 
         // Rasterize the first and last samples as spheres to fill any gaps
         sampleVoxelizer.voxelize(*samples.front());

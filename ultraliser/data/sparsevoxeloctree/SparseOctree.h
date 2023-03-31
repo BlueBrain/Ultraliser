@@ -31,6 +31,25 @@ namespace Ultraliser
 class SparseOctree
 {
 public:
+    /*
+    class VolumeView
+    {
+    public:
+        VolumeView(SparseOctree &octree);
+
+        int64_t getWidth() const;
+        int64_t getHeight() const;
+        int64_t getDepth() const;
+        uint64_t getValueUI64(int64_t x, int64_t y, int64_t z) const;
+        void getVoxelBoundingBox(int64_t x, int64_t y, int64_t z, Vector3f &min, Vector3f &max) const;
+
+    private:
+        SparseOctree &_octree;
+        OctreePointSampler _sampler;
+        Vector3f _voxelSize;
+    };
+    */
+public:
     /**
      * @brief  Construct an Sparse octree to voxelize the given axis-aligned space bounds until a given maximum depth.
      *
@@ -61,11 +80,6 @@ public:
      * @return const Bounds<float>&
      */
     const Bounds &getBounds() const;
-
-    /**
-     * @brief Compacts the octree by collapsing parents with 8 children into leaf nodes recursively.
-     */
-    void compact();
 
 protected:
     Bounds _bounds;

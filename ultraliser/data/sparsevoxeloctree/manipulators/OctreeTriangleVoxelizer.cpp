@@ -19,7 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#include "TriangleVoxelizer.h"
+#include "OctreeTriangleVoxelizer.h"
 
 #include <geometry/Intersection.h>
 
@@ -89,12 +89,6 @@ public:
         while (!_queue.empty())
         {
             auto &next = _queue.front();
-            /*if (next.depth == _maxDepth)
-            {
-                _queue.pop();
-                continue;
-            }*/
-
             auto node = next.parent->findChild(next.slot);
             auto &bounds = next.bounds;
             _tryVoxelize(node, bounds, triangle, next.depth);
@@ -141,26 +135,26 @@ private:
 
 namespace Ultraliser
 {
-TriangleVoxelizer::TriangleVoxelizer(SparseOctree &octree)
+OctreeTriangleVoxelizer::OctreeTriangleVoxelizer(SparseOctree &octree)
     : _root(octree.getRoot())
     , _rootBounds(octree.getBounds())
     , _maxDepth(octree.getMaxDepth())
 {
 }
 
-void TriangleVoxelizer::voxelize(const Vector3f &a, const Vector3f &b, const Vector3f &c)
+void OctreeTriangleVoxelizer::voxelize(const Vector3f &a, const Vector3f &b, const Vector3f &c)
 {
     auto voxelizer = TriangleVoxelizationAlgorithm(_root, _rootBounds, _maxDepth);
     voxelizer.tryVoxelize({a, b, c});
 }
 
-void MeshVoxelizer::voxelize(SparseOctree &octree, const Mesh &mesh)
+void OctreeMeshVoxelizer::voxelize(SparseOctree &octree, const Mesh &mesh)
 {
     auto numTriangles = mesh.getNumberTriangles();
     auto triangles = mesh.getTriangles();
     auto vertices = mesh.getVertices();
 
-    auto voxelizer = TriangleVoxelizer(octree);
+    auto voxelizer = OctreeTriangleVoxelizer(octree);
 
     for (size_t i = 0; i < mesh.getNumberTriangles(); ++i)
     {

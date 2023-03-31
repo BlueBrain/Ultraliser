@@ -22,23 +22,27 @@
 #pragma once
 
 #include <data/sparsevoxeloctree/SparseOctree.h>
-#include <math/Vector.h>
+
+#include <data/meshes/simple/Mesh.h>
 
 namespace Ultraliser
 {
-class PointVoxelizer
+class OctreeTriangleVoxelizer
 {
 public:
-    explicit PointVoxelizer(SparseOctree &octree);
+    explicit OctreeTriangleVoxelizer(SparseOctree &octree);
 
-    void voxelize(const Vector3f &point);
-    void voxelize(const Vec3ui_32 &gridPosition);
+    void voxelize(const Vector3f &a, const Vector3f &b, const Vector3f &c);
 
 private:
     SparseOctreeNode &_root;
-    Vector3f _boundMin;
-    Vector3f _oneOverBoundsDims;
+    const Ultraliser::Bounds &_rootBounds;
     uint8_t _maxDepth;
-    uint64_t _gridSize;
+};
+
+class OctreeMeshVoxelizer
+{
+public:
+    static void voxelize(SparseOctree &octree, const Mesh &mesh);
 };
 }

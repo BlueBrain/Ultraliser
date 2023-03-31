@@ -31,12 +31,16 @@ namespace Ultraliser
 class SparseOctreeNode
 {
 public:
+    SparseOctreeNode() = default;
+
     explicit SparseOctreeNode(uint8_t slotMask);
 
     /**
-     * @brief Transform node into leaf node if it has 8 children
+     * @brief Tries to compact this node by emptying the children nodes and storing a full children mask.
+     *
+     * @return true If the node was full and thus compacted, false otherwise.
      */
-    void compact();
+    bool tryCompact();
 
     /**
      * @brief Return a specific children of this node
@@ -94,7 +98,7 @@ public:
     uint8_t getSlotMask() const;
 
 private:
-    uint8_t _slotMask;
+    uint8_t _slotMask = 0;
     uint8_t _childMask;
     std::vector<SparseOctreeNode> _children;
 };

@@ -19,7 +19,7 @@
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#include "PointVoxelizer.h"
+#include "OctreePointVoxelizer.h"
 
 #include <data/sparsevoxeloctree/common/OffsetTable.h>
 #include <data/sparsevoxeloctree/common/PointToGridPosition.h>
@@ -27,7 +27,7 @@
 
 namespace Ultraliser
 {
-PointVoxelizer::PointVoxelizer(SparseOctree &octree)
+OctreePointVoxelizer::OctreePointVoxelizer(SparseOctree &octree)
     : _root(octree.getRoot())
     , _boundMin(octree.getBounds().getMin())
     , _oneOverBoundsDims(1.f / octree.getBounds().getDimensions())
@@ -36,13 +36,13 @@ PointVoxelizer::PointVoxelizer(SparseOctree &octree)
 {
 }
 
-void PointVoxelizer::voxelize(const Vector3f &point)
+void OctreePointVoxelizer::voxelize(const Vector3f &point)
 {
     auto gridPos = PointToGridPosition::convert(point, _boundMin, _oneOverBoundsDims, _gridSize);
     voxelize(gridPos);
 }
 
-void PointVoxelizer::voxelize(const Vec3ui_32 &gridPosition)
+void OctreePointVoxelizer::voxelize(const Vec3ui_32 &gridPosition)
 {
     if (gridPosition.x() > _gridSize || gridPosition.y() > _gridSize || gridPosition.z() > _gridSize)
     {

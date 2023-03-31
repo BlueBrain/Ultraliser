@@ -21,28 +21,14 @@
 
 #pragma once
 
+#include <data/morphologies/NeuronMorphology.h>
 #include <data/sparsevoxeloctree/SparseOctree.h>
-
-#include <data/meshes/simple/Mesh.h>
 
 namespace Ultraliser
 {
-class TriangleVoxelizer
+class OctreeNeuronMorphologyVoxelizer
 {
 public:
-    explicit TriangleVoxelizer(SparseOctree &octree);
-
-    void voxelize(const Vector3f &a, const Vector3f &b, const Vector3f &c);
-
-private:
-    SparseOctreeNode &_root;
-    const Ultraliser::Bounds &_rootBounds;
-    uint8_t _maxDepth;
-};
-
-class MeshVoxelizer
-{
-public:
-    static void voxelize(SparseOctree &octree, const Mesh &mesh);
+    static void voxelize(SparseOctree &octree, const NeuronMorphology &morphology);
 };
 }

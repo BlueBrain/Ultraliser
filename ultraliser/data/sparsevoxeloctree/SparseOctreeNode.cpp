@@ -26,6 +26,23 @@
 
 namespace
 {
+class ChildSize
+{
+public:
+    static size_t compute(uint8_t mask)
+    {
+        size_t size = (mask & 1) ? 1 : 0;
+        size += (mask & 2) ? 1 : 0;
+        size += (mask & 4) ? 1 : 0;
+        size += (mask & 8) ? 1 : 0;
+        size += (mask & 16) ? 1 : 0;
+        size += (mask & 32) ? 1 : 0;
+        size += (mask & 64) ? 1 : 0;
+        size += (mask & 128) ? 1 : 0;
+        return size;
+    }
+};
+
 class ChildFinder
 {
 public:
@@ -88,15 +105,16 @@ SparseOctreeNode::SparseOctreeNode(uint8_t slotMask)
 {
 }
 
-void SparseOctreeNode::compact()
+bool SparseOctreeNode::tryCompact()
 {
     if (!CompacterVerifier::isCompactable(*this))
     {
-        return;
+        return false;
     }
 
     _children.clear();
     _childMask = 0xff;
+    return true;
 }
 
 SparseOctreeNode &SparseOctreeNode::getChild(size_t index)
