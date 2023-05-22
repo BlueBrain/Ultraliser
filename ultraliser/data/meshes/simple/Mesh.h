@@ -454,6 +454,14 @@ public:
                                     const ROIs &regions);
 
     /**
+     * @brief Applies the edge-collapse algorithm to collapse a given 
+     * percentage of triangles.
+     * @param percentageToCollapse Normalized percentage in the interval 
+     * (0.0, 1.0) of triangles to collapse.
+     */
+    void collapseEdges(float percentageToCollapse);
+
+    /**
      * @brief exportMesh
      * @param prefix
      * @param formatOBJ

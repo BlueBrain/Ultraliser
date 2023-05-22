@@ -1,0 +1,9 @@
+[
+    {
+        "name": "GCC 12.2.0",
+        "compilers": {
+            "CXX": "/home/nroman/Programs/GCC_12_2/bin/x86_64-linux-gnug++-12",
+            "CC": "/home/nroman/Programs/GCC_12_2/bin/x86_64-linux-gnugcc-12"
+        }
+    }
+]
