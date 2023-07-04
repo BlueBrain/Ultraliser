@@ -1,3 +1,26 @@
+/***************************************************************************************************
+ * Copyright (c) 2016 - 2023
+ * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
+ *
+ * Author(s)
+ *      Marwan Abdellah <marwan.abdellah@epfl.ch >
+ *
+ * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 3.0 as published by the
+ * Free Software Foundation.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this library; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place - Suite 330, Boston, MA 02111-1307, USA. You can also find it on the
+ * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
+ **************************************************************************************************/
+
 #pragma once
 
 #include <data/meshes/simple/Mesh.h>
@@ -7,7 +30,6 @@
 #include <algorithms/skeletonization/SkeletonBranch.hh>
 #include <common/Headers.hh>
 #include <math/Vector3f.h>
-
 
 namespace Ultraliser
 {
@@ -23,14 +45,14 @@ public:
 
     void applyVolumeThinning();
 
-    SkeletonNodes constructGraph();
+    virtual SkeletonNodes constructGraph();
 
     Mesh* getSomaMesh() const
     {
         return _somaMesh;
     }
 
-    void segmentComponents(SkeletonNodes& nodes);
+    virtual void segmentComponents(SkeletonNodes& nodes);
     void _removeTriangleLoops(SkeletonNodes& nodes);
 
 
@@ -51,7 +73,7 @@ private:
 
 
 
-private:
+protected:
 
     /**
      * @brief _mesh

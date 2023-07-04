@@ -21,7 +21,6 @@
 
 #pragma once
 
-
 #include <algorithms/MarchingCubes.h>
 #include <algorithms/DualMarchingCubes.h>
 #include <algorithms/FloodFiller.h>

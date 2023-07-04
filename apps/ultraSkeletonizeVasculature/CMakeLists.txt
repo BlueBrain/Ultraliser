@@ -24,7 +24,7 @@
 ####################################################################################################
 
 # Application name
-set(APP_NAME ultraSkeletonize)
+set(APP_NAME ultraSkeletonizeVasculature)
 
 # Add the current directory to include directories
 include_directories(${CMAKE_BINARY_DIR}/include)

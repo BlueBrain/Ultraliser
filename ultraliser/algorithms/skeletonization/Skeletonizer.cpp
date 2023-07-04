@@ -1,3 +1,26 @@
+/***************************************************************************************************
+ * Copyright (c) 2016 - 2023
+ * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
+ *
+ * Author(s)
+ *      Marwan Abdellah <marwan.abdellah@epfl.ch >
+ *
+ * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 3.0 as published by the
+ * Free Software Foundation.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this library; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place - Suite 330, Boston, MA 02111-1307, USA. You can also find it on the
+ * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
+ **************************************************************************************************/
+
 #include "Skeletonizer.h"
 #include <math/Vector.h>
 #include "Neighbors.hh"
@@ -6,8 +29,7 @@
 
 namespace Ultraliser
 {
-Skeletonizer::Skeletonizer(const Mesh *mesh,
-                           Volume* volume)
+Skeletonizer::Skeletonizer(const Mesh *mesh, Volume* volume)
     : _mesh(mesh)
     , _volume(volume)
 {
@@ -247,7 +269,6 @@ bool isTriangleNode(const SkeletonNode* n, SkeletonNodes& connectedEdgeNodes)
             {
                 connectedEdgeNodes.push_back(n->edgeNodes[j]);
                 connectedEdgeNodes.push_back(n->edgeNodes[i]);
-
                 return true;
             }
         }
@@ -255,8 +276,6 @@ bool isTriangleNode(const SkeletonNode* n, SkeletonNodes& connectedEdgeNodes)
 
     return false;
 }
-
-
 
 SkeletonNodes Skeletonizer::constructGraph()
 {
@@ -428,10 +447,10 @@ SkeletonNodes Skeletonizer::constructGraph()
     std::cout << "Trignale Nodes Done \n";
 
 
-    SkeletonNode* somaNode = new SkeletonNode();
-    somaNode->index = nodes.back()->index + 1;
-    somaNode->isSoma = true;
-    nodes.push_back(somaNode);
+//    SkeletonNode* somaNode = new SkeletonNode();
+//    somaNode->index = nodes.back()->index + 1;
+//    somaNode->isSoma = true;
+//    nodes.push_back(somaNode);
 
      // Re-index the samples, for simplicity
      // OMP_PARALLEL_FOR for (size_t i = 0; i < nodes.size(); ++i) { nodes[i]->index = i; }
@@ -443,7 +462,7 @@ SkeletonNodes Skeletonizer::constructGraph()
 
 void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
 {
-    SkeletonNode* somaNode = nodes.back();
+    // SkeletonNode* somaNode = nodes.back();
 
 
     // Build the branches from the nodes
@@ -453,7 +472,7 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
     std::cout << "Nodes (Samples): " << nodes.size() << "\n";
 
     std::fstream stream;
-    stream.open("/abdellah2/scratch/thinning/output/projections/branches.txt", std::ios::out);
+    stream.open("branches.txt", std::ios::out);
     for (size_t i = 0; i < branches.size(); ++i)
     {
         stream << "start\n";
@@ -490,119 +509,119 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
 
 
 
-    _somaMesh = _reconstructSoma(branches);
+//    _somaMesh = _reconstructSoma(branches);
 
-    _volume->clear();
-    _volume->surfaceVoxelization(_somaMesh, false, false);
-    _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+//    _volume->clear();
+//    _volume->surfaceVoxelization(_somaMesh, false, false);
+//    _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
 
-    std::vector< size_t > somaVoxels;
-    for (size_t i = 0; i < _volume->getNumberVoxels(); ++i)
-    {
-        if (_volume->isFilled(i))
-        {
-            somaVoxels.push_back(i);
-        }
-    }
+//    std::vector< size_t > somaVoxels;
+//    for (size_t i = 0; i < _volume->getNumberVoxels(); ++i)
+//    {
+//        if (_volume->isFilled(i))
+//        {
+//            somaVoxels.push_back(i);
+//        }
+//    }
 
-    _volume->clear();
+//    _volume->clear();
 
-    std::cout << "Soma Voxels " << somaVoxels.size() << "\n";
-
-
-    size_t insideSoma = 0;
-    // OMP_PARALLEL_FOR
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-        auto& node = nodes[i];
-
-        size_t key = _volume->mapTo1DIndexWithoutBoundCheck(node->voxel.x(), node->voxel.y(), node->voxel.z());
-        if (std::find(somaVoxels.begin(), somaVoxels.end(), key) != somaVoxels.end())
-        {
-            insideSoma++;
-
-            // The soma is inside the soma
-            node->insideSoma = true;
-        }
-    }
-
-    std::cout << "Nodes Inside Soma " << insideSoma << "\n";
+//    std::cout << "Soma Voxels " << somaVoxels.size() << "\n";
 
 
-    // OMP_PARALLEL_FOR
-    for (size_t i = 0; i < branches.size(); ++i)
-    {
-        auto& branch = branches[i];
+//    size_t insideSoma = 0;
+//    // OMP_PARALLEL_FOR
+//    for (size_t i = 0; i < nodes.size(); ++i)
+//    {
+//        auto& node = nodes[i];
 
-        size_t countSamplesInsideSoma = 0;
+//        size_t key = _volume->mapTo1DIndexWithoutBoundCheck(node->voxel.x(), node->voxel.y(), node->voxel.z());
+//        if (std::find(somaVoxels.begin(), somaVoxels.end(), key) != somaVoxels.end())
+//        {
+//            insideSoma++;
 
-        for (size_t j = 0; j < branch->nodes.size(); ++j)
-        {
-            if (branch->nodes[j]->insideSoma)
-            {
-                countSamplesInsideSoma++;
-            }
-        }
+//            // The soma is inside the soma
+//            node->insideSoma = true;
+//        }
+//    }
 
-        // If the count of the samples located inside the soma is zero, then it is a valid branch
-        if (countSamplesInsideSoma == 0)
-        {
-            branch->root = false;
-            branch->valid = true;
-        }
+//    std::cout << "Nodes Inside Soma " << insideSoma << "\n";
 
-        // If all the branch nodes are located inside the soma, then it is not valid
-        else if (countSamplesInsideSoma == branch->nodes.size())
-        {
-            branch->root = false;
-            branch->valid = false;
-        }
 
-        // Otherwise, it is a branch that is connected to the soma
-        else
-        {
-            std::cout << "I am a root << " << countSamplesInsideSoma << "\n";
+//    // OMP_PARALLEL_FOR
+//    for (size_t i = 0; i < branches.size(); ++i)
+//    {
+//        auto& branch = branches[i];
 
-            SkeletonNodes newNodes;
+//        size_t countSamplesInsideSoma = 0;
 
-            // Get the first and last nodes
-            auto& firstNode = branch->nodes.front();
-            auto& lastNode = branch->nodes.back();
+//        for (size_t j = 0; j < branch->nodes.size(); ++j)
+//        {
+//            if (branch->nodes[j]->insideSoma)
+//            {
+//                countSamplesInsideSoma++;
+//            }
+//        }
 
-            if (firstNode->insideSoma)
-            {
-                newNodes.push_back(somaNode);
-                for (size_t j = 0; j < branch->nodes.size(); ++j)
-                {
-                    if (!branch->nodes[j]->insideSoma)
-                    {
-                        newNodes.push_back(branch->nodes[j]);
-                    }
-                }
-            }
-            else if (lastNode->insideSoma)
-            {
-                for (size_t j = 0; j < branch->nodes.size(); ++j)
-                {
-                    if (!branch->nodes[j]->insideSoma)
-                    {
-                        newNodes.push_back(branch->nodes[j]);
-                    }
-                }
-                newNodes.push_back(somaNode);
+//        // If the count of the samples located inside the soma is zero, then it is a valid branch
+//        if (countSamplesInsideSoma == 0)
+//        {
+//            branch->root = false;
+//            branch->valid = true;
+//        }
 
-            }
+//        // If all the branch nodes are located inside the soma, then it is not valid
+//        else if (countSamplesInsideSoma == branch->nodes.size())
+//        {
+//            branch->root = false;
+//            branch->valid = false;
+//        }
 
-            branch->nodes.clear();
-            branch->nodes.shrink_to_fit();
-            branch->nodes = newNodes;
+//        // Otherwise, it is a branch that is connected to the soma
+//        else
+//        {
+//            std::cout << "I am a root << " << countSamplesInsideSoma << "\n";
 
-            branch->root = true;
-            branch->valid = true;
-        }
-    }
+//            SkeletonNodes newNodes;
 
-    std::cout << "Detecting Starting Points\n";
+//            // Get the first and last nodes
+//            auto& firstNode = branch->nodes.front();
+//            auto& lastNode = branch->nodes.back();
+
+//            if (firstNode->insideSoma)
+//            {
+//                newNodes.push_back(somaNode);
+//                for (size_t j = 0; j < branch->nodes.size(); ++j)
+//                {
+//                    if (!branch->nodes[j]->insideSoma)
+//                    {
+//                        newNodes.push_back(branch->nodes[j]);
+//                    }
+//                }
+//            }
+//            else if (lastNode->insideSoma)
+//            {
+//                for (size_t j = 0; j < branch->nodes.size(); ++j)
+//                {
+//                    if (!branch->nodes[j]->insideSoma)
+//                    {
+//                        newNodes.push_back(branch->nodes[j]);
+//                    }
+//                }
+//                newNodes.push_back(somaNode);
+
+//            }
+
+//            branch->nodes.clear();
+//            branch->nodes.shrink_to_fit();
+//            branch->nodes = newNodes;
+
+//            branch->root = true;
+//            branch->valid = true;
+//        }
+//    }
+
+//    std::cout << "Detecting Starting Points\n";
 
 //    // Get the starting points of the branches
 //    std::vector< Vector3f > rootsStartingPoints;
@@ -663,7 +682,7 @@ void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
 
 
 
-    stream.open("/abdellah2/scratch/thinning/output/projections/branches.txt", std::ios::out);
+    stream.open("branches.txt", std::ios::out);
     for (size_t i = 0; i < branches.size(); ++i)
     {
         stream << "start\n";
