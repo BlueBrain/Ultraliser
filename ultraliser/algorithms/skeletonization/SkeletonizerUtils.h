@@ -23,7 +23,20 @@
 
 #pragma once
 
+#include <algorithms/skeletonization/SkeletonNode.hh>
+#include <algorithms/skeletonization/SkeletonEdge.hh>
+#include <algorithms/skeletonization/SkeletonBranch.hh>
+
+
 namespace Ultraliser
 {
 
+
+void removeEdgeNode(SkeletonNode* node, SkeletonNode* edgeNodeMarkedForRemoval);
+void fixTriangle(SkeletonNodes& nodes,
+                 SkeletonNode* n1, SkeletonNode* n2, SkeletonNode* n3);
+
+bool areConnected(const SkeletonNode* n1, const SkeletonNode* n2);
+
+bool isTriangleNode(const SkeletonNode* n, SkeletonNodes& connectedEdgeNodes);
 }
