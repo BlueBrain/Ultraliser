@@ -131,7 +131,9 @@ Volume::Volume(const Volume *inputVolume)
     } break;
 
     default:
-    { LOG_ERROR("Undefined volume format"); } break;
+    {
+        LOG_ERROR("Undefined volume format");
+    } break;
     }
 }
 
@@ -3689,23 +3691,31 @@ Volume* Volume::getBrick(const size_t& x1, const size_t& x2,
     // Create the volume
     Volume* brick = new Volume(width, height, depth);
 
+    LOG_STATUS("Extracting Volume Brick");
+    TIMER_SET;
+
+    LOOP_STARTS("Brick Extraction");
+    int64_t progress = 0;
     for (size_t i = 0; i < width; ++i)
     {
         for (size_t j = 0; j < height; ++j)
         {
+            // Parallelization along the Z-axis is OK even for the BitArray!
+            OMP_PARALLEL_FOR
             for (size_t k = 0; k < depth; ++k)
             {
                 if (isFilledWithoutBoundCheck(i + minX, j + minY, k + minZ))
                 {
                     brick->fillVoxel(i, j, k);
                 }
-                else
-                {
-                    brick->clear(i, j, k);
-                }
             }
         }
+
+        LOOP_PROGRESS(progress, width);
+        progress++;
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     // Return the created volume brick
     return brick;

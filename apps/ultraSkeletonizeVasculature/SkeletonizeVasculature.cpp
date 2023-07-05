@@ -85,17 +85,12 @@ void run(int argc , const char** argv)
     solidVolume->solidVoxelization(options->voxelizationAxis);
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
 
-    solidVolume->project(prefix + "_solid",
-                         options->projectXY, options->projectXZ, options->projectZY);
+    //solidVolume->project(prefix + "_solid",
+     //                    options->projectXY, options->projectXZ, options->projectZY);
 
     auto anotherVolume = new Volume(solidVolume);
-
-
-    anotherVolume->project(prefix + "_another",
-                   options->projectXY, options->projectXZ, options->projectZY);
-
-
-    exit(0);
+    //anotherVolume->project(prefix + "_another",
+    //               options->projectXY, options->projectXZ, options->projectZY);
 
     int xStart = solidVolume->getWidth() / 2;
     int xEnd = solidVolume->getWidth();
@@ -105,6 +100,8 @@ void run(int argc , const char** argv)
                                        0, solidVolume->getDepth());
     brick->project(prefix + "_brick2",
                    options->projectXY, options->projectXZ, options->projectZY);
+
+    exit(0);
 
     Skeletonizer* skeletonizers = new Skeletonizer(inputMesh, brick);
 
@@ -122,7 +119,6 @@ void run(int argc , const char** argv)
 
 
 
-   // exit(0);
 
     //solidVolume->exportToMesh(prefix + "_step_4", true);
 
