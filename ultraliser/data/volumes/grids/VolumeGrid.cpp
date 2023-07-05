@@ -36,7 +36,7 @@ VolumeGrid::VolumeGrid(const size_t &width, const size_t &height, const size_t &
     _numberVoxels = width * height * depth;
 }
 
-VolumeGrid::VolumeGrid(VolumeGrid *grid)
+VolumeGrid::VolumeGrid(Ultraliser::VolumeGrid *grid)
 {
     // Dimensions
     grid->getDimensions(_width, _height, _depth);

@@ -31,12 +31,37 @@
 namespace Ultraliser
 {
 
-
+/**
+ * @brief removeEdgeNode
+ * @param node
+ * @param edgeNodeMarkedForRemoval
+ */
 void removeEdgeNode(SkeletonNode* node, SkeletonNode* edgeNodeMarkedForRemoval);
-void fixTriangle(SkeletonNodes& nodes,
-                 SkeletonNode* n1, SkeletonNode* n2, SkeletonNode* n3);
 
+/**
+ * @brief collapseTriangleIntoNode
+ * @param nodes
+ * @param n1
+ * @param n2
+ * @param n3
+ */
+void collapseTriangleIntoNode(SkeletonNodes& nodes,
+                              SkeletonNode* n1, SkeletonNode* n2, SkeletonNode* n3);
+
+/**
+ * @brief areConnected
+ * @param n1
+ * @param n2
+ * @return
+ */
 bool areConnected(const SkeletonNode* n1, const SkeletonNode* n2);
 
+/**
+ * @brief isTriangleNode
+ * @param n
+ * @param connectedEdgeNodes
+ * @return
+ */
 bool isTriangleNode(const SkeletonNode* n, SkeletonNodes& connectedEdgeNodes);
+
 }

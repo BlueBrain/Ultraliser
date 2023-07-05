@@ -21,6 +21,7 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
+#include<ctime>
 #include "Skeletonizer.h"
 #include "Neighbors.hh"
 #include "SkeletonizerUtils.h"
@@ -54,7 +55,20 @@ Skeletonizer::Skeletonizer(const Mesh *mesh, Volume* volume)
     _computeShellPoints();
 }
 
-#include<ctime>
+void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
+{
+    // Make a copy of the input volume
+    std::unique_ptr<Volume> referenceVolume = std::make_unique<Volume>(_volume);
+
+    const size_t subdivisions = 6;
+
+    // Volume dimensions
+
+
+    // Copy the volume brick
+
+
+}
 
 void Skeletonizer::applyVolumeThinning()
 {
@@ -346,7 +360,8 @@ SkeletonNodes Skeletonizer::constructGraph()
                 auto& n2 = sideNodes[0];
                 auto& n3 = sideNodes[1];
 
-                fixTriangle(nodes, n1, n2, n3);
+                // Collapse a triangle into a single node
+                collapseTriangleIntoNode(nodes, n1, n2, n3);
 
                 if (n1->edgeNodes.size() > 2)
                     n1->branching = true;

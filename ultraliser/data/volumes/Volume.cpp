@@ -49,9 +49,98 @@
 namespace Ultraliser
 {
 
+Volume::Volume(const Volume *inputVolume)
+    : _surfaceVoxelizationTime(0.f)
+    , _solidVoxelizationTime(0.f)
+    , _addingVolumePassTime(0.f)
+{
+    // Copy the bounds
+    _pMin = inputVolume->getPMin();
+    _pMax = inputVolume->getPMax();
+    _center = inputVolume->getCenter();
+    _scale = inputVolume->getScale();
+
+    // Copy the voxel size
+    _voxelSize = inputVolume->getVoxelSize();
+
+    // Copy the grid type
+    _gridType = inputVolume->getType();
+
+    switch (_gridType)
+    {
+    case VOLUME_TYPE::BIT:
+    {
+        const BitVolumeGrid* grid = static_cast< BitVolumeGrid* >(inputVolume->getGrid());
+        _grid = new BitVolumeGrid(grid);
+    } break;
+
+    case VOLUME_TYPE::UI8:
+    {
+        const VolumeGridU8* grid = static_cast< VolumeGridU8* >(inputVolume->getGrid());
+        _grid = new VolumeGridU8(inputVolume->getWidth(),
+                                 inputVolume->getHeight(),
+                                 inputVolume->getDepth(),
+                                 grid->getGridData());
+    } break;
+
+    case VOLUME_TYPE::UI16:
+    {
+        const VolumeGridU16* grid = static_cast< VolumeGridU16* >(inputVolume->getGrid());
+        _grid = new VolumeGridU16(inputVolume->getWidth(),
+                                 inputVolume->getHeight(),
+                                 inputVolume->getDepth(),
+                                 grid->getGridData());
+    } break;
+
+    case VOLUME_TYPE::UI32:
+    {
+        const VolumeGridU32* grid = static_cast< VolumeGridU32* >(inputVolume->getGrid());
+        _grid = new VolumeGridU32(inputVolume->getWidth(),
+                                 inputVolume->getHeight(),
+                                 inputVolume->getDepth(),
+                                 grid->getGridData());
+    } break;
+
+    case VOLUME_TYPE::UI64:
+    {
+        const VolumeGridU64* grid = static_cast< VolumeGridU64* >(inputVolume->getGrid());
+        _grid = new VolumeGridU64(inputVolume->getWidth(),
+                                 inputVolume->getHeight(),
+                                 inputVolume->getDepth(),
+                                 grid->getGridData());
+    } break;
+
+    case VOLUME_TYPE::F32:
+    {
+        _gridType = VOLUME_TYPE::F32;
+        const VolumeGridF32* grid = static_cast< VolumeGridF32* >(inputVolume->getGrid());
+        _grid = new VolumeGridF32(inputVolume->getWidth(),
+                                 inputVolume->getHeight(),
+                                 inputVolume->getDepth(),
+                                 grid->getGridData());
+
+    } break;
+
+    case VOLUME_TYPE::F64:
+    {
+        const VolumeGridF64* grid = static_cast< VolumeGridF64* >(inputVolume->getGrid());
+        _grid = new VolumeGridF64(inputVolume->getWidth(),
+                                 inputVolume->getHeight(),
+                                 inputVolume->getDepth(),
+                                 grid->getGridData());
+    } break;
+
+    default:
+    { LOG_ERROR("Undefined volume format"); } break;
+    }
+}
+
 Volume::Volume(const std::string &filePath)
     : _pMin(Vector3f::ZERO)
     , _pMax(Vector3f::ZERO)
+    , _surfaceVoxelizationTime(0.f)
+    , _solidVoxelizationTime(0.f)
+    , _addingVolumePassTime(0.f)
 {
     // Get the volume extension
     auto extension = std::filesystem::path(filePath).extension().string();
@@ -59,11 +148,10 @@ Volume::Volume(const std::string &filePath)
     // To lower for a single comparison
     String::toLower(extension);
 
-    // Read the NRRD file
+    // Read the NRRD file and construct the grid
     if (String::subStringFound(extension, NRRD_EXTENSION))
     {
 #ifdef ULTRALISER_USE_NRRD
-        // Construct the grid
         _createGrid(readNRRDVolumeFile(filePath));
 #else
         LOG_ERROR("NRRD support is missing due to unavailable dependencies!");
@@ -109,11 +197,6 @@ Volume::Volume(const std::string &filePath)
         _scale = _pMax - _pMin;
         _center = _pMin + (0.5f * _scale);
     }
-
-    // Profiling
-    _surfaceVoxelizationTime = 0.0;
-    _solidVoxelizationTime = 0.0;
-    _addingVolumePassTime = 0.0;
 }
 
 Volume::Volume(const Vector3f& pMin,
@@ -126,14 +209,12 @@ Volume::Volume(const Vector3f& pMin,
     , _pMax(pMax)
     , _expansionRatio(expansionRatio)
     , _baseResolution(baseResolution)
+    , _surfaceVoxelizationTime(0.f)
+    , _solidVoxelizationTime(0.f)
+    , _addingVolumePassTime(0.f)
 {
     // Create the grid
     _createGrid();
-
-    // Profiling
-    _surfaceVoxelizationTime = 0.0;
-    _solidVoxelizationTime = 0.0;
-    _addingVolumePassTime = 0.0;
 }
 
 Volume::Volume(const int64_t width,
@@ -147,6 +228,9 @@ Volume::Volume(const int64_t width,
     , _pMin(pMin)
     , _pMax(pMax)
     , _expansionRatio(expansionRatio)
+    , _surfaceVoxelizationTime(0.f)
+    , _solidVoxelizationTime(0.f)
+    , _addingVolumePassTime(0.f)
 {
     // Since we don't have any geometric bounds, use 1.0 for the voxel resolution
     // TODO: The voxel resolution should be computed from the given bounds
@@ -467,7 +551,6 @@ void Volume::_createGrid(void)
     // Allocating the grid
     _allocateGrid(width, height, depth);
 }
-
 
 void Volume::surfaceVoxelization(Mesh* mesh,
                                  const bool& verbose,
@@ -3582,12 +3665,51 @@ Branches buildBranchesFromNodes(std::vector< GraphNode* > nodes)
     return branches;
 }
 
+Volume* Volume::getBrick(const size_t& x1, const size_t& x2,
+                         const size_t& y1, const size_t& y2,
+                         const size_t& z1, const size_t& z2)
+{
+    // Ensure that the given grid coordinates are correct
+    const auto minX = x1 < x2 ? x1 : x2;
+    const auto maxX = x1 > x2 ? x1 : x2;
 
+    const auto minY = y1 < y2 ? y1 : y2;
+    const auto maxY = y1 > y2 ? y1 : y2;
 
+    const auto minZ = z1 < z2 ? z1 : z2;
+    const auto maxZ = z1 > z2 ? z1 : z2;
 
+    // Determine the correct dimensions
+    const int64_t width = maxX - minX;
+    const int64_t height = maxY - minY;
+    const int64_t depth = maxZ - minZ;
 
+    // Adjust the pMin and pMax relatively
 
+    // Create the volume
+    Volume* brick = new Volume(width, height, depth);
 
+    for (size_t i = 0; i < width; ++i)
+    {
+        for (size_t j = 0; j < height; ++j)
+        {
+            for (size_t k = 0; k < depth; ++k)
+            {
+                if (isFilledWithoutBoundCheck(i + minX, j + minY, k + minZ))
+                {
+                    brick->fillVoxel(i, j, k);
+                }
+                else
+                {
+                    brick->clear(i, j, k);
+                }
+            }
+        }
+    }
+
+    // Return the created volume brick
+    return brick;
+}
 
 std::vector< Vector3f > Volume::applyThinning(std::vector< Vector3f > & centers, std::vector< float >& radii)
 {
@@ -4226,10 +4348,6 @@ std::vector< Vector3f > Volume::applyThinning(std::vector< Vector3f > & centers,
 //    }
 
 //    std::cout << branches.size() << "\n : Branches \n";
-
-
-
-
 }
 
 

@@ -35,8 +35,8 @@ void removeEdgeNode(SkeletonNode* node, SkeletonNode* edgeNodeMarkedForRemoval)
     node->edgeNodes.shrink_to_fit();
 }
 
-void fixTriangle(SkeletonNodes& nodes,
-                 SkeletonNode* n1, SkeletonNode* n2, SkeletonNode* n3)
+void collapseTriangleIntoNode(SkeletonNodes& nodes,
+                              SkeletonNode* n1, SkeletonNode* n2, SkeletonNode* n3)
 {
     SkeletonNode* centerNode = new SkeletonNode();
     centerNode->point = (n1->point + n2->point + n3->point) / 3.f;

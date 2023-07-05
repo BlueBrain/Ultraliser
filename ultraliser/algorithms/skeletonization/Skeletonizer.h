@@ -55,6 +55,7 @@ public:
     virtual void segmentComponents(SkeletonNodes& nodes);
     void _removeTriangleLoops(SkeletonNodes& nodes);
 
+    void applyVolumeThinningWithDomainDecomposition();
 
 private:
 

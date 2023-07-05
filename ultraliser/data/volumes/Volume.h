@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2023
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -32,7 +32,6 @@
 #include <algorithms/skeletonization/Thinning6Iterations.h>
 #include <data/volumes/voxels/CandiateVoxel.h>
 
-
 namespace Ultraliser
 {
 
@@ -58,6 +57,17 @@ public:
 
 public:
 
+    /**
+     * @brief Volume
+     * Copy constructor
+     * @param volume Input volume to be copied.
+     */
+    Volume(const Volume* volume);
+
+    /**
+     * @brief Volume
+     * @param filePath
+     */
     Volume(const std::string &filePath);
 
     /**
@@ -67,7 +77,7 @@ public:
      * @param pMin
      *
      * @param pMax
-     *
+
      * @param baseResolution
      * The base resolution of the volume.
      * By default, this resolution is set to 512.
@@ -106,32 +116,68 @@ public:
      */
     uint8_t getByte(const size_t index) const;
 
-
+    /**
+     * @brief getConfirmedValue
+     * @param x
+     * @param y
+     * @param z
+     * @return
+     */
     uint8_t getConfirmedValue(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
-    uint8_t getValueUI8(const int64_t &x,
-                        const int64_t &y,
-                        const int64_t &z) const;
+    /**
+     * @brief getValueUI8
+     * @param x
+     * @param y
+     * @param z
+     * @return
+     */
+    uint8_t getValueUI8(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
-    uint16_t getValueUI16(const int64_t &x,
-                          const int64_t &y,
-                          const int64_t &z) const;
+    /**
+     * @brief getValueUI16
+     * @param x
+     * @param y
+     * @param z
+     * @return
+     */
+    uint16_t getValueUI16(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
-    uint32_t getValueUI32(const int64_t &x,
-                          const int64_t &y,
-                          const int64_t &z) const;
+    /**
+     * @brief getValueUI32
+     * @param x
+     * @param y
+     * @param z
+     * @return
+     */
+    uint32_t getValueUI32(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
-    uint64_t getValueUI64(const int64_t &x,
-                          const int64_t &y,
-                          const int64_t &z) const;
+    /**
+     * @brief getValueUI64
+     * @param x
+     * @param y
+     * @param z
+     * @return
+     */
+    uint64_t getValueUI64(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
-    float getValueF32(const int64_t &x,
-                      const int64_t &y,
-                      const int64_t &z) const;
+    /**
+     * @brief getValueF32
+     * @param x
+     * @param y
+     * @param z
+     * @return
+     */
+    float getValueF32(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
-    double getValueF64(const int64_t &x,
-                       const int64_t &y,
-                       const int64_t &z) const;
+    /**
+     * @brief getValueF64
+     * @param x
+     * @param y
+     * @param z
+     * @return
+     */
+    double getValueF64(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
 
     /**
@@ -140,9 +186,7 @@ public:
      * @param y
      * @param z
      */
-    void fillVoxel(const int64_t &x,
-                   const int64_t &y,
-                   const int64_t &z);
+    void fillVoxel(const int64_t &x, const int64_t &y, const int64_t &z);
 
     /**
      * @brief getByte
@@ -151,9 +195,7 @@ public:
      * @param z
      * @return
      */
-    uint8_t getByte(const int64_t &x,
-                    const int64_t &y,
-                    const int64_t &z) const;
+    uint8_t getByte(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
     /**
      * @brief addByte
@@ -218,7 +260,6 @@ public:
     void surfaceVoxelizeVasculatureMorphology(
             VasculatureMorphology* vasculatureMorphology,
             const std::string& packingAlgorithm = POLYLINE_PACKING);
-	
 
     /**
      * @brief solidVoxelization
@@ -275,24 +316,21 @@ public:
      * @brief writeStackXY
      * @param prefix
      */
-    void writeStackXY(const std::string &outputDirectory,
-                        const std::string &prefix) const;
+    void writeStackXY(const std::string &outputDirectory, const std::string &prefix) const;
 
     /**
      * @brief writeStackXZ
      * @param outputDirectory
      * @param prefix
      */
-    void writeStackXZ(const std::string &outputDirectory,
-                        const std::string &prefix) const;
+    void writeStackXZ(const std::string &outputDirectory, const std::string &prefix) const;
 
     /**
      * @brief writeStackZY
      * @param outputDirectory
      * @param prefix
      */
-    void writeStackZY(const std::string &outputDirectory,
-                        const std::string &prefix) const;
+    void writeStackZY(const std::string &outputDirectory, const std::string &prefix) const;
 
     /**
      * @brief writeVolumes
@@ -419,7 +457,15 @@ public:
      */
     void addVolumePass(const Volume* volume);
 
+    /**
+     * @brief mapTo1DIndexWithoutBoundCheck
+     * @param x
+     * @param y
+     * @param z
+     * @return
+     */
     size_t mapTo1DIndexWithoutBoundCheck(const int64_t &x, const int64_t &y, const int64_t &z) const;
+
     /**
      * @brief mapToIndex
      * @param x
@@ -427,31 +473,61 @@ public:
      * @param z
      * @return
      */
-    size_t mapToIndex(const int64_t &x,
-                      const int64_t &y,
-                      const int64_t &z,
-                      bool &outlier) const;
+    size_t mapToIndex(const int64_t &x, const int64_t &y, const int64_t &z, bool &outlier) const;
 
+    /**
+     * @brief searchForBorderVoxels
+     * @return
+     */
     std::vector< std::vector< Vec3ui_64> > searchForBorderVoxels() const;
 
+    /**
+     * @brief searchForCandidateVoxels
+     * @return
+     */
     std::vector< CandidateVoxels > searchForCandidateVoxels() const;
 
+    /**
+     * @brief searchForCandidateVoxelsOne
+     * @return
+     */
     CandidateVoxels searchForCandidateVoxelsOne() const;
 
+    /**
+     * @brief deleteCandidateVoxels
+     * @param thinning
+     * @return
+     */
     size_t deleteCandidateVoxels(std::unique_ptr< Thinning6Iterations > &thinning);
 
-
-
+    /**
+     * @brief searchForDeletableVoxels
+     * @param perSliceBorderVoxels
+     * @param thinning
+     * @param direction
+     * @return
+     */
     std::vector< Vec3ui_64 > searchForDeletableVoxels(std::vector< std::vector< Vec3ui_64> > &perSliceBorderVoxels,
             std::unique_ptr<Thinning6Iterations> &thinning,
             int direction) const;
 
+    /**
+     * @brief confirmDeletableVoxels
+     * @param candidateVoxels
+     * @param thinning
+     * @param direction
+     */
     void confirmDeletableVoxels(CandidateVoxels& candidateVoxels,
                                 std::unique_ptr< Thinning6Iterations > &thinning,
                                 int direction) const;
 
-
-
+    /**
+     * @brief mapToXYZ
+     * @param index
+     * @param x
+     * @param y
+     * @param z
+     */
     void mapToXYZ(const size_t index, size_t &x, size_t &y, size_t &z) const;
 
     /**
@@ -498,8 +574,14 @@ public:
      */
     bool isFilled(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
+    /**
+     * @brief isFilledWithoutBoundCheck
+     * @param x
+     * @param y
+     * @param z
+     * @return
+     */
     bool isFilledWithoutBoundCheck(const int64_t &x, const int64_t &y, const int64_t &z) const;
-
 
     /**
      * @brief getFormatString
@@ -513,11 +595,31 @@ public:
      * @param prefix
      */
     void printStats(const std::string &reference,
-                          const std::string* prefix = nullptr) const;
+                    const std::string* prefix = nullptr) const;
 
-
+    /**
+     * @brief verifyBorderVoxels
+     * @param mesh
+     * @param sideRatio
+     * @param verbose
+     * @return
+     */
     std::vector< Vec3ui_64 > verifyBorderVoxels(Mesh* mesh,
-                                    const float& sideRatio, const bool& verbose);
+                                                const float& sideRatio, const bool& verbose);
+
+    /**
+     * @brief getBrick
+     * @param x1
+     * @param x2
+     * @param y1
+     * @param y2
+     * @param z1
+     * @param z2
+     * @return
+     */
+    Volume* getBrick(const size_t& x1, const size_t& x2,
+                     const size_t& y1, const size_t& y2,
+                     const size_t& z1, const size_t& z2);
 
 public:
 
@@ -557,12 +659,31 @@ public:
                                            const size_t &isoValue);
 
 
+    /**
+     * @brief constructVolumeWithMinimumIsoValue
+     * @param volume
+     * @param minIsoValue
+     * @return
+     */
     static Volume* constructVolumeWithMinimumIsoValue(const Volume* volume,
                                                       const size_t& minIsoValue);
 
+    /**
+     * @brief constructVolumeWithMaximumIsoValue
+     * @param volume
+     * @param maxIsoValue
+     * @return
+     */
     static Volume* constructVolumeWithMaximumIsoValue(const Volume* volume,
                                                       const size_t& maxIsoValue);
 
+    /**
+     * @brief constructVolumeWithIsoRange
+     * @param volume
+     * @param minIsoValue
+     * @param maxIsoValue
+     * @return
+     */
     static Volume* constructVolumeWithIsoRange(const Volume* volume,
                                                const size_t& minIsoValue,
                                                const size_t& maxIsoValue);
@@ -585,7 +706,12 @@ public:
     static Volume* constructNonZeroVolume(const Volume* volume);
 
 
-
+    /**
+     * @brief constructIsoValuesVolume
+     * @param volume
+     * @param isoValues
+     * @return
+     */
     static Volume* constructIsoValuesVolume(const Volume* volume,
                                             const std::vector< size_t > &isoValues);
 
@@ -616,6 +742,10 @@ public:
     void getVoxelBoundingBox(const int64_t& x, const int64_t& y, const int64_t& z,
                              Vector3f& pMin, Vector3f& pMax) const;
 
+    VolumeGrid* getGrid() const { return _grid; }
+
+    VOLUME_TYPE getVolumeType() const { return _gridType; }
+
     /**
      * @brief getVolumeBoundingBox
      * Gets the boundin box of the volume.
@@ -634,9 +764,28 @@ public:
      */
     float getVoxelSize() const { return _voxelSize; }
 
+    /**
+     * @brief getPMin
+     * @return
+     */
     Vector3f getPMin() const { return _pMin; }
+
+    /**
+     * @brief getPMax
+     * @return
+     */
     Vector3f getPMax() const { return _pMax; }
+
+    /**
+     * @brief getCenter
+     * @return
+     */
     Vector3f getCenter() const { return _center; }
+
+    /**
+     * @brief getScale
+     * @return
+     */
     Vector3f getScale() const { return _scale; }
 
     /**
@@ -645,15 +794,37 @@ public:
      */
     VOLUME_TYPE getType() const { return _gridType; }
 
-
-
+    /**
+     * @brief isBorderVoxel
+     * @param x
+     * @param y
+     * @param z
+     * @return
+     */
     bool isBorderVoxel(const int64_t& x, const int64_t& y,const int64_t& z) const;
 
+    /**
+     * @brief applyThinning
+     * @param centers
+     * @param radii
+     * @return
+     */
     std::vector< Vector3f > applyThinning(std::vector<Vector3f> &centers, std::vector<float> &radii);
+
+    /**
+     * @brief surfaceVoxelizationReion
+     * @param mesh
+     * @param pMinRegion
+     * @param pMaxRegion
+     * @param verbose
+     */
     void surfaceVoxelizationReion(Mesh* mesh,
-                                          const Vector3f& pMinRegion,
-                                          const Vector3f& pMaxRegion,
-                                          const bool& verbose = false);
+                                  const Vector3f& pMinRegion,
+                                  const Vector3f& pMaxRegion,
+                                  const bool& verbose = false);
+
+
+    float getExpansionRatio() const { return _expansionRatio; }
 
 private:
 
@@ -706,8 +877,7 @@ private:
      * @param tMin
      * @param tMax
      */
-    void _getBoundingBox(Mesh* mesh ,
-                         size_t i, int64_t *tMin, int64_t *tMax);
+    void _getBoundingBox(Mesh* mesh, size_t i, int64_t *tMin, int64_t *tMax);
 
     /**
      * @brief _getBoundingBox
@@ -732,8 +902,7 @@ private:
      * @param tMin
      * @param tMax
      */
-    void _getTriangleBoundingBox(AdvancedTriangle triangle,
-                                 int64_t *tMin, int64_t *tMax);
+    void _getTriangleBoundingBox(AdvancedTriangle triangle, int64_t *tMin, int64_t *tMax);
 
     /**
      * @brief _rasterize
@@ -745,11 +914,9 @@ private:
 
 
     void _rasterizeRegion(Mesh* mesh, VolumeGrid* grid,
-                                  const Vector3f& pMinRegion,
-                                  const Vector3f& pMaxRegion,
-                                  const bool& verbose = false);
-
-
+                          const Vector3f& pMinRegion,
+                          const Vector3f& pMaxRegion,
+                          const bool& verbose = false);
 
     /**
      * @brief _rasterize
@@ -781,6 +948,11 @@ private:
      */
     void _floodFill2D(const SOLID_VOXELIZATION_AXIS& axis);
 
+    /**
+     * @brief _floodFillAlongAxis
+     * @param grid
+     * @param axis
+     */
     void _floodFillAlongAxis(VolumeGrid* grid, const SOLID_VOXELIZATION_AXIS &axis);
 
     /**
@@ -827,8 +999,7 @@ private:
      * @param voxel
      * @return
      */
-    bool _testSampleCubeIntersection(Sample* sample,
-                                     const GridIndex& voxel);
+    bool _testSampleCubeIntersection(Sample* sample, const GridIndex& voxel);
 
     /**
      * @brief _testTriangleGridIntersection
@@ -836,8 +1007,7 @@ private:
      * @param voxel
      * @return
      */
-    bool _testTriangleGridIntersection(AdvancedTriangle triangle,
-                                       const GridIndex& voxel);
+    bool _testTriangleGridIntersection(AdvancedTriangle triangle, const GridIndex& voxel);
 
     /**
      * @brief _triangleCubeSign
@@ -849,8 +1019,7 @@ private:
      * @return 1 of tje cube center is on the negative side, but the
      * projection is outside of the triangle.
      */
-    int _triangleCubeSign(Mesh* mesh, int tIdx,
-                          const GridIndex& boundingBox);
+    int _triangleCubeSign(Mesh* mesh, int tIdx, const GridIndex& boundingBox);
 
 private:
 
@@ -879,6 +1048,10 @@ private:
      */
     Vector3f _center;
 
+    /**
+     * @brief _scale
+     * The diagonal, i.e. the difference between _pMax and _pMin.
+     */
     Vector3f _scale;
 
     /**

@@ -37,6 +37,13 @@ class UnsignedVolumeGrid : public VolumeGrid
 {
 public:
 
+    /**
+     * @brief UnsignedVolumeGrid
+     * @param width
+     * @param height
+     * @param depth
+     * @param data
+     */
     UnsignedVolumeGrid(const size_t &width,
                        const size_t &height,
                        const size_t &depth,
@@ -67,6 +74,8 @@ public:
     ~UnsignedVolumeGrid();
 
 public:
+
+    T* getData() const { return _data; }
 
     /**
      * @brief getNumberBytes

@@ -48,6 +48,8 @@ public:
         ZY_PROJECTION
     };
 
+public:
+
     /**
      * @brief getType
      * @return

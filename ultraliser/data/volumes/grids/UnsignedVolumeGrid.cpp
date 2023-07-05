@@ -30,7 +30,6 @@
 
 namespace Ultraliser
 {
-
 template <class T>
 UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const size_t &width,
                                           const size_t &height,
@@ -38,6 +37,7 @@ UnsignedVolumeGrid<T>::UnsignedVolumeGrid(const size_t &width,
                                           T* data)
     : VolumeGrid(width, height, depth)
 {
+    // Allocate the memory
     _allocateMemory();
 
     // Update the data
