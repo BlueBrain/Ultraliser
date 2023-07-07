@@ -78,3 +78,11 @@ add_subdirectory(ultraAnalysis)
 
 # ultraResampling
 add_subdirectory(ultraResampling)
+
+include_directories(${CMAKE_BINARY_DIR}/include)
+file(GLOB testEdgeCollapse_HEADER_FILES "*.h" "*.hh")
+add_executable(testEdgeCollapse testEdgeCollapse.cpp ${testEdgeCollapse_HEADER_FILES})
+target_link_libraries(testEdgeCollapse ultraliser)
+add_custom_command(TARGET testEdgeCollapse POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:testEdgeCollapse>
+                   ${CMAKE_BINARY_DIR}/bin)

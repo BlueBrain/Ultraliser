@@ -89,29 +89,7 @@ Mesh::Mesh(const Samples& samples, const size_t& bevelSides)
 
 Mesh::Mesh(Vertices vertices, Triangles triangles)
 {
-    _numberVertices = vertices.size();
-    _numberTriangles = triangles.size();
-    _optimizationTime = 0.0;
-
-    this->_vertices = new Vertex[_numberVertices];
-    this->_triangles = new Triangle[_numberTriangles];
-
-    const Vertex* vertexData = vertices.data();
-    const Triangle* triangleData = triangles.data();
-
-
-    for (size_t i = 0; i < _numberVertices; ++i)
-    {
-        this->_vertices[i] = vertexData[i];
-    }
-
-    for (size_t i = 0; i < _numberTriangles; ++i)
-    {
-        this->_triangles[i] = triangleData[i];
-    }
-
-    _neighbors = nullptr;
-    _neighborList = nullptr;
+    _initFromVertexAndTriangleList(std::move(vertices), std::move(triangles));
 }
 
 Mesh::Mesh(const std::string &fileName, const bool& verbose)
@@ -456,6 +434,33 @@ size_t Mesh::getNumberVertices() const
 size_t Mesh::getNumberTriangles() const
 {
     return _numberTriangles;
+}
+
+void Mesh::_initFromVertexAndTriangleList(Vertices vertices, Triangles triangles)
+{
+    _numberVertices = vertices.size();
+    _numberTriangles = triangles.size();
+    _optimizationTime = 0.0;
+
+    this->_vertices = new Vertex[_numberVertices];
+    this->_triangles = new Triangle[_numberTriangles];
+
+    const Vertex* vertexData = vertices.data();
+    const Triangle* triangleData = triangles.data();
+
+
+    for (size_t i = 0; i < _numberVertices; ++i)
+    {
+        this->_vertices[i] = vertexData[i];
+    }
+
+    for (size_t i = 0; i < _numberTriangles; ++i)
+    {
+        this->_triangles[i] = triangleData[i];
+    }
+
+    _neighbors = nullptr;
+    _neighborList = nullptr;
 }
 
 float Mesh::_cotangentAngle(const Vector3f& pivot, const Vector3f& a, const Vector3f& b)
