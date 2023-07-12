@@ -66,8 +66,10 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     return options;
 }
 
+
 void run(int argc , const char** argv)
 {
+
     // Parse the arguments and get the tool options
     auto options = parseArguments(argc, argv);
 
@@ -84,6 +86,14 @@ void run(int argc , const char** argv)
     solidVolume->surfaceVoxelization(inputMesh, false, false, 1.0);
     solidVolume->solidVoxelization(options->voxelizationAxis);
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
+
+    Skeletonizer* skeletonizerxx = new Skeletonizer(inputMesh, solidVolume);
+    skeletonizerxx->applyVolumeThinningWithDomainDecomposition();
+
+
+
+
+    return;
 
     //solidVolume->project(prefix + "_solid",
      //                    options->projectXY, options->projectXZ, options->projectZY);
@@ -111,7 +121,6 @@ void run(int argc , const char** argv)
 
     brick->project(prefix + "_brick_thin2",
                    options->projectXY, options->projectXZ, options->projectZY);
-
 
 
 

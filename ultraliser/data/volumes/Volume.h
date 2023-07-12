@@ -619,7 +619,8 @@ public:
      */
     Volume* getBrick(const size_t& x1, const size_t& x2,
                      const size_t& y1, const size_t& y2,
-                     const size_t& z1, const size_t& z2);
+                     const size_t& z1, const size_t& z2,
+                     const size_t emptyShellThickness = 1);
 
 public:
 

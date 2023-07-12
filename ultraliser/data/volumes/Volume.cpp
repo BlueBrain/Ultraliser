@@ -3669,7 +3669,8 @@ Branches buildBranchesFromNodes(std::vector< GraphNode* > nodes)
 
 Volume* Volume::getBrick(const size_t& x1, const size_t& x2,
                          const size_t& y1, const size_t& y2,
-                         const size_t& z1, const size_t& z2)
+                         const size_t& z1, const size_t& z2,
+                         const size_t emptyShellThickness)
 {
     // Ensure that the given grid coordinates are correct
     const auto minX = x1 < x2 ? x1 : x2;
@@ -3682,14 +3683,20 @@ Volume* Volume::getBrick(const size_t& x1, const size_t& x2,
     const auto maxZ = z1 > z2 ? z1 : z2;
 
     // Determine the correct dimensions
-    const int64_t width = maxX - minX;
-    const int64_t height = maxY - minY;
-    const int64_t depth = maxZ - minZ;
+    const size_t width = maxX - minX;
+    const size_t height = maxY - minY;
+    const size_t depth = maxZ - minZ;
 
     // Adjust the pMin and pMax relatively
 
     // Create the volume
-    Volume* brick = new Volume(width, height, depth);
+    const size_t gap = emptyShellThickness * 2;
+
+    const int64_t brickWidth = width + gap;
+    const int64_t brickHeight = height + gap;
+    const int64_t brickDepth = depth + gap;
+
+    Volume* brick = new Volume(brickWidth, brickHeight, brickDepth);
 
     LOG_STATUS("Extracting Volume Brick");
     TIMER_SET;
@@ -3706,7 +3713,9 @@ Volume* Volume::getBrick(const size_t& x1, const size_t& x2,
             {
                 if (isFilledWithoutBoundCheck(i + minX, j + minY, k + minZ))
                 {
-                    brick->fillVoxel(i, j, k);
+                    brick->fillVoxel(i + emptyShellThickness,
+                                     j + emptyShellThickness,
+                                     k + emptyShellThickness);
                 }
             }
         }

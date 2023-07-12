@@ -55,23 +55,139 @@ Skeletonizer::Skeletonizer(const Mesh *mesh, Volume* volume)
     _computeShellPoints();
 }
 
-void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
+
+struct Range
 {
-    // Make a copy of the input volume
-    std::unique_ptr<Volume> referenceVolume = std::make_unique<Volume>(_volume);
+    int64_t x0;
+    int64_t x1;
 
-    const size_t subdivisions = 6;
+    Range(const int64_t& minValue, const int64_t& maxValue)
+    {
+        x0 = minValue < maxValue ? minValue : maxValue;
+        x1 = maxValue > minValue ? maxValue : minValue;
+    }
 
-    // Volume dimensions
+    void printRange() { std::cout << x0 << ", " << x1 << ", delta = " << x1 - x0 << std::endl; }
+};
 
+typedef std::vector< Range > Ranges;
 
-    // Copy the volume brick
+Ranges decomposeRangeToRanges(const int64_t& minValue,
+                              const int64_t& maxValue,
+                              const size_t& intervals)
+{
+    // Returned list
+    Ranges ranges;
 
+    // In case the two values are the same, only a single range is returned
+    if (minValue == maxValue)
+    {
+        ranges.push_back(Range(minValue, maxValue));
+        return ranges;
+    }
 
+    // Verify the limits
+    const int64_t i0 = minValue < maxValue ? minValue : maxValue;
+    const int64_t i1 = maxValue > minValue ? maxValue : minValue;
+
+    // Compute the delta value
+    const size_t delta = std::ceil((i1 - i0) / intervals);
+
+    // Compute the ranges
+    for (size_t i = 0; i < intervals; ++i)
+    {
+        // Compute the lower limit
+        const int64_t r0 = i * delta;
+
+        // Compute the upper limit
+        int64_t r1 = r0 + delta - 1;
+        if (r1 >= i1) r1 = i1 - 1;
+
+        ranges.push_back(Range(r0, r1));
+    }
+
+    // Return the ranges
+    return ranges;
 }
 
 
+void Skeletonizer::applyVolumeThinningToVolume(Volume* volume)
+{
+    TIMER_SET;
+    LOG_STATUS("Thinning Volume");
 
+    std::unique_ptr< Thinning6Iterations > thinningKernel = std::make_unique<Thinning6Iterations>();
+    LOG_STATUS("Thinning Starting");
+
+    // Parameters to calculate the loop progress
+    size_t initialNumberVoxelsToBeDeleted = 0;
+    size_t loopCounter = 0;
+
+    LOOP_STARTS("Thinning Loop");
+    LOOP_PROGRESS(0, 100);
+    while(1)
+    {
+        size_t numberDeletedVoxels = volume->deleteCandidateVoxels(thinningKernel);
+
+        // Updating the progess bar
+       if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
+       LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
+                     initialNumberVoxelsToBeDeleted);
+
+       if (numberDeletedVoxels == 0)
+           break;
+
+       loopCounter++;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
+void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
+{
+    // Copy the input volume into a reference volume
+    // The reference volume will be used to retrieve the new bricks, and the _volume will be
+    // used to write the skeletonization result
+    Volume* referenceVolume = new Volume(_volume);
+
+    const size_t subdivisions = 2;
+
+    Ranges xRanges = decomposeRangeToRanges(0, _volume->getWidth(), subdivisions);
+    Ranges yRanges = decomposeRangeToRanges(0, _volume->getHeight(), subdivisions);
+    Ranges zRanges = decomposeRangeToRanges(0, _volume->getDepth(), subdivisions);
+
+    // Adjust the ranges taking into account the overlaps
+
+    size_t counter = 0;
+
+    for (size_t i = 0; i < xRanges.size(); ++i)
+    {
+        // const uint64_t x0 = xRanges[i].x0;
+        for (size_t j = 0; j < yRanges.size(); ++j)
+        {
+            for (size_t k = 0; k < zRanges.size(); ++k)
+            {
+                // Extract the brick from the volume
+                auto brick = referenceVolume->getBrick(xRanges[i].x0, xRanges[i].x1,
+                                                       yRanges[j].x0, yRanges[j].x1,
+                                                       zRanges[k].x0, zRanges[k].x1, 10);
+
+                std::stringstream s1, s2;
+                s1 << "/home/abdellah/Desktop/hbp-reports/brick_" << counter;
+                brick->project(s1.str(), true);
+
+                // Skeletonize the brick
+                applyVolumeThinningToVolume(brick);
+
+                s2 << "/home/abdellah/Desktop/hbp-reports/skeleton_" << counter;
+                brick->project(s2.str(), true);
+
+                counter++;
+                brick->~Volume();
+            }
+        }
+    }
+}
 
 void Skeletonizer::applyVolumeThinning()
 {

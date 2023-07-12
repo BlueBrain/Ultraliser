@@ -57,6 +57,7 @@ public:
 
     void applyVolumeThinningWithDomainDecomposition();
 
+    void applyVolumeThinningToVolume(Volume* volume);
 private:
 
     void _computeShellPoints();
