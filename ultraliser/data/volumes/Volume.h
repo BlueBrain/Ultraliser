@@ -628,6 +628,12 @@ public:
                                   const size_t& zMin, const size_t& zMax,
                                   const size_t emptyShellThickness);
 
+    void andBrickToVolume(const Volume* brick,
+                          const size_t& xMin, const size_t& xMax,
+                          const size_t& yMin, const size_t& yMax,
+                          const size_t& zMin, const size_t& zMax,
+                          const size_t emptyShellThickness);
+
 public:
 
     /**

@@ -143,6 +143,24 @@ void Skeletonizer::applyVolumeThinningToVolume(Volume* volume)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
+
+Ranges determineOverlaps(Ranges ranges, const size_t overlap)
+{
+    Ranges overlapps;
+
+    for (size_t i = 0; i < ranges.size() - 1; ++i)
+    {
+        auto range1 = ranges[i];
+        auto range2 = ranges[i + 1];
+
+        auto i1 = range1.x1 - std::floor(overlap * 0.5);
+        auto i2 = range2.x0 + std::ceil(overlap * 0.5);
+        overlapps.push_back(Range(i1, i2));
+    }
+
+    return overlapps;
+}
+
 void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
 {
     // Copy the input volume into a reference volume
@@ -166,9 +184,19 @@ void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
         range.printRange();
 
 
+    size_t overlapPixels = 50;
 
+    Ranges xOverlapps = determineOverlaps(xRanges, overlapPixels);
+    Ranges yOverlapps = determineOverlaps(yRanges, overlapPixels);
+    Ranges zOverlapps = determineOverlaps(zRanges, overlapPixels);
 
-    exit(0);
+    for (auto range: xOverlapps)
+        range.printRange();
+    for (auto range: yOverlapps)
+        range.printRange();
+    for (auto range: zOverlapps)
+        range.printRange();
+
 
 
     size_t gap = 2;
@@ -212,8 +240,38 @@ void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
 
 
     // Do the overlapps
+    // Do the bricks
+    for (size_t i = 0; i < xOverlapps.size(); ++i)
+    {
+        for (size_t j = 0; j < yRanges.size(); ++j)
+        {
+            for (size_t k = 0; k < zRanges.size(); ++k)
+            {
+                // Extract the brick from the volume
+                auto brick = _volume->getBrick(xOverlapps[i].x0, xOverlapps[i].x1,
+                                               yRanges[j].x0, yRanges[j].x1,
+                                               zRanges[k].x0, zRanges[k].x1, gap);
 
+                std::stringstream s1, s2;
+                s1 << "/home/abdellah/Desktop/hbp-reports/brick_" << counter;
+                brick->project(s1.str(), true);
 
+                // Skeletonize the brick
+                applyVolumeThinningToVolume(brick);
+
+                s2 << "/home/abdellah/Desktop/hbp-reports/skeleton_" << counter;
+                brick->project(s2.str(), true);
+
+                referenceVolume->andBrickToVolume(brick,
+                                                  xOverlapps[i].x0, xOverlapps[i].x1,
+                                                  yRanges[j].x0, yRanges[j].x1,
+                                                  zRanges[k].x0, zRanges[k].x1, gap);
+
+                counter++;
+                brick->~Volume();
+            }
+        }
+    }
 
     std::string xx = "/home/abdellah/Desktop/hbp-reports/composed";
     referenceVolume->project(xx, true);
