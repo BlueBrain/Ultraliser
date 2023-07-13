@@ -88,8 +88,11 @@ void run(int argc , const char** argv)
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
 
     Skeletonizer* skeletonizerxx = new Skeletonizer(inputMesh, solidVolume);
-    skeletonizerxx->applyVolumeThinningWithDomainDecomposition();
 
+    // skeletonizerxx->applyVolumeThinning();
+    // solidVolume->project("/home/abdellah/Desktop/hbp-reports/single-pass", true);
+
+    skeletonizerxx->applyVolumeThinningWithDomainDecomposition();
 
 
 

@@ -3667,6 +3667,48 @@ Branches buildBranchesFromNodes(std::vector< GraphNode* > nodes)
     return branches;
 }
 
+
+void Volume::addBrickToVolume(const Volume* brick,
+                              const size_t& xMin, const size_t& xMax,
+                              const size_t& yMin, const size_t& yMax,
+                              const size_t& zMin, const size_t& zMax,
+                              const size_t emptyShellThickness)
+{
+    // Determine the correct dimensions
+    const size_t width = xMax - xMin;
+    const size_t height = yMax - yMin;
+    const size_t depth = zMax - zMin;
+
+    LOG_STATUS("Extracting Volume Brick");
+    TIMER_SET;
+
+    LOOP_STARTS("Brick Extraction");
+    int64_t progress = 0;
+    for (size_t i = 0; i < width; ++i)
+    {
+        for (size_t j = 0; j < height; ++j)
+        {
+            // Parallelization along the Z-axis is OK even for the BitArray!
+            // OMP_PARALLEL_FOR
+            for (size_t k = 0; k < depth; ++k)
+            {
+                if (brick->isFilledWithoutBoundCheck(i + emptyShellThickness,
+                                                     j + emptyShellThickness,
+                                                     k + emptyShellThickness))
+                {
+                    fill(i + xMin, j + yMin, k + zMin);
+                }
+            }
+        }
+
+        LOOP_PROGRESS(progress, width);
+        progress++;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
+
 Volume* Volume::getBrick(const size_t& x1, const size_t& x2,
                          const size_t& y1, const size_t& y2,
                          const size_t& z1, const size_t& z2,
@@ -3713,7 +3755,7 @@ Volume* Volume::getBrick(const size_t& x1, const size_t& x2,
             {
                 if (isFilledWithoutBoundCheck(i + minX, j + minY, k + minZ))
                 {
-                    brick->fillVoxel(i + emptyShellThickness,
+                    brick->fill(i + emptyShellThickness,
                                      j + emptyShellThickness,
                                      k + emptyShellThickness);
                 }
