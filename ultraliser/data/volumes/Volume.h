@@ -709,6 +709,13 @@ public:
                                     const size_t& zVolumeStart, const size_t& zVolumeEnd,
                                     const size_t& numberBoundaryVoxels);
 
+    bool insertOverlappingBoundedBrickToVolume(
+            const Volume* brick,
+            const size_t& xVolumeStart, const size_t& xVolumeEnd,
+            const size_t& yVolumeStart, const size_t& yVolumeEnd,
+            const size_t& zVolumeStart, const size_t& zVolumeEnd,
+            const size_t& numberOverlappingVoxels, const size_t& numberBoundaryVoxels);
+
 public:
 
     /**

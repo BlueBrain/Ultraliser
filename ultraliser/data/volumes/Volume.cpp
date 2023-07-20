@@ -3892,6 +3892,76 @@ bool Volume::insertBoundedBrickToVolume(const Volume* brick,
 }
 
 
+bool Volume::insertOverlappingBoundedBrickToVolume(
+        const Volume* brick,
+        const size_t& xVolumeStart, const size_t& xVolumeEnd,
+        const size_t& yVolumeStart, const size_t& yVolumeEnd,
+        const size_t& zVolumeStart, const size_t& zVolumeEnd,
+        const size_t& numberOverlappingVoxels, const size_t& numberBoundaryVoxels)
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Ensure that the given grid coordinates are correct
+    const auto xMin = xVolumeStart < xVolumeEnd ? xVolumeStart : xVolumeEnd;
+    const auto xMax = xVolumeStart > xVolumeEnd ? xVolumeStart : xVolumeEnd;
+    const auto yMin = yVolumeStart < yVolumeEnd ? yVolumeStart : yVolumeEnd;
+    const auto yMax = yVolumeStart > yVolumeEnd ? yVolumeStart : yVolumeEnd;
+    const auto zMin = zVolumeStart < zVolumeEnd ? zVolumeStart : zVolumeEnd;
+    const auto zMax = zVolumeStart > zVolumeEnd ? zVolumeStart : zVolumeEnd;
+
+    std::cout << xVolumeStart << ", " << xVolumeEnd <<"; "
+              << yVolumeStart << ", " << yVolumeEnd <<"; "
+              << zVolumeStart << ", " << zVolumeEnd <<"; "
+              << std::endl;
+
+    // Compute the dimensions of the brick that should contain actual content
+    const size_t contentWidth = xMax - xMin + 1;
+    const size_t contentHeight = yMax - yMin + 1;
+    const size_t contentDepth = zMax - zMin + 1;
+
+    // Ensure that the region that will be copied is already smaller than the brick dimensions
+    if (contentWidth > brick->getWidth())
+        return false;
+    if (contentHeight > brick->getHeight())
+        return false;
+    if (contentDepth > brick->getDepth())
+        return false;
+
+    LOG_STATUS("Inserting Brick into Volume");
+    LOOP_STARTS("Brick Insertion");
+    int64_t progress = 0;
+    for (size_t i = 0; i < contentWidth; ++i)
+    {
+        for (size_t j = 0; j < contentHeight; ++j)
+        {
+            for (size_t k = 0; k < contentDepth; ++k)
+            {
+                int64_t xOverlap, yOverlap, zOverlap;
+
+                if (i > 0) xOverlap = numberOverlappingVoxels; else  xOverlap = 0;
+                if (j > 0) yOverlap = numberOverlappingVoxels; else  yOverlap = 0;
+                if (k > 0) zOverlap = numberOverlappingVoxels; else  zOverlap = 0;
+
+                if (brick->isFilled(i + numberBoundaryVoxels + xOverlap,
+                                    j + numberBoundaryVoxels + yOverlap,
+                                    k + numberBoundaryVoxels + zOverlap))
+                {
+                    fill(i + xMin, j + yMin, k + zMin);
+                }
+            }
+        }
+
+        LOOP_PROGRESS(progress, contentWidth);
+        progress++;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Successful operation
+    return true;
+}
+
 
 
 
