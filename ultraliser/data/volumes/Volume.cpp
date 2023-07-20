@@ -3717,6 +3717,65 @@ Volume* Volume:: extractBrickFromVolume(const size_t& xVolumeStart, const size_t
     return brick;
 }
 
+Volume* Volume::extractBoundedBrickFromVolume(const size_t& xVolumeStart, const size_t& xVolumeEnd,
+                                              const size_t& yVolumeStart, const size_t& yVolumeEnd,
+                                              const size_t& zVolumeStart, const size_t& zVolumeEnd,
+                                              const size_t& numberBoundaryVoxels) const
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Ensure that the given grid coordinates are correct
+    const auto xMin = xVolumeStart < xVolumeEnd ? xVolumeStart : xVolumeEnd;
+    const auto xMax = xVolumeStart > xVolumeEnd ? xVolumeStart : xVolumeEnd;
+    const auto yMin = yVolumeStart < yVolumeEnd ? yVolumeStart : yVolumeEnd;
+    const auto yMax = yVolumeStart > yVolumeEnd ? yVolumeStart : yVolumeEnd;
+    const auto zMin = zVolumeStart < zVolumeEnd ? zVolumeStart : zVolumeEnd;
+    const auto zMax = zVolumeStart > zVolumeEnd ? zVolumeStart : zVolumeEnd;
+
+
+    // Compute the dimensions of the brick that should contain actual content
+    const size_t contentWidth = xMax - xMin + 1;
+    const size_t contentHeight = yMax - yMin + 1;
+    const size_t contentDepth = zMax - zMin + 1;
+
+    // Compute the block size
+    const size_t numberDeadVoxels1D = numberBoundaryVoxels * 2;
+    const int64_t brickWidth = contentWidth + numberDeadVoxels1D;
+    const int64_t brickHeight = contentHeight + numberDeadVoxels1D;
+    const int64_t brickDepth = contentDepth + numberDeadVoxels1D;
+
+    // Allocate the brick
+    Volume* brick = new Volume(brickWidth, brickHeight, brickDepth);
+
+    LOG_STATUS("Extracting Bounded Volume Brick");
+    LOOP_STARTS("Brick Extraction");
+    int64_t progress = 0;
+    for (size_t i = 0; i < contentWidth; ++i)
+    {
+        for (size_t j = 0; j < contentHeight; ++j)
+        {
+            for (size_t k = 0; k < contentDepth; ++k)
+            {
+                if (isFilled(i + xMin, j + yMin, k + zMin))
+                {
+                    brick->fill(i + numberBoundaryVoxels,
+                                j + numberBoundaryVoxels,
+                                k + numberBoundaryVoxels);
+                }
+            }
+        }
+
+        LOOP_PROGRESS(progress, contentWidth);
+        progress++;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Return the created volume brick
+    return brick;
+}
+
 bool Volume::insertBrickToVolume(const Volume* brick,
                                  const size_t& xVolumeStart, const size_t& xVolumeEnd,
                                  const size_t& yVolumeStart, const size_t& yVolumeEnd,
@@ -3773,6 +3832,65 @@ bool Volume::insertBrickToVolume(const Volume* brick,
     return true;
 }
 
+
+bool Volume::insertBoundedBrickToVolume(const Volume* brick,
+                                        const size_t& xVolumeStart, const size_t& xVolumeEnd,
+                                        const size_t& yVolumeStart, const size_t& yVolumeEnd,
+                                        const size_t& zVolumeStart, const size_t& zVolumeEnd,
+                                        const size_t& numberBoundaryVoxels)
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Ensure that the given grid coordinates are correct
+    const auto xMin = xVolumeStart < xVolumeEnd ? xVolumeStart : xVolumeEnd;
+    const auto xMax = xVolumeStart > xVolumeEnd ? xVolumeStart : xVolumeEnd;
+    const auto yMin = yVolumeStart < yVolumeEnd ? yVolumeStart : yVolumeEnd;
+    const auto yMax = yVolumeStart > yVolumeEnd ? yVolumeStart : yVolumeEnd;
+    const auto zMin = zVolumeStart < zVolumeEnd ? zVolumeStart : zVolumeEnd;
+    const auto zMax = zVolumeStart > zVolumeEnd ? zVolumeStart : zVolumeEnd;
+
+
+    // Compute the dimensions of the brick that should contain actual content
+    const size_t contentWidth = xMax - xMin + 1;
+    const size_t contentHeight = yMax - yMin + 1;
+    const size_t contentDepth = zMax - zMin + 1;
+
+    // Ensure that the region that will be copied is already smaller than the brick dimensions
+    if (contentWidth > brick->getWidth())
+        return false;
+    if (contentHeight > brick->getHeight())
+        return false;
+    if (contentDepth > brick->getDepth())
+        return false;
+
+    LOG_STATUS("Inserting Brick into Volume");
+    LOOP_STARTS("Brick Insertion");
+    int64_t progress = 0;
+    for (size_t i = 0; i < contentWidth; ++i)
+    {
+        for (size_t j = 0; j < contentHeight; ++j)
+        {
+            for (size_t k = 0; k < contentDepth; ++k)
+            {
+                if (brick->isFilled(i + numberBoundaryVoxels,
+                                    j + numberBoundaryVoxels,
+                                    k + numberBoundaryVoxels))
+                {
+                    fill(i + xMin, j + yMin, k + zMin);
+                }
+            }
+        }
+
+        LOOP_PROGRESS(progress, contentWidth);
+        progress++;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Successful operation
+    return true;
+}
 
 
 

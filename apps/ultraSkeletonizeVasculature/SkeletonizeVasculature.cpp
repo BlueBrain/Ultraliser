@@ -99,37 +99,65 @@ void run(int argc , const char** argv)
                                solidVolume->getDepth());
 
 
-    Volume* b1 = solidVolume->extractBrickFromVolume(0, 49,
-                                                     0, solidVolume->getHeight()-1,
-                                                     0, solidVolume->getDepth()-1);
+//    Volume* b1 = solidVolume->extractBrickFromVolume(0, 49,
+//                                                     0, solidVolume->getHeight()-1,
+//                                                     0, solidVolume->getDepth()-1);
 
-    Volume* b2 = solidVolume->extractBrickFromVolume(50, 60,
-                                                     0, solidVolume->getHeight()-1,
-                                                     0, solidVolume->getDepth()-1);
+//    Volume* b2 = solidVolume->extractBrickFromVolume(50, 60,
+//                                                     0, solidVolume->getHeight()-1,
+//                                                     0, solidVolume->getDepth()-1);
 
-    Volume* b3 = solidVolume->extractBrickFromVolume(61, solidVolume->getWidth()-1,
-                                                     0, solidVolume->getHeight()-1,
-                                                     0, solidVolume->getDepth()-1);
+//    Volume* b3 = solidVolume->extractBrickFromVolume(61, solidVolume->getWidth()-1,
+//                                                     0, solidVolume->getHeight()-1,
+//                                                     0, solidVolume->getDepth()-1);
 
 
-//    copy->insertBrickToVolume(solidVolume, 0, solidVolume->getWidth()-1,
+//    copy->insertBrickToVolume(b1,0, 49,
+//                              0, solidVolume->getHeight()-1,
+//                              0, solidVolume->getDepth()-1);
+
+//    copy->insertBrickToVolume(b2,50, 60,
+//                              0, solidVolume->getHeight()-1,
+//                              0, solidVolume->getDepth()-1);
+
+//    copy->insertBrickToVolume(b3,61, solidVolume->getWidth()-1,
 //                              0, solidVolume->getHeight()-1,
 //                              0, solidVolume->getDepth()-1);
 
 
-    copy->insertBrickToVolume(b1,0, 49,
+
+    size_t black = 20;
+
+    Volume* b1 = solidVolume->extractBoundedBrickFromVolume(0, 49,
+                                                     0, solidVolume->getHeight()-1,
+                                                     0, solidVolume->getDepth()-1,
+                                                            black);
+
+    Volume* b2 = solidVolume->extractBoundedBrickFromVolume(50, 60,
+                                                     0, solidVolume->getHeight()-1,
+                                                     0, solidVolume->getDepth()-1,
+                                                     black);
+
+    Volume* b3 = solidVolume->extractBoundedBrickFromVolume(61, solidVolume->getWidth()-1,
+                                                     0, solidVolume->getHeight()-1,
+                                                     0, solidVolume->getDepth()-1,
+                                                     black);
+
+    b1->project(prefix + "-b1", options->projectXY, options->projectXZ, options->projectZY);
+    b2->project(prefix + "-b2", options->projectXY, options->projectXZ, options->projectZY);
+    b3->project(prefix + "-b3", options->projectXY, options->projectXZ, options->projectZY);
+
+    copy->insertBoundedBrickToVolume(b1,0, 49,
                               0, solidVolume->getHeight()-1,
-                              0, solidVolume->getDepth()-1);
+                              0, solidVolume->getDepth()-1, black);
 
-    copy->insertBrickToVolume(b2,50, 60,
+    copy->insertBoundedBrickToVolume(b2,50, 60,
                               0, solidVolume->getHeight()-1,
-                              0, solidVolume->getDepth()-1);
+                              0, solidVolume->getDepth()-1, black);
 
-    copy->insertBrickToVolume(b3,61, solidVolume->getWidth()-1,
+    copy->insertBoundedBrickToVolume(b3,61, solidVolume->getWidth()-1,
                               0, solidVolume->getHeight()-1,
-                              0, solidVolume->getDepth()-1);
-
-
+                              0, solidVolume->getDepth()-1, black);
 
     copy->project(prefix + "copy",
                    options->projectXY, options->projectXZ, options->projectZY);

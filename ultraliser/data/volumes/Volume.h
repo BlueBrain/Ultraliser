@@ -658,6 +658,13 @@ public:
                                    const size_t& yVolumeStart, const size_t& yVolumeEnd,
                                    const size_t& zVolumeStart, const size_t& zVolumeEnd);
 
+
+
+    Volume* extractBoundedBrickFromVolume(const size_t& xVolumeStart, const size_t& xVolumeEnd,
+                                          const size_t& yVolumeStart, const size_t& yVolumeEnd,
+                                          const size_t& zVolumeStart, const size_t& zVolumeEnd,
+                                          const size_t& numberBoundaryVoxels = 2) const;
+
     /**
      * @brief insertBrickToVolume
      * Copies (or overwrites, inserts) to content of a given brick to the volume. The spatial
@@ -683,6 +690,24 @@ public:
                              const size_t& xVolumeStart, const size_t& xVolumeEnd,
                              const size_t& yVolumeStart, const size_t& yVolumeEnd,
                              const size_t& zVolumeStart, const size_t& zVolumeEnd);
+
+    /**
+     * @brief insertBoundedBrickToVolume
+     * @param brick
+     * @param xVolumeStart
+     * @param xVolumeEnd
+     * @param yVolumeStart
+     * @param yVolumeEnd
+     * @param zVolumeStart
+     * @param zVolumeEnd
+     * @param numberBoundaryVoxels
+     * @return
+     */
+    bool insertBoundedBrickToVolume(const Volume* brick,
+                                    const size_t& xVolumeStart, const size_t& xVolumeEnd,
+                                    const size_t& yVolumeStart, const size_t& yVolumeEnd,
+                                    const size_t& zVolumeStart, const size_t& zVolumeEnd,
+                                    const size_t& numberBoundaryVoxels);
 
 public:
 
