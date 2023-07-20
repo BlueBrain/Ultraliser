@@ -3832,7 +3832,6 @@ bool Volume::insertBrickToVolume(const Volume* brick,
     return true;
 }
 
-
 bool Volume::insertBoundedBrickToVolume(const Volume* brick,
                                         const size_t& xVolumeStart, const size_t& xVolumeEnd,
                                         const size_t& yVolumeStart, const size_t& yVolumeEnd,

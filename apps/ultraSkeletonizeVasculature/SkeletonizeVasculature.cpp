@@ -87,16 +87,16 @@ void run(int argc , const char** argv)
     solidVolume->solidVoxelization(options->voxelizationAxis);
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
 
-    solidVolume->project(prefix + "example",
+    solidVolume->project(prefix + "-solid-volume",
                    options->projectXY, options->projectXZ, options->projectZY);
 
 
 
 
 
-    Volume* copy = new Volume(solidVolume->getWidth(),
-                              solidVolume->getHeight(),
-                               solidVolume->getDepth());
+//    Volume* copy = new Volume(solidVolume->getWidth(),
+//                              solidVolume->getHeight(),
+//                               solidVolume->getDepth());
 
 
 //    Volume* b1 = solidVolume->extractBrickFromVolume(0, 49,
@@ -126,64 +126,48 @@ void run(int argc , const char** argv)
 
 
 
-    size_t black = 20;
+//    size_t black = 50;
 
-    Volume* b1 = solidVolume->extractBoundedBrickFromVolume(0, 49,
-                                                     0, solidVolume->getHeight()-1,
-                                                     0, solidVolume->getDepth()-1,
-                                                            black);
+//    Volume* b1 = solidVolume->extractBoundedBrickFromVolume(0, 49,
+//                                                     0, solidVolume->getHeight()-1,
+//                                                     0, solidVolume->getDepth()-1,
+//                                                            black);
 
-    Volume* b2 = solidVolume->extractBoundedBrickFromVolume(50, 60,
-                                                     0, solidVolume->getHeight()-1,
-                                                     0, solidVolume->getDepth()-1,
-                                                     black);
+//    Volume* b2 = solidVolume->extractBoundedBrickFromVolume(50, 60,
+//                                                     0, solidVolume->getHeight()-1,
+//                                                     0, solidVolume->getDepth()-1,
+//                                                     black);
 
-    Volume* b3 = solidVolume->extractBoundedBrickFromVolume(61, solidVolume->getWidth()-1,
-                                                     0, solidVolume->getHeight()-1,
-                                                     0, solidVolume->getDepth()-1,
-                                                     black);
+//    Volume* b3 = solidVolume->extractBoundedBrickFromVolume(61, solidVolume->getWidth()-1,
+//                                                     0, solidVolume->getHeight()-1,
+//                                                     0, solidVolume->getDepth()-1,
+//                                                     black);
 
-    b1->project(prefix + "-b1", options->projectXY, options->projectXZ, options->projectZY);
-    b2->project(prefix + "-b2", options->projectXY, options->projectXZ, options->projectZY);
-    b3->project(prefix + "-b3", options->projectXY, options->projectXZ, options->projectZY);
+//    b1->project(prefix + "-b1", options->projectXY, options->projectXZ, options->projectZY);
+//    b2->project(prefix + "-b2", options->projectXY, options->projectXZ, options->projectZY);
+//    b3->project(prefix + "-b3", options->projectXY, options->projectXZ, options->projectZY);
 
-    copy->insertBoundedBrickToVolume(b1,0, 49,
-                              0, solidVolume->getHeight()-1,
-                              0, solidVolume->getDepth()-1, black);
+//    copy->insertBoundedBrickToVolume(b1,0, 49,
+//                              0, solidVolume->getHeight()-1,
+//                              0, solidVolume->getDepth()-1, black);
 
-    copy->insertBoundedBrickToVolume(b2,50, 60,
-                              0, solidVolume->getHeight()-1,
-                              0, solidVolume->getDepth()-1, black);
+//    copy->insertBoundedBrickToVolume(b2,50, 60,
+//                              0, solidVolume->getHeight()-1,
+//                              0, solidVolume->getDepth()-1, black);
 
-    copy->insertBoundedBrickToVolume(b3,61, solidVolume->getWidth()-1,
-                              0, solidVolume->getHeight()-1,
-                              0, solidVolume->getDepth()-1, black);
+//    copy->insertBoundedBrickToVolume(b3,61, solidVolume->getWidth()-1,
+//                              0, solidVolume->getHeight()-1,
+//                              0, solidVolume->getDepth()-1, black);
 
-    copy->project(prefix + "copy",
-                   options->projectXY, options->projectXZ, options->projectZY);
+//    copy->project(prefix + "copy",
+//                   options->projectXY, options->projectXZ, options->projectZY);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    return;
 
 
 
 
     Skeletonizer* skeletonizerxx = new Skeletonizer(inputMesh, solidVolume);
 
-    return;
 
 
     // skeletonizerxx->applyVolumeThinning();
@@ -192,6 +176,8 @@ void run(int argc , const char** argv)
     skeletonizerxx->applyVolumeThinningWithDomainDecomposition();
 
 
+    //solidVolume->project(prefix + "_solid",
+     //                    options->projectXY, options->projectXZ, options->projectZY);
 
     return;
 
