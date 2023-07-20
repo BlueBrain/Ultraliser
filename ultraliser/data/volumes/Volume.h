@@ -634,6 +634,56 @@ public:
                           const size_t& zMin, const size_t& zMax,
                           const size_t emptyShellThickness);
 
+
+
+    /**
+     * @brief extractBrickFromVolume
+     * Extracts a subset of the volume represented by a volume brick, which has the same data
+     * structure of the volume.
+     * @param xVolumeStart
+     * The starting x-axis index of the volume, where the brick will be copied.
+     * @param xVolumeEnd
+     * The ending x-axis index of the volume, where the brick will be copied.
+     * @param yVolumeStart
+     * The starting y-axis index of the volume, where the brick will be copied.
+     * @param yVolumeEnd
+     * The ending y-axis index of the volume, where the brick will be copied.
+     * @param zVolumeStart
+     * The starting z-axis index of the volume, where the brick will be copied.
+     * @param zVolumeEnd
+     * The ending z-axis index of the volume, where the brick will be copied.
+     * @return The extracted volume brick.
+     */
+    Volume* extractBrickFromVolume(const size_t& xVolumeStart, const size_t& xVolumeEnd,
+                                   const size_t& yVolumeStart, const size_t& yVolumeEnd,
+                                   const size_t& zVolumeStart, const size_t& zVolumeEnd);
+
+    /**
+     * @brief insertBrickToVolume
+     * Copies (or overwrites, inserts) to content of a given brick to the volume. The spatial
+     * extent of which the brick is going to be copied in the volume is defined by the given
+     * volume indices.
+     * @param brick
+     * A given brick to be copied to the volume.
+     * @param xVolumeStart
+     * The starting x-axis index of the volume, where the brick will be copied.
+     * @param xVolumeEnd
+     * The ending x-axis index of the volume, where the brick will be copied.
+     * @param yVolumeStart
+     * The starting y-axis index of the volume, where the brick will be copied.
+     * @param yVolumeEnd
+     * The ending y-axis index of the volume, where the brick will be copied.
+     * @param zVolumeStart
+     * The starting z-axis index of the volume, where the brick will be copied.
+     * @param zVolumeEnd
+     * The ending z-axis index of the volume, where the brick will be copied.
+     * @return True or false depending on the success of the operation.
+     */
+    bool insertBrickToVolume(const Volume* brick,
+                             const size_t& xVolumeStart, const size_t& xVolumeEnd,
+                             const size_t& yVolumeStart, const size_t& yVolumeEnd,
+                             const size_t& zVolumeStart, const size_t& zVolumeEnd);
+
 public:
 
     /**

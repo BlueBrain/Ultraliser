@@ -87,7 +87,76 @@ void run(int argc , const char** argv)
     solidVolume->solidVoxelization(options->voxelizationAxis);
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
 
+    solidVolume->project(prefix + "example",
+                   options->projectXY, options->projectXZ, options->projectZY);
+
+
+
+
+
+    Volume* copy = new Volume(solidVolume->getWidth(),
+                              solidVolume->getHeight(),
+                               solidVolume->getDepth());
+
+
+    Volume* b1 = solidVolume->extractBrickFromVolume(0, 49,
+                                                     0, solidVolume->getHeight()-1,
+                                                     0, solidVolume->getDepth()-1);
+
+    Volume* b2 = solidVolume->extractBrickFromVolume(50, 60,
+                                                     0, solidVolume->getHeight()-1,
+                                                     0, solidVolume->getDepth()-1);
+
+    Volume* b3 = solidVolume->extractBrickFromVolume(61, solidVolume->getWidth()-1,
+                                                     0, solidVolume->getHeight()-1,
+                                                     0, solidVolume->getDepth()-1);
+
+
+//    copy->insertBrickToVolume(solidVolume, 0, solidVolume->getWidth()-1,
+//                              0, solidVolume->getHeight()-1,
+//                              0, solidVolume->getDepth()-1);
+
+
+    copy->insertBrickToVolume(b1,0, 49,
+                              0, solidVolume->getHeight()-1,
+                              0, solidVolume->getDepth()-1);
+
+    copy->insertBrickToVolume(b2,50, 60,
+                              0, solidVolume->getHeight()-1,
+                              0, solidVolume->getDepth()-1);
+
+    copy->insertBrickToVolume(b3,61, solidVolume->getWidth()-1,
+                              0, solidVolume->getHeight()-1,
+                              0, solidVolume->getDepth()-1);
+
+
+
+    copy->project(prefix + "copy",
+                   options->projectXY, options->projectXZ, options->projectZY);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    return;
+
+
+
+
     Skeletonizer* skeletonizerxx = new Skeletonizer(inputMesh, solidVolume);
+
+    return;
+
 
     // skeletonizerxx->applyVolumeThinning();
     // solidVolume->project("/home/abdellah/Desktop/hbp-reports/single-pass", true);

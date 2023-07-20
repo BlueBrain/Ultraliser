@@ -3667,6 +3667,139 @@ Branches buildBranchesFromNodes(std::vector< GraphNode* > nodes)
     return branches;
 }
 
+Volume* Volume:: extractBrickFromVolume(const size_t& xVolumeStart, const size_t& xVolumeEnd,
+                                        const size_t& yVolumeStart, const size_t& yVolumeEnd,
+                                        const size_t& zVolumeStart, const size_t& zVolumeEnd)
+{
+    // Start the timerBounded
+    TIMER_SET;
+
+    // Ensure that the given grid coordinates are correct
+    const auto xMin = xVolumeStart < xVolumeEnd ? xVolumeStart : xVolumeEnd;
+    const auto xMax = xVolumeStart > xVolumeEnd ? xVolumeStart : xVolumeEnd;
+    const auto yMin = yVolumeStart < yVolumeEnd ? yVolumeStart : yVolumeEnd;
+    const auto yMax = yVolumeStart > yVolumeEnd ? yVolumeStart : yVolumeEnd;
+    const auto zMin = zVolumeStart < zVolumeEnd ? zVolumeStart : zVolumeEnd;
+    const auto zMax = zVolumeStart > zVolumeEnd ? zVolumeStart : zVolumeEnd;
+
+    // Compute the correct dimensions of the brick
+    /// NOTE: Due to the indexing that is starting from 0, +1 is added
+    const int64_t brickWidth = xMax - xMin + 1;
+    const int64_t brickHeight = yMax - yMin + 1;
+    const int64_t brickDepth = zMax - zMin + 1;
+
+    // Allocate the brick
+    Volume* brick = new Volume(brickWidth, brickHeight, brickDepth);
+
+    LOG_STATUS("Extracting Volume Brick");
+    LOOP_STARTS("Brick Extraction");
+    int64_t progress = 0;
+    for (size_t i = 0; i < brickWidth; ++i)
+    {
+        for (size_t j = 0; j < brickHeight; ++j)
+        {
+            for (size_t k = 0; k < brickDepth; ++k)
+            {
+                if (isFilledWithoutBoundCheck(i + xMin, j + yMin, k + zMin))
+                {
+                    brick->fill(i, j, k);
+                }
+            }
+        }
+
+        LOOP_PROGRESS(progress, brickWidth);
+        progress++;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Return the created volume brick
+    return brick;
+}
+
+bool Volume::insertBrickToVolume(const Volume* brick,
+                                 const size_t& xVolumeStart, const size_t& xVolumeEnd,
+                                 const size_t& yVolumeStart, const size_t& yVolumeEnd,
+                                 const size_t& zVolumeStart, const size_t& zVolumeEnd)
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Ensure that the given grid coordinates are correct
+    const auto xMin = xVolumeStart < xVolumeEnd ? xVolumeStart : xVolumeEnd;
+    const auto xMax = xVolumeStart > xVolumeEnd ? xVolumeStart : xVolumeEnd;
+    const auto yMin = yVolumeStart < yVolumeEnd ? yVolumeStart : yVolumeEnd;
+    const auto yMax = yVolumeStart > yVolumeEnd ? yVolumeStart : yVolumeEnd;
+    const auto zMin = zVolumeStart < zVolumeEnd ? zVolumeStart : zVolumeEnd;
+    const auto zMax = zVolumeStart > zVolumeEnd ? zVolumeStart : zVolumeEnd;
+
+
+    // Determine the correct dimensions
+    const size_t copiedRegionWidth = xMax - xMin + 1;
+    const size_t copiedRegionHeight = yMax - yMin + 1;
+    const size_t copiedRegionDepth = zMax - zMin + 1;
+
+    // Ensure that the region that will be copied is already smaller than the brick dimensions
+    if (copiedRegionWidth > brick->getWidth())
+        return false;
+    if (copiedRegionHeight > brick->getHeight())
+        return false;
+    if (copiedRegionDepth > brick->getDepth())
+        return false;
+
+    LOG_STATUS("Inserting Brick into Volume");
+    LOOP_STARTS("Brick Insertion");
+    int64_t progress = 0;
+    for (size_t i = 0; i < copiedRegionWidth; ++i)
+    {
+        for (size_t j = 0; j < copiedRegionHeight; ++j)
+        {
+            for (size_t k = 0; k < copiedRegionDepth; ++k)
+            {
+                if (brick->isFilled(i, j, k))
+                {
+                    fill(i + xMin, j + yMin, k + zMin);
+                }
+            }
+        }
+
+        LOOP_PROGRESS(progress, copiedRegionWidth);
+        progress++;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Successful operation
+    return true;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void Volume::addBrickToVolume(const Volume* brick,
                               const size_t& xMin, const size_t& xMax,

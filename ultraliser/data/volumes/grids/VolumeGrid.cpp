@@ -478,7 +478,7 @@ void VolumeGrid::writeProjection(const std::string &prefix,
     for (int64_t index = 0; index < projectionSize; ++index)
     {
         // Compute float pixel value
-        double pixelValue = 65535 * (projectionImage[index] / maxValue);
+        double pixelValue = 255 * (projectionImage[index] / maxValue);
 
         // Convert to uint8_t to be able to write it to the image
         normalizedProjectionImage[index] = F2UI16(pixelValue);
