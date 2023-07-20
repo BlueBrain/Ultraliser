@@ -184,7 +184,7 @@ void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
     std::string yy = "/home/abdellah/Desktop/hbp-reports/original";
     _volume->project(yy, true);
 
-    const size_t subdivisions = 2;
+    const size_t subdivisions = 5;
     const size_t overlappingVoxels = 25;
     const size_t numberZeroVoxels = 2;
 

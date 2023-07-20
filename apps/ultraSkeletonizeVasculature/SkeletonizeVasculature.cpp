@@ -94,11 +94,11 @@ void run(int argc , const char** argv)
 
 
     Skeletonizer* skeletonizerxx = new Skeletonizer(inputMesh, solidVolume);
-    // skeletonizerxx->applyVolumeThinningWithDomainDecomposition();
+    skeletonizerxx->applyVolumeThinningWithDomainDecomposition();
 
 
-    skeletonizerxx->applyVolumeThinning();
-    solidVolume->project("/home/abdellah/Desktop/hbp-reports/single-pass", true);
+    // skeletonizerxx->applyVolumeThinning();
+    // solidVolume->project("/home/abdellah/Desktop/hbp-reports/single-pass", true);
 
 
     // skeletonizerxx->applyVolumeThinning();
