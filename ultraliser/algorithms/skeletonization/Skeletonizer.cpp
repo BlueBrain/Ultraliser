@@ -185,8 +185,8 @@ void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
     _volume->project(yy, true);
 
     const size_t subdivisions = 2;
-    const size_t overlappingVoxels = 10;
-    const size_t numberZeroVoxels = 0;
+    const size_t overlappingVoxels = 25;
+    const size_t numberZeroVoxels = 2;
 
     Ranges xRanges = decomposeRangeToRanges(0, _volume->getWidth() - 1, subdivisions);
     Ranges yRanges = decomposeRangeToRanges(0, _volume->getHeight() - 1, subdivisions);
@@ -240,29 +240,40 @@ void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
 
                  std::stringstream s1, s2, s3;
 
-                s3 << "/home/abdellah/Desktop/hbp-reports/brick_small_" << counter;
-                brick2->project(s3.str(), true);
+//                s3 << "/home/abdellah/Desktop/hbp-reports/brick_small_" << counter;
+//                brick2->project(s3.str(), true);
 
 
 
 
-                s1 << "/home/abdellah/Desktop/hbp-reports/brick_" << counter;
-                brick->project(s1.str(), true);
+//                s1 << "/home/abdellah/Desktop/hbp-reports/brick_" << counter;
+//                brick->project(s1.str(), true);
 
                 // Skeletonize the brick
-                // applyVolumeThinningToVolume(brick);
+                applyVolumeThinningToVolume(brick);
 
                 //s2 << "/home/abdellah/Desktop/hbp-reports/skeleton_" << counter;
                 //brick->project(s2.str(), true);
+
+
+                size_t xOverlapping, yOverlapping, zOverlapping = 0;
+                if (i > 0) xOverlapping = overlappingVoxels; else xOverlapping = 0;
+                if (j > 0) yOverlapping = overlappingVoxels; else yOverlapping = 0;
+                if (k > 0) zOverlapping = overlappingVoxels; else zOverlapping = 0;
+
 
                 referenceVolume->insertOverlappingBoundedBrickToVolume(brick,
                                                                        xRanges[i].i1, xRanges[i].i2,
                                                                        yRanges[j].i1, yRanges[j].i2,
                                                                        zRanges[k].i1, zRanges[k].i2,
-                                                                       overlappingVoxels, numberZeroVoxels);
+                                                                       xOverlapping,
+                                                                       yOverlapping,
+                                                                       zOverlapping,
+                                                                       numberZeroVoxels);
 
                 counter++;
                 brick->~Volume();
+
             }
         }
     }

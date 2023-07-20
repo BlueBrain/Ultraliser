@@ -3755,6 +3755,7 @@ Volume* Volume::extractBoundedBrickFromVolume(const size_t& xVolumeStart, const 
     {
         for (size_t j = 0; j < contentHeight; ++j)
         {
+            OMP_PARALLEL_FOR
             for (size_t k = 0; k < contentDepth; ++k)
             {
                 if (isFilled(i + xMin, j + yMin, k + zMin))
@@ -3897,7 +3898,10 @@ bool Volume::insertOverlappingBoundedBrickToVolume(
         const size_t& xVolumeStart, const size_t& xVolumeEnd,
         const size_t& yVolumeStart, const size_t& yVolumeEnd,
         const size_t& zVolumeStart, const size_t& zVolumeEnd,
-        const size_t& numberOverlappingVoxels, const size_t& numberBoundaryVoxels)
+        const size_t& xOverlappingVoxels,
+        const size_t& yOverlappingVoxels,
+        const size_t& zOverlappingVoxels,
+        const size_t& numberBoundaryVoxels)
 {
     // Start the timer
     TIMER_SET;
@@ -3937,17 +3941,15 @@ bool Volume::insertOverlappingBoundedBrickToVolume(
         {
             for (size_t k = 0; k < contentDepth; ++k)
             {
-                int64_t xOverlap, yOverlap, zOverlap;
-
-                if (i > 0) xOverlap = numberOverlappingVoxels; else  xOverlap = 0;
-                if (j > 0) yOverlap = numberOverlappingVoxels; else  yOverlap = 0;
-                if (k > 0) zOverlap = numberOverlappingVoxels; else  zOverlap = 0;
-
-                if (brick->isFilled(i + numberBoundaryVoxels + xOverlap,
-                                    j + numberBoundaryVoxels + yOverlap,
-                                    k + numberBoundaryVoxels + zOverlap))
+                if (brick->isFilled(i + numberBoundaryVoxels + xOverlappingVoxels,
+                                    j + numberBoundaryVoxels + yOverlappingVoxels,
+                                    k + numberBoundaryVoxels + zOverlappingVoxels))
                 {
                     fill(i + xMin, j + yMin, k + zMin);
+                }
+                else
+                {
+                    clear(i + xMin, j + yMin, k + zMin);
                 }
             }
         }
