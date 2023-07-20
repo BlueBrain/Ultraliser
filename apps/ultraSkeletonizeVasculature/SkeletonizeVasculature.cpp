@@ -87,18 +87,18 @@ void run(int argc , const char** argv)
     solidVolume->solidVoxelization(options->voxelizationAxis);
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
 
-    solidVolume->project(prefix + "-solid-volume",
-                   options->projectXY, options->projectXZ, options->projectZY);
+//    solidVolume->project(prefix + "-solid-volume",
+//                   options->projectXY, options->projectXZ, options->projectZY);
 
 
 
 
     Skeletonizer* skeletonizerxx = new Skeletonizer(inputMesh, solidVolume);
-    skeletonizerxx->applyVolumeThinningWithDomainDecomposition();
+    // skeletonizerxx->applyVolumeThinningWithDomainDecomposition();
 
 
-    // skeletonizerxx->applyVolumeThinning();
-    // solidVolume->project("/home/abdellah/Desktop/hbp-reports/single-pass", true);
+    skeletonizerxx->applyVolumeThinning();
+    solidVolume->project("/home/abdellah/Desktop/hbp-reports/single-pass", true);
 
 
     // skeletonizerxx->applyVolumeThinning();

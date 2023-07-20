@@ -57,7 +57,8 @@ public:
 
     void applyVolumeThinningWithDomainDecomposition();
 
-    void applyVolumeThinningToVolume(Volume* volume);
+    void applyVolumeThinningToVolume(Volume* volume, const bool &displayProgress = true);
+
 private:
 
     void _computeShellPoints();

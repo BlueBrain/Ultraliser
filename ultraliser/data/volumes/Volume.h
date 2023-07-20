@@ -656,14 +656,16 @@ public:
      */
     Volume* extractBrickFromVolume(const size_t& xVolumeStart, const size_t& xVolumeEnd,
                                    const size_t& yVolumeStart, const size_t& yVolumeEnd,
-                                   const size_t& zVolumeStart, const size_t& zVolumeEnd);
+                                   const size_t& zVolumeStart, const size_t& zVolumeEnd,
+                                   const bool& displayProgress = true);
 
 
 
     Volume* extractBoundedBrickFromVolume(const size_t& xVolumeStart, const size_t& xVolumeEnd,
                                           const size_t& yVolumeStart, const size_t& yVolumeEnd,
                                           const size_t& zVolumeStart, const size_t& zVolumeEnd,
-                                          const size_t& numberBoundaryVoxels = 2) const;
+                                          const size_t& numberBoundaryVoxels = 2,
+                                          const bool& displayProgress = true) const;
 
     /**
      * @brief insertBrickToVolume
@@ -689,7 +691,8 @@ public:
     bool insertBrickToVolume(const Volume* brick,
                              const size_t& xVolumeStart, const size_t& xVolumeEnd,
                              const size_t& yVolumeStart, const size_t& yVolumeEnd,
-                             const size_t& zVolumeStart, const size_t& zVolumeEnd);
+                             const size_t& zVolumeStart, const size_t& zVolumeEnd,
+                             const bool &displayProgress = true);
 
     /**
      * @brief insertBoundedBrickToVolume
@@ -707,7 +710,8 @@ public:
                                     const size_t& xVolumeStart, const size_t& xVolumeEnd,
                                     const size_t& yVolumeStart, const size_t& yVolumeEnd,
                                     const size_t& zVolumeStart, const size_t& zVolumeEnd,
-                                    const size_t& numberBoundaryVoxels);
+                                    const size_t& numberBoundaryVoxels,
+                                    const bool &displayProgress = true);
 
     bool insertOverlappingBoundedBrickToVolume(const Volume* brick,
                                                const size_t& xVolumeStart, const size_t& xVolumeEnd,
@@ -716,7 +720,8 @@ public:
                                                const size_t& xOverlappingVoxels,
                                                const size_t &yOverlappingVoxels,
                                                const size_t &zOverlappingVoxels,
-                                               const size_t& numberBoundaryVoxels);
+                                               const size_t& numberBoundaryVoxels,
+                                               const bool &displayProgress = true);
 
 public:
 
