@@ -85,7 +85,7 @@ void run(int argc , const char** argv)
     // Surface voxelization
     solidVolume->surfaceVoxelization(inputMesh, false, false, 1.0);
     solidVolume->solidVoxelization(options->voxelizationAxis);
-    solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
+    // solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
 
 //    solidVolume->project(prefix + "-solid-volume",
 //                   options->projectXY, options->projectXZ, options->projectZY);
@@ -93,89 +93,23 @@ void run(int argc , const char** argv)
 
 
 
-    Skeletonizer* skeletonizerxx = new Skeletonizer(inputMesh, solidVolume);
-    // skeletonizerxx->applyVolumeThinningWithDomainDecomposition();
+    Skeletonizer* skeletonizer = new Skeletonizer(inputMesh, solidVolume);
+    // skeletonizer->applyVolumeThinningWithDomainDecomposition();
+    skeletonizer->applyVolumeThinning();
 
-
-    skeletonizerxx->applyVolumeThinning();
-    solidVolume->project("/home/abdellah/Desktop/hbp-reports/single-pass", true);
+    // solidVolume->project("/home/abdellah/Desktop/hbp-reports/single-pass", true);
 
 
     // skeletonizerxx->applyVolumeThinning();
     // solidVolume->project("/home/abdellah/Desktop/hbp-reports/single-pass", true);
 
-    return;
 
-    //solidVolume->project(prefix + "_solid",
-     //                    options->projectXY, options->projectXZ, options->projectZY);
-
-    auto anotherVolume = new Volume(solidVolume);
-    //anotherVolume->project(prefix + "_another",
-    //               options->projectXY, options->projectXZ, options->projectZY);
-
-    int xStart = solidVolume->getWidth() / 2;
-    int xEnd = solidVolume->getWidth();
-
-    auto brick = solidVolume->getBrick(xStart, xEnd,
-                                       0, solidVolume->getHeight(),
-                                       0, solidVolume->getDepth());
-    brick->project(prefix + "_brick2",
-                   options->projectXY, options->projectXZ, options->projectZY);
-
-    exit(0);
-
-    Skeletonizer* skeletonizers = new Skeletonizer(inputMesh, brick);
-
-    // Get the border
-
-    skeletonizers->applyVolumeThinning();
-
-    brick->project(prefix + "_brick_thin2",
-                   options->projectXY, options->projectXZ, options->projectZY);
-
-
-
-
-
-
-
-
-    //solidVolume->exportToMesh(prefix + "_step_4", true);
-
-//    solidVolume->project(prefix + "_solid",
-//                    options->projectXY, options->projectXZ, options->projectZY,
-//                    options->projectColorCoded);
 
    // solidVolume->exportToMesh(prefix + "_grid", true);
 
 
-    Skeletonizer* skeletonizer = new Skeletonizer(inputMesh, solidVolume);
-
-    // Get the border
-
-    skeletonizer->applyVolumeThinning();
-
-    solidVolume->project(prefix + "_allll",
-                   options->projectXY, options->projectXZ, options->projectZY);
-
-    exit(0);
     auto nodes = skeletonizer->constructGraph();
 
-
-
-
-//    solidVolume->project(prefix + "_skeletonsss",
-//                    options->projectXY, options->projectXZ, options->projectZY,
-//                    options->projectColorCoded);
-
-//    solidVolume->writeVolumes(options->volumePrefix + "_skeleton",
-//                         options->exportBitVolume,
-//                         options->exportUnsignedVolume,
-//                         options->exportFloatVolume,
-//                         options->exportNRRDVolume,
-//                         options->exportRawVolume);
-
-//    solidVolume->exportToMesh(options->volumePrefix + "mesh", true);
 
     skeletonizer->segmentComponents(nodes);
 //    solidVolume->project(prefix + "_sphere",

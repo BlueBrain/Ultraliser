@@ -498,7 +498,10 @@ public:
      * @param thinning
      * @return
      */
-    size_t deleteCandidateVoxels(std::unique_ptr< Thinning6Iterations > &thinning);
+    size_t deleteCandidateVoxels(std::unique_ptr< Thinning6Iterations > &thinning,
+                                 const bool& displayProgress = true);
+
+    size_t deleteCandidateVoxelsParallel(std::unique_ptr< Thinning6Iterations > &thinning);
 
     /**
      * @brief searchForDeletableVoxels

@@ -156,7 +156,7 @@ void Skeletonizer::applyVolumeThinningToVolume(Volume* volume, const bool& displ
         LOOP_PROGRESS(0, 100);
         while(1)
         {
-            size_t numberDeletedVoxels = volume->deleteCandidateVoxels(thinningKernel);
+            size_t numberDeletedVoxels = volume->deleteCandidateVoxelsParallel(thinningKernel);
 
             // Updating the progess bar
            if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
@@ -178,7 +178,7 @@ void Skeletonizer::applyVolumeThinningToVolume(Volume* volume, const bool& displ
         size_t loopCounter = 0;
         while(1)
         {
-            size_t numberDeletedVoxels = volume->deleteCandidateVoxels(thinningKernel);
+            size_t numberDeletedVoxels = volume->deleteCandidateVoxelsParallel(thinningKernel);
            if (numberDeletedVoxels == 0)
                break;
         }
@@ -198,8 +198,8 @@ void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
                                          _volume->getHeight(),
                                          _volume->getDepth());
 
-    const size_t subdivisions = 5;
-    const size_t overlappingVoxels = 25;
+    const size_t subdivisions = 4;
+    const size_t overlappingVoxels = 5;
     const size_t numberZeroVoxels = 2;
 
     Ranges xRanges = decomposeRangeToRanges(0, _volume->getWidth() - 1, subdivisions);
@@ -211,27 +211,15 @@ void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
     Ranges yRangesOverlapping = adjustOverlappingVoxels(yRanges, overlappingVoxels);
     Ranges zRangesOverlapping = adjustOverlappingVoxels(zRanges, overlappingVoxels);
 
-//    for (auto range: xRanges)
-//        range.printRange();
-//    for (auto range: yRanges)
-//        range.printRange();
-//    for (auto range: zRanges)
-//        range.printRange();
-
-//    for (auto range: xRangesOverlapping)
-//        range.printRange();
-//    for (auto range: yRangesOverlapping)
-//        range.printRange();
-//    for (auto range: zRangesOverlapping)
-//        range.printRange();
-
     LOG_STATUS("Skeletonizing Volume Bricks");
     LOOP_STARTS("Skeletonization");
     int64_t progress = 0;
     for (size_t i = 0; i < xRanges.size(); ++i)
     {
+        LOOP_PROGRESS(progress, xRanges.size());
         for (size_t j = 0; j < yRanges.size(); ++j)
         {
+            // OMP_PARALLEL_FOR
             for (size_t k = 0; k < zRanges.size(); ++k)
             {
                 // Extract the brick from the volume
@@ -261,7 +249,6 @@ void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
             }
         }
 
-        LOOP_PROGRESS(progress, xRanges.size());
         progress++;
     }
     LOOP_DONE;
@@ -269,6 +256,11 @@ void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
 
     std::string xx = "/home/abdellah/Desktop/hbp-reports/composed";
     referenceVolume->project(xx, true);
+    _volume->insertBrickToVolume(referenceVolume,
+                                 0, referenceVolume->getWidth() - 1,
+                                 0, referenceVolume->getHeight() - 1,
+                                 0, referenceVolume->getDepth() - 1);
+    referenceVolume->~Volume();
 }
 
 void Skeletonizer::applyVolumeThinning()
@@ -290,7 +282,7 @@ void Skeletonizer::applyVolumeThinning()
     LOOP_PROGRESS(0, 100);
     while(1)
     {
-        size_t numberDeletedVoxels = _volume->deleteCandidateVoxels(thinningKernel);
+        size_t numberDeletedVoxels = _volume->deleteCandidateVoxelsParallel(thinningKernel);
 
         // Updating the progess bar
        if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;

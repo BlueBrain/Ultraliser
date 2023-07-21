@@ -3209,8 +3209,72 @@ std::vector< CandidateVoxels > Volume::searchForCandidateVoxels() const
 }
 
 
-#include <algorithm>
-size_t Volume::deleteCandidateVoxels(std::unique_ptr< Thinning6Iterations > &thinning)
+size_t Volume::deleteCandidateVoxels(std::unique_ptr< Thinning6Iterations > &thinning,
+                                     const bool& displayProgress)
+{
+    size_t numberDeletedVoxels = 0;
+
+    // This list will collect the border voxels per slice (along the width)
+    CandidateVoxels borderVoxels;
+
+    // Collect the border voxels
+    for (size_t i = 0; i < getWidth(); ++i)
+    {
+        for (size_t j = 0; j < getHeight(); ++j)
+        {
+            for (size_t k = 0; k < getDepth(); ++k)
+            {
+                if (isBorderVoxel(i, j, k))
+                {
+                    CandidateVoxel* voxel = new CandidateVoxel();
+                    voxel->x = i;
+                    voxel->y = j;
+                    voxel->z = k;
+                    voxel->deletable = false;
+                    borderVoxels.push_back(voxel);
+                }
+            }
+        }
+    }
+
+    for (size_t direction = 0; direction < 6; direction++)
+    {
+        for (size_t n = 0; n < borderVoxels.size(); ++n)
+        {
+
+            // A block of the volume that is scanned every iteration
+            int8_t volumeBlock[26];
+            for (size_t k = 0; k < 26; k++)
+            {
+                size_t idx, idy, idz;
+                idx = borderVoxels[n]->x + VDX[k];
+                idy = borderVoxels[n]->y + VDY[k];
+                idz = borderVoxels[n]->z + VDZ[k];
+                volumeBlock[k] = isFilledWithoutBoundCheck(idx, idy, idz) ? 1 : 0;
+            }
+
+            if (thinning->matches(direction, volumeBlock))
+            {
+                borderVoxels[n]->deletable = true;
+            }
+        }
+
+        for (size_t n = 0; n < borderVoxels.size(); ++n)
+        {
+
+            if (borderVoxels[n]->deletable)
+            {
+                numberDeletedVoxels++;
+                clear(borderVoxels[n]->x, borderVoxels[n]->y, borderVoxels[n]->z);
+                borderVoxels[n]->deletable = false;
+            }
+        }
+    }
+
+    return numberDeletedVoxels;
+}
+
+size_t Volume::deleteCandidateVoxelsParallel(std::unique_ptr< Thinning6Iterations > &thinning)
 {
     size_t numberDeletedVoxels = 0;
 
@@ -3769,7 +3833,7 @@ Volume* Volume::extractBoundedBrickFromVolume(const size_t& xVolumeStart, const 
         {
             for (size_t j = 0; j < contentHeight; ++j)
             {
-
+                OMP_PARALLEL_FOR
                 for (size_t k = 0; k < contentDepth; ++k)
                 {
                     if (isFilled(i + xMin, j + yMin, k + zMin))
@@ -3793,7 +3857,7 @@ Volume* Volume::extractBoundedBrickFromVolume(const size_t& xVolumeStart, const 
         {
             for (size_t j = 0; j < contentHeight; ++j)
             {
-
+                OMP_PARALLEL_FOR
                 for (size_t k = 0; k < contentDepth; ++k)
                 {
                     if (isFilled(i + xMin, j + yMin, k + zMin))
@@ -4046,6 +4110,7 @@ bool Volume::insertOverlappingBoundedBrickToVolume(
     {
         for (size_t i = 0; i < contentWidth; ++i)
         {
+            OMP_PARALLEL_FOR
             for (size_t j = 0; j < contentHeight; ++j)
             {
                 for (size_t k = 0; k < contentDepth; ++k)
