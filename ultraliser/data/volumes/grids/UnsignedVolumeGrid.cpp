@@ -22,7 +22,7 @@
 #include <data/volumes/grids/VolumeGrid.h>
 #include "UnsignedVolumeGrid.h"
 #include <data/volumes/voxels/DMCVoxel.h>
-#include <algorithms/FloodFiller.h>
+#include <algorithms/floodfill/FloodFiller.h>
 #include <common/Common.h>
 #include <utilities/Utilities.h>
 #include <data/volumes/grids/Projection.h>

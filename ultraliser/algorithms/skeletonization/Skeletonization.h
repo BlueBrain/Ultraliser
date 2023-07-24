@@ -24,32 +24,10 @@
 #pragma once
 
 #include <algorithms/skeletonization/Skeletonizer.h>
-
-namespace Ultraliser
-{
-
-/**
- * @brief The NeuronSkeletonizer class
- */
-class NeuronSkeletonizer : public Skeletonizer
-{
-public:
-    NeuronSkeletonizer(Volume *volume, const Mesh* mesh);
-    ~NeuronSkeletonizer();
-
-    void constructGraph() override;
-
-    /**
-     * @brief getSomaMesh
-     * Returns a pointer to the soma mesh.
-     * @return
-     * Returns a pointer to the soma mesh.
-     */
-    Mesh* getSomaMesh() const { return _somaMesh; }
-
-
-private:
-
-    Mesh* _somaMesh = nullptr;
-};
-}
+#include <algorithms/skeletonization/NeuronSkeletonizer.h>
+#include <algorithms/skeletonization/VasculatureSkeletonizer.h>
+#include <algorithms/skeletonization/SkeletonizerUtils.h>
+#include <algorithms/skeletonization/SkeletonNode.hh>
+#include <algorithms/skeletonization/SkeletonEdge.hh>
+#include <algorithms/skeletonization/SkeletonBranch.hh>
+#include <algorithms/skeletonization/thinning/Thinning.h>

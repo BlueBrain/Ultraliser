@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2023
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -26,6 +26,7 @@
 #include <cmath>
 #include <queue>
 #include <ctime>
+#include <cstddef>
 #include <limits>
 #include <vector>
 #include <climits>

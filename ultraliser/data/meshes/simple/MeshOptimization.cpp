@@ -37,7 +37,7 @@
 #include <math/Math.h>
 #include <utilities/Utilities.h>
 #include <geometry/Intersection.h>
-#include <algorithms/SectionGeometry.h>
+#include <algorithms/geometry/Geometry.h>
 
 #define ANGLE_ERROR                         0.123456789f
 #define MAXIMUM_FLOAT_VALUE                 99999.0

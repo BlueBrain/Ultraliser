@@ -31,7 +31,7 @@
  **************************************************************************************************/
 
 #include "IntersectionCell.h"
-#include <algorithms/Sorting.h>
+#include <algorithms/utilities/Sorting.h>
 #include <utilities/Timer.h>
 #include <data/meshes/advanced/Defines.hh>
 #include <data/meshes/advanced/Utilities.h>

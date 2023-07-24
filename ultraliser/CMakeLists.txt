@@ -1,5 +1,5 @@
 ####################################################################################################
-# Copyright (c) 2016 - 2021
+# Copyright (c) 2016 - 2023
 # Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
 #
 # Author(s)
@@ -32,8 +32,13 @@ set(ULTRALISER_HEADER_FILES "")
 
 # A list of the directories that will be scanned
 set(DIRECTORIES "algorithms"
+                "algorithms/floodfill"
+                "algorithms/geometry"
+                "algorithms/mcs"
                 "algorithms/simulation"
                 "algorithms/skeletonization"
+                "algorithms/skeletonization/thinning"
+                "algorithms/utilities"
                 "arguments"
                 "common"
                 "data"

@@ -1,8 +1,9 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2013 - 2023
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
+ *      Marco Attene < IMATI-GE / CNR >
  *      Marwan Abdellah < marwan.abdellah@epfl.ch >
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
@@ -21,7 +22,4 @@
 
 #pragma once
 
-#include <algorithms/mcs/MCs.h>
-#include <algorithms/floodfill/FloodFiller.h>
-#include <algorithms/geometry/Geometry.h>
-#include <algorithms/utilities/Utilities.h>
+#include <algorithms/utilities/Sorting.h>

@@ -3,47 +3,26 @@
 namespace Ultraliser
 {
 
-VasculatureSkeletonizer::VasculatureSkeletonizer(const Mesh *mesh, Volume* volume)
-    : Skeletonizer(mesh, volume)
+VasculatureSkeletonizer::VasculatureSkeletonizer(Volume* volume, const Mesh *mesh)
+    : Skeletonizer(volume, mesh)
 
 {
-
+    /// EMPTY CONSTRUCTOR
 }
 
 void VasculatureSkeletonizer::segmentComponents()
 {
-
-    // Build the branches from the nodes
+    // Currently, vasculature datasets have only branches with fluctuating diameters. Therefore,
+    // branches are only the available components to be segmented from the graph. This is indeed
+    // unlike neurons that can have somata, branches and spines.
     _buildBranchesFromNodes(_nodes);
-
-    std::cout << "Branches: " << _branches.size() << "\n";
-    std::cout << "Nodes (Samples): " << _nodes.size() << "\n";
-
-    std::fstream stream;
-    stream.open("/abdellah2/scratch/thinning/output/projections/branches.txt", std::ios::out);
-    for (size_t i = 0; i < _branches.size(); ++i)
-    {
-        stream << "start\n";
-
-        for (auto& node: _branches[i]->nodes)
-        {
-            stream << node->point.x() << " "
-                   << node->point.y() << " "
-                   << node->point.z() << " "
-                   << node->radius << "\n";
-        }
-        stream << "end\n";
-    }
-    stream.close();
-
-    std::cout << "Branchs: " << _branches.size() << "\n";
-
-    return;
 }
+
 void VasculatureSkeletonizer::exportSkeletonVMV(const std::string& prefix,
                                                 const std::string& fileName)
 {
-    std::string filePath = prefix + "/" + fileName;
+    // Construct the file path
+    std::string filePath = prefix + "/" + fileName + VMV_EXTENSION;
     LOG_STATUS("Exporting VMV Morphology : [ %s ]", filePath.c_str());
 
     // Start the timer
@@ -61,9 +40,10 @@ void VasculatureSkeletonizer::exportSkeletonVMV(const std::string& prefix,
     fprintf(filePointer, "$PARAM_BEGIN\n");
     fprintf(filePointer, "$NUM_VERTS %lu\n", _nodes.size());
     fprintf(filePointer, "$NUM_STRANDS %lu\n", _branches.size());
-    fprintf(filePointer, "$PARAM_END\n");
+    fprintf(filePointer, "$PARAM_END\n\n");
 
-    LOOP_STARTS("Writing Nodes");
+    // Nodes, or vertices
+    LOOP_STARTS("Writing Vertices (or Nodes)");
     fprintf(filePointer, "$VERT_LIST_BEGIN\n");
     size_t progress = 0;
     for (size_t i = 0; i < _nodes.size(); ++i)
@@ -77,11 +57,12 @@ void VasculatureSkeletonizer::exportSkeletonVMV(const std::string& prefix,
         const auto& r = node->radius;
         fprintf(filePointer, "%lu %f %f %f %f\n", index, p.x(), p.y(), p.z(), r);
     }
-    fprintf(filePointer, "$VERT_LIST_END\n");
+    fprintf(filePointer, "$VERT_LIST_END\n\n");
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
 
-    LOOP_STARTS("Writing Strands");
+    // Strands, or segments
+    LOOP_STARTS("Writing Strands (or Segments");
     fprintf(filePointer, "$STRANDS_LIST_BEGIN\n");
     progress = 0;
     for (size_t i = 0; i < _branches.size(); ++i)
@@ -104,6 +85,9 @@ void VasculatureSkeletonizer::exportSkeletonVMV(const std::string& prefix,
 
     // Close the file
     fclose(filePointer);
+
+    LOG_STATUS_IMPORTANT("Writing VMV File Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 VasculatureSkeletonizer::~VasculatureSkeletonizer()

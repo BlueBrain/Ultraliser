@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <algorithms/mcs/MCs.h>
-#include <algorithms/floodfill/FloodFiller.h>
-#include <algorithms/geometry/Geometry.h>
-#include <algorithms/utilities/Utilities.h>
+#include <algorithms/mcs/DualMarchingCubes.h>
+#include <algorithms/mcs/DualMarchingCubes.hh>
+#include <algorithms/mcs/MarchingCubes.h>
+#include <algorithms/mcs/MarchingCubes.hh>

@@ -29,7 +29,7 @@
 #include <data/meshes/simple/Mesh.h>
 #include <data/volumes/utilities/VolumeType.hh>
 #include <data/volumes/utilities/VolumeData.hh>
-#include <algorithms/skeletonization/Thinning6Iterations.h>
+#include <algorithms/skeletonization/thinning/Thinning6Iterations.h>
 #include <data/volumes/voxels/CandiateVoxel.h>
 
 namespace Ultraliser

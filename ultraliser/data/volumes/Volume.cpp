@@ -20,10 +20,8 @@
  **************************************************************************************************/
 
 #include "Volume.h"
-#include <cstddef>
-#include <data/volumes/utilities/VolumeType.hh>
-#include <common/Headers.hh>
 #include <common/Common.h>
+#include <data/volumes/utilities/VolumeType.hh>
 #include <geometry/Intersection.h>
 #include <geometry/Utilities.h>
 #include <utilities/Utilities.h>
@@ -37,10 +35,8 @@
 #include <data/meshes/simple/VolumeMesh.h>
 #include <data/meshes/simple/MeshOperations.h>
 #include <data/volumes/utilities/VolumeReader.h>
-#include <algorithms/skeletonization/Neighbors.hh>
-#include <algorithms/skeletonization/Thinning6Iterations.h>
+#include <algorithms/skeletonization/Skeletonization.h>
 #include <data/meshes/simple/TriangleOperations.h>
-#include <algorithm>
 
 #ifdef ULTRALISER_USE_NRRD
 #include <nrrdloader/NRRDLoader.h>

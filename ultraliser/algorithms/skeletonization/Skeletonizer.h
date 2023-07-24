@@ -39,7 +39,7 @@ namespace Ultraliser
 class Skeletonizer
 {
 public:
-    Skeletonizer(const Mesh* mesh, Volume *volume);
+    Skeletonizer(Volume *volume, const Mesh *mesh);
 
     std::vector< Vector3f > getShellPoints();
 
@@ -86,26 +86,32 @@ protected:
 protected:
 
     /**
-     * @brief _mesh
-     * The input mesh to the Skeletonizer.
-     */
-    const Mesh* _mesh;
-
-    /**
      * @brief _volume
-     * The volume that contains a solid voxel grid of the input mesh.
+     * Input volume that will be used to extract the skeleton.
      */
     Volume* _volume;
+
+    /**
+     * @brief _mesh
+     * Optional input mesh that will be used to compute the actual coordinates of the resulting
+     * skeleton. If this input mesh is empty, i.e. a nullptr, the dimensions will be computed based
+     * on the dimensions of the volume.
+     */
+    const Mesh* _mesh;
 
     /// Mesh bounding box
     Vector3f _pMinMesh, _pMaxMesh, _centerMesh, _boundsMesh;
 
-    /// Volume bounding box
+    /// Volume bounding box, will be used if no input mesh is used.
     Vector3f _pMinVolume, _pMaxVolume, _centerVolume, _boundsVolume;
 
     /// Mesh to volume scale factor
     Vector3f _scaleFactor;
 
+    /**
+     * @brief _shellPoints
+     * A list of the poins (or voxels) that represent the shell of the given volume.
+     */
     std::vector< Vector3f > _shellPoints;
 
     /**

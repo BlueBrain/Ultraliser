@@ -33,8 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <data/structures/List.h>
-
-#include <algorithms/Sorting.h>
+#include <algorithms/utilities/Sorting.h>
 
 namespace Ultraliser
 {

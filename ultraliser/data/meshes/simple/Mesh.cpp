@@ -25,8 +25,7 @@
 #include "TriangleOperations.h"
 #include <utilities/Utilities.h>
 #include <math/Math.h>
-#include <algorithms/SectionGeometry.h>
-#include <algorithms/SomaGeometry.h>
+#include <algorithms/geometry/Geometry.h>
 #include <geometry/Intersection.h>
 #include <math/Math.h>
 #include <utilities/Utilities.h>

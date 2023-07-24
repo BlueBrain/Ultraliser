@@ -24,16 +24,16 @@
 #include<ctime>
 #include "Skeletonizer.h"
 #include "SkeletonizerUtils.h"
-#include "Neighbors.hh"
+#include <algorithms/skeletonization/thinning/Neighbors.hh>
 #include <math/Vector.h>
 #include <data/meshes/simple/TriangleOperations.h>
 #include <utilities/Range.h>
 
 namespace Ultraliser
 {
-Skeletonizer::Skeletonizer(const Mesh *mesh, Volume* volume)
-    : _mesh(mesh)
-    , _volume(volume)
+Skeletonizer::Skeletonizer(Volume* volume, const Mesh *mesh)
+    : _volume(volume)
+    , _mesh(mesh)
 {
     // Mesh bounding box
     _pMinMesh = volume->getPMin();
@@ -182,7 +182,6 @@ void Skeletonizer::applyVolumeThinning()
 
     // The thinning kernel that will be used to thin the volume
     std::unique_ptr< Thinning6Iterations > thinningKernel = std::make_unique<Thinning6Iterations>();
-    LOG_STATUS("Thinning Starting");
 
     // Parameters to calculate the loop progress
     size_t initialNumberVoxelsToBeDeleted = 0;
@@ -207,8 +206,6 @@ void Skeletonizer::applyVolumeThinning()
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
 }
-
-
 
 void Skeletonizer::_computeShellPoints()
 {

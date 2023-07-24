@@ -23,7 +23,7 @@
 #include <AppCommon.h>
 #include <AppArguments.h>
 #include <data/meshes/simple/IcoSphere.h>
-#include <algorithms/skeletonization/Skeletonizer.h>
+#include <algorithms/skeletonization/VasculatureSkeletonizer.h>
 #include <geometry/Sphere.h>
 
 namespace Ultraliser
@@ -66,8 +66,10 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     return options;
 }
 
+
 void run(int argc , const char** argv)
 {
+
     // Parse the arguments and get the tool options
     auto options = parseArguments(argc, argv);
 
@@ -77,47 +79,52 @@ void run(int argc , const char** argv)
 
     auto prefix = options->projectionPrefix;
 
+
+
     // Create the volume from the mesh
     auto solidVolume = createVolumeGrid(inputMesh, options);
 
     // Surface voxelization
     solidVolume->surfaceVoxelization(inputMesh, false, false, 1.0);
     solidVolume->solidVoxelization(options->voxelizationAxis);
-    solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
+    // solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
+
+//    solidVolume->project(prefix + "-solid-volume",
+//                   options->projectXY, options->projectXZ, options->projectZY);
 
 
-    Skeletonizer* skeletonizer = new Skeletonizer(solidVolume, inputMesh);
 
-    // Get the border
 
+    VasculatureSkeletonizer* skeletonizer = new VasculatureSkeletonizer(solidVolume, inputMesh);
+    // skeletonizer->applyVolumeThinningWithDomainDecomposition();
     skeletonizer->applyVolumeThinning();
+
+    // solidVolume->project("/home/abdellah/Desktop/hbp-reports/single-pass", true);
+
+
+    // skeletonizerxx->applyVolumeThinning();
+    // solidVolume->project("/home/abdellah/Desktop/hbp-reports/single-pass", true);
+
+
+
+   // solidVolume->exportToMesh(prefix + "_grid", true);
+
 
     skeletonizer->constructGraph();
 
 
-
-
-//    solidVolume->project(prefix + "_skeletonsss",
-//                    options->projectXY, options->projectXZ, options->projectZY,
-//                    options->projectColorCoded);
-
-//    solidVolume->writeVolumes(options->volumePrefix + "_skeleton",
-//                         options->exportBitVolume,
-//                         options->exportUnsignedVolume,
-//                         options->exportFloatVolume,
-//                         options->exportNRRDVolume,
-//                         options->exportRawVolume);
-
-//    solidVolume->exportToMesh(options->volumePrefix + "mesh", true);
-
     skeletonizer->segmentComponents();
+
+    skeletonizer->exportSkeletonVMV("/home/abdellah/Desktop/hbp-reports/", "single-pass.vmv");
+
+
 //    solidVolume->project(prefix + "_sphere",
 //                    options->projectXY, options->projectXZ, options->projectZY,
 //                    options->projectColorCoded);
 
 
 
-    std::cout << "Print soma \n";
+    // std::cout << "Print soma \n";
 
 
 

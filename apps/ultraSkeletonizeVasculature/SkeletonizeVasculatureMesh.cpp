@@ -95,7 +95,7 @@ void run(int argc , const char** argv)
 
 
 
-    VasculatureSkeletonizer* skeletonizer = new VasculatureSkeletonizer(inputMesh, solidVolume);
+    VasculatureSkeletonizer* skeletonizer = new VasculatureSkeletonizer(solidVolume, inputMesh);
     // skeletonizer->applyVolumeThinningWithDomainDecomposition();
     skeletonizer->applyVolumeThinning();
 

@@ -1,5 +1,6 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2013 - 2023
+ * Consiglio Nazionale delle Ricerche, Sezione di Genova, IMATI-GE / CNR
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -17,11 +18,10 @@
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
  * MA 02111-1307, USA.
  * You can also find it on the GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
- **************************************************************************************************/
+ ***************************************************************************************************/
 
 #pragma once
 
-#include <algorithms/mcs/MCs.h>
-#include <algorithms/floodfill/FloodFiller.h>
-#include <algorithms/geometry/Geometry.h>
-#include <algorithms/utilities/Utilities.h>
+#include <algorithms/geometry/IcosphereGeometry.hh>
+#include <algorithms/geometry/SectionGeometry.h>
+#include <algorithms/geometry/SomaGeometry.h>

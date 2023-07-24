@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include <algorithms/DualMarchingCubes.hh>
+#include <algorithms/mcs/DualMarchingCubes.hh>
 #include <data/volumes/Volume.h>
 #include <data/volumes/TaggedVolume.h>
 #include <data/meshes/advanced/AdvancedMesh.h>

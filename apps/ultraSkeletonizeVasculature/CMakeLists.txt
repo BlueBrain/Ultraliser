@@ -1,5 +1,5 @@
 ####################################################################################################
-# Copyright (c) 2016 - 2021
+# Copyright (c) 2016 - 2023
 # Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
 #
 # Author(s)
@@ -24,33 +24,50 @@
 ####################################################################################################
 
 # Application name
-set(APP_NAME ultraSkeletonizeVasculature)
+set(MESH_APP_NAME ultraSkeletonizeVasculatureMesh)
+set(VOLUME_APP_NAME ultraSkeletonizeVasculatureVolume)
 
 # Add the current directory to include directories
 include_directories(${CMAKE_BINARY_DIR}/include)
 
 # Source files
-file(GLOB ${APP_NAME}_SOURCE_FILES "*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/../common/*.cpp")
+file(GLOB ${MESH_APP_NAME}_SOURCE_FILES
+    "SkeletonizeVasculatureMesh.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../common/*.cpp")
+
+file(GLOB ${VOLUME_APP_NAME}_SOURCE_FILES
+    "SkeletonizeVasculatureVolume.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../common/*.cpp")
 
 # Header files
-file(GLOB ${APP_NAME}_HEADER_FILES "*.h" "*.hh")
+file(GLOB ${MESH_APP_NAME}_HEADER_FILES "*.h" "*.hh")
+file(GLOB ${VOLUME_APP_NAME}_HEADER_FILES "*.h" "*.hh")
 
 # Add the current directory to include directories
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../common/")
 
-# Executable
-add_executable(${APP_NAME}
-    ${${APP_NAME}_SOURCE_FILES}
-    ${${APP_NAME}_SOURCE_FILES}
+# Executable(s)
+add_executable(${MESH_APP_NAME}
+    ${${MESH_APP_NAME}_SOURCE_FILES}
+    ${${MESH_APP_NAME}_HEADER_FILES}
+)
+add_executable(${VOLUME_APP_NAME}
+    ${${VOLUME_APP_NAME}_SOURCE_FILES}
+    ${${VOLUME_APP_NAME}_HEADER_FILES}
 )
 
 # Link against ultraliser
-target_link_libraries(${APP_NAME} ultraliser)
+target_link_libraries(${MESH_APP_NAME} ultraliser)
+target_link_libraries(${VOLUME_APP_NAME} ultraliser)
 
 # Copy the executable after the build
-add_custom_command(TARGET ${APP_NAME} POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${APP_NAME}>
+add_custom_command(TARGET ${MESH_APP_NAME} POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${MESH_APP_NAME}>
                    ${CMAKE_BINARY_DIR}/bin)
+add_custom_command(TARGET ${VOLUME_APP_NAME} POST_BUILD
+                  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${VOLUME_APP_NAME}>
+                  ${CMAKE_BINARY_DIR}/bin)
 
 # Install the executable in the bin directory
-install(TARGETS ${APP_NAME} DESTINATION bin)
+install(TARGETS ${MESH_APP_NAME} DESTINATION bin)
+install(TARGETS ${VOLUME_APP_NAME} DESTINATION bin)

@@ -34,14 +34,37 @@ namespace Ultraliser
 class VasculatureSkeletonizer : public Skeletonizer
 {
 public:
-    VasculatureSkeletonizer(const Mesh *mesh, Volume *volume);
+
+    /**
+     * @brief VasculatureSkeletonizer
+     * Constructor
+     * @param mesh
+     * Input mesh
+     * @param volume
+     */
+    VasculatureSkeletonizer(Volume *volume, const Mesh *mesh);
     ~VasculatureSkeletonizer();
 
-
+    /**
+     * @brief segmentComponents
+     * Segment the different components of the graph after having it reconstructed from the
+     * voxel grid.
+     * NOTE: Currently, vasculature datasets have only branches with fluctuating diameters.
+     * Therefore, branches are only the available components to be segmented from the graph.
+     * This is indeed unlike neurons that can have somata, branches and spines.
+     */
     void segmentComponents() override;
 
-
-
+    /**
+     * @brief exportSkeletonVMV
+     * Exports the morphology skeleton into the VessMorphoVis (or VMV) file format.
+     * For further details on this file format, please visit the following Wiki page:
+     * https://github.com/BlueBrain/VessMorphoVis/wiki/File-Formats
+     * @param prefix
+     * The file prefix.
+     * @param fileName
+     * The file name.
+     */
     void exportSkeletonVMV(const std::string& prefix, const std::string& fileName);
 };
 

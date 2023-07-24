@@ -20,7 +20,7 @@
  **************************************************************************************************/
 
 #include "BitVolumeGrid.h"
-#include <algorithms/FloodFiller.h>
+#include <algorithms/floodfill/FloodFiller.h>
 #include <common/Common.h>
 #include <data/common/ColorMap.h>
 #include <data/volumes/voxels/DMCVoxel.h>
