@@ -79,6 +79,8 @@ void run(int argc , const char** argv)
 
     auto prefix = options->projectionPrefix;
 
+
+
     // Create the volume from the mesh
     auto solidVolume = createVolumeGrid(inputMesh, options);
 

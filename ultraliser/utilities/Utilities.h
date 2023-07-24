@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2022
+ * Copyright (c) 2016 - 2033
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -29,4 +29,5 @@
 #include <utilities/Parsers.h>
 #include <utilities/String.h>
 #include <utilities/Timer.h>
+#include <utilities/Range.h>
 #include <utilities/TypeConversion.h>

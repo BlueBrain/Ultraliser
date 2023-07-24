@@ -75,6 +75,15 @@ private:
     void _buildAcyclicTree(SkeletonBranch* branch, SkeletonBranches &branches);
 
 
+private:
+
+    std::map< size_t, size_t > _extractNodesFromVoxels(SkeletonNodes& nodes);
+
+    void _inflateNodes(SkeletonNodes& nodes);
+
+    void _connectNodes(SkeletonNodes &nodes, const std::map<size_t, size_t> &indicesMapper);
+
+
 
 protected:
 

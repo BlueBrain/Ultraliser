@@ -28,6 +28,7 @@
 #include <math/Vector.h>
 #include <data/meshes/simple/TriangleOperations.h>
 #include <data/meshes/simple/IcoSphere.h>
+#include <utilities/Range.h>
 
 namespace Ultraliser
 {
@@ -54,91 +55,6 @@ Skeletonizer::Skeletonizer(const Mesh *mesh, Volume* volume)
 
     _computeShellPoints();
 }
-
-
-struct Range
-{
-    int64_t i1;
-    int64_t i2;
-
-    Range(const int64_t& minValue, const int64_t& maxValue)
-    {
-        i1 = minValue < maxValue ? minValue : maxValue;
-        i2 = maxValue > minValue ? maxValue : minValue;
-    }
-
-    void printRange() { std::cout << i1 << ", " << i2 << ", delta = " << i2 - i1 << std::endl; }
-};
-
-typedef std::vector< Range > Ranges;
-
-Ranges decomposeRangeToRanges(const int64_t& minValue,
-                              const int64_t& maxValue,
-                              const size_t& intervals)
-{
-    // Returned list
-    Ranges ranges;
-
-    // In case the two values are the same, only a single range is returned
-    if (minValue == maxValue)
-    {
-        ranges.push_back(Range(minValue, maxValue));
-        return ranges;
-    }
-
-    // Verify the limits
-    const int64_t i1 = minValue < maxValue ? minValue : maxValue;
-    const int64_t i2 = maxValue > minValue ? maxValue : minValue;
-
-    // Compute the delta value
-    const size_t delta = std::ceil((i2 - i1) / intervals);
-
-    // Compute the ranges
-    int64_t r1, r2;
-    for (size_t i = 0; i < intervals; ++i)
-    {
-        // Compute the lower limit
-        if (i == 0) r1 = 0; else r1 = r2 + 1;
-
-        // Compute the upper limit
-        r2 = r1 + delta + 1;
-        if (r2 > i2) r2 = i2;
-
-        ranges.push_back(Range(r1, r2));
-    }
-
-    // Return the ranges
-    return ranges;
-}
-
-
-Ranges adjustOverlappingVoxels(const Ranges& inputRanges, const size_t& numberOverlappingVoxels)
-{
-    // Another list for the output ranges
-    Ranges outputRanges;
-
-    // First range
-    outputRanges.push_back(Range(inputRanges.front().i1,
-                                 inputRanges.front().i2 + numberOverlappingVoxels));
-
-    // Intermediate ranges
-    if (inputRanges.size() > 2)
-    {
-        for (size_t i = 1; i < inputRanges.size() - 1; ++i)
-        {
-            outputRanges.push_back(Range(inputRanges.at(i).i1 - numberOverlappingVoxels,
-                                         inputRanges.at(i).i2 + numberOverlappingVoxels));
-        }
-    }
-
-    // Last range
-    outputRanges.push_back(Range(inputRanges.back().i1 - numberOverlappingVoxels,
-                                 inputRanges.back().i2));
-
-    // Return the result
-    return outputRanges;
-}
-
 
 void Skeletonizer::applyVolumeThinningToVolume(Volume* volume, const bool& displayProgress)
 {
@@ -183,7 +99,6 @@ void Skeletonizer::applyVolumeThinningToVolume(Volume* volume, const bool& displ
                break;
         }
     }
-
 }
 
 void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
@@ -202,14 +117,14 @@ void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
     const size_t overlappingVoxels = 5;
     const size_t numberZeroVoxels = 2;
 
-    Ranges xRanges = decomposeRangeToRanges(0, _volume->getWidth() - 1, subdivisions);
-    Ranges yRanges = decomposeRangeToRanges(0, _volume->getHeight() - 1, subdivisions);
-    Ranges zRanges = decomposeRangeToRanges(0, _volume->getDepth() - 1, subdivisions);
+    Ranges xRanges = Range::decomposeToRanges(int64_t(0), _volume->getWidth() - 1, subdivisions);
+    Ranges yRanges = Range::decomposeToRanges(int64_t(0), _volume->getHeight() - 1, subdivisions);
+    Ranges zRanges = Range::decomposeToRanges(int64_t(0), _volume->getDepth() - 1, subdivisions);
 
     // Add the overlaps
-    Ranges xRangesOverlapping = adjustOverlappingVoxels(xRanges, overlappingVoxels);
-    Ranges yRangesOverlapping = adjustOverlappingVoxels(yRanges, overlappingVoxels);
-    Ranges zRangesOverlapping = adjustOverlappingVoxels(zRanges, overlappingVoxels);
+    Ranges xRangesOverlapping = Range::addTwoSidedOverlaps(xRanges, overlappingVoxels);
+    Ranges yRangesOverlapping = Range::addTwoSidedOverlaps(yRanges, overlappingVoxels);
+    Ranges zRangesOverlapping = Range::addTwoSidedOverlaps(zRanges, overlappingVoxels);
 
     LOG_STATUS("Skeletonizing Volume Bricks");
     LOOP_STARTS("Skeletonization");
@@ -254,8 +169,6 @@ void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
 
-    std::string xx = "/home/abdellah/Desktop/hbp-reports/composed";
-    referenceVolume->project(xx, true);
     _volume->insertBrickToVolume(referenceVolume,
                                  0, referenceVolume->getWidth() - 1,
                                  0, referenceVolume->getHeight() - 1,
@@ -373,10 +286,7 @@ void Skeletonizer::applyVolumeThinning()
 //    LOG_STATS(GET_TIME_SECONDS);
 }
 
-std::vector< Vector3f > Skeletonizer::getShellPoints()
-{
-    return _shellPoints;
-}
+
 
 void Skeletonizer::_computeShellPoints()
 {
@@ -414,13 +324,8 @@ void Skeletonizer::_computeShellPoints()
     }
 }
 
-
-
-SkeletonNodes Skeletonizer::constructGraph()
+std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels(SkeletonNodes& nodes)
 {
-    // The graph that will contain the nodes
-    SkeletonNodes nodes;
-
     // Every constructed node must have an identifier, or index.
     size_t nodeIndex = 0;
 
@@ -464,6 +369,11 @@ SkeletonNodes Skeletonizer::constructGraph()
         }
     }
 
+    return indicesMapper;
+}
+
+void Skeletonizer::_inflateNodes(SkeletonNodes& nodes)
+{
     // Compute the approximate radii of all the nodes in the graph, based on the minimum distance
     std::vector< float > nodesRadii;
     nodesRadii.resize(nodes.size());
@@ -475,11 +385,7 @@ SkeletonNodes Skeletonizer::constructGraph()
         for (size_t j = 0; j < _shellPoints.size(); ++j)
         {
             const float distance = (nodes[i]->point - _shellPoints[j]).abs();
-
-            if (distance < minimumDistance)
-            {
-                minimumDistance = distance;
-            }
+            if (distance < minimumDistance) { minimumDistance = distance; }
         }
         nodes[i]->radius = minimumDistance;
         nodesRadii[i] = minimumDistance;
@@ -493,9 +399,13 @@ SkeletonNodes Skeletonizer::constructGraph()
     // Clear the auxiliary list
     nodesRadii.clear();
     nodesRadii.shrink_to_fit();
+}
 
+
+void Skeletonizer::_connectNodes(SkeletonNodes& nodes,
+                                 const std::map< size_t, size_t >& indicesMapper)
+{
     // Construct the graph and connect the nodes
-    // OMP_PARALLEL_FOR
     for (size_t i = 0; i < nodes.size(); ++i)
     {
         // Check if the node has been visited before
@@ -532,13 +442,11 @@ SkeletonNodes Skeletonizer::constructGraph()
 
         if (connectedEdges > 2)
             node->branching = true;
-
     }
+}
 
-    std::cout << "Trignale Nodes \n";
-
-    // Remove the triangular configurations
-
+void Skeletonizer::_removeTriangleLoops(SkeletonNodes& nodes)
+{
     const size_t currentNodesSize = nodes.size();
     for (size_t i = 0; i < currentNodesSize; ++i)
     {
@@ -582,9 +490,30 @@ SkeletonNodes Skeletonizer::constructGraph()
     {
         nodes[i]->visited = false;
     }
+}
 
-    std::cout << currentNodesSize << ", " << nodes.size() << "\n";
-    std::cout << "Trignale Nodes Done \n";
+SkeletonNodes Skeletonizer::constructGraph()
+{
+    // Initially, extract the graph nodes from the voxels.
+    SkeletonNodes nodes;
+
+    std::map< size_t, size_t > indicesMapper = _extractNodesFromVoxels(nodes);
+
+    // Assign accurate radii to the nodes of the graph, i.e. inflate the nodes
+    _inflateNodes(nodes);
+
+    // Connect the nodes to construct the edges of the graph
+    _connectNodes(nodes, indicesMapper);
+
+
+    // Remove the triangular configurations
+    _removeTriangleLoops(nodes);
+
+    // Return the graph nodes, fully reconstructed
+    return nodes;
+
+    //    std::cout << currentNodesSize << ", " << nodes.size() << "\n";
+//    std::cout << "Trignale Nodes Done \n";
 
 
 //    SkeletonNode* somaNode = new SkeletonNode();
@@ -594,16 +523,11 @@ SkeletonNodes Skeletonizer::constructGraph()
 
      // Re-index the samples, for simplicity
      // OMP_PARALLEL_FOR for (size_t i = 0; i < nodes.size(); ++i) { nodes[i]->index = i; }
-
-
-
-    return nodes;
 }
 
 void Skeletonizer::segmentComponents(SkeletonNodes& nodes)
 {
     // SkeletonNode* somaNode = nodes.back();
-
 
     // Build the branches from the nodes
     SkeletonBranches branches = _buildBranchesFromNodes(nodes);
@@ -1099,6 +1023,11 @@ SkeletonBranches Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& node
     }
 
     return branches;
+}
+
+std::vector< Vector3f > Skeletonizer::getShellPoints()
+{
+    return _shellPoints;
 }
 
 }
