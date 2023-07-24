@@ -66,7 +66,6 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     return options;
 }
 
-
 void run(int argc , const char** argv)
 {
 
@@ -79,71 +78,21 @@ void run(int argc , const char** argv)
 
     auto prefix = options->projectionPrefix;
 
-
-
     // Create the volume from the mesh
-    auto solidVolume = createVolumeGrid(inputMesh, options);
+    auto volume = createVolumeGrid(inputMesh, options);
 
-    // Surface voxelization
-    solidVolume->surfaceVoxelization(inputMesh, false, false, 1.0);
-    solidVolume->solidVoxelization(options->voxelizationAxis);
-    // solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
+    // Voxelize the input mesh
+    volume->surfaceVoxelization(inputMesh, false, false, 1.0);
+    volume->solidVoxelization(options->voxelizationAxis);
 
-//    solidVolume->project(prefix + "-solid-volume",
-//                   options->projectXY, options->projectXZ, options->projectZY);
+    //
+    VasculatureSkeletonizer* vasculatureSkeletonizer = new VasculatureSkeletonizer(volume, inputMesh);
 
+    // vasculatureSkeletonizer->applyVolumeThinningWithDomainDecomposition();
 
+    vasculatureSkeletonizer->skeletonizeVolumeBlockByBlock(256, 10);
 
-
-    VasculatureSkeletonizer* skeletonizer = new VasculatureSkeletonizer(solidVolume, inputMesh);
-    // skeletonizer->applyVolumeThinningWithDomainDecomposition();
-    skeletonizer->applyVolumeThinning();
-
-    // solidVolume->project("/home/abdellah/Desktop/hbp-reports/single-pass", true);
-
-
-    // skeletonizerxx->applyVolumeThinning();
-    // solidVolume->project("/home/abdellah/Desktop/hbp-reports/single-pass", true);
-
-
-
-   // solidVolume->exportToMesh(prefix + "_grid", true);
-
-
-    skeletonizer->constructGraph();
-
-
-    skeletonizer->segmentComponents();
-
-    skeletonizer->exportSkeletonVMV("/home/abdellah/Desktop/hbp-reports/", "single-pass.vmv");
-
-
-//    solidVolume->project(prefix + "_sphere",
-//                    options->projectXY, options->projectXZ, options->projectZY,
-//                    options->projectColorCoded);
-
-
-
-    // std::cout << "Print soma \n";
-
-
-
-//    Mesh* somaMesh = skeletonizer->getSomaMesh();
-//    solidVolume->clear();
-//    solidVolume->surfaceVoxelization(somaMesh);
-//    solidVolume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
-//    solidVolume->project(prefix + "_somasegmented",
-//                    options->projectXY, options->projectXZ, options->projectZY,
-//                    options->projectColorCoded);
-
-//      std::cout << "Done \n";
-
-//    solidVolume->writeVolumes(options->volumePrefix,
-//                         options->exportBitVolume,
-//                         options->exportUnsignedVolume,
-//                         options->exportFloatVolume,
-//                         options->exportNRRDVolume,
-//                         options->exportRawVolume);
+    vasculatureSkeletonizer->exportSkeletonVMV("/home/abdellah/Desktop/hbp-reports/", "single-pass");
 }
 }
 

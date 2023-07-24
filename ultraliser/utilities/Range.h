@@ -85,6 +85,12 @@ public:
      */
     Ranges decomposeToRanges(const size_t& intervals) const;
 
+    /**
+     * @brief decomposeToBlocks
+     * @param blockSize
+     * @return
+     */
+    Ranges decomposeToBlocks(const size_t& blockSize);
 
 public:
 
@@ -111,8 +117,6 @@ public:
      * @return
      */
     static Ranges addTwoSidedOverlaps(const Ranges& inputRanges, const size_t& overlap);
-
-
 };
 
 }

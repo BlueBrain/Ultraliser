@@ -10,6 +10,23 @@ VasculatureSkeletonizer::VasculatureSkeletonizer(Volume* volume, const Mesh *mes
     /// EMPTY CONSTRUCTOR
 }
 
+void VasculatureSkeletonizer::skeletonizeVolume()
+{
+    applyVolumeThinning();
+    constructGraph();
+    segmentComponents();
+}
+
+
+void VasculatureSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
+                                                 const size_t& numberOverlappingVoxels,
+                                                 const size_t& numberZeroVoxels)
+{
+    thinVolumeBlockByBlock(blockSize, numberOverlappingVoxels, numberZeroVoxels);
+    constructGraph();
+    segmentComponents();
+}
+
 void VasculatureSkeletonizer::segmentComponents()
 {
     // Currently, vasculature datasets have only branches with fluctuating diameters. Therefore,
@@ -62,7 +79,7 @@ void VasculatureSkeletonizer::exportSkeletonVMV(const std::string& prefix,
     LOG_STATS(GET_TIME_SECONDS);
 
     // Strands, or segments
-    LOOP_STARTS("Writing Strands (or Segments");
+    LOOP_STARTS("Writing Strands (or Segments)");
     fprintf(filePointer, "$STRANDS_LIST_BEGIN\n");
     progress = 0;
     for (size_t i = 0; i < _branches.size(); ++i)

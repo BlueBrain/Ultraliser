@@ -23,7 +23,7 @@
 #include <AppCommon.h>
 #include <AppArguments.h>
 #include <data/meshes/simple/IcoSphere.h>
-#include <algorithms/skeletonization/Skeletonizer.h>
+#include <algorithms/skeletonization/NeuronSkeletonizer.h>
 #include <geometry/Sphere.h>
 
 namespace Ultraliser
@@ -86,7 +86,7 @@ void run(int argc , const char** argv)
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
 
 
-    Skeletonizer* skeletonizer = new Skeletonizer(solidVolume, inputMesh);
+    NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(solidVolume, inputMesh);
 
     // Get the border
 

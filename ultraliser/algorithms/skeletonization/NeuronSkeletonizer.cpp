@@ -33,6 +33,22 @@ NeuronSkeletonizer::NeuronSkeletonizer(Volume* volume, const Mesh *mesh)
 
 }
 
+void NeuronSkeletonizer::skeletonizeVolume()
+{
+
+}
+
+
+void NeuronSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
+                                                 const size_t& numberOverlappingVoxels,
+                                                 const size_t& numberZeroVoxels)
+{
+    thinVolumeBlockByBlock(blockSize, numberOverlappingVoxels, numberZeroVoxels);
+    constructGraph();
+    segmentComponents();
+}
+
+
 void NeuronSkeletonizer::constructGraph()
 {
     // The graph that will contain the nodes

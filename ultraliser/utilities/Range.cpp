@@ -70,6 +70,41 @@ Ranges Range::decomposeToRanges(const size_t& intervals) const
     return ranges;
 }
 
+Ranges Range::decomposeToBlocks(const size_t& blockSize)
+{
+    // Returned list
+    Ranges ranges;
+
+    // Ensure that the blockSize is smaller than the current range
+    const size_t currentRange = i2 - i1;
+    if (blockSize > currentRange)
+    {
+        ranges.push_back(Range(i1, i2));
+        return ranges;
+    }
+    else
+    {
+        // Determine the number of blocks
+        const size_t numberBlocks = static_cast< size_t >(
+                    std::ceil(float(currentRange) / float(blockSize)));
+
+        int64_t r1, r2;
+        for (size_t i = 0; i < numberBlocks; ++i)
+        {
+            // Compute the lower limit
+            if (i == 0) r1 = i1; else r1 = r2 + 1;
+
+            // Compute the upper limit
+            r2 = r1 + blockSize + 1;
+            if (r2 > i2) r2 = i2;
+
+            ranges.push_back(Range(r1, r2));
+        }
+    }
+
+    return ranges;
+}
+
 Ranges Range::decomposeToRanges(const int64_t& minValue,
                                 const int64_t& maxValue,
                                 const size_t& intervals)
@@ -96,7 +131,7 @@ Ranges Range::decomposeToRanges(const int64_t& minValue,
     for (size_t i = 0; i < intervals; ++i)
     {
         // Compute the lower limit
-        if (i == 0) r1 = 0; else r1 = r2 + 1;
+        if (i == 0) r1 = i1; else r1 = r2 + 1;
 
         // Compute the upper limit
         r2 = r1 + delta + 1;

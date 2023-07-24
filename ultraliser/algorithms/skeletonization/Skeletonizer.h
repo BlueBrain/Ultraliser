@@ -39,7 +39,22 @@ namespace Ultraliser
 class Skeletonizer
 {
 public:
+
+    /**
+     * @brief Skeletonizer
+     * @param volume
+     * @param mesh
+     */
     Skeletonizer(Volume *volume, const Mesh *mesh);
+
+    virtual void skeletonizeVolume() = 0;
+
+    virtual void skeletonizeVolumeBlockByBlock(const size_t& blockSize = 512,
+                                       const size_t& numberOverlappingVoxels = 25,
+                                       const size_t& numberZeroVoxels = 5) = 0;
+
+
+
 
     std::vector< Vector3f > getShellPoints();
 
@@ -53,6 +68,10 @@ public:
 
 
     void applyVolumeThinningWithDomainDecomposition();
+
+    void thinVolumeBlockByBlock(const size_t& blockSize = 512,
+                                const size_t& numberOverlappingVoxels = 25,
+                                const size_t& numberZeroVoxels = 5);
 
     void applyVolumeThinningToVolume(Volume* volume, const bool &displayProgress = true);
 

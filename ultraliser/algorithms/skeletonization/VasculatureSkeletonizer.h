@@ -46,6 +46,21 @@ public:
     ~VasculatureSkeletonizer();
 
     /**
+     * @brief skeletonizeVolume
+     */
+    void skeletonizeVolume() override;
+
+    /**
+     * @brief skeletonizeVolumeBlockByBlock
+     * @param blockSize
+     * @param numberOverlappingVoxels
+     * @param numberZeroVoxels
+     */
+    void skeletonizeVolumeBlockByBlock(const size_t& blockSize = 512,
+                                       const size_t& numberOverlappingVoxels = 25,
+                                       const size_t& numberZeroVoxels = 5) override;
+
+    /**
      * @brief segmentComponents
      * Segment the different components of the graph after having it reconstructed from the
      * voxel grid.

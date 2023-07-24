@@ -47,6 +47,12 @@ public:
      */
     Mesh* getSomaMesh() const { return _somaMesh; }
 
+    void skeletonizeVolume() override;
+
+
+    void skeletonizeVolumeBlockByBlock(const size_t& blockSize = 512,
+                                       const size_t& numberOverlappingVoxels = 25,
+                                       const size_t& numberZeroVoxels = 5) override;
 
 private:
 

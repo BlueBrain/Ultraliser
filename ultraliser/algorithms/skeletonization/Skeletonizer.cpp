@@ -175,6 +175,93 @@ void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
     referenceVolume->~Volume();
 }
 
+void Skeletonizer::thinVolumeBlockByBlock(const size_t& blockSize,
+                                          const size_t& numberOverlappingVoxels,
+                                          const size_t& numberZeroVoxels)
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Copy the input volume into a reference volume
+    // The reference volume will be used to retrieve the new bricks, and the _volume will be
+    // used to write the skeletonization result
+    Volume* referenceVolume = new Volume(_volume->getWidth(),
+                                         _volume->getHeight(),
+                                         _volume->getDepth());
+
+    // Initially, the range of the volume is identified
+    Range xRange(0, _volume->getWidth() - 1);
+    Range yRange(0, _volume->getHeight() - 1);
+    Range zRange(0, _volume->getDepth() - 1);
+
+    // Decompose the range into ranges, based on the blockSize
+    Ranges xRanges = xRange.decomposeToBlocks(blockSize);
+    Ranges yRanges = yRange.decomposeToBlocks(blockSize);
+    Ranges zRanges = zRange.decomposeToBlocks(blockSize);
+
+    for (const auto& range: xRanges)
+        range.printRange();
+    for (const auto& range: yRanges)
+        range.printRange();
+    for (const auto& range: zRanges)
+        range.printRange();
+
+
+    // Add the overlaps
+    Ranges xRangesOverlapping = Range::addTwoSidedOverlaps(xRanges, numberOverlappingVoxels);
+    Ranges yRangesOverlapping = Range::addTwoSidedOverlaps(yRanges, numberOverlappingVoxels);
+    Ranges zRangesOverlapping = Range::addTwoSidedOverlaps(zRanges, numberOverlappingVoxels);
+
+    LOG_STATUS("Skeletonizing Volume Bricks");
+    LOOP_STARTS("Skeletonization");
+    int64_t progress = 0;
+    for (size_t i = 0; i < xRanges.size(); ++i)
+    {
+        LOOP_PROGRESS(progress, xRanges.size());
+        for (size_t j = 0; j < yRanges.size(); ++j)
+        {
+            // OMP_PARALLEL_FOR
+            for (size_t k = 0; k < zRanges.size(); ++k)
+            {
+                // Extract the brick from the volume
+                auto brick = _volume->extractBoundedBrickFromVolume(
+                            xRangesOverlapping[i].i1, xRangesOverlapping[i].i2,
+                            yRangesOverlapping[j].i1, yRangesOverlapping[j].i2,
+                            zRangesOverlapping[k].i1, zRangesOverlapping[k].i2,
+                            numberZeroVoxels, false);
+
+                // Skeletonize the brick
+                applyVolumeThinningToVolume(brick, false);
+
+                size_t xOverlapping, yOverlapping, zOverlapping = 0;
+                if (i > 0) xOverlapping = numberZeroVoxels; else xOverlapping = 0;
+                if (j > 0) yOverlapping = numberZeroVoxels; else yOverlapping = 0;
+                if (k > 0) zOverlapping = numberZeroVoxels; else zOverlapping = 0;
+
+                referenceVolume->insertOverlappingBoundedBrickToVolume(
+                            brick,
+                            xRanges[i].i1, xRanges[i].i2,
+                            yRanges[j].i1, yRanges[j].i2,
+                            zRanges[k].i1, zRanges[k].i2,
+                            xOverlapping, yOverlapping, zOverlapping, numberZeroVoxels,
+                            false);
+
+                brick->~Volume();
+            }
+        }
+
+        progress++;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    _volume->insertBrickToVolume(referenceVolume,
+                                 0, referenceVolume->getWidth() - 1,
+                                 0, referenceVolume->getHeight() - 1,
+                                 0, referenceVolume->getDepth() - 1);
+    referenceVolume->~Volume();
+}
+
 void Skeletonizer::applyVolumeThinning()
 {
     TIMER_SET;
