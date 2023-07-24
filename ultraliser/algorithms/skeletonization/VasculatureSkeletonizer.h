@@ -29,27 +29,20 @@ namespace Ultraliser
 {
 
 /**
- * @brief The NeuronSkeletonizer class
+ * @brief The VasculatureSkeletonizer class
  */
-class NeuronSkeletonizer : public Skeletonizer
+class VasculatureSkeletonizer : public Skeletonizer
 {
 public:
-    NeuronSkeletonizer(const Mesh* mesh, Volume *volume);
-    ~NeuronSkeletonizer();
-
-    void constructGraph() override;
-
-    /**
-     * @brief getSomaMesh
-     * Returns a pointer to the soma mesh.
-     * @return
-     * Returns a pointer to the soma mesh.
-     */
-    Mesh* getSomaMesh() const { return _somaMesh; }
+    VasculatureSkeletonizer(const Mesh *mesh, Volume *volume);
+    ~VasculatureSkeletonizer();
 
 
-private:
+    void segmentComponents() override;
 
-    Mesh* _somaMesh = nullptr;
+
+
+    void exportSkeletonVMV(const std::string& prefix, const std::string& fileName);
 };
+
 }

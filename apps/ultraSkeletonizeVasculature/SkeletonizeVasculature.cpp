@@ -23,7 +23,7 @@
 #include <AppCommon.h>
 #include <AppArguments.h>
 #include <data/meshes/simple/IcoSphere.h>
-#include <algorithms/skeletonization/Skeletonizer.h>
+#include <algorithms/skeletonization/VasculatureSkeletonizer.h>
 #include <geometry/Sphere.h>
 
 namespace Ultraliser
@@ -95,7 +95,7 @@ void run(int argc , const char** argv)
 
 
 
-    Skeletonizer* skeletonizer = new Skeletonizer(inputMesh, solidVolume);
+    VasculatureSkeletonizer* skeletonizer = new VasculatureSkeletonizer(inputMesh, solidVolume);
     // skeletonizer->applyVolumeThinningWithDomainDecomposition();
     skeletonizer->applyVolumeThinning();
 
@@ -110,10 +110,14 @@ void run(int argc , const char** argv)
    // solidVolume->exportToMesh(prefix + "_grid", true);
 
 
-    auto nodes = skeletonizer->constructGraph();
+    skeletonizer->constructGraph();
 
 
-    skeletonizer->segmentComponents(nodes);
+    skeletonizer->segmentComponents();
+
+    skeletonizer->exportSkeletonVMV("/home/abdellah/Desktop/hbp-reports/", "single-pass.vmv");
+
+
 //    solidVolume->project(prefix + "_sphere",
 //                    options->projectXY, options->projectXZ, options->projectZY,
 //                    options->projectColorCoded);

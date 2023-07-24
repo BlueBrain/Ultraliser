@@ -99,7 +99,7 @@ void run(int argc , const char** argv)
 
     skeletonizer->applyVolumeThinning();
 
-    auto nodes = skeletonizer->constructGraph();
+    skeletonizer->constructGraph();
 
 
 
@@ -117,7 +117,7 @@ void run(int argc , const char** argv)
 
 //    solidVolume->exportToMesh(options->volumePrefix + "mesh", true);
 
-    skeletonizer->segmentComponents(nodes);
+    skeletonizer->segmentComponents();
 //    solidVolume->project(prefix + "_sphere",
 //                    options->projectXY, options->projectXZ, options->projectZY,
 //                    options->projectColorCoded);

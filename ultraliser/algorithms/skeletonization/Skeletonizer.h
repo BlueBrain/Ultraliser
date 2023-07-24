@@ -45,15 +45,12 @@ public:
 
     void applyVolumeThinning();
 
-    virtual SkeletonNodes constructGraph();
+    virtual void constructGraph();
 
-    Mesh* getSomaMesh() const
-    {
-        return _somaMesh;
-    }
 
-    virtual void segmentComponents(SkeletonNodes& nodes);
-    void _removeTriangleLoops(SkeletonNodes& nodes);
+
+    virtual void segmentComponents();
+
 
     void applyVolumeThinningWithDomainDecomposition();
 
@@ -66,7 +63,7 @@ private:
     void _voxelizeMesh();
 
 
-    SkeletonBranches _buildBranchesFromNodes(const SkeletonNodes& nodes);
+
 
     SkeletonBranch* _buildBranch(SkeletonNode* firstNode, SkeletonNode* edgeNode);
 
@@ -75,15 +72,16 @@ private:
     void _buildAcyclicTree(SkeletonBranch* branch, SkeletonBranches &branches);
 
 
-private:
+    std::map< size_t, size_t > _extractNodesFromVoxels();
 
-    std::map< size_t, size_t > _extractNodesFromVoxels(SkeletonNodes& nodes);
+    void _inflateNodes();
 
-    void _inflateNodes(SkeletonNodes& nodes);
+    void _connectNodes(const std::map<size_t, size_t> &indicesMapper);
+    void _removeTriangleLoops();
 
-    void _connectNodes(SkeletonNodes &nodes, const std::map<size_t, size_t> &indicesMapper);
+protected:
 
-
+    void _buildBranchesFromNodes(const SkeletonNodes& nodes);
 
 protected:
 
@@ -110,7 +108,17 @@ protected:
 
     std::vector< Vector3f > _shellPoints;
 
-    Mesh* _somaMesh = nullptr;
+    /**
+     * @brief _nodes
+     * A list of all the nodes in the graph.
+     */
+    SkeletonNodes _nodes;
+
+    /**
+     * @brief _branches
+     * The branches of the skeleton representing the reconstructed graph.
+     */
+    SkeletonBranches _branches;
 
 
 };
