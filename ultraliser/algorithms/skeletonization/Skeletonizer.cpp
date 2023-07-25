@@ -372,6 +372,8 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
                 }
             }
         }
+
+        progress++;
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
