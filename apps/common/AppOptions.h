@@ -140,6 +140,11 @@ public:
     void verifyMeshExportArguments();
 
     /**
+     * @brief verifyVascularMorphologyExportArguments
+     */
+    void verifyVascularMorphologyExportArguments();
+
+    /**
      * @brief verifyIsoSurfaceExtractionArgument
      * Verifies the isosurface extraction technique.
      */
@@ -594,6 +599,12 @@ public:
      * Export any reconstructed mesh to .STL file.
      */
     bool exportSTL = false;
+
+    /**
+     * @brief exportVMV
+     * Exports the reconstructed morphology into a .VNV file.
+     */
+    bool exportVMV = false;
 
     /**
      * @brief preservePartitions

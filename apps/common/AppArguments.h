@@ -142,6 +142,11 @@ public:
     void addMeshExtractionArguments();
 
     /**
+     * @brief addVascularMorphologyExportArguments
+     */
+    void addVascularMorphologyExportArguments();
+
+    /**
      * @brief addMeshOptimizationArguments
      */
     void addMeshOptimizationArguments();

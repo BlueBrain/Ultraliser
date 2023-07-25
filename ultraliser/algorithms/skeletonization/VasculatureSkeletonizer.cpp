@@ -12,11 +12,19 @@ VasculatureSkeletonizer::VasculatureSkeletonizer(Volume* volume, const Mesh *mes
 
 void VasculatureSkeletonizer::skeletonizeVolume()
 {
+    LOG_TITLE("Skeletonization");
+
+    // Start the timer
+    TIMER_SET;
+
     applyVolumeThinning();
     constructGraph();
     segmentComponents();
-}
 
+    LOG_STATUS_IMPORTANT("Skeletonization Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
+
+}
 
 void VasculatureSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
                                                  const size_t& numberOverlappingVoxels,
@@ -29,17 +37,23 @@ void VasculatureSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockS
 
 void VasculatureSkeletonizer::segmentComponents()
 {
+    // Start the timer
+    TIMER_SET;
+
+    LOG_STATUS("Segmenting Graph Components");
+
     // Currently, vasculature datasets have only branches with fluctuating diameters. Therefore,
     // branches are only the available components to be segmented from the graph. This is indeed
     // unlike neurons that can have somata, branches and spines.
     _buildBranchesFromNodes(_nodes);
+
+     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void VasculatureSkeletonizer::exportSkeletonVMV(const std::string& prefix,
-                                                const std::string& fileName)
+void VasculatureSkeletonizer::exportSkeletonVMV(const std::string& filePrefix)
 {
     // Construct the file path
-    std::string filePath = prefix + "/" + fileName + VMV_EXTENSION;
+    std::string filePath = filePrefix + VMV_EXTENSION;
     LOG_STATUS("Exporting VMV Morphology : [ %s ]", filePath.c_str());
 
     // Start the timer

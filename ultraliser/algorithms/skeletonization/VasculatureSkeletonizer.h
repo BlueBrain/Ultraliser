@@ -77,10 +77,8 @@ public:
      * https://github.com/BlueBrain/VessMorphoVis/wiki/File-Formats
      * @param prefix
      * The file prefix.
-     * @param fileName
-     * The file name.
      */
-    void exportSkeletonVMV(const std::string& prefix, const std::string& fileName);
+    void exportSkeletonVMV(const std::string& prefix);
 };
 
 }

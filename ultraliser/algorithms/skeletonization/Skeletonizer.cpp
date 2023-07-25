@@ -290,6 +290,7 @@ void Skeletonizer::applyVolumeThinning()
 
        loopCounter++;
     }
+
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
 }
@@ -338,6 +339,9 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
     // Map to associate between the indices of the voxels and the nodes in the graph
     std::map< size_t, size_t > indicesMapper;
 
+    // A list of filled voxels to compute the elements in parallel
+    std::vector< Vec4ui_64 > indicesFilledVoxels;
+
     // Search the filled voxels in the volume
     for (size_t i = 0; i < _volume->getWidth(); ++i)
     {
@@ -351,19 +355,8 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
                     // Get the 1D index of the voxel
                     size_t voxelIndex = _volume->mapTo1DIndexWithoutBoundCheck(i, j, k);
 
-                    // Get a point representing the center of the voxel (in the volume)
-                    Vector3f voxelPosition(i * 1.f, j * 1.f, k * 1.f);
-
-                    // Get a point in the same coordinate space of the mesh
-                    Vector3f nodePosition(voxelPosition);
-                    nodePosition -= _centerVolume;
-                    nodePosition.x() *= _scaleFactor.x();
-                    nodePosition.y() *= _scaleFactor.y();
-                    nodePosition.z() *= _scaleFactor.z();
-                    nodePosition += _centerMesh;
-
-                    // Add the node to the nodes list
-                    _nodes.push_back(new SkeletonNode(voxelIndex, nodePosition, voxelPosition));
+                    Vec4ui_64 index(i, j, k, voxelIndex);
+                    indicesFilledVoxels.push_back(index);
 
                     // Mapper from voxel to node indices
                     indicesMapper.insert(std::pair< size_t, size_t >(voxelIndex, nodeIndex));
@@ -375,18 +368,54 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
         }
     }
 
+    // Resize the nodes
+    _nodes.resize(indicesFilledVoxels.size());
+
+    OMP_PARALLEL_FOR
+    for (size_t n = 0; n < indicesFilledVoxels.size(); ++n)
+    {
+        const size_t i = indicesFilledVoxels[n].x();
+        const size_t j = indicesFilledVoxels[n].y();
+        const size_t k = indicesFilledVoxels[n].z();
+        const size_t voxelIndex = indicesFilledVoxels[n].w();
+
+        // Get a point representing the center of the voxel (in the volume)
+        Vector3f voxelPosition(i * 1.f, j * 1.f, k * 1.f);
+
+        // Get a point in the same coordinate space of the mesh
+        Vector3f nodePosition(voxelPosition);
+        nodePosition -= _centerVolume;
+        nodePosition.x() *= _scaleFactor.x();
+        nodePosition.y() *= _scaleFactor.y();
+        nodePosition.z() *= _scaleFactor.z();
+        nodePosition += _centerMesh;
+
+        // Add the node to the nodes list
+        _nodes[n] = new SkeletonNode(voxelIndex, nodePosition, voxelPosition);
+    }
+
+    indicesFilledVoxels.clear();
+
     return indicesMapper;
 }
 
 void Skeletonizer::_inflateNodes()
 {
+    TIMER_SET;
+    LOG_STATUS("Inflating Graph Nodes");
+
     // Compute the approximate radii of all the nodes in the graph, based on the minimum distance
     std::vector< float > nodesRadii;
     nodesRadii.resize(_nodes.size());
 
+    PROGRESS_SET;
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, _nodes.size());
+        PROGRESS_UPDATE;
+
         float minimumDistance = std::numeric_limits< float >::max();
         for (size_t j = 0; j < _shellPoints.size(); ++j)
         {
@@ -396,6 +425,8 @@ void Skeletonizer::_inflateNodes()
         _nodes[i]->radius = minimumDistance;
         nodesRadii[i] = minimumDistance;
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     // Obtain the node with the largest radius, candidate for soma
     const auto iterator = std::max_element(std::begin(nodesRadii), std::end(nodesRadii));
@@ -407,12 +438,17 @@ void Skeletonizer::_inflateNodes()
     nodesRadii.shrink_to_fit();
 }
 
-
 void Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indicesMapper)
 {
+    TIMER_SET;
+    LOG_STATUS("Connecting Graph Nodes");
+
     // Construct the graph and connect the nodes
+    size_t progress = 0;
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
+        LOOP_PROGRESS(0, progress);
+
         // Check if the node has been visited before
         SkeletonNode* node = _nodes[i];
 
@@ -447,7 +483,11 @@ void Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indicesMapper
 
         if (connectedEdges > 2)
             node->branching = true;
+
+        progress++;
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void Skeletonizer::_removeTriangleLoops()
@@ -513,7 +553,6 @@ void Skeletonizer::constructGraph()
     // Re-index the samples, for simplicity
     OMP_PARALLEL_FOR for (size_t i = 1; i <= _nodes.size(); ++i) { _nodes[i - 1]->index = i; }
 }
-
 
 void Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& nodes)
 {

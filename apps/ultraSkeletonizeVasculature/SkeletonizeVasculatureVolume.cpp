@@ -115,7 +115,7 @@ void run(int argc , const char** argv)
 
     skeletonizer->segmentComponents();
 
-    skeletonizer->exportSkeletonVMV("/home/abdellah/Desktop/hbp-reports/", "single-pass.vmv");
+    // skeletonizer->exportSkeletonVMV("/home/abdellah/Desktop/hbp-reports/", "single-pass.vmv");
 
 
 //    solidVolume->project(prefix + "_sphere",

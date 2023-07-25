@@ -134,12 +134,18 @@ BitArrayIndex BitArray::operator()(const size_t bit)
 
 bool BitArray::operator[](const size_t bit) const
 {
-    return((_data[BIT_CHAR(bit)] & BIT_IN_CHAR(bit)) != 0);
+    // Initially, if the entire byte is zero, return false
+    if (_data[bit >> 3])
+        return((_data[BIT_CHAR(bit)] & BIT_IN_CHAR(bit)) != 0);
+    return false;
 }
 
 bool BitArray::bit(const size_t index) const
 {
-    return((_data[BIT_CHAR(index)] & BIT_IN_CHAR(index)) != 0);
+    // Initially, if the entire byte is zero, return false
+    if (_data[index >> 3])
+        return((_data[BIT_CHAR(index)] & BIT_IN_CHAR(index)) != 0);
+    return false;
 }
 
 uint8_t BitArray::getByte(const size_t index) const

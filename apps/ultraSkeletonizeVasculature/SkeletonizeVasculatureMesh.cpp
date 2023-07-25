@@ -39,8 +39,9 @@ AppOptions* parseArguments(const int& argc , const char** argv)
 
     args->addInputMeshArguments();
     args->addOutputArguments();
-    args->addVolumeArguments();
+    args->addVascularMorphologyExportArguments();
     args->addMeshArguments();
+    args->addVolumeArguments();
     args->addSuppressionArguments();
     args->addDataArguments();
     args->addProcessingArguments();
@@ -53,10 +54,8 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     // Verify the arguments after parsing them and extracting the application options.
     options->verifyInputMeshArgument();
     options->verifyOutputDirectoryArgument();
-    options->verifyBoudsFileArgument();
-    options->verifyMeshExportArguments();
     options->verifyMeshPrefixArgument();
-    options->verifyIsoSurfaceExtractionArgument();
+    options->verifyVascularMorphologyExportArguments();
     options->verifyProcessingArguments();
 
     // Initialize context, once everything is in place and all the options are verified
@@ -68,7 +67,6 @@ AppOptions* parseArguments(const int& argc , const char** argv)
 
 void run(int argc , const char** argv)
 {
-
     // Parse the arguments and get the tool options
     auto options = parseArguments(argc, argv);
 
@@ -90,9 +88,13 @@ void run(int argc , const char** argv)
 
     // vasculatureSkeletonizer->applyVolumeThinningWithDomainDecomposition();
 
-    vasculatureSkeletonizer->skeletonizeVolumeBlockByBlock(256, 10);
+    vasculatureSkeletonizer->skeletonizeVolume();
 
-    vasculatureSkeletonizer->exportSkeletonVMV("/home/abdellah/Desktop/hbp-reports/", "single-pass");
+    // Export the morphology
+    if (options->exportVMV)
+    {
+        vasculatureSkeletonizer->exportSkeletonVMV(options->morphologyPrefix);
+    }
 }
 }
 

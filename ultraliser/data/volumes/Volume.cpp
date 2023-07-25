@@ -3279,7 +3279,6 @@ size_t Volume::deleteCandidateVoxelsParallel(std::unique_ptr< Thinning6Iteration
     perSliceBorderVoxels.resize(getWidth());
 
     // Collect the border voxels per slice in parallel
-
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < getWidth(); ++i)
     {
@@ -3297,7 +3296,6 @@ size_t Volume::deleteCandidateVoxelsParallel(std::unique_ptr< Thinning6Iteration
 
                     perSliceBorderVoxels[i].push_back(voxel);
                 }
-
             }
         }
     }

@@ -267,6 +267,16 @@ void AppOptions::verifyMeshExportArguments()
     verifyMeshExportLogic();
 }
 
+void AppOptions::verifyVascularMorphologyExportArguments()
+{
+    // Exporting formats, at least one of them must be there
+    if (!exportVMV)
+    {
+        LOG_ERROR("You must specify at least one valid morphology format to export:"
+                  "[--export-vmv-morphology]");
+    }
+}
+
 void AppOptions::verifyVolumeExportArguments()
 {
     if (!(exportBitVolume || exportRawVolume || exportNRRDVolume))
@@ -307,6 +317,14 @@ void AppOptions::createRespectiveDirectories()
     {
         std::stringstream path;
         path << outputDirectory << "/" << STACKS_SIRECTORY;
+        mkdir(path.str().c_str(), 0777);
+    }
+
+    // Morphology directory
+    if (exportVMV)
+    {
+        std::stringstream path;
+        path << outputDirectory << "/" << MORPHOLOGIES_DIRECTORY;
         mkdir(path.str().c_str(), 0777);
     }
 

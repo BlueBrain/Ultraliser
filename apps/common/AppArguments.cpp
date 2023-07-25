@@ -605,6 +605,16 @@ void AppArguments::addLaplacianOperatorArguments()
     _options->laplacianIterations = _args->getIntegrValue(&laplacianIterations);
 }
 
+void AppArguments::addVascularMorphologyExportArguments()
+{
+    Argument exportVMVMorphology(
+                "--export-vmv-morphology",
+                ARGUMENT_TYPE::BOOL,
+                "Exports the vascular morphology to .VMV file.");
+    _args->addArgument(&exportVMVMorphology);
+    _options->exportVMV = _args->getBoolValue(&exportVMVMorphology);
+}
+
 void AppArguments::addMeshExportArguments()
 {
     Argument exportOBJ(
