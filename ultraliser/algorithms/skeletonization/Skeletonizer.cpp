@@ -333,6 +333,9 @@ void Skeletonizer::_computeShellPoints()
 
 std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
 {
+    TIMER_SET;
+    LOG_STATUS("Mapping Voxels to Nodes");
+
     // Every constructed node must have an identifier, or index.
     size_t nodeIndex = 0;
 
@@ -343,8 +346,11 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
     std::vector< Vec4ui_64 > indicesFilledVoxels;
 
     // Search the filled voxels in the volume
+    size_t progress = 0;
     for (size_t i = 0; i < _volume->getWidth(); ++i)
     {
+        LOOP_PROGRESS(progress, _volume->getWidth());
+
         for (size_t j = 0; j < _volume->getHeight(); ++j)
         {
             for (size_t k = 0; k < _volume->getDepth(); ++k)
@@ -367,13 +373,20 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
             }
         }
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     // Resize the nodes
     _nodes.resize(indicesFilledVoxels.size());
 
+    PROGRESS_SET;
     OMP_PARALLEL_FOR
     for (size_t n = 0; n < indicesFilledVoxels.size(); ++n)
     {
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, indicesFilledVoxels.size());
+        PROGRESS_UPDATE;
+
         const size_t i = indicesFilledVoxels[n].x();
         const size_t j = indicesFilledVoxels[n].y();
         const size_t k = indicesFilledVoxels[n].z();
@@ -393,6 +406,8 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
         // Add the node to the nodes list
         _nodes[n] = new SkeletonNode(voxelIndex, nodePosition, voxelPosition);
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     indicesFilledVoxels.clear();
 
@@ -402,7 +417,7 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
 void Skeletonizer::_inflateNodes()
 {
     TIMER_SET;
-    LOG_STATUS("Inflating Graph Nodes");
+    LOG_STATUS("Inflating Graph Nodes - Mapping to Surface");
 
     // Compute the approximate radii of all the nodes in the graph, based on the minimum distance
     std::vector< float > nodesRadii;
