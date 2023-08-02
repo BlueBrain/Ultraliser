@@ -79,6 +79,14 @@ public:
      * The file prefix.
      */
     void exportSkeletonVMV(const std::string& prefix);
+
+    /**
+     * @brief exportSkeletonVMV5
+     * Exports the morphology skeleton into the VessMorphoVis binary format (or VMV5).
+     * @param prefix
+     * File prefix.
+     */
+    void exportSkeletonVMV5(const std::string& prefix);
 };
 
 }

@@ -77,6 +77,10 @@ public:
 
 private:
 
+
+protected:
+
+
     void _computeShellPoints();
 
     void _voxelizeMesh();
@@ -86,19 +90,17 @@ private:
 
     SkeletonBranch* _buildBranch(SkeletonNode* firstNode, SkeletonNode* edgeNode);
 
-    Mesh* _reconstructSoma(const SkeletonBranches &branches);
-
     void _buildAcyclicTree(SkeletonBranch* branch, SkeletonBranches &branches);
 
 
     std::map< size_t, size_t > _extractNodesFromVoxels();
 
+    std::map< size_t, size_t > _extractNodesFromVoxelsParallel();
+
     void _inflateNodes();
 
     void _connectNodes(const std::map<size_t, size_t> &indicesMapper);
     void _removeTriangleLoops();
-
-protected:
 
     void _buildBranchesFromNodes(const SkeletonNodes& nodes);
 

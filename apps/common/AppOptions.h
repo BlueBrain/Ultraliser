@@ -602,9 +602,15 @@ public:
 
     /**
      * @brief exportVMV
-     * Exports the reconstructed morphology into a .VNV file.
+     * Exports the reconstructed morphology into a .VMV file.
      */
     bool exportVMV = false;
+
+    /**
+     * @brief exportBranches
+     * Export the reconstructed branches of the skeleton into a .TXT file for display in Blender.
+     */
+    bool exportBranches = false;
 
     /**
      * @brief preservePartitions

@@ -35,9 +35,18 @@ NeuronSkeletonizer::NeuronSkeletonizer(Volume* volume, const Mesh *mesh)
 
 void NeuronSkeletonizer::skeletonizeVolume()
 {
+    LOG_TITLE("Skeletonization");
 
+    // Start the timer
+    TIMER_SET;
+
+    applyVolumeThinning();
+    constructGraph();
+    segmentComponents();
+
+    LOG_STATUS_IMPORTANT("Skeletonization Stats.");
+    LOG_STATS(GET_TIME_SECONDS);
 }
-
 
 void NeuronSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
                                                  const size_t& numberOverlappingVoxels,
@@ -48,9 +57,238 @@ void NeuronSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
     segmentComponents();
 }
 
+SkeletonNode* NeuronSkeletonizer::_addSomaNode()
+{
+    SkeletonNode* somaNode = new SkeletonNode();
+    somaNode->index = _nodes.back()->index + 1;
+    somaNode->isSoma = true;
+    _nodes.push_back(somaNode);
+    return somaNode;
+}
+
+void NeuronSkeletonizer::_segmentSomaMesh()
+{
+    _somaMesh = new Mesh();
+
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        for (size_t j = 0; j < _branches[i]->nodes.size(); ++j)
+        {
+            auto& node0 = _branches[i]->nodes[j];
+            if (node0->radius >= 2.0)
+            {
+                Mesh* sample = new IcoSphere(3);
+                sample->scale(node0->radius, node0->radius, node0->radius);
+                sample->translate(node0->point);
+
+                sample->map(_shellPoints);
+
+                _somaMesh->append(sample);
+                sample->~Mesh();
+            }
+        }
+    }
+}
+
+void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
+{
+
+    // OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        auto& branch = _branches[i];
+
+        size_t countSamplesInsideSoma = 0;
+
+        for (size_t j = 0; j < branch->nodes.size(); ++j)
+        {
+            if (branch->nodes[j]->insideSoma)
+            {
+                countSamplesInsideSoma++;
+            }
+        }
+
+        // If the count of the samples located inside the soma is zero, then it is a valid branch
+        if (countSamplesInsideSoma == 0)
+        {
+            branch->root = false;
+            branch->valid = true;
+        }
+
+        // If all the branch nodes are located inside the soma, then it is not valid
+        else if (countSamplesInsideSoma == branch->nodes.size())
+        {
+            branch->root = false;
+            branch->valid = false;
+        }
+
+        // Otherwise, it is a branch that is connected to the soma
+        else
+        {
+            SkeletonNodes newNodes;
+
+            // Get the first and last nodes
+            auto& firstNode = branch->nodes.front();
+            auto& lastNode = branch->nodes.back();
+
+            if (firstNode->insideSoma)
+            {
+                newNodes.push_back(somaNode);
+                for (size_t j = 0; j < branch->nodes.size(); ++j)
+                {
+                    if (!branch->nodes[j]->insideSoma)
+                    {
+                        newNodes.push_back(branch->nodes[j]);
+                    }
+                }
+            }
+            else if (lastNode->insideSoma)
+            {
+                for (size_t j = 0; j < branch->nodes.size(); ++j)
+                {
+                    if (!branch->nodes[j]->insideSoma)
+                    {
+                        newNodes.push_back(branch->nodes[j]);
+                    }
+                }
+                newNodes.push_back(somaNode);
+
+            }
+
+            branch->nodes.clear();
+            branch->nodes.shrink_to_fit();
+            branch->nodes = newNodes;
+
+            branch->root = true;
+            branch->valid = true;
+        }
+    }
+}
+
+void NeuronSkeletonizer::_segmentSomaVolume()
+{
+    _volume->clear();
+    _volume->surfaceVoxelization(_somaMesh, false, false);
+    _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+    _volume->project("/data/neuron-meshes/output/soma", true);
+
+    // TODO: This could be parallelized
+    std::vector< size_t > somaVoxels;
+    for (size_t i = 0; i < _volume->getNumberVoxels(); ++i)
+    {
+        if (_volume->isFilled(i))
+        {
+            somaVoxels.push_back(i);
+        }
+    }
+
+    // Find out the nodes that are inside the soma
+    size_t insideSoma = 0;
+    // OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _nodes.size(); ++i)
+    {
+        auto& node = _nodes[i];
+        size_t key = _volume->mapTo1DIndexWithoutBoundCheck(
+                    node->voxel.x(), node->voxel.y(), node->voxel.z());
+        if (std::find(somaVoxels.begin(), somaVoxels.end(), key) != somaVoxels.end())
+        {
+            insideSoma++;
+
+            // The soma is inside the soma
+            node->insideSoma = true;
+        }
+    }
+
+    // The volume is safe to be deallocated
+    _volume->~Volume();
+    _volume = nullptr;
+}
+
+void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) const
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Construct the file path
+    std::string filePath = prefix + TXT_EXTENSION;
+    LOG_STATUS("Exporting Neuron Branches: [ %s ]", filePath.c_str());
+
+    std::fstream stream;
+    stream.open(filePath, std::ios::out);
+
+    LOOP_STARTS("Writing Branches");
+    size_t progress = 0;
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        LOOP_PROGRESS(progress, _branches.size());
+        ++progress;
+
+        // The @start marks a new branch in the file
+        stream << "start\n";
+
+        for (auto& node: _branches[i]->nodes)
+        {
+            stream << node->point.x() << " "
+                   << node->point.y() << " "
+                   << node->point.z() << " "
+                   << node->radius << "\n";
+        }
+
+        // The @end marks the terminal sample of a branch
+        stream << "end\n";
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Close the file
+    stream.close();
+}
 
 void NeuronSkeletonizer::constructGraph()
 {
+    std::map< size_t, size_t > indicesMapper = _extractNodesFromVoxels();
+
+    // Assign accurate radii to the nodes of the graph, i.e. inflate the nodes
+    _inflateNodes();
+
+    // Connect the nodes to construct the edges of the graph
+    _connectNodes(indicesMapper);
+
+    // Remove the triangular configurations
+    _removeTriangleLoops();
+
+    // Add a virtual soma node, until the soma is reconstructed later
+    auto somaNode = _addSomaNode();
+
+    // Re-index the samples, for simplicity
+    OMP_PARALLEL_FOR for (size_t i = 1; i <= _nodes.size(); ++i) { _nodes[i - 1]->index = i; }
+
+    // Reconstruct the sections, or the branches from the nodes
+    _buildBranchesFromNodes(_nodes);
+
+    // Segmentthe soma mesh from the branches
+    _segmentSomaMesh();
+
+    // Segment soma volume
+    _segmentSomaVolume();
+
+    // Validate the branches, and remove the branches inside the soma
+    _removeBranchesInsideSoma(somaNode);
+
+    // Identify the possible roots
+
+
+
+
+
+
+
+
+
+    return;
+
+
+
     // The graph that will contain the nodes
     SkeletonNodes nodes;
 
@@ -936,31 +1174,6 @@ void Skeletonizer::segmentComponents()
 //    }
 }
 
-Mesh* Skeletonizer::_reconstructSoma(const SkeletonBranches& branches)
-{
-    Mesh* somaMesh = new Mesh();
-
-    for (size_t i = 0; i < branches.size(); ++i)
-    {
-        for (size_t j = 0; j < branches[i]->nodes.size(); ++j)
-        {
-            auto& node0 = branches[i]->nodes[j];
-            if (node0->radius >= 2.0)
-            {
-                Mesh* sample = new IcoSphere(3);
-                sample->scale(node0->radius, node0->radius, node0->radius);
-                sample->translate(node0->point);
-
-                sample->map(_shellPoints);
-
-                somaMesh->append(sample);
-                sample->~Mesh();
-            }
-        }
-    }
-
-    return somaMesh;
-}
 
 
 }

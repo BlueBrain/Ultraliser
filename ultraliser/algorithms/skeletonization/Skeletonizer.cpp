@@ -331,6 +331,82 @@ void Skeletonizer::_computeShellPoints()
     }
 }
 
+std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsParallel()
+{
+    // Map to associate between the indices of the voxels and the nodes in the graph
+    std::map< size_t, size_t > indicesMapper;
+
+    std::vector< std::map< size_t, size_t > > perSliceIndicesMapper;
+
+    std::vector< SkeletonNodes > perSliceNodes;
+    perSliceNodes.resize(_volume->getWidth());
+
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _volume->getWidth(); ++i)
+    {
+        size_t nodeIndex = 0;
+
+        SkeletonNodes& nodes = perSliceNodes[i];
+        std::map< size_t, size_t >& mapper = perSliceIndicesMapper[i];
+
+        for (size_t j = 0; j < _volume->getHeight(); ++j)
+        {
+            for (size_t k = 0; k < _volume->getDepth(); ++k)
+            {
+                // If the voxel is filled
+                if (_volume->isFilled(i, j, k))
+                {
+                    // Get the 1D index of the voxel
+                    size_t voxelIndex = _volume->mapTo1DIndexWithoutBoundCheck(i, j, k);
+
+                    // Get a point representing the center of the voxel (in the volume)
+                    Vector3f voxelPosition(i * 1.f, j * 1.f, k * 1.f);
+
+                    // Get a point in the same coordinate space of the mesh
+                    Vector3f nodePosition(voxelPosition);
+                    nodePosition -= _centerVolume;
+                    nodePosition.x() *= _scaleFactor.x();
+                    nodePosition.y() *= _scaleFactor.y();
+                    nodePosition.z() *= _scaleFactor.z();
+                    nodePosition += _centerMesh;
+
+                    // Add the node to the nodes list
+                    nodes.push_back(new SkeletonNode(voxelIndex, nodePosition, voxelPosition));
+
+                    // Mapper from voxel to node indices
+                    mapper.insert(std::pair< size_t, size_t >(voxelIndex, nodeIndex));
+
+                    nodeIndex++;
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    return indicesMapper;
+}
+
 std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
 {
     TIMER_SET;

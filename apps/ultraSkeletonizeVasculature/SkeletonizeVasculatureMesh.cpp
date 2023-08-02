@@ -83,12 +83,15 @@ void run(int argc , const char** argv)
     volume->surfaceVoxelization(inputMesh, false, false, 1.0);
     volume->solidVoxelization(options->voxelizationAxis);
 
-    //
+    // Create a skeletonization object
     VasculatureSkeletonizer* vasculatureSkeletonizer = new VasculatureSkeletonizer(volume, inputMesh);
 
     // vasculatureSkeletonizer->applyVolumeThinningWithDomainDecomposition();
 
     vasculatureSkeletonizer->skeletonizeVolume();
+
+    // Generate the skeletonized volume artifacts
+    generateVolumeArtifacts(volume, options);
 
     // Export the morphology
     if (options->exportVMV)

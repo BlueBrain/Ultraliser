@@ -80,7 +80,9 @@
 #define OFF_EXTENSION                           STRING(".off")
 #define PLY_EXTENSION                           STRING(".ply")
 #define STL_EXTENSION                           STRING(".stl")
+#define TXT_EXTENSION                           STRING(".txt")
 #define VMV_EXTENSION                           STRING(".vmv")
+#define VMV5_EXTENSION                          STRING(".vmv5")
 #define H5_EXTENSION                            STRING(".h5")
 
 // Volume formats

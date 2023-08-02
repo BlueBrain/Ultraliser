@@ -54,6 +54,20 @@ public:
                                        const size_t& numberOverlappingVoxels = 25,
                                        const size_t& numberZeroVoxels = 5) override;
 
+
+     void exportIndividualBranches(const std::string& prefix) const;
+
+
+private:
+
+    SkeletonNode *_addSomaNode();
+
+    void _segmentSomaMesh();
+
+    void _segmentSomaVolume();
+
+    void _removeBranchesInsideSoma(SkeletonNode *somaNode);
+
 private:
 
     Mesh* _somaMesh = nullptr;

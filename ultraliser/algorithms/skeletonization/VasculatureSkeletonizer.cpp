@@ -23,7 +23,6 @@ void VasculatureSkeletonizer::skeletonizeVolume()
 
     LOG_STATUS_IMPORTANT("Skeletonization Stats.");
     LOG_STATS(GET_TIME_SECONDS);
-
 }
 
 void VasculatureSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
@@ -121,8 +120,56 @@ void VasculatureSkeletonizer::exportSkeletonVMV(const std::string& filePrefix)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
+void VasculatureSkeletonizer::exportSkeletonVMV5(const std::string& filePrefix)
+{
+    // Construct the file path
+    std::string filePath = filePrefix + VMV5_EXTENSION;
+    LOG_STATUS("Exporting VMV5 Morphology : [ %s ]", filePath.c_str());
+
+    // Open the file
+    H5::H5File file(filePath, H5F_ACC_TRUNC);
+
+    // Add the vertices dataset
+    const int RANK = 2;
+    hsize_t  verticesDimensions[2];
+    verticesDimensions[0] = _nodes.size();
+    verticesDimensions[1] = 4; // X Y Z R
+    H5::DataSpace dataspace(RANK, verticesDimensions);
+
+    // Define the datatype for the data in the file.
+    H5::FloatType datatype(H5::PredType::NATIVE_FLOAT);
+
+    // Create a new dataset container to store the dataset in.
+    H5::DataSet dataset = file.createDataSet("vertices", datatype, dataspace );
+
+    struct NodeVert {
+        float x;
+        float y;
+        float z;
+        float r;
+    };
+
+    std::vector< NodeVert > verts;
+    verts.resize(_nodes.size());
+    for (size_t i = 0; i < _nodes.size(); ++i)
+    {
+        verts[i].x = _nodes[i]->point.x();
+        verts[i].y = _nodes[i]->point.y();
+        verts[i].z = _nodes[i]->point.z();
+        verts[i].r = _nodes[i]->radius;
+    }
+
+    // Write the dataset using the default memory space
+    dataset.write(verts.data(), H5::PredType::NATIVE_FLOAT);
+
+    // TODO: Strands are missing
+
+    // Close the file
+    file.close();
+}
+
 VasculatureSkeletonizer::~VasculatureSkeletonizer()
 {
-
+    /// EMPTY
 }
 }

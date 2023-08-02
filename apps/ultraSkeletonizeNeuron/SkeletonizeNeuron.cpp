@@ -54,7 +54,6 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyInputMeshArgument();
     options->verifyOutputDirectoryArgument();
     options->verifyBoudsFileArgument();
-    options->verifyMeshExportArguments();
     options->verifyMeshPrefixArgument();
     options->verifyIsoSurfaceExtractionArgument();
     options->verifyProcessingArguments();
@@ -88,12 +87,11 @@ void run(int argc , const char** argv)
 
     NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(solidVolume, inputMesh);
 
-    // Get the border
+    skeletonizer->skeletonizeVolume();
+    skeletonizer->exportIndividualBranches(options->morphologyPrefix);
 
-    skeletonizer->applyVolumeThinning();
 
-    skeletonizer->constructGraph();
-
+    return;
 
 
 
