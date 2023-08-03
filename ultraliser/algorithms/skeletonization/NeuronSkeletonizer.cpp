@@ -143,39 +143,39 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
         // Otherwise, it is a branch that is connected to the soma
         else
         {
-            SkeletonNodes newNodes;
+//            SkeletonNodes newNodes;
 
-            // Get the first and last nodes
-            auto& firstNode = branch->nodes.front();
-            auto& lastNode = branch->nodes.back();
+//            // Get the first and last nodes
+//            auto& firstNode = branch->nodes.front();
+//            auto& lastNode = branch->nodes.back();
 
-            if (firstNode->insideSoma)
-            {
-                newNodes.push_back(somaNode);
-                for (size_t j = 0; j < branch->nodes.size(); ++j)
-                {
-                    if (!branch->nodes[j]->insideSoma)
-                    {
-                        newNodes.push_back(branch->nodes[j]);
-                    }
-                }
-            }
-            else if (lastNode->insideSoma)
-            {
-                for (size_t j = 0; j < branch->nodes.size(); ++j)
-                {
-                    if (!branch->nodes[j]->insideSoma)
-                    {
-                        newNodes.push_back(branch->nodes[j]);
-                    }
-                }
-                newNodes.push_back(somaNode);
+//            if (firstNode->insideSoma)
+//            {
+//                newNodes.push_back(somaNode);
+//                for (size_t j = 0; j < branch->nodes.size(); ++j)
+//                {
+//                    if (!branch->nodes[j]->insideSoma)
+//                    {
+//                        newNodes.push_back(branch->nodes[j]);
+//                    }
+//                }
+//            }
+//            else if (lastNode->insideSoma)
+//            {
+//                for (size_t j = 0; j < branch->nodes.size(); ++j)
+//                {
+//                    if (!branch->nodes[j]->insideSoma)
+//                    {
+//                        newNodes.push_back(branch->nodes[j]);
+//                    }
+//                }
+//                newNodes.push_back(somaNode);
 
-            }
+//            }
 
-            branch->nodes.clear();
-            branch->nodes.shrink_to_fit();
-            branch->nodes = newNodes;
+//            branch->nodes.clear();
+//            branch->nodes.shrink_to_fit();
+//            branch->nodes = newNodes;
 
             branch->root = true;
             branch->valid = true;
@@ -189,6 +189,8 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
 
 void NeuronSkeletonizer::_segmentSomaVolume()
 {
+    _somaMesh->exportMesh("/data/neuron-meshes/output/soma", true);
+
     _volume->clear();
     _volume->surfaceVoxelization(_somaMesh, false, false);
     _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
@@ -302,7 +304,7 @@ void NeuronSkeletonizer::constructGraph()
     _segmentSomaVolume();
 
     // Validate the branches, and remove the branches inside the soma
-    _removeBranchesInsideSoma(somaNode);
+    // _removeBranchesInsideSoma(somaNode);
 
     // Identify the possible roots
 
