@@ -26,66 +26,29 @@
 # Ultraliser library
 set(ULTRALISER_LIBRARY "ultraliser")
 
-# Ultraliser files
-set(ULTRALISER_SOURCE_FILES "")
-set(ULTRALISER_HEADER_FILES "")
-
-# A list of the directories that will be scanned
-set(DIRECTORIES "algorithms"
-                "algorithms/floodfill"
-                "algorithms/geometry"
-                "algorithms/mcs"
-                "algorithms/simulation"
-                "algorithms/skeletonization"
-                "algorithms/skeletonization/thinning"
-                "algorithms/utilities"
-                "arguments"
-                "common"
-                "data"
-                "data/common"
-                "data/structures"
-                "data/images"
-                "data/meshes"
-                "data/meshes/advanced"
-                "data/meshes/advanced/math"
-                "data/meshes/advanced/primitives"
-                "data/meshes/advanced/io"
-                "data/meshes/simple"
-                "data/meshes/simple/primitives"
-                "data/meshes/simple/io"
-                "data/morphologies"
-                "data/morphologies/h5"
-                "data/morphologies/swc"
-                "data/morphologies/vmv"
-                "data/volumes"
-                "data/volumes/grids"
-                "data/volumes/utilities"
-                "data/volumes/voxels"
-                "geometry"
-                "math"
-                "microscopes"
-                "utilities"
-)
-
 # Removing the include directory from the build one
-file(REMOVE ${CMAKE_BINARY_DIR}/include)
+file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}/include)
 
-# Add all the files in the project
-foreach(DIRECTORY in ${DIRECTORIES})
-    # Source files
-    file(GLOB SOURCES
-            "${DIRECTORY}/*.c" "${DIRECTORY}/*.cpp" "${DIRECTORY}/*.hpp")
-    list(APPEND ULTRALISER_SOURCE_FILES ${SOURCES})
+# Get all the cource files
+FILE(GLOB_RECURSE ULTRALISER_SOURCE_FILES *.cpp *.c)
+FILE(GLOB_RECURSE ULTRALISER_HEADER_FILES_FP *.h *.hh *.hpp)
 
-    # Header files
-    file(GLOB HEADERS
-            "${DIRECTORY}/*.h" "${DIRECTORY}/*.hh")
-    list(APPEND ULTRALISER_HEADER_FILES ${HEADERS})
+#file(GLOB V_GLOB LIST_DIRECTORIES true "*")
+#foreach(item ${V_GLOB})
+#    message(${item})
+#endforeach()
 
-    # Copy the header files to the build directory for the apps
-    file(COPY ${DIRECTORY}
-            DESTINATION ${CMAKE_BINARY_DIR}/include
-            FILES_MATCHING PATTERN "*.h" PATTERN "*.hh")
+# Get the correct paths of the header files
+foreach(HEADER_FILE ${ULTRALISER_HEADER_FILES_FP})
+    string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "" RELATIVE_HEADER ${HEADER_FILE})
+    list(APPEND ULTRALISER_HEADER_FILES ${RELATIVE_HEADER})
+endforeach()
+
+# Copy the header files to the actual destinations in the build directory
+foreach(item ${ULTRALISER_HEADER_FILES})
+    get_filename_component(FILE_NAME ${item} NAME)
+    get_filename_component(DIRECTORY_NAME ${item} DIRECTORY)
+    file(COPY ${item} DESTINATION ${CMAKE_BINARY_DIR}/include/${DIRECTORY_NAME})
 endforeach()
 
 # Copy the interface
