@@ -31,29 +31,39 @@
 
 namespace Ultraliser
 {
-    constexpr auto none = std::numeric_limits<std::size_t>::max();
-
-    struct Node
+    class KdTree
     {
-        Vector3f point = {0, 0, 0};
-        std::size_t left = none;
-        std::size_t right = none;
+    public:
+        static constexpr auto none = std::numeric_limits<std::size_t>::max();
 
-        Node() = default;
-
-        explicit Node(const Vector3f &value)
-            : point(value)
+        struct Node
         {
-        }
+            Vector3f point = {0, 0, 0};
+            std::size_t left = none;
+            std::size_t right = none;
+
+            Node() = default;
+
+            explicit Node(const Vector3f &value)
+                : point(value)
+            {
+            }
+        };
+
+        struct NearestPoint
+        {
+            Vector3f point = {0, 0, 0};
+            float distance = 0.0f;
+        };
+
+        static KdTree from(const std::vector<Vector3f> &points);
+
+        explicit KdTree(std::size_t root, std::vector<Node> nodes);
+
+        NearestPoint findNearestPoint(const Vector3f &point) const;
+
+    private:
+        std::size_t _root = none;
+        std::vector<Node> _nodes;
     };
-
-    struct KdTree
-    {
-        std::size_t root = none;
-        std::vector<Node> nodes;
-    };
-
-    KdTree createTree(const std::vector<Vector3f> &points);
-
-    const Vector3f &findNearestPoint(const KdTree &tree, const Vector3f &point);
 }

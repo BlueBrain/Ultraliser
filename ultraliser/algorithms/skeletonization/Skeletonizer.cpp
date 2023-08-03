@@ -25,6 +25,7 @@
 #include "Skeletonizer.h"
 #include "SkeletonizerUtils.h"
 #include <algorithms/skeletonization/thinning/Neighbors.hh>
+#include <algorithms/utilities/KdTree.h>
 #include <math/Vector.h>
 #include <data/meshes/simple/TriangleOperations.h>
 #include <utilities/Range.h>
@@ -497,10 +498,6 @@ void Skeletonizer::_inflateNodes()
     TIMER_SET;
     LOG_STATUS("Inflating Graph Nodes - Mapping to Surface");
 
-    // Compute the approximate radii of all the nodes in the graph, based on the minimum distance
-    std::vector< float > nodesRadii;
-    nodesRadii.resize(_nodes.size());
-
     PROGRESS_SET;
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < _nodes.size(); ++i)
@@ -516,19 +513,34 @@ void Skeletonizer::_inflateNodes()
             if (distance < minimumDistance) { minimumDistance = distance; }
         }
         _nodes[i]->radius = minimumDistance;
-        nodesRadii[i] = minimumDistance;
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
+}
 
-    // Obtain the node with the largest radius, candidate for soma
-    const auto iterator = std::max_element(std::begin(nodesRadii), std::end(nodesRadii));
-    const auto& index = std::distance(std::begin(nodesRadii), iterator);
-    const auto& largestNode = _nodes[index];
+void Skeletonizer::_inflateNodesKdTree()
+{
+    TIMER_SET;
+    LOG_STATUS("Inflating Graph Nodes - Mapping to Surface");
 
-    // Clear the auxiliary list
-    nodesRadii.clear();
-    nodesRadii.shrink_to_fit();
+    const auto tree = KdTree::from(_shellPoints);
+
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _nodes.size(); ++i)
+    {
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, _nodes.size());
+        PROGRESS_UPDATE;
+
+        auto &node = *_nodes[i];
+        auto &point = node.point;
+
+        auto nearestPoint = tree.findNearestPoint(point);
+        node.radius = nearestPoint.distance;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indicesMapper)

@@ -31,7 +31,11 @@ namespace
 {
     using namespace Ultraliser;
 
-    struct NearestPoint
+    using Node = KdTree::Node;
+
+    constexpr auto none = KdTree::none;
+
+    struct SearchResult
     {
         std::size_t index = none;
         float distance = 0.0f;
@@ -41,7 +45,7 @@ namespace
     {
         std::size_t index;
         std::size_t axis = 0;
-        NearestPoint result;
+        SearchResult result;
 
         explicit SearchContext(std::size_t root)
             : index(root)
@@ -98,7 +102,7 @@ namespace
         return std::sqrt(distance);
     }
 
-    void findNearest(SearchContext &context, const std::vector<Node> &nodes, const Vector3f &point)
+    void search(SearchContext &context, const std::vector<Node> &nodes, const Vector3f &point)
     {
         auto &index = context.index;
         if (index == none)
@@ -129,7 +133,7 @@ namespace
 
         auto left = distance > 0;
         index = left ? node.left : node.right;
-        findNearest(context, nodes, point);
+        search(context, nodes, point);
 
         if (distance * distance >= result.distance)
         {
@@ -137,37 +141,41 @@ namespace
         }
 
         index = left ? node.right : node.left;
-        findNearest(context, nodes, point);
-    }
-
-    NearestPoint findNearest(const KdTree &tree, const Vector3f &point)
-    {
-        auto context = SearchContext(tree.root);
-        findNearest(context, tree.nodes, point);
-        return context.result;
+        search(context, nodes, point);
     }
 }
 
 namespace Ultraliser
 {
-    KdTree createTree(const std::vector<Vector3f> &points)
+    KdTree KdTree::from(const std::vector<Vector3f> &points)
     {
         auto nodes = std::vector<Node>(points.begin(), points.end());
         auto root = buildTree(nodes);
-        return {root, std::move(nodes)};
+        return KdTree(root, std::move(nodes));
     }
 
-    const Vector3f &findNearestPoint(const KdTree &tree, const Vector3f &point)
+    KdTree::KdTree(std::size_t root, std::vector<Node> nodes)
+        : _root(root),
+          _nodes(std::move(nodes))
     {
-        if (tree.nodes.empty() || tree.root == none)
+    }
+
+    KdTree::NearestPoint KdTree::findNearestPoint(const Vector3f &point) const
+    {
+        if (_nodes.empty() || _root == none)
         {
             throw std::runtime_error("Invalid tree");
         }
-        auto result = findNearest(tree, point);
+
+        auto context = SearchContext(_root);
+        search(context, _nodes, point);
+        auto &result = context.result;
+
         if (result.index == none)
         {
             throw std::runtime_error("Unexpected search failure");
         }
-        return tree.nodes[result.index].point;
+
+        return {_nodes[result.index].point, result.distance};
     }
 }

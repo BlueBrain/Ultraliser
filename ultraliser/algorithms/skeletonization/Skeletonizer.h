@@ -98,6 +98,7 @@ protected:
     std::map< size_t, size_t > _extractNodesFromVoxelsParallel();
 
     void _inflateNodes();
+    void _inflateNodesKdTree();
 
     void _connectNodes(const std::map<size_t, size_t> &indicesMapper);
     void _removeTriangleLoops();
