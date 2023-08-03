@@ -93,12 +93,6 @@ void run(int argc , const char** argv)
 
     return;
 
-
-
-//    solidVolume->project(prefix + "_skeletonsss",
-//                    options->projectXY, options->projectXZ, options->projectZY,
-//                    options->projectColorCoded);
-
 //    solidVolume->writeVolumes(options->volumePrefix + "_skeleton",
 //                         options->exportBitVolume,
 //                         options->exportUnsignedVolume,
