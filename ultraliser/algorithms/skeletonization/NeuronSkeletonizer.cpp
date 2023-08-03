@@ -66,9 +66,17 @@ SkeletonNode* NeuronSkeletonizer::_addSomaNode()
     return somaNode;
 }
 
-void NeuronSkeletonizer::_segmentSomaMesh()
+void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
 {
+    // The _somaMesh should be a complex geometry containing overlapping spheres that would define
+    // its structure
     _somaMesh = new Mesh();
+
+    // For every node in the skeleton, if the radius is greater than 2.0, then this is a candidate
+    // for the soma sample
+    size_t estimatedSomaRadius = 0;
+    Vector3f estimatedSomaCenter;
+    size_t numberSamples = 0;
 
     for (size_t i = 0; i < _branches.size(); ++i)
     {
@@ -80,18 +88,27 @@ void NeuronSkeletonizer::_segmentSomaMesh()
                 Mesh* sample = new IcoSphere(3);
                 sample->scale(node0->radius, node0->radius, node0->radius);
                 sample->translate(node0->point);
-
-                sample->map(_shellPoints);
-
+                sample->map(_shellPoints, false);
                 _somaMesh->append(sample);
                 sample->~Mesh();
+
+                estimatedSomaRadius += node0->radius;
+                estimatedSomaCenter += node0->point;
+                numberSamples++;
             }
         }
     }
+
+    estimatedSomaCenter /= numberSamples;
+    estimatedSomaRadius /= numberSamples;
+
+    // somaNode->radius = estimatedSomaRadius;
+    // somaNode->point = estimatedSomaCenter;
 }
 
 void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
 {
+    size_t numRoots = 0;
 
     // OMP_PARALLEL_FOR
     for (size_t i = 0; i < _branches.size(); ++i)
@@ -108,7 +125,8 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
             }
         }
 
-        // If the count of the samples located inside the soma is zero, then it is a valid branch
+        // If the count of the samples located inside the soma is zero, then it is a valid
+        // branch, but it is not a root branch indeed
         if (countSamplesInsideSoma == 0)
         {
             branch->root = false;
@@ -161,8 +179,12 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
 
             branch->root = true;
             branch->valid = true;
+
+            numRoots++;
         }
     }
+
+    std::cout << "Roots: " << numRoots << std::endl;
 }
 
 void NeuronSkeletonizer::_segmentSomaVolume()
@@ -221,7 +243,11 @@ void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) con
     for (size_t i = 0; i < _branches.size(); ++i)
     {
         // If the branch does not have any valid nodes, then don't write it
+        // if (!_branches[i]->valid || _branches[i]->nodes.size() == 0) continue;
+        // if (!_branches[i]->root) continue;
+
         if (_branches[i]->nodes.size() == 0) continue;
+
 
         LOOP_PROGRESS(progress, _branches.size());
         ++progress;
@@ -270,15 +296,21 @@ void NeuronSkeletonizer::constructGraph()
     _buildBranchesFromNodes(_nodes);
 
     // Segmentthe soma mesh from the branches
-    _segmentSomaMesh();
+    _segmentSomaMesh(somaNode);
 
     // Segment soma volume
-    // _segmentSomaVolume();
+    _segmentSomaVolume();
 
     // Validate the branches, and remove the branches inside the soma
-    // _removeBranchesInsideSoma(somaNode);
+    _removeBranchesInsideSoma(somaNode);
 
     // Identify the possible roots
+
+    // Segment the spines, if any
+
+    // Display a report
+
+
 
 
 

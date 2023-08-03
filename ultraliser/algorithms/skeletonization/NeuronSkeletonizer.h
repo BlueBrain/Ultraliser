@@ -62,7 +62,7 @@ private:
 
     SkeletonNode *_addSomaNode();
 
-    void _segmentSomaMesh();
+    void _segmentSomaMesh(SkeletonNode *somaNode);
 
     void _segmentSomaVolume();
 

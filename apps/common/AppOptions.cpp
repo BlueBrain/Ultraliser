@@ -270,7 +270,7 @@ void AppOptions::verifyMeshExportArguments()
 void AppOptions::verifyVascularMorphologyExportArguments()
 {
     // Exporting formats, at least one of them must be there
-    if (exportVMV)
+    if (!exportVMV)
     {
         LOG_ERROR("You must specify at least one valid morphology format to export:"
                   "[--export-vmv-morphology]");
