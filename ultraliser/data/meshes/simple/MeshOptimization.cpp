@@ -2121,8 +2121,10 @@ void Mesh::refineROIs(const ROIs& regions)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Mesh::map(std::vector< Vector3f >& pointCloud)
+void Mesh::map(std::vector< Vector3f >& pointCloud, const bool& showProgress)
 {
+    if (showProgress)
+    {
     // Starting the timer
     TIMER_SET;
 
@@ -2157,6 +2159,29 @@ void Mesh::map(std::vector< Vector3f >& pointCloud)
 
     LOG_STATUS("Mapping");
     LOG_STATS(GET_TIME_SECONDS);
+    }
+    else
+    {
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < _numberVertices; ++i)
+        {
+            float minDistance = std::numeric_limits<float>::max();
+            int64_t minIndex = -1;
+
+            for (size_t j = 0; j < pointCloud.size(); ++j)
+            {
+                float distance = _vertices[i].distance(pointCloud[j]);
+
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    minIndex = j;
+                }
+            }
+
+            _vertices[i] = pointCloud[minIndex];
+        }
+    }
 }
 
 void Mesh::map(Mesh* toMesh)
