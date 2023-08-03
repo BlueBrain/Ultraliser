@@ -39,6 +39,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
 
     args->addInputMeshArguments();
     args->addOutputArguments();
+    args->addNeuronalMorphologyExportArguments();
     args->addVolumeArguments();
     args->addMeshArguments();
     args->addSuppressionArguments();
@@ -56,6 +57,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyBoudsFileArgument();
     options->verifyMeshPrefixArgument();
     options->verifyIsoSurfaceExtractionArgument();
+    options->verifyNeuronalMorphologyExportArguments();
     options->verifyProcessingArguments();
 
     // Initialize context, once everything is in place and all the options are verified
@@ -84,7 +86,7 @@ void run(int argc , const char** argv)
     solidVolume->solidVoxelization(options->voxelizationAxis);
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
 
-
+    // Create a skeletonization object
     NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(solidVolume, inputMesh);
 
     skeletonizer->skeletonizeVolume();
@@ -92,49 +94,6 @@ void run(int argc , const char** argv)
 
 
     return;
-
-
-
-//    solidVolume->project(prefix + "_skeletonsss",
-//                    options->projectXY, options->projectXZ, options->projectZY,
-//                    options->projectColorCoded);
-
-//    solidVolume->writeVolumes(options->volumePrefix + "_skeleton",
-//                         options->exportBitVolume,
-//                         options->exportUnsignedVolume,
-//                         options->exportFloatVolume,
-//                         options->exportNRRDVolume,
-//                         options->exportRawVolume);
-
-//    solidVolume->exportToMesh(options->volumePrefix + "mesh", true);
-
-    skeletonizer->segmentComponents();
-//    solidVolume->project(prefix + "_sphere",
-//                    options->projectXY, options->projectXZ, options->projectZY,
-//                    options->projectColorCoded);
-
-
-
-    std::cout << "Print soma \n";
-
-
-
-//    Mesh* somaMesh = skeletonizer->getSomaMesh();
-//    solidVolume->clear();
-//    solidVolume->surfaceVoxelization(somaMesh);
-//    solidVolume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
-//    solidVolume->project(prefix + "_somasegmented",
-//                    options->projectXY, options->projectXZ, options->projectZY,
-//                    options->projectColorCoded);
-
-//      std::cout << "Done \n";
-
-//    solidVolume->writeVolumes(options->volumePrefix,
-//                         options->exportBitVolume,
-//                         options->exportUnsignedVolume,
-//                         options->exportFloatVolume,
-//                         options->exportNRRDVolume,
-//                         options->exportRawVolume);
 }
 }
 

@@ -145,6 +145,11 @@ public:
     void verifyVascularMorphologyExportArguments();
 
     /**
+     * @brief verifyNeuronalMorphologyExportArguments
+     */
+    void verifyNeuronalMorphologyExportArguments();
+
+    /**
      * @brief verifyIsoSurfaceExtractionArgument
      * Verifies the isosurface extraction technique.
      */

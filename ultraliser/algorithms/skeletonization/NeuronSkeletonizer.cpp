@@ -220,6 +220,9 @@ void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) con
     size_t progress = 0;
     for (size_t i = 0; i < _branches.size(); ++i)
     {
+        // If the branch does not have any valid nodes, then don't write it
+        if (_branches[i]->nodes.size() == 0) continue;
+
         LOOP_PROGRESS(progress, _branches.size());
         ++progress;
 
@@ -270,10 +273,10 @@ void NeuronSkeletonizer::constructGraph()
     _segmentSomaMesh();
 
     // Segment soma volume
-    _segmentSomaVolume();
+    // _segmentSomaVolume();
 
     // Validate the branches, and remove the branches inside the soma
-    _removeBranchesInsideSoma(somaNode);
+    // _removeBranchesInsideSoma(somaNode);
 
     // Identify the possible roots
 

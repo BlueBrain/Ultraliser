@@ -147,6 +147,11 @@ public:
     void addVascularMorphologyExportArguments();
 
     /**
+     * @brief addNeuronalMorphologyExportArguments
+     */
+    void addNeuronalMorphologyExportArguments();
+
+    /**
      * @brief addMeshOptimizationArguments
      */
     void addMeshOptimizationArguments();

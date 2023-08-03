@@ -86,8 +86,7 @@ void run(int argc , const char** argv)
     // Create a skeletonization object
     VasculatureSkeletonizer* vasculatureSkeletonizer = new VasculatureSkeletonizer(volume, inputMesh);
 
-    // vasculatureSkeletonizer->applyVolumeThinningWithDomainDecomposition();
-
+    // Skeletonize the volume
     vasculatureSkeletonizer->skeletonizeVolume();
 
     // Generate the skeletonized volume artifacts

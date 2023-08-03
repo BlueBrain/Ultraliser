@@ -613,6 +613,23 @@ void AppArguments::addVascularMorphologyExportArguments()
                 "Exports the vascular morphology to .VMV file.");
     _args->addArgument(&exportVMVMorphology);
     _options->exportVMV = _args->getBoolValue(&exportVMVMorphology);
+
+    Argument exportMorphologyBranches(
+                "--export-morphology-branches",
+                ARGUMENT_TYPE::BOOL,
+                "Exports the branches of the morphology to .TXT file.");
+    _args->addArgument(&exportMorphologyBranches);
+    _options->exportBranches = _args->getBoolValue(&exportMorphologyBranches);
+}
+
+void AppArguments::addNeuronalMorphologyExportArguments()
+{
+    Argument exportMorphologyBranches(
+                "--export-morphology-branches",
+                ARGUMENT_TYPE::BOOL,
+                "Exports the branches of the morphology to .TXT file.");
+    _args->addArgument(&exportMorphologyBranches);
+    _options->exportBranches = _args->getBoolValue(&exportMorphologyBranches);
 }
 
 void AppArguments::addMeshExportArguments()
