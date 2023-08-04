@@ -62,6 +62,7 @@ SkeletonNode* NeuronSkeletonizer::_addSomaNode()
     SkeletonNode* somaNode = new SkeletonNode();
     somaNode->index = _nodes.back()->index + 1;
     somaNode->isSoma = true;
+    somaNode->insideSoma = true; // The somatic node is considered inside the soma in the processing
     _nodes.push_back(somaNode);
     return somaNode;
 }
@@ -102,89 +103,176 @@ void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
     estimatedSomaCenter /= numberSamples;
     estimatedSomaRadius /= numberSamples;
 
-    // somaNode->radius = estimatedSomaRadius;
-    // somaNode->point = estimatedSomaCenter;
+    somaNode->radius = 0; // estimatedSomaRadius;
+    somaNode->point = estimatedSomaCenter;
 }
 
 void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
 {
     size_t numRoots = 0;
+    size_t numbInvalidBranches = 0;
 
     // OMP_PARALLEL_FOR
     for (size_t i = 0; i < _branches.size(); ++i)
     {
         auto& branch = _branches[i];
 
-        size_t countSamplesInsideSoma = 0;
+        // Get the first and last nodes
+        auto& firstNode = branch->nodes.front();
+        auto& lastNode = branch->nodes.back();
 
-        for (size_t j = 0; j < branch->nodes.size(); ++j)
+        // If the first and last nodes of the branch are inside the soma, then it is invalid
+        if (branch->nodes.front()->insideSoma && branch->nodes.back()->insideSoma)
         {
-            if (branch->nodes[j]->insideSoma)
-            {
-                countSamplesInsideSoma++;
-            }
-        }
-
-        // If the count of the samples located inside the soma is zero, then it is a valid
-        // branch, but it is not a root branch indeed
-        if (countSamplesInsideSoma == 0)
-        {
-            branch->root = false;
-            branch->valid = true;
-        }
-
-        // If all the branch nodes are located inside the soma, then it is not valid
-        else if (countSamplesInsideSoma == branch->nodes.size())
-        {
-            branch->root = false;
             branch->valid = false;
-        }
+            branch->root = false;
 
-        // Otherwise, it is a branch that is connected to the soma
+            numbInvalidBranches++;
+
+            std::cout << "Terminal nodes are in the soma \n";
+        }
         else
         {
-//            SkeletonNodes newNodes;
+            // Count the number of samples inside the soma
+            size_t countSamplesInsideSoma = 0;
+            for (size_t j = 0; j < branch->nodes.size(); ++j)
+            {
+                if (branch->nodes[j]->insideSoma) { countSamplesInsideSoma++; }
+            }
 
-//            // Get the first and last nodes
-//            auto& firstNode = branch->nodes.front();
-//            auto& lastNode = branch->nodes.back();
+            // If the count of the samples located inside the soma is zero, then it is a valid
+            // branch, but it is not a root branch indeed
+            if (countSamplesInsideSoma == 0)
+            {
+                branch->root = false;
+                branch->valid = true;
+            }
 
-//            if (firstNode->insideSoma)
-//            {
-//                newNodes.push_back(somaNode);
-//                for (size_t j = 0; j < branch->nodes.size(); ++j)
-//                {
-//                    if (!branch->nodes[j]->insideSoma)
-//                    {
-//                        newNodes.push_back(branch->nodes[j]);
-//                    }
-//                }
-//            }
-//            else if (lastNode->insideSoma)
-//            {
-//                for (size_t j = 0; j < branch->nodes.size(); ++j)
-//                {
-//                    if (!branch->nodes[j]->insideSoma)
-//                    {
-//                        newNodes.push_back(branch->nodes[j]);
-//                    }
-//                }
-//                newNodes.push_back(somaNode);
+            // If all the branch nodes are located inside the soma, then it is not valid
+            else if (countSamplesInsideSoma == branch->nodes.size())
+            {
+                branch->root = false;
+                branch->valid = false;
 
-//            }
+                numbInvalidBranches++;
 
-//            branch->nodes.clear();
-//            branch->nodes.shrink_to_fit();
-//            branch->nodes = newNodes;
+                std::cout << "All nodes are not in the soma \n";
+            }
 
-            branch->root = true;
-            branch->valid = true;
+            // Otherwise, it is a branch that is connected to the soma, partially in the soma
+            else
+            {
+                // If the first node is inside the soma, then annotate the branch
+                if (firstNode->insideSoma)
+                {
+                    SkeletonNodes newNodes;
+                    newNodes.push_back(somaNode);
+                    for (size_t k = 0; k < branch->nodes.size(); ++k)
+                    {
+                        if (!branch->nodes[k]->insideSoma)
+                        {
+                            newNodes.push_back(branch->nodes[k]);
+                        }
+                    }
 
-            numRoots++;
+                    branch->nodes.clear();
+                    branch->nodes.shrink_to_fit();
+                    branch->nodes = newNodes;
+
+                    branch->root = true;
+                    branch->valid = true;
+
+                    numRoots++;
+
+                    std::cout << "First node is in the soma \n";
+                }
+
+                // If the last node is inside the soma, then annotate the branch
+                else if (lastNode->insideSoma)
+                {
+                    SkeletonNodes newNodes;
+                    for (size_t k = 0; k < branch->nodes.size(); ++k)
+                    {
+                        if (!branch->nodes[k]->insideSoma)
+                        {
+                            newNodes.push_back(branch->nodes[k]);
+                        }
+                    }
+                    newNodes.push_back(somaNode);
+
+                    branch->nodes.clear();
+                    branch->nodes.shrink_to_fit();
+                    branch->nodes = newNodes;
+
+                    branch->root = true;
+                    branch->valid = true;
+
+                    numRoots++;
+
+                    std::cout << "Last node is in the soma \n";
+                }
+                else
+                {
+                    std::cout << "Terminal nodes are not in the soma \n";
+
+                    std::stringstream filePath, fp, fp2;
+                    filePath << "/data/neuron-meshes/output/morphologies/somatic-samples-" << i << TXT_EXTENSION;
+                    std::fstream stream;
+                    stream.open(filePath.str(), std::ios::out);
+                    for (size_t n = 0; n < branch->nodes.size(); ++n)
+                    {
+                        auto& node = branch->nodes[n];
+
+                        if (node->insideSoma)
+                        {
+                            stream << node->point.x() << " "
+                                   << node->point.y() << " "
+                                   << node->point.z() << " "
+                                   << node->radius << "\n";
+                        }
+                    }
+                    stream.close();
+
+
+
+
+
+                    fp << "/data/neuron-meshes/output/morphologies/non-somatic-samples-" << i << TXT_EXTENSION;
+                    stream.open(fp.str(), std::ios::out);
+                    for (size_t n = 0; n < branch->nodes.size(); ++n)
+                    {
+                        auto& node = branch->nodes[n];
+
+                        if (!node->insideSoma)
+                        {
+                            std::cout << n << " ";
+                            stream << node->point.x() << " "
+                                   << node->point.y() << " "
+                                   << node->point.z() << " "
+                                   << node->radius << "\n";
+                        }
+                    }
+                    stream.close();
+
+                    fp2 << "/data/neuron-meshes/output/morphologies/all-samples-" << i << TXT_EXTENSION;
+                    stream.open(fp2.str(), std::ios::out);
+                    for (size_t n = 0; n < branch->nodes.size(); ++n)
+                    {
+                        auto& node = branch->nodes[n];
+
+                        if (1) //!node->insideSoma)
+                        {
+                            stream << node->point.x() << " "
+                                   << node->point.y() << " "
+                                   << node->point.z() << " "
+                                   << node->radius << "\n";
+                        }
+                    }
+                    stream.close();
+                }
+            }
         }
     }
-
-    std::cout << "Roots: " << numRoots << std::endl;
 }
 
 void NeuronSkeletonizer::_segmentSomaVolume()
@@ -207,8 +295,7 @@ void NeuronSkeletonizer::_segmentSomaVolume()
     }
 
     // Find out the nodes that are inside the soma
-    size_t insideSoma = 0;
-    // OMP_PARALLEL_FOR
+    OMP_PARALLEL_FOR
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
         auto& node = _nodes[i];
@@ -216,8 +303,6 @@ void NeuronSkeletonizer::_segmentSomaVolume()
                     node->voxel.x(), node->voxel.y(), node->voxel.z());
         if (std::find(somaVoxels.begin(), somaVoxels.end(), key) != somaVoxels.end())
         {
-            insideSoma++;
-
             // The soma is inside the soma
             node->insideSoma = true;
         }
@@ -246,9 +331,9 @@ void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) con
     {
         // If the branch does not have any valid nodes, then don't write it
         // if (!_branches[i]->valid || _branches[i]->nodes.size() == 0) continue;
-        // if (!_branches[i]->root) continue;
+        if (!_branches[i]->root) continue;
 
-        if (_branches[i]->nodes.size() == 0) continue;
+        // if (_branches[i]->nodes.size() == 0) continue;
 
 
         LOOP_PROGRESS(progress, _branches.size());
@@ -273,6 +358,41 @@ void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) con
 
     // Close the file
     stream.close();
+
+
+
+    filePath = prefix + "-non-somatic-samples" + TXT_EXTENSION;
+    stream.open(filePath, std::ios::out);
+    for (size_t i = 0; i < _nodes.size(); ++i)
+    {
+        auto& node = _nodes[i];
+
+        if (!node->insideSoma)
+        {
+            stream << node->point.x() << " "
+                   << node->point.y() << " "
+                   << node->point.z() << " "
+                   << node->radius << "\n";
+        }
+    }
+     stream.close();
+
+
+    filePath = prefix + "-samples" + TXT_EXTENSION;
+    stream.open(filePath, std::ios::out);
+    for (size_t i = 0; i < _nodes.size(); ++i)
+    {
+        auto& node = _nodes[i];
+
+        if (node->insideSoma)
+        {
+            stream << node->point.x() << " "
+                   << node->point.y() << " "
+                   << node->point.z() << " "
+                   << node->radius << "\n";
+        }
+    }
+     stream.close();
 }
 
 void NeuronSkeletonizer::constructGraph()
@@ -304,7 +424,7 @@ void NeuronSkeletonizer::constructGraph()
     _segmentSomaVolume();
 
     // Validate the branches, and remove the branches inside the soma
-    // _removeBranchesInsideSoma(somaNode);
+    _removeBranchesInsideSoma(somaNode);
 
     // Identify the possible roots
 

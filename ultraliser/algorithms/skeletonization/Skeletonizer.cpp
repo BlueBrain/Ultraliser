@@ -382,28 +382,6 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsParallel()
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     return indicesMapper;
 }
 
