@@ -41,18 +41,6 @@ namespace
         float distance = 0.0f;
     };
 
-    struct SearchContext
-    {
-        std::size_t index;
-        std::size_t axis = 0;
-        SearchResult result;
-
-        explicit SearchContext(std::size_t root)
-            : index(root)
-        {
-        }
-    };
-
     std::size_t nextAxis(std::size_t axis)
     {
         return (axis + 1) % 3;
@@ -91,31 +79,27 @@ namespace
         return buildTree(nodes, first, last, axis);
     }
 
-    float computeDistance(const Vector3f &a, const Vector3f &b)
+    SearchResult search(
+        const std::vector<Node> &nodes,
+        const Vector3f &point,
+        const SearchResult &best,
+        std::size_t index,
+        std::size_t axis)
     {
-        auto distance = 0.0f;
-        for (auto i = std::size_t(0); i < 3; ++i)
-        {
-            auto d = a[i] - b[i];
-            distance += d * d;
-        }
-        return std::sqrt(distance);
-    }
+        auto result = best;
 
-    void search(SearchContext &context, const std::vector<Node> &nodes, const Vector3f &point)
-    {
-        auto &index = context.index;
         if (index == none)
         {
-            return;
+            return result;
         }
 
         auto &node = nodes[index];
         auto &position = node.point;
-        auto distance = computeDistance(position, point);
 
-        auto &result = context.result;
-        if (result.index == none || distance < result.distance)
+        auto delta = position - point;
+        auto distance = delta.abs();
+
+        if (best.index == none || distance < best.distance)
         {
             result.index = index;
             result.distance = distance;
@@ -123,25 +107,24 @@ namespace
 
         if (distance == 0)
         {
-            return;
+            return result;
         }
 
-        auto &axis = context.axis;
-        distance = position[axis] - point[axis];
+        auto dx = delta[axis];
+        auto left = dx > 0;
 
         axis = nextAxis(axis);
 
-        auto left = distance > 0;
-        index = left ? node.left : node.right;
-        search(context, nodes, point);
+        auto next = left ? node.left : node.right;
+        result = search(nodes, point, result, next, axis);
 
-        if (distance * distance >= result.distance)
+        if (result.distance <= dx * dx)
         {
-            return;
+            return result;
         }
 
-        index = left ? node.right : node.left;
-        search(context, nodes, point);
+        next = left ? node.right : node.left;
+        return search(nodes, point, result, next, axis);
     }
 }
 
@@ -167,9 +150,7 @@ namespace Ultraliser
             throw std::runtime_error("Invalid tree");
         }
 
-        auto context = SearchContext(_root);
-        search(context, _nodes, point);
-        auto &result = context.result;
+        auto result = search(_nodes, point, {}, _root, 0);
 
         if (result.index == none)
         {

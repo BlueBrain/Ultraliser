@@ -647,7 +647,7 @@ void Skeletonizer::constructGraph()
     std::map< size_t, size_t > indicesMapper = _extractNodesFromVoxels();
 
     // Assign accurate radii to the nodes of the graph, i.e. inflate the nodes
-    _inflateNodes();
+    _inflateNodesKdTree();
 
     // Connect the nodes to construct the edges of the graph
     _connectNodes(indicesMapper);

@@ -52,7 +52,7 @@ namespace Ultraliser
 
         struct NearestPoint
         {
-            Vector3f point = {0, 0, 0};
+            Vector3f position = {0, 0, 0};
             float distance = 0.0f;
         };
 
