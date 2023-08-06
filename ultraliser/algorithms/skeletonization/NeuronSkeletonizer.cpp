@@ -331,7 +331,7 @@ void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) con
     {
         // If the branch does not have any valid nodes, then don't write it
         // if (!_branches[i]->valid || _branches[i]->nodes.size() == 0) continue;
-        if (!_branches[i]->root) continue;
+        // if (!_branches[i]->root) continue;
 
         // if (_branches[i]->nodes.size() == 0) continue;
 
