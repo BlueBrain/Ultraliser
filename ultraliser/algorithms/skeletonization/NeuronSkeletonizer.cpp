@@ -79,25 +79,44 @@ void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
     Vector3f estimatedSomaCenter;
     size_t numberSamples = 0;
 
-    for (size_t i = 0; i < _branches.size(); ++i)
-    {
-        for (size_t j = 0; j < _branches[i]->nodes.size(); ++j)
-        {
-            auto& node0 = _branches[i]->nodes[j];
-            if (node0->radius >= 2.0)
-            {
-                Mesh* sample = new IcoSphere(3);
-                sample->scale(node0->radius, node0->radius, node0->radius);
-                sample->translate(node0->point);
-                sample->map(_shellPoints, false);
-                _somaMesh->append(sample);
-                sample->~Mesh();
+//    for (size_t i = 0; i < _branches.size(); ++i)
+//    {
+//        for (size_t j = 0; j < _branches[i]->nodes.size(); ++j)
+//        {
+//            auto& node0 = _branches[i]->nodes[j];
+//            if (node0->radius >= 2.0)
+//            {
+//                Mesh* sample = new IcoSphere(3);
+//                sample->scale(node0->radius, node0->radius, node0->radius);
+//                sample->translate(node0->point);
+//                sample->map(_shellPoints, false);
+//                _somaMesh->append(sample);
+//                sample->~Mesh();
 
-                estimatedSomaRadius += node0->radius;
-                estimatedSomaCenter += node0->point;
-                numberSamples++;
-            }
+//                estimatedSomaRadius += node0->radius;
+//                estimatedSomaCenter += node0->point;
+//                numberSamples++;
+//            }
+//        }
+//    }
+
+    for (size_t i = 0; i < _nodes.size(); ++i)
+    {
+        auto& node0 = _nodes[i];
+        if (node0->radius >= 2.0)
+        {
+            Mesh* sample = new IcoSphere(3);
+            sample->scale(node0->radius, node0->radius, node0->radius);
+            sample->translate(node0->point);
+            sample->map(_shellPoints, false);
+            _somaMesh->append(sample);
+            sample->~Mesh();
+
+            estimatedSomaRadius += node0->radius;
+            estimatedSomaCenter += node0->point;
+            numberSamples++;
         }
+
     }
 
     estimatedSomaCenter /= numberSamples;
@@ -330,10 +349,9 @@ void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) con
     for (size_t i = 0; i < _branches.size(); ++i)
     {
         // If the branch does not have any valid nodes, then don't write it
-        // if (!_branches[i]->valid || _branches[i]->nodes.size() == 0) continue;
+        if (!_branches[i]->valid || _branches[i]->nodes.size() == 0) continue;
         // if (!_branches[i]->root) continue;
 
-        // if (_branches[i]->nodes.size() == 0) continue;
 
 
         LOOP_PROGRESS(progress, _branches.size());
@@ -405,23 +423,24 @@ void NeuronSkeletonizer::constructGraph()
     // Connect the nodes to construct the edges of the graph
     _connectNodes(indicesMapper);
 
-    // Remove the triangular configurations
-    _removeTriangleLoops();
-
     // Add a virtual soma node, until the soma is reconstructed later
     auto somaNode = _addSomaNode();
 
     // Re-index the samples, for simplicity
     OMP_PARALLEL_FOR for (size_t i = 1; i <= _nodes.size(); ++i) { _nodes[i - 1]->index = i; }
 
-    // Reconstruct the sections, or the branches from the nodes
-    _buildBranchesFromNodes(_nodes);
 
     // Segmentthe soma mesh from the branches
     _segmentSomaMesh(somaNode);
 
     // Segment soma volume
-    _segmentSomaVolume();
+     _segmentSomaVolume();
+
+     // Remove the triangular configurations, based on the edges
+     _removeTriangleLoops();
+
+     // Reconstruct the sections, or the branches from the nodes
+     _buildBranchesFromNodes(_nodes);
 
     // Validate the branches, and remove the branches inside the soma
     _removeBranchesInsideSoma(somaNode);

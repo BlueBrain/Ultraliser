@@ -562,7 +562,7 @@ void Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indicesMapper
 }
 
 void Skeletonizer::_removeTriangleLoops()
-{
+{    
     const size_t currentNodesSize = _nodes.size();
     for (size_t i = 0; i < currentNodesSize; ++i)
     {
@@ -606,6 +606,23 @@ void Skeletonizer::_removeTriangleLoops()
     {
         _nodes[i]->visited = false;
     }
+
+
+//    std::string filePath = "/data/neuron-meshes/output/morphologies/new-nodes" + TXT_EXTENSION;
+//    std::fstream stream;
+//    stream.open(filePath, std::ios::out);
+//    for (size_t i = currentNodesSize; i < _nodes.size(); ++i)
+//    {
+//        auto& node = _nodes[i];
+//            stream << node->point.x() << " "
+//                   << node->point.y() << " "
+//                   << node->point.z() << " "
+//                   << node->radius << "\n";
+
+//    }
+//     stream.close();
+
+
 }
 
 void Skeletonizer::constructGraph()

@@ -58,6 +58,11 @@ void collapseTriangleIntoNode(SkeletonNodes& nodes,
     n2->edgeNodes.push_back(centerNode);
     n3->edgeNodes.push_back(centerNode);
 
+    if (n1->insideSoma || n2->insideSoma || n3->insideSoma)
+    {
+        centerNode->insideSoma = true;
+    }
+
     nodes.push_back(centerNode);
 }
 
