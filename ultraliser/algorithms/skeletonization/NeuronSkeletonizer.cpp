@@ -75,30 +75,8 @@ void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
 
     // For every node in the skeleton, if the radius is greater than 2.0, then this is a candidate
     // for the soma sample
-    size_t estimatedSomaRadius = 0;
-    Vector3f estimatedSomaCenter;
+    Vector3f estimatedSomaCenter(0.f);
     size_t numberSamples = 0;
-
-//    for (size_t i = 0; i < _branches.size(); ++i)
-//    {
-//        for (size_t j = 0; j < _branches[i]->nodes.size(); ++j)
-//        {
-//            auto& node0 = _branches[i]->nodes[j];
-//            if (node0->radius >= 2.0)
-//            {
-//                Mesh* sample = new IcoSphere(3);
-//                sample->scale(node0->radius, node0->radius, node0->radius);
-//                sample->translate(node0->point);
-//                sample->map(_shellPoints, false);
-//                _somaMesh->append(sample);
-//                sample->~Mesh();
-
-//                estimatedSomaRadius += node0->radius;
-//                estimatedSomaCenter += node0->point;
-//                numberSamples++;
-//            }
-//        }
-//    }
 
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
@@ -112,25 +90,21 @@ void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
             _somaMesh->append(sample);
             sample->~Mesh();
 
-            estimatedSomaRadius += node0->radius;
             estimatedSomaCenter += node0->point;
             numberSamples++;
         }
 
     }
 
+    // Normalize
     estimatedSomaCenter /= numberSamples;
-    estimatedSomaRadius /= numberSamples;
 
-    somaNode->radius = 0; // estimatedSomaRadius;
+    // Update the location of the soma point
     somaNode->point = estimatedSomaCenter;
 }
 
 void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
 {
-    size_t numRoots = 0;
-    size_t numbInvalidBranches = 0;
-
     // OMP_PARALLEL_FOR
     for (size_t i = 0; i < _branches.size(); ++i)
     {
@@ -143,12 +117,9 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
         // If the first and last nodes of the branch are inside the soma, then it is invalid
         if (branch->nodes.front()->insideSoma && branch->nodes.back()->insideSoma)
         {
+            // TODO: What could be other possible cases!
             branch->valid = false;
             branch->root = false;
-
-            numbInvalidBranches++;
-
-            std::cout << "Terminal nodes are in the soma \n";
         }
         else
         {
@@ -160,7 +131,7 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
             }
 
             // If the count of the samples located inside the soma is zero, then it is a valid
-            // branch, but it is not a root branch indeed
+            // branch, but it is not a root branch
             if (countSamplesInsideSoma == 0)
             {
                 branch->root = false;
@@ -172,10 +143,6 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
             {
                 branch->root = false;
                 branch->valid = false;
-
-                numbInvalidBranches++;
-
-                std::cout << "All nodes are not in the soma \n";
             }
 
             // Otherwise, it is a branch that is connected to the soma, partially in the soma
@@ -201,9 +168,8 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
                     branch->root = true;
                     branch->valid = true;
 
-                    numRoots++;
-
-                    std::cout << "First node is in the soma \n";
+                    // Add this branch to the roots
+                    _roots.push_back(branch);
                 }
 
                 // If the last node is inside the soma, then annotate the branch
@@ -223,75 +189,28 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
                     branch->nodes.shrink_to_fit();
                     branch->nodes = newNodes;
 
+                    // Reverse the nodes, to make the first node in front
+                    // std::reverse(branch->nodes.front(), branch->nodes.back());
+                    std::reverse(std::begin(branch->nodes), std::end(branch->nodes));
+
                     branch->root = true;
                     branch->valid = true;
 
-                    numRoots++;
-
-                    std::cout << "Last node is in the soma \n";
+                    // Add this branch to the roots
+                    _roots.push_back(branch);
                 }
                 else
                 {
-                    std::cout << "Terminal nodes are not in the soma \n";
-
-                    std::stringstream filePath, fp, fp2;
-                    filePath << "/data/neuron-meshes/output/morphologies/somatic-samples-" << i << TXT_EXTENSION;
-                    std::fstream stream;
-                    stream.open(filePath.str(), std::ios::out);
-                    for (size_t n = 0; n < branch->nodes.size(); ++n)
-                    {
-                        auto& node = branch->nodes[n];
-
-                        if (node->insideSoma)
-                        {
-                            stream << node->point.x() << " "
-                                   << node->point.y() << " "
-                                   << node->point.z() << " "
-                                   << node->radius << "\n";
-                        }
-                    }
-                    stream.close();
-
-
-
-
-
-                    fp << "/data/neuron-meshes/output/morphologies/non-somatic-samples-" << i << TXT_EXTENSION;
-                    stream.open(fp.str(), std::ios::out);
-                    for (size_t n = 0; n < branch->nodes.size(); ++n)
-                    {
-                        auto& node = branch->nodes[n];
-
-                        if (!node->insideSoma)
-                        {
-                            std::cout << n << " ";
-                            stream << node->point.x() << " "
-                                   << node->point.y() << " "
-                                   << node->point.z() << " "
-                                   << node->radius << "\n";
-                        }
-                    }
-                    stream.close();
-
-                    fp2 << "/data/neuron-meshes/output/morphologies/all-samples-" << i << TXT_EXTENSION;
-                    stream.open(fp2.str(), std::ios::out);
-                    for (size_t n = 0; n < branch->nodes.size(); ++n)
-                    {
-                        auto& node = branch->nodes[n];
-
-                        if (1) //!node->insideSoma)
-                        {
-                            stream << node->point.x() << " "
-                                   << node->point.y() << " "
-                                   << node->point.z() << " "
-                                   << node->radius << "\n";
-                        }
-                    }
-                    stream.close();
+                    LOG_WARNING("Undefined case for the branch identification!");
                 }
             }
         }
     }
+}
+
+void NeuronSkeletonizer::exportSomaMesh(const std::string& filePrefix)
+{
+
 }
 
 void NeuronSkeletonizer::_segmentSomaVolume()
@@ -413,6 +332,114 @@ void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) con
      stream.close();
 }
 
+void _constructTree(SkeletonBranch* root, SkeletonBranches& allBranches)
+{
+    // Get a reference to the last node in the root
+    auto rootLastNode = root->nodes.back();
+
+    for (size_t i = 0; i < allBranches.size(); ++i)
+    {
+        // Get a reference to the branch
+        auto& branch = allBranches[i];
+
+        // If the branch and the root have the same index, then invalid
+        if (root->index == branch->index) continue;
+
+        // If the branch is not valid, then next branch
+        if (!branch->valid) continue;
+
+        // Access the nodes of the branch
+        auto& branchFirstNode = branch->nodes.front();
+        auto& branchLastNode = branch->nodes.back();
+
+        // If the last node of the root is the first node of the branch, then it is a child
+        if (rootLastNode->index == branchFirstNode->index)
+        {
+            // Add the branch to the children list
+            root->children.push_back(branch);
+
+            // Add the root to be a parent of the branch
+            branch->parents.push_back(root);
+        }
+
+        // If the last node of the root is the last node of the branch, then it is a
+        // reversed child
+        if (rootLastNode->index == branchLastNode->index)
+        {
+            // Reverse the order of the nodes
+            std::reverse(std::begin(branch->nodes), std::end(branch->nodes));
+
+            // Add the branch to the children list
+            root->children.push_back(branch);
+
+            // Add the root to be a parent of the branch
+            branch->parents.push_back(root);
+        }
+    }
+
+    std::cout << "Branch: " << root->index << "," << root->children.size() << std::endl;
+
+    if (root->children.size() > 0)
+    {
+        // Access the children of the root
+        for (size_t i = 0; i < root->children.size(); ++i)
+        {
+            _constructTree(root->children[i], allBranches);
+        }
+    }
+}
+
+void NeuronSkeletonizer::_connectBranches()
+{
+    for (size_t i = 0; i < _roots.size(); ++i)
+    {
+        auto& root = _roots[i];
+
+        std::cout << "Root : " << root->index << std::endl;
+        _constructTree(root, _branches);
+
+//        // We are going to check for all the other branches if they have any nodes that have the same last node
+//        for (size_t j = 0; j < _branches.size(); ++j)
+//        {
+//            auto& branch = _branches[j];
+
+//            // If the branch and the root have the same index, then invalid
+//            if (root->index == branch->index) continue;
+
+//            // If the branch is not valid, then next branch
+//            if (!branch->valid) continue;
+
+//            // Access the nodes of the branch
+//            auto& branchFirstNode = branch->nodes.front();
+//            auto& branchLastNode = branch->nodes.back();
+
+//            // If the last node of the root is the first node of the branch, then it is a child
+//            if (rootLastNode->index == branchFirstNode->index)
+//            {
+//                // Add the branch to the children list
+//                root->children.push_back(branch);
+
+//                // Add the root to be a parent of the branch
+//                branch->parents.push_back(root);
+//            }
+
+//            // If the last node of the root is the last node of the branch, then it is a
+//            // reversed child
+//            if (rootLastNode->index == branchLastNode->index)
+//            {
+//                // Reverse the order of the nodes
+//                std::reverse(std::begin(branch->nodes), std::end(branch->nodes));
+
+//                // Add the branch to the children list
+//                root->children.push_back(branch);
+
+//                // Add the root to be a parent of the branch
+//                branch->parents.push_back(root);
+//            }
+//        }
+    }
+}
+
 void NeuronSkeletonizer::constructGraph()
 {
     std::map< size_t, size_t > indicesMapper = _extractNodesFromVoxels();
@@ -429,7 +456,6 @@ void NeuronSkeletonizer::constructGraph()
     // Re-index the samples, for simplicity
     OMP_PARALLEL_FOR for (size_t i = 1; i <= _nodes.size(); ++i) { _nodes[i - 1]->index = i; }
 
-
     // Segmentthe soma mesh from the branches
     _segmentSomaMesh(somaNode);
 
@@ -445,7 +471,11 @@ void NeuronSkeletonizer::constructGraph()
     // Validate the branches, and remove the branches inside the soma
     _removeBranchesInsideSoma(somaNode);
 
-    // Identify the possible roots
+    // The roots have been identified
+    _connectBranches();
+
+
+
 
     // Segment the spines, if any
 

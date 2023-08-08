@@ -49,6 +49,13 @@ public:
 
     void skeletonizeVolume() override;
 
+    /**
+     * @brief exportSomaMesh
+     * Exports the soma mesh.
+     * @param filePrefix
+     */
+    void exportSomaMesh(const std::string& filePrefix);
+
 
     void skeletonizeVolumeBlockByBlock(const size_t& blockSize = 512,
                                        const size_t& numberOverlappingVoxels = 25,
@@ -68,8 +75,16 @@ private:
 
     void _removeBranchesInsideSoma(SkeletonNode *somaNode);
 
+    void _connectBranches();
+
+
 private:
 
     Mesh* _somaMesh = nullptr;
+
+
+    SkeletonBranches _roots;
+
+
 };
 }
