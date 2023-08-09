@@ -101,6 +101,7 @@ void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
 
     // Update the location of the soma point
     somaNode->point = estimatedSomaCenter;
+    somaNode->radius = 0.5; /// TODO: Fix me
 }
 
 void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
@@ -342,6 +343,9 @@ void _constructTree(SkeletonBranch* root, SkeletonBranches& allBranches)
         // Get a reference to the branch
         auto& branch = allBranches[i];
 
+        // If the branch is a root, then next branch
+        if (branch->root) continue;
+
         // If the branch and the root have the same index, then invalid
         if (root->index == branch->index) continue;
 
@@ -377,20 +381,151 @@ void _constructTree(SkeletonBranch* root, SkeletonBranches& allBranches)
         }
     }
 
-    std::cout << "Branch: " << root->index << "," << root->children.size() << std::endl;
+    std::cout << "Branch: " << root->index << ", Children: " << root->children.size() << std::endl;
 
     if (root->children.size() > 0)
     {
         // Access the children of the root
-        for (size_t i = 0; i < root->children.size(); ++i)
+        // for (size_t i = 0; i < root->children.size(); ++i)
         {
-            _constructTree(root->children[i], allBranches);
+           // _constructTree(root->children[i], allBranches);
+        }
+    }
+}
+
+void identifyTerminalConnections(SkeletonBranches& branches)
+{
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        auto& iBranch = branches[i];
+
+        // Invalid branch, ignore
+        if (!iBranch->valid) continue;
+
+        auto& iBranchT1 = iBranch->nodes.front();
+        auto& iBranchT2 = iBranch->nodes.back();
+
+        for (size_t j = 0; j < branches.size(); ++j)
+        {
+            auto& jBranch = branches[j];
+
+            // Invalid branch, ignore
+            if (!jBranch->valid) continue;
+
+            // Same branch, next branch
+            if (iBranch->index == jBranch->index) continue;
+
+            auto& jBranchT1 = jBranch->nodes.front();
+            auto& jBranchT2 = jBranch->nodes.back();
+
+            // A new connection to the T1 terminal
+            if (iBranchT1->index == jBranchT1->index)
+            {
+                // The sample must not be the soma
+                if (jBranchT1->isSoma) continue;
+
+                iBranch->t1Connections.push_back(jBranch);
+            }
+
+            if (iBranchT1->index == jBranchT2->index)
+            {
+                // The sample must not be the soma
+                if (jBranchT2->isSoma) continue;
+
+                iBranch->t1Connections.push_back(jBranch);
+            }
+
+            if (iBranchT2->index == jBranchT1->index)
+            {
+                // The sample must not be the soma
+                if (jBranchT1->isSoma) continue;
+
+                iBranch->t2Connections.push_back(jBranch);
+            }
+
+            // A new connection to the T2 terminal
+            if (iBranchT2->index == jBranchT2->index)
+            {
+                // The sample must not be the soma
+                if (jBranchT2->isSoma) continue;
+
+                iBranch->t2Connections.push_back(jBranch);
+            }
+        }
+    }
+}
+
+void confirmTerminalsBranches(SkeletonBranches& branches)
+{
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        // Reference to the branch
+        auto& branch = branches[i];
+
+        // Invalid branches, next
+        if (!branch->valid) continue;
+
+        // If root branch, then next
+        if (branch->root) continue;
+
+        // If terminal branch, then adjust the samples
+        if (branch->t1Connections.size() == 0 || branch->t2Connections.size() == 0)
+        {
+            // Update the status
+            branch->terminal = true;
+
+            // Reverse the sample if needed
+            if (branch->nodes.back()->edgeNodes.size() > 1)
+            {
+                std::reverse(std::begin(branch->nodes), std::end(branch->nodes));
+            }
         }
     }
 }
 
 void NeuronSkeletonizer::_connectBranches()
 {
+    // Identify the connections at the terminals of each branch
+    identifyTerminalConnections(_branches);
+
+    // Roots, terminals and others
+    confirmTerminalsBranches(_branches);
+
+
+
+    size_t cnt = 0;
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        if (!_branches[i]->valid)
+            std::cout << "Branch: " << _branches[i]->index << " Invalid \n";
+        else if (_branches[i]->root)
+        {
+            std::cout << "Root : " << cnt
+                      << ", T1 : " << _branches[i]->t1Connections.size()
+                      << ", T2 : " << _branches[i]->t2Connections.size()
+                      << ", Root: " << _branches[i]->root << std::endl;
+            cnt++;
+        }
+        else if (_branches[i]->terminal)
+        {
+            std::cout << "Terminal : " << cnt
+                      << ", T1 : " << _branches[i]->t1Connections.size()
+                      << ", T2 : " << _branches[i]->t2Connections.size()
+                      << ", Root: " << _branches[i]->root << std::endl;
+            cnt++;
+        }
+        else
+        {
+            std::cout << "Branch: " << cnt
+                      << ", T1 : " << _branches[i]->t1Connections.size()
+                      << ", T2 : " << _branches[i]->t2Connections.size()
+                      << ", Root: " << _branches[i]->root << std::endl;
+            cnt++;
+        }
+    }
+
+
+    return;
     for (size_t i = 0; i < _roots.size(); ++i)
     {
         auto& root = _roots[i];

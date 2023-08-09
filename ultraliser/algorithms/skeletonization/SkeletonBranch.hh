@@ -28,6 +28,16 @@
 namespace Ultraliser
 {
 
+
+enum BRANCH_CONNECTION_TYPE{
+    ROOT,
+    TERMINAL,
+    ROOT_AND_TERMINAL,
+};
+
+
+
+
 /**
  * @brief The SkeletonBranch struct
  * A branch in the segmented skeleton.
@@ -71,10 +81,24 @@ public:
     std::vector< SkeletonBranch* > children;
 
     /**
+     * @brief t0Connections
+     * Connecting branches at terminal 1.
+     */
+    std::vector< SkeletonBranch* > t1Connections;
+
+    /**
+     * @brief t2Connections
+     * Connecting branches at termianl 2.
+     */
+    std::vector< SkeletonBranch* > t2Connections;
+
+    /**
      * @brief root
      * If this flag is set, this means that it is emanating from the soma
      */
     bool root = false;
+
+    bool terminal = false;
 
     bool valid = true;
 
