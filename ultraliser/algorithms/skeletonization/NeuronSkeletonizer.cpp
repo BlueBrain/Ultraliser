@@ -216,12 +216,12 @@ void NeuronSkeletonizer::exportSomaMesh(const std::string& filePrefix)
 
 void NeuronSkeletonizer::_segmentSomaVolume()
 {
-    _somaMesh->exportMesh("/data/neuron-meshes/output/soma", true);
+    // _somaMesh->exportMesh("/data/neuron-meshes/output/soma", true);
 
     _volume->clear();
     _volume->surfaceVoxelization(_somaMesh, false, false);
     _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
-    _volume->project("/data/neuron-meshes/output/soma", true);
+    // _volume->project("/data/neuron-meshes/output/soma", true);
 
     // TODO: This could be parallelized
     std::vector< size_t > somaVoxels;
