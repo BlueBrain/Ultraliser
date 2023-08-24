@@ -67,6 +67,13 @@ public:
     size_t index = 0;
 
     /**
+     * @brief orderIndex
+     * An index that is used to order the nodes during the shortest path construction for
+     * the simplified graph.
+     */
+    size_t orderIndex = 0;
+
+    /**
      * @brief point
      * The Cartesian coordinates of the node.
      */

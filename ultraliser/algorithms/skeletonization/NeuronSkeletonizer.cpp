@@ -393,6 +393,209 @@ void _constructTree(SkeletonBranch* root, SkeletonBranches& allBranches)
     }
 }
 
+bool findPathToSoma(SkeletonBranch* branch)
+{
+    // The branch is visited
+    branch->visited = true;
+
+    // If this branch is a terminal branch, then return false
+    if (branch->terminal)
+        return false;
+
+    if (branch->root)
+        return true;
+
+
+}
+
+
+struct SimpleEdge
+{
+    SimpleEdge(SkeletonNode* node1, SkeletonNode* node2, size_t weight)
+    {
+        n1 = node1;
+        n2 = node2;
+        w = weight;
+    }
+
+    SkeletonNode* n1 = nullptr;
+    SkeletonNode* n2 = nullptr;
+    size_t w = 0;
+
+};
+
+typedef std::vector< SimpleEdge* > SimpleEdges;
+
+
+
+void xxxxx(const SkeletonBranches& branches)
+{
+    // Construct the valid branches
+    SkeletonBranches validBranches;
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        const auto& branch = branches[i];
+        if (branch->valid)
+        {
+            validBranches.push_back(branch);
+        }
+    }
+
+    // Construct all the graph edges from the valid branches
+    SimpleEdges graphEdges;
+    for (size_t i = 0; i < validBranches.size(); ++i)
+    {
+        const auto& branch = branches[i];
+        auto& node1 = branch->nodes.front();
+        auto& node2 = branch->nodes.back();
+        const auto& weight = branch->nodes.size();
+
+        // Reset all the nodes
+        node1->visited = false;
+        node2->visited = false;
+
+        SimpleEdge* edge = new SimpleEdge(node1, node2, weight);
+        graphEdges.push_back(edge);
+    }
+
+    // Renumbering the nodes in the graph edges, using the indexOrder;
+    size_t nodeReorderingIndex = 0;
+    for (size_t i = 0; i < graphEdges.size(); ++i)
+    {
+        const auto& edge = graphEdges[i];
+        auto& node1 = edge->n1;
+        auto& node2 = edge->n2;
+
+        if (!node1->visited)
+        {
+            node1->visited = true;
+            node1->orderIndex = nodeReorderingIndex;
+            nodeReorderingIndex++;
+        }
+
+        if (!node2->visited)
+        {
+            node2->visited = true;
+            node2->orderIndex = nodeReorderingIndex;
+            nodeReorderingIndex++;
+        }
+    }
+
+    // TODO: Get reference to the soma node
+
+
+
+    // Construct the graph
+    std::vector< size_t > adjacencies;
+    adjacencies.resize(nodeReorderingIndex - 1);
+
+    for (size_t i = 0; i < graphEdges.size(); ++i)
+    {
+        const auto& edge = graphEdges[i];
+        auto& node1 = edge->n1;
+        auto& node2 = edge->n2;
+
+
+    }
+
+    // Construct the reduced graph from the edges, i.e. the branches
+}
+
+
+
+
+
+
+
+bool traversePath(SkeletonBranch* branch, SkeletonBranches& path)
+{
+    // If the branch is visited before, then return
+    if (branch->visited)
+        return false;
+
+    // Set the branch to true
+    branch->visited = true;
+
+    // If this branch is a terminal, then return false
+    if (branch->terminal)
+    {
+        return false;
+    }
+
+    // If this path is a root, then return false
+    if (branch->root)
+    {
+        return true;
+    }
+}
+
+SkeletonBranches findShortestPathToSoma(SkeletonBranch* terminalBranch)
+{
+    SkeletonBranches path;
+
+    auto& t1Connections = terminalBranch->t1Connections;
+    auto& t2Connections = terminalBranch->t2Connections;
+
+    // If t1Connections are zero, then use t2Connections to make the search
+    if (t1Connections.size() == 0)
+    {
+        for (size_t i = 0; i < t2Connections.size(); ++i)
+        {
+            // traversePath(t2Connections[i]);
+
+            // SkeletonBranches pathToSoma =
+        }
+    }
+
+    // Otherwise, it is t2Connections
+    else
+    {
+        for (size_t i = 0; i < t1Connections.size(); ++i)
+        {
+
+        }
+    }
+
+    return path;
+}
+
+
+void xxx()
+{
+
+    // Get a list of terminals
+
+    // For each terminal branch, search all the paths to the soma
+    // The result is an std::vector of branches
+
+    // Find the shortest path in all the possible paths
+
+    // Merge the shortest paths to construct the final graph
+
+    // Use the number of nodes in every branch to calculate the path length
+
+
+    // A list of the terminal branches
+    SkeletonBranches terminalBranches;
+
+    for (size_t i = 0; i < terminalBranches.size(); ++i)
+    {
+        SkeletonBranches shortestPathToSoma = findShortestPathToSoma(terminalBranches[i]);
+    }
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
 void identifyTerminalConnections(SkeletonBranches& branches)
 {
     for (size_t i = 0; i < branches.size(); ++i)
@@ -483,6 +686,63 @@ void confirmTerminalsBranches(SkeletonBranches& branches)
     }
 }
 
+
+SkeletonBranches _detectChildren(SkeletonBranch* currentBranch, SkeletonBranches& allBranches)
+{
+    SkeletonBranches childrenBranches;
+
+    // Get a reference to the last node in the root
+    auto rootLastNode = currentBranch->nodes.back();
+
+    for (size_t i = 0; i < allBranches.size(); ++i)
+    {
+        // Reference to the branch
+        auto& branch = allBranches[i];
+
+        // Invalid branches, next
+        if (!branch->valid) continue;
+
+        // If root branch, then next
+        if (branch->root) continue;
+
+        // If the currentBranch and the branch have the same index, then invalid
+        if (currentBranch->index == branch->index) continue;
+
+        // Access the nodes of the branch
+        auto& branchFirstNode = branch->nodes.front();
+        auto& branchLastNode = branch->nodes.back();
+
+        // If the last node of the root is the first node of the branch, then it is a child
+        if (rootLastNode->index == branchFirstNode->index)
+        {
+            childrenBranches.push_back(branch);
+
+            // Add the branch to the children list
+            // currentBranch->children.push_back(branch);
+
+            // Add the root to be a parent of the branch
+            // branch->parents.push_back(currentBranch);
+        }
+
+        // If the last node of the root is the last node of the branch, then it is a
+        // reversed child
+        if (rootLastNode->index == branchLastNode->index)
+        {
+            // Reverse the order of the nodes
+            std::reverse(std::begin(branch->nodes), std::end(branch->nodes));
+
+            // Add the branch to the children list
+            currentBranch->children.push_back(branch);
+
+            // Add the root to be a parent of the branch
+            branch->parents.push_back(currentBranch);
+        }
+    }
+
+    return childrenBranches;
+}
+
+
 void NeuronSkeletonizer::_connectBranches()
 {
     // Identify the connections at the terminals of each branch
@@ -490,6 +750,39 @@ void NeuronSkeletonizer::_connectBranches()
 
     // Roots, terminals and others
     confirmTerminalsBranches(_branches);
+
+
+    // Detect the loops of the same branch
+    // The first and last sample of the same branch have the same index!
+
+    // Detect the long branches (in terms of samples, and not in length)
+
+    // Detect the roots
+
+    // Get all the roots, mark the roots visited
+
+    // For every root, detect the children, mark the children visited
+
+    //
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

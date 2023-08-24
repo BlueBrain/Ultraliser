@@ -103,6 +103,8 @@ public:
     bool valid = true;
 
     bool duplicate = false;
+
+    bool visited = false;
 };
 
 /**

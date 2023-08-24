@@ -65,7 +65,7 @@ public:
      */
     GraphNode()
     {
-        mask=0;
+        mask = 0;
     }
 
     /**
@@ -176,8 +176,8 @@ public:
      */
     void makeUnlinked()
     {
-        n1=nullptr;
-        n2=nullptr;
+        n1 = nullptr;
+        n2 = nullptr;
     }
 
     /**
