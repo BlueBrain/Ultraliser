@@ -23,6 +23,8 @@
 
 #include "NeuronSkeletonizer.h"
 #include <data/meshes/simple/IcoSphere.h>
+#include <algorithms/skeletonization/graphs/Graphs.h>
+#include <algorithms/skeletonization/SkeletonWeightedEdge.hh>
 
 namespace Ultraliser
 {
@@ -393,83 +395,74 @@ void _constructTree(SkeletonBranch* root, SkeletonBranches& allBranches)
     }
 }
 
-bool findPathToSoma(SkeletonBranch* branch)
+//bool findPathToSoma(SkeletonBranch* branch)
+//{
+//    // The branch is visited
+//    branch->visited = true;
+
+//    // If this branch is a terminal branch, then return false
+//    if (branch->terminal)
+//        return false;
+
+//    if (branch->root)
+//        return true;
+
+
+//}
+
+
+void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
 {
-    // The branch is visited
-    branch->visited = true;
-
-    // If this branch is a terminal branch, then return false
-    if (branch->terminal)
-        return false;
-
-    if (branch->root)
-        return true;
-
-
-}
-
-
-struct SimpleEdge
-{
-    SimpleEdge(SkeletonNode* node1, SkeletonNode* node2, size_t weight)
-    {
-        n1 = node1;
-        n2 = node2;
-        w = weight;
-    }
-
-    SkeletonNode* n1 = nullptr;
-    SkeletonNode* n2 = nullptr;
-    size_t w = 0;
-
-};
-
-typedef std::vector< SimpleEdge* > SimpleEdges;
-
-
-
-void xxxxx(const SkeletonBranches& branches)
-{
+    std::cout << "1 \n";
     // Construct the valid branches
     SkeletonBranches validBranches;
     for (size_t i = 0; i < branches.size(); ++i)
     {
+        // Get a reference to the branch
         const auto& branch = branches[i];
+
+        // The branch must be valid to add it to the weighted graph
         if (branch->valid)
         {
             validBranches.push_back(branch);
         }
     }
+    std::cout << "2 \n";
+
 
     // Construct all the graph edges from the valid branches
-    SimpleEdges graphEdges;
+    SkeletonWeightedEdges weighteEdges;
     for (size_t i = 0; i < validBranches.size(); ++i)
     {
+        // Get a reference to the branch
         const auto& branch = branches[i];
-        auto& node1 = branch->nodes.front();
-        auto& node2 = branch->nodes.back();
-        const auto& weight = branch->nodes.size();
 
-        // Reset all the nodes
-        node1->visited = false;
-        node2->visited = false;
+        // Reset the nodes of the branch
+        branch->nodes.front()->visited = false;
+        branch->nodes.back()->visited = false;
 
-        SimpleEdge* edge = new SimpleEdge(node1, node2, weight);
-        graphEdges.push_back(edge);
+        // Create a weighted edge and append it to the list
+        SkeletonWeightedEdge* weighteEdge = new SkeletonWeightedEdge(branch);
+        weighteEdges.push_back(weighteEdge);
     }
+    std::cout << "3 \n";
+
 
     // Renumbering the nodes in the graph edges, using the indexOrder;
+    SkeletonNodes simplifiedNodes;
     size_t nodeReorderingIndex = 0;
-    for (size_t i = 0; i < graphEdges.size(); ++i)
+    for (size_t i = 0; i < weighteEdges.size(); ++i)
     {
-        const auto& edge = graphEdges[i];
-        auto& node1 = edge->n1;
-        auto& node2 = edge->n2;
+        const auto& edge = weighteEdges[i];
+        const auto node1 = edge->node1;
+        const auto node2 = edge->node2;
 
         if (!node1->visited)
         {
             node1->visited = true;
             node1->orderIndex = nodeReorderingIndex;
+            edge->node1WeightedIndex = nodeReorderingIndex;
+            simplifiedNodes.push_back(node1);
             nodeReorderingIndex++;
         }
 
@@ -477,35 +470,42 @@ void xxxxx(const SkeletonBranches& branches)
         {
             node2->visited = true;
             node2->orderIndex = nodeReorderingIndex;
+            edge->node2WeightedIndex = nodeReorderingIndex;
+            simplifiedNodes.push_back(node2);
             nodeReorderingIndex++;
         }
     }
 
     // TODO: Get reference to the soma node
-
-
-
-    // Construct the graph
-    std::vector< size_t > adjacencies;
-    adjacencies.resize(nodeReorderingIndex - 1);
-
-    for (size_t i = 0; i < graphEdges.size(); ++i)
+    int64_t somaNodeSimplifiedIndex = -1;
+    for (size_t i = 0; simplifiedNodes.size(); ++i)
     {
-        const auto& edge = graphEdges[i];
-        auto& node1 = edge->n1;
-        auto& node2 = edge->n2;
-
-
+        if (simplifiedNodes[i]->isSoma)
+        {
+            somaNodeSimplifiedIndex = simplifiedNodes[i]->orderIndex;
+            break;
+        }
     }
 
-    // Construct the reduced graph from the edges, i.e. the branches
+    // Construct the graph and the search algorithm
+
+    // ShortestPathFinder* pathFinder = new ShortestPathFinder(weighteEdges, simplifiedNodes.size());
+
+    // pathFinder->findPath(//terminal node simplified index, some index);
+
+    std::cout << "Soma Sample " << somaNodeSimplifiedIndex << std::endl;
+    for (size_t i = 0; i < nodes.size(); i++)
+    {
+        if (nodes[i]->terminal)
+        {
+            std::cout << nodes[i]->index << " " << nodes[i]->orderIndex << std::endl;
+        }
+    }
+
+
+    // for all the terminal nodes, find the shortest path
+
 }
-
-
-
-
-
-
 
 bool traversePath(SkeletonBranch* branch, SkeletonBranches& path)
 {
@@ -557,36 +557,6 @@ SkeletonBranches findShortestPathToSoma(SkeletonBranch* terminalBranch)
     }
 
     return path;
-}
-
-
-void xxx()
-{
-
-    // Get a list of terminals
-
-    // For each terminal branch, search all the paths to the soma
-    // The result is an std::vector of branches
-
-    // Find the shortest path in all the possible paths
-
-    // Merge the shortest paths to construct the final graph
-
-    // Use the number of nodes in every branch to calculate the path length
-
-
-    // A list of the terminal branches
-    SkeletonBranches terminalBranches;
-
-    for (size_t i = 0; i < terminalBranches.size(); ++i)
-    {
-        SkeletonBranches shortestPathToSoma = findShortestPathToSoma(terminalBranches[i]);
-    }
-
-
-
-
-
 }
 
 
@@ -1484,6 +1454,10 @@ void Skeletonizer::segmentComponents()
     stream.close();
 
     std::cout << "Branchs: " << _branches.size() << "\n";
+
+
+
+    xxxxx(_branches, _nodes);
 
     return;
 

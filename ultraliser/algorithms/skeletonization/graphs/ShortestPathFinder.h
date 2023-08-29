@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <algorithms/skeletonization/graphs/WeightedEdge.hh>
+#include <algorithms/skeletonization/SkeletonWeightedEdge.hh>
 
 namespace Ultraliser
 {
@@ -41,7 +41,8 @@ typedef std::vector< PathIndices > PathsIndices;
 class ShortestPathFinder
 {
 public:
-    ShortestPathFinder(const size_t& numberNodes);
+    ShortestPathFinder(const SkeletonWeightedEdges &edges, const size_t& numberNodes);
+    ~ShortestPathFinder();
 
     /**
      * @brief findPath
@@ -76,8 +77,7 @@ private:
      * @param numberNodes
      * The total number of nodes in the graph.
      */
-    void _constructGraphAdjacencyMatrix(const WeightedEdges& weightedEdges,
-                                        const size_t& numberNodes);
+    void _constructGraphAdjacencyMatrix(const SkeletonWeightedEdges& edges);
 
     /**
      * @brief _computeMinimumDistanceIndex
@@ -87,17 +87,9 @@ private:
      */
     size_t _computeMinimumDistanceIndex(int64_t* distances, const bool* visited);
 
-    /**
-     * @brief _allocateGraph
-     * @param numberNodes
-     */
-    void _allocateGraph(const size_t& numberNodes);
+    void _allocateGraph();
 
-    /**
-     * @brief _releaseGraph
-     * @param numberNodes
-     */
-    void _releaseGraph(const size_t& numberNodes);
+    void _releaseGraph();
 
 private:
 

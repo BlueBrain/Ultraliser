@@ -25,16 +25,29 @@
 
 #include <common/Headers.hh>
 #include <algorithms/skeletonization/SkeletonNode.hh>
+#include <algorithms/skeletonization/SkeletonBranch.hh>
 
 namespace Ultraliser
 {
 
 /**
- * @brief The WeightedEdge class
+ * @brief The SkeletonWeightedEdge class
  */
-struct WeightedEdge
+struct SkeletonWeightedEdge
 {
 public:
+
+    SkeletonWeightedEdge(SkeletonBranch* branch)
+    {
+        this->branch = branch;
+        this->node1 = branch->nodes.front();
+        this->node2 = branch->nodes.back();
+        this->edgeWeight = branch->nodes.size();
+
+        // Initially, the weights are set to -1 to know that they were not initialized
+        this->node1WeightedIndex = -1;
+        this->node2WeightedIndex = -1;
+    }
 
     /**
      * @brief WeightedEdge
@@ -46,47 +59,45 @@ public:
      * @param edgeWeight
      * The weight of the edge. This weight could be positive or negative.
      */
-    WeightedEdge(const size_t& node1Index,
-                 const size_t& node2Index,
-                 const int64_t& edgeWeight)
+    SkeletonWeightedEdge(const int64_t& node1Index,
+                         const int64_t& node2Index,
+                         const int64_t& edgeWeight)
     {
-        this->node1Index = node1Index;
-        this->node2Index = node2Index;
+        this->node1WeightedIndex = node1Index;
+        this->node2WeightedIndex = node2Index;
         this->edgeWeight = edgeWeight;
     }
-
-    WeightedEdge(const SkeletonNode* node1,
-                 const SkeletonNode* node2)
-    {
-        this->node1 = node1;
-        this->node2Index = node2Index;
-        this->edgeWeight = edgeWeight;
-    }
-
 
 public:
 
     /**
+     * @brief branch
+     */
+    SkeletonBranch* branch;
+
+    /**
      * @brief node1
      */
-    const SkeletonNode* node1;
+    SkeletonNode* node1;
 
     /**
      * @brief node2
      */
-    const SkeletonNode* node2;
+    SkeletonNode* node2;
 
     /**
-     * @brief node1Index
-     * The index of the first node of the edge.
+     * @brief node1WeightedIndex
+     * The index of the first node of the weighted edge.
+     * This is different from the index of the first node in the SkeletonNode.
      */
-    size_t node1Index;
+    int64_t node1WeightedIndex;
 
     /**
      * @brief node2Index
-     * The index of the second node of the edge.
+     * The index of the second node of the weighted edge.
+     * This is different from the index of the first node in the SkeletonNode.
      */
-    size_t node2Index;
+    int64_t node2WeightedIndex;
 
     /**
      * @brief edgeWeight
@@ -99,6 +110,6 @@ public:
  * @brief WeightedEdges
  * List of WeightedEdge elements.
  */
-typedef std::vector< WeightedEdge* > WeightedEdges;
+typedef std::vector< SkeletonWeightedEdge* > SkeletonWeightedEdges;
 
 }

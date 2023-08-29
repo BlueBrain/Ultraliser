@@ -26,10 +26,15 @@
 namespace Ultraliser
 {
 
-ShortestPathFinder::ShortestPathFinder(const size_t& numberNodes)
+ShortestPathFinder::ShortestPathFinder(const SkeletonWeightedEdges &edges,
+                                       const size_t& numberNodes)
     : _numberNodes(numberNodes)
 {
+    // Allocate the graph
+    _allocateGraph();
 
+    // Construct the adjacency matrix
+    _constructGraphAdjacencyMatrix(edges);
 }
 
 PathIndices ShortestPathFinder::findPath(const size_t& sourceNodeIndex,
@@ -103,10 +108,14 @@ void ShortestPathFinder::_constructPath(int64_t* parent, int64_t i, PathIndices&
 }
 
 
-void ShortestPathFinder::_constructGraphAdjacencyMatrix(const WeightedEdges& weightedEdges,
-                                                        const size_t &numberNodes)
+void ShortestPathFinder::_constructGraphAdjacencyMatrix(const SkeletonWeightedEdges &edges)
 {
-    _allocateGraph(numberNodes);
+    // Construct the graph
+    for (size_t i = 0; i < edges.size(); ++i)
+    {
+        _graph[edges[i]->node1WeightedIndex][edges[i]->node2WeightedIndex] = edges[i]->edgeWeight;
+        _graph[edges[i]->node2WeightedIndex][edges[i]->node1WeightedIndex] = edges[i]->edgeWeight;
+    }
 }
 
 size_t ShortestPathFinder::_computeMinimumDistanceIndex(int64_t* distances, const bool* visited)
@@ -125,26 +134,31 @@ size_t ShortestPathFinder::_computeMinimumDistanceIndex(int64_t* distances, cons
     return minDistanceIndex;
 }
 
-void ShortestPathFinder::_allocateGraph(const size_t& numberNodes)
+void ShortestPathFinder::_allocateGraph()
 {
-    _graph = new int64_t*[numberNodes];
-    for (size_t i = 0; i < numberNodes; ++i)
+    _graph = new int64_t*[_numberNodes];
+    for (size_t i = 0; i < _numberNodes; ++i)
     {
-        _graph[i] = new int64_t[numberNodes];
-        for (size_t j = 0; j < numberNodes; ++j)
+        _graph[i] = new int64_t[_numberNodes];
+        for (size_t j = 0; j < _numberNodes; ++j)
         {
             _graph[i][j] = 0;
         }
     }
 }
 
-void ShortestPathFinder::_releaseGraph(const size_t& numberNodes)
+void ShortestPathFinder::_releaseGraph()
 {
-    for (size_t i = 0; i < numberNodes; ++i)
+    for (size_t i = 0; i < _numberNodes; ++i)
     {
         delete [] _graph[i];
     }
     delete [] _graph;
 }
 
+
+ShortestPathFinder::~ShortestPathFinder()
+{
+    _releaseGraph();
+}
 }
