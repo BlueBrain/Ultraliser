@@ -413,7 +413,6 @@ void _constructTree(SkeletonBranch* root, SkeletonBranches& allBranches)
 
 void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
 {
-    std::cout << "1 \n";
     // Construct the valid branches
     SkeletonBranches validBranches;
     for (size_t i = 0; i < branches.size(); ++i)
@@ -427,7 +426,6 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
             validBranches.push_back(branch);
         }
     }
-    std::cout << "2 \n";
 
 
     // Construct all the graph edges from the valid branches
@@ -445,35 +443,40 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
         SkeletonWeightedEdge* weighteEdge = new SkeletonWeightedEdge(branch);
         weighteEdges.push_back(weighteEdge);
     }
-    std::cout << "3 \n";
-
 
     // Renumbering the nodes in the graph edges, using the indexOrder;
     SkeletonNodes simplifiedNodes;
-    size_t nodeReorderingIndex = 0;
+    size_t nodeReorderingIndex = 1;
     for (size_t i = 0; i < weighteEdges.size(); ++i)
     {
-        const auto& edge = weighteEdges[i];
-        const auto node1 = edge->node1;
-        const auto node2 = edge->node2;
+        auto& edge = weighteEdges[i];
+        auto node1 = edge->node1;
+        auto node2 = edge->node2;
 
         if (!node1->visited)
         {
-            node1->visited = true;
             node1->orderIndex = nodeReorderingIndex;
             edge->node1WeightedIndex = nodeReorderingIndex;
             simplifiedNodes.push_back(node1);
             nodeReorderingIndex++;
+            node1->visited = true;
         }
 
         if (!node2->visited)
         {
-            node2->visited = true;
             node2->orderIndex = nodeReorderingIndex;
             edge->node2WeightedIndex = nodeReorderingIndex;
             simplifiedNodes.push_back(node2);
             nodeReorderingIndex++;
+            node2->visited = true;
         }
+    }
+
+
+    for (size_t i = 0; i < weighteEdges.size(); ++i)
+    {
+        const auto& edge = weighteEdges[i];
+        std::cout << i << ": " << edge->node1->orderIndex << " " << edge->node2->orderIndex << "\n";
     }
 
     // TODO: Get reference to the soma node
@@ -486,19 +489,30 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
             break;
         }
     }
+    std::cout << "The Soma Sample Index" << somaNodeSimplifiedIndex << std::endl;
 
-    // Construct the graph and the search algorithm
 
-    // ShortestPathFinder* pathFinder = new ShortestPathFinder(weighteEdges, simplifiedNodes.size());
+     std::cout << "Number Nodes: " << simplifiedNodes.size() << std::endl;
+      std::cout << "Number Edges: " << weighteEdges.size() << std::endl;
 
-    // pathFinder->findPath(//terminal node simplified index, some index);
-
-    std::cout << "Soma Sample " << somaNodeSimplifiedIndex << std::endl;
-    for (size_t i = 0; i < nodes.size(); i++)
+    for (size_t i = 0; i < simplifiedNodes.size(); i++)
     {
-        if (nodes[i]->terminal)
+        if (simplifiedNodes[i]->terminal)
         {
-            std::cout << nodes[i]->index << " " << nodes[i]->orderIndex << std::endl;
+            std::cout << simplifiedNodes[i]->index << " " << simplifiedNodes[i]->orderIndex << std::endl;
+
+            ShortestPathFinder* pathFinder = new ShortestPathFinder(weighteEdges, simplifiedNodes.size());
+
+            std::cout << "Path: " << simplifiedNodes[i]->orderIndex << "->" << somaNodeSimplifiedIndex << "\n";
+
+
+            auto path = pathFinder->findPath(simplifiedNodes[i]->orderIndex, somaNodeSimplifiedIndex);
+
+            for (size_t j = 0; j < path.size(); ++j)
+            {
+                std::cout << path[j] << " ";
+            }
+            std::cout << "\n";
         }
     }
 

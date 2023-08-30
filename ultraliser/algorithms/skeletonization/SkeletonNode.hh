@@ -71,7 +71,7 @@ public:
      * An index that is used to order the nodes during the shortest path construction for
      * the simplified graph.
      */
-    size_t orderIndex = 0;
+    int64_t orderIndex = -1;
 
     /**
      * @brief point

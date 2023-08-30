@@ -49,24 +49,24 @@ public:
         this->node2WeightedIndex = -1;
     }
 
-    /**
-     * @brief WeightedEdge
-     * Constructor
-     * @param node1Index
-     * The index of the first node of the edge.
-     * @param node2Index
-     * The index of the second node of the edge.
-     * @param edgeWeight
-     * The weight of the edge. This weight could be positive or negative.
-     */
-    SkeletonWeightedEdge(const int64_t& node1Index,
-                         const int64_t& node2Index,
-                         const int64_t& edgeWeight)
-    {
-        this->node1WeightedIndex = node1Index;
-        this->node2WeightedIndex = node2Index;
-        this->edgeWeight = edgeWeight;
-    }
+//    /**
+//     * @brief WeightedEdge
+//     * Constructor
+//     * @param node1Index
+//     * The index of the first node of the edge.
+//     * @param node2Index
+//     * The index of the second node of the edge.
+//     * @param edgeWeight
+//     * The weight of the edge. This weight could be positive or negative.
+//     */
+//    SkeletonWeightedEdge(const int64_t& node1Index,
+//                         const int64_t& node2Index,
+//                         const int64_t& edgeWeight)
+//    {
+//        this->node1WeightedIndex = node1Index;
+//        this->node2WeightedIndex = node2Index;
+//        this->edgeWeight = edgeWeight;
+//    }
 
 public:
 
