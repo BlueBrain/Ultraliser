@@ -415,11 +415,8 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
 {
     // Construct the valid branches
     SkeletonBranches validBranches;
-    for (size_t i = 0; i < branches.size(); ++i)
+    for (auto& branch: branches)
     {
-        // Get a reference to the branch
-        const auto& branch = branches[i];
-
         // The branch must be valid to add it to the weighted graph
         if (branch->valid)
         {
@@ -427,14 +424,10 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
         }
     }
 
-
     // Construct all the graph edges from the valid branches
     SkeletonWeightedEdges weighteEdges;
-    for (size_t i = 0; i < validBranches.size(); ++i)
+    for (auto& branch: validBranches)
     {
-        // Get a reference to the branch
-        const auto& branch = branches[i];
-
         // Reset the nodes of the branch
         branch->nodes.front()->visited = false;
         branch->nodes.back()->visited = false;
@@ -446,7 +439,7 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
 
     // Renumbering the nodes in the graph edges, using the indexOrder;
     SkeletonNodes simplifiedNodes;
-    size_t nodeReorderingIndex = 1;
+    size_t nodeReorderingIndex = 0;
     for (size_t i = 0; i < weighteEdges.size(); ++i)
     {
         auto& edge = weighteEdges[i];
@@ -473,10 +466,39 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
     }
 
 
+    std::fstream stream;
+    stream.open("/abdellah2/scratch/thinning/output/projections/nodes.txt", std::ios::out);
+
+    for (auto& node: simplifiedNodes)
+    {
+        stream << node->point.x() << " "
+               << node->point.y() << " "
+               << node->point.z() << " "
+               << node->radius << " "
+               << node->orderIndex << " "
+               <<"\n";
+    }
+    stream.close();
+
+
+    std::cout << "Edges \n";
     for (size_t i = 0; i < weighteEdges.size(); ++i)
     {
         const auto& edge = weighteEdges[i];
-        std::cout << i << ": " << edge->node1->orderIndex << " " << edge->node2->orderIndex << "\n";
+//        std::cout << i << ": " << edge->node1->orderIndex << " " << edge->node2->orderIndex
+//                  << ", Weight: " << edge->edgeWeight << "\n";
+
+
+
+
+        std::stringstream str;
+
+        std::cout << "edges.push_back(WeightedEdge(" << edge->node1->orderIndex << ","
+            << edge->node2->orderIndex << ","
+            << edge->edgeWeight << "));\n";
+
+
+
     }
 
     // TODO: Get reference to the soma node
@@ -489,17 +511,18 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
             break;
         }
     }
-    std::cout << "The Soma Sample Index" << somaNodeSimplifiedIndex << std::endl;
+    std::cout << "The Soma Sample Index: " << somaNodeSimplifiedIndex << std::endl;
 
 
-     std::cout << "Number Nodes: " << simplifiedNodes.size() << std::endl;
-      std::cout << "Number Edges: " << weighteEdges.size() << std::endl;
+//     std::cout << "Number Nodes: " << simplifiedNodes.size() << std::endl;
+//      std::cout << "Number Edges: " << weighteEdges.size() << std::endl;
 
     for (size_t i = 0; i < simplifiedNodes.size(); i++)
     {
         if (simplifiedNodes[i]->terminal)
         {
-            std::cout << simplifiedNodes[i]->index << " " << simplifiedNodes[i]->orderIndex << std::endl;
+            std::cout << "Terminal Node: " << simplifiedNodes[i]->orderIndex << "\n";
+            // continue;
 
             ShortestPathFinder* pathFinder = new ShortestPathFinder(weighteEdges, simplifiedNodes.size());
 

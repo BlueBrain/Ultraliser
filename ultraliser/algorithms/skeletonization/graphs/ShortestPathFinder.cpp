@@ -30,28 +30,18 @@ ShortestPathFinder::ShortestPathFinder(const SkeletonWeightedEdges &edges,
                                        const size_t& numberNodes)
     : _numberNodes(numberNodes)
 {
-   // std::cout << "Allocate \n";
-
     // Allocate the graph
     _allocateGraph();
 
-   // std::cout << "Construct \n";
-
     // Construct the adjacency matrix
     _constructGraphAdjacencyMatrix(edges);
-
-   // std::cout << "Construct DONE \n";
-
 }
 
 PathIndices ShortestPathFinder::findPath(const size_t& sourceNodeIndex,
                                          const size_t& destinationNodeIndex)
 {
-    std::cout << "findPath 1\n";
     // Find all the paths from the source node to all the other nodes in the graph
     PathsIndices paths = _findShortestPathesWithDijkstra(sourceNodeIndex);
-
-    std::cout << "findPath 2\n";
 
     // Return the path that corresponds to the index of the destination node
     return paths[destinationNodeIndex];
@@ -59,13 +49,9 @@ PathIndices ShortestPathFinder::findPath(const size_t& sourceNodeIndex,
 
 PathsIndices ShortestPathFinder::_findShortestPathesWithDijkstra( int64_t sourceNodeIndex)
 {
-    std::cout << "xx1 \n";
-
     int64_t* distances = new int64_t[_numberNodes];
     bool* visited = new bool[_numberNodes];
     int64_t* parent = new int64_t[_numberNodes];
-
-    std::cout << "xx2 \n";
 
     for (int i = 0; i < _numberNodes; i++)
     {
@@ -73,9 +59,6 @@ PathsIndices ShortestPathFinder::_findShortestPathesWithDijkstra( int64_t source
         distances[i] = INT_MAX;
         visited[i] = false;
     }
-
-    std::cout << "xx3 \n";
-
 
     distances[sourceNodeIndex] = 0;
     for (size_t i = 0; i < _numberNodes - 1; i++)
@@ -97,9 +80,6 @@ PathsIndices ShortestPathFinder::_findShortestPathesWithDijkstra( int64_t source
         }
     }
 
-    std::cout << "xx4 \n";
-
-
     PathsIndices paths;
     paths.resize(_numberNodes);
 
@@ -108,8 +88,6 @@ PathsIndices ShortestPathFinder::_findShortestPathesWithDijkstra( int64_t source
         paths[i].push_back(sourceNodeIndex);
         _constructPath(parent, i, paths[i]);
     }
-
-    std::cout << "xx5 \n";
 
     delete [] distances;
     delete [] visited;
@@ -121,7 +99,6 @@ PathsIndices ShortestPathFinder::_findShortestPathesWithDijkstra( int64_t source
 
 void ShortestPathFinder::_constructPath(int64_t* parent, int64_t i, PathIndices& path)
 {
-    std::cout << i << ",";
     // We have reached the top, return
     if (parent[i] == -1) { return; }
 
@@ -135,36 +112,11 @@ void ShortestPathFinder::_constructPath(int64_t* parent, int64_t i, PathIndices&
 
 void ShortestPathFinder::_constructGraphAdjacencyMatrix(const SkeletonWeightedEdges &edges)
 {
-   // std::cout << "Num Nodes " << _numberNodes << "\n";
-
-    for (size_t i = 0; i < _numberNodes; ++i)
-    {
-        for (size_t j = 0; j < _numberNodes; ++j)
-        {
-            std::cout << _graph[i][j] << " ";
-        }
-        std::cout << "\n";
-    }
-
-    {
-        //std::cout << "edges.size() " << i << "\n";
-
-
-
-//        _graph[edges[i]->node1WeightedIndex][edges[i]->node2WeightedIndex] = edges[i]->edgeWeight;
-  //      _graph[edges[i]->node2WeightedIndex][edges[i]->node1WeightedIndex] = edges[i]->edgeWeight;
-    }
-
     // Construct the graph
     for (size_t i = 0; i < edges.size(); ++i)
     {
-        std::cout << "edges.size() " << i << " ";
-
-
-        std::cout << edges[i]->node1->orderIndex << " " << edges[i]->node2->orderIndex << " " << edges[i]->edgeWeight << "\n";
-
-        _graph[edges[i]->node1->orderIndex - 1][edges[i]->node2->orderIndex - 1] = edges[i]->edgeWeight;
-        _graph[edges[i]->node2->orderIndex - 1][edges[i]->node1->orderIndex - 1] = edges[i]->edgeWeight;
+        _graph[edges[i]->node1->orderIndex][edges[i]->node2->orderIndex] = edges[i]->edgeWeight;
+        _graph[edges[i]->node2->orderIndex][edges[i]->node1->orderIndex] = edges[i]->edgeWeight;
     }
 
     for (size_t i = 0; i < _numberNodes; ++i)
@@ -175,15 +127,12 @@ void ShortestPathFinder::_constructGraphAdjacencyMatrix(const SkeletonWeightedEd
         }
         std::cout << "\n";
     }
-
-    std::cout << "DOnme \n";
-
 }
 
 size_t ShortestPathFinder::_computeMinimumDistanceIndex(int64_t* distances, const bool* visited)
 {
     int64_t minDistance = INT64_MAX;
-    size_t minDistanceIndex = UINT64_MAX;
+    size_t minDistanceIndex = SIZE_MAX;
 
     for (size_t i = 0; i < _numberNodes; ++i)
     {
