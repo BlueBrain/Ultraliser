@@ -411,6 +411,29 @@ void _constructTree(SkeletonBranch* root, SkeletonBranches& allBranches)
 //}
 
 
+
+struct NodeX
+{
+    int64_t index = -1;
+    NodeX(int64_t index) { this->index = index; }
+
+    std::vector<NodeX*> parents;
+    std::vector<NodeX*> children;
+
+    bool isNodeInChildren(int64_t childNodeIndex)
+    {
+        for (size_t i = 0; i < children.size(); ++i)
+        {
+            if (childNodeIndex == children[i]->index)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
+
 void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
 {
     // Construct the valid branches
@@ -466,40 +489,19 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
     }
 
 
-    std::fstream stream;
-    stream.open("/abdellah2/scratch/thinning/output/projections/nodes.txt", std::ios::out);
+//    std::fstream stream;
+//    stream.open("/abdellah2/scratch/thinning/output/projections/nodes.txt", std::ios::out);
 
-    for (auto& node: simplifiedNodes)
-    {
-        stream << node->point.x() << " "
-               << node->point.y() << " "
-               << node->point.z() << " "
-               << node->radius << " "
-               << node->orderIndex << " "
-               <<"\n";
-    }
-    stream.close();
-
-
-    std::cout << "Edges \n";
-    for (size_t i = 0; i < weighteEdges.size(); ++i)
-    {
-        const auto& edge = weighteEdges[i];
-//        std::cout << i << ": " << edge->node1->orderIndex << " " << edge->node2->orderIndex
-//                  << ", Weight: " << edge->edgeWeight << "\n";
-
-
-
-
-        std::stringstream str;
-
-        std::cout << "edges.push_back(WeightedEdge(" << edge->node1->orderIndex << ","
-            << edge->node2->orderIndex << ","
-            << edge->edgeWeight << "));\n";
-
-
-
-    }
+//    for (auto& node: simplifiedNodes)
+//    {
+//        stream << node->point.x() << " "
+//               << node->point.y() << " "
+//               << node->point.z() << " "
+//               << node->radius << " "
+//               << node->orderIndex << " "
+//               <<"\n";
+//    }
+//    stream.close();
 
     // TODO: Get reference to the soma node
     int64_t somaNodeSimplifiedIndex = -1;
@@ -514,22 +516,41 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
     std::cout << "The Soma Sample Index: " << somaNodeSimplifiedIndex << std::endl;
 
 
-//     std::cout << "Number Nodes: " << simplifiedNodes.size() << std::endl;
-//      std::cout << "Number Edges: " << weighteEdges.size() << std::endl;
+    std::vector<NodeX*> nodesX;
+    nodesX.resize(simplifiedNodes.size());
+
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < simplifiedNodes.size(); ++i)
+    {
+        nodesX[i] = (new NodeX(simplifiedNodes[i]->orderIndex));
+    }
 
     for (size_t i = 0; i < simplifiedNodes.size(); i++)
     {
         if (simplifiedNodes[i]->terminal)
         {
-            std::cout << "Terminal Node: " << simplifiedNodes[i]->orderIndex << "\n";
-            // continue;
+            // Construct the ShortestPathFinder solution
+            std::unique_ptr< ShortestPathFinder > pathFinder =
+                    std::make_unique< ShortestPathFinder >(weighteEdges, simplifiedNodes.size());
 
-            ShortestPathFinder* pathFinder = new ShortestPathFinder(weighteEdges, simplifiedNodes.size());
-
-            std::cout << "Path: " << simplifiedNodes[i]->orderIndex << "->" << somaNodeSimplifiedIndex << "\n";
-
-
+            // Find the path between the terminal node and the soma node
             auto path = pathFinder->findPath(simplifiedNodes[i]->orderIndex, somaNodeSimplifiedIndex);
+
+            // Reverse the path
+            std::reverse(path.begin(), path.end());
+
+            for (size_t j = 0; j < path.size() - 1; ++j)
+            {
+                auto currentNodeIndex = path[j];
+                auto nextNodeIndex = path[j + 1];
+
+                // If the next node index is not in the current node index, then add it
+                if (!nodesX[currentNodeIndex]->isNodeInChildren(nextNodeIndex))
+                {
+                    nodesX[currentNodeIndex]->children.push_back(nodesX[nextNodeIndex]);
+                }
+            }
+
 
             for (size_t j = 0; j < path.size(); ++j)
             {
@@ -539,8 +560,23 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
         }
     }
 
+    for (size_t i = 0; i < nodesX.size(); i++)
+    {
+        std::cout << "Children " << i << ": ";
+        for (size_t j = 0; j < nodesX[i]->children.size(); ++j)
+        {
+            std::cout << nodesX[i]->children[j]->index << " ";
+        }
 
-    // for all the terminal nodes, find the shortest path
+        std::cout << "\n";
+    }
+
+
+
+
+
+
+
 
 }
 

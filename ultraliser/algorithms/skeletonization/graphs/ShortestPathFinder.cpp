@@ -80,15 +80,16 @@ PathsIndices ShortestPathFinder::_findShortestPathesWithDijkstra( int64_t source
         }
     }
 
+    // COnstruct the paths in a reverse way
     PathsIndices paths;
     paths.resize(_numberNodes);
-
     for (int i = 0; i < _numberNodes; i++)
     {
         paths[i].push_back(sourceNodeIndex);
         _constructPath(parent, i, paths[i]);
     }
 
+    // Free the temporary arrays
     delete [] distances;
     delete [] visited;
     delete [] parent;
@@ -109,23 +110,29 @@ void ShortestPathFinder::_constructPath(int64_t* parent, int64_t i, PathIndices&
     path.push_back(i);
 }
 
+void ShortestPathFinder::printGraphAdjacencyMatrix() const
+{
+    // Ensuring that the matrix has been allocated to at least print it.
+    if (_graph)
+    {
+        for (size_t i = 0; i < _numberNodes; ++i)
+        {
+            for (size_t j = 0; j < _numberNodes; ++j)
+            {
+                std::cout << _graph[i][j] << " ";
+            }
+            std::cout << "\n";
+        }
+    }
+}
 
 void ShortestPathFinder::_constructGraphAdjacencyMatrix(const SkeletonWeightedEdges &edges)
 {
-    // Construct the graph
+    // Construct the graph adjacency matrix from the edges
     for (size_t i = 0; i < edges.size(); ++i)
     {
         _graph[edges[i]->node1->orderIndex][edges[i]->node2->orderIndex] = edges[i]->edgeWeight;
         _graph[edges[i]->node2->orderIndex][edges[i]->node1->orderIndex] = edges[i]->edgeWeight;
-    }
-
-    for (size_t i = 0; i < _numberNodes; ++i)
-    {
-        for (size_t j = 0; j < _numberNodes; ++j)
-        {
-            std::cout << _graph[i][j] << " ";
-        }
-        std::cout << "\n";
     }
 }
 

@@ -52,6 +52,12 @@ public:
      */
     PathIndices findPath(const size_t& sourceNodeIndex, const size_t& destinationNodeIndex);
 
+    /**
+     * @brief printGraphAdjacencyMatrix
+     * Print the graph adjacency matrix for validation.
+     */
+    void printGraphAdjacencyMatrix() const;
+
 private:
 
     /**
