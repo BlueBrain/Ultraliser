@@ -481,6 +481,43 @@ struct GraphBranch
 
 void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
 {
+    // Filter the loops
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        auto& iBranch = branches[i];
+        if (iBranch->valid)
+        {
+            for (size_t j = 0; j < branches.size(); ++j)
+            {
+                auto& jBranch = branches[j];
+
+                if (i == j) continue;
+
+                if (jBranch->valid)
+                {
+                    // If the jBranch has the same terminal nodes as iBranch
+                    if (iBranch->nodes.front()->index == jBranch->nodes.front()->index &&
+                        iBranch->nodes.back()->index == jBranch->nodes.back()->index ||
+                        iBranch->nodes.front()->index == jBranch->nodes.back()->index &&
+                        iBranch->nodes.back()->index == jBranch->nodes.front()->index)
+                    {
+                        // Select the shortest path
+                        if (iBranch->nodes.size() < jBranch->nodes.size())
+                        {
+                            iBranch->valid = true;
+                            jBranch->valid = false;
+                        }
+                        else
+                        {
+                            iBranch->valid = false;
+                            jBranch->valid = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // Construct all the graph edges from the valid branches
     SkeletonWeightedEdges weighteEdges;
     for (auto& branch: branches)
@@ -496,6 +533,16 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
             weighteEdges.push_back(weighteEdge);
         }
     }
+
+
+
+
+
+
+
+
+
+
 
     /// Collect the branching nodes of the skeleton in a dedicated list
     // Use a new index to label the branching nodes, where the maximum value corresponds to the
@@ -686,6 +733,7 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
             graphBranches[i]->printTree();
     }
 
+    std::cout << "\n\n\n";
     // Re-arrange the branches
     for(size_t i = 0; i < graphBranches.size(); ++i)
     {
@@ -737,8 +785,6 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
         if (branches[i]->root)
             branches[i]->printTree();
     }
-
-
 }
 
 
