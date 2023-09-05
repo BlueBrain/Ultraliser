@@ -678,7 +678,6 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
                 iBranch->children.push_back(jBranch);
             }
         }
-
     }
 
     for(size_t i = 0; i < graphBranches.size(); ++i)
@@ -708,10 +707,28 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
 
     // merge branches with a single child
 
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        auto& branch = branches[i];
+
+        // If the branch has a single child, merge it with the parent
+        if (branch->children.size() == 1)
+        {
+
+            // first branch first node
+            // second branch last node
+
+           // update nodes
+
+            // create new branch
+
+
+        }
+    }
+
+
+
     // remove loops
-
-
-
 
     for(size_t i = 0; i < branches.size(); ++i)
     {
