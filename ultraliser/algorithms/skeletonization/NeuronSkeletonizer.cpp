@@ -274,13 +274,11 @@ void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) con
         if (!_branches[i]->valid || _branches[i]->nodes.size() == 0) continue;
         // if (!_branches[i]->root) continue;
 
-
-
         LOOP_PROGRESS(progress, _branches.size());
         ++progress;
 
         // The @start marks a new branch in the file
-        stream << "start\n";
+        stream << "start " << _branches[i]->index << "\n";
 
         for (auto& node: _branches[i]->nodes)
         {
@@ -412,13 +410,20 @@ void _constructTree(SkeletonBranch* root, SkeletonBranches& allBranches)
 
 
 
-struct NodeX
+struct GraphNode
 {
-    int64_t index = -1;
-    NodeX(int64_t index) { this->index = index; }
 
-    std::vector<NodeX*> parents;
-    std::vector<NodeX*> children;
+    GraphNode(int64_t index, size_t skeletonIndex = 0)
+    {
+        this->index = index;
+        this->skeletonIndex = skeletonIndex;
+    }
+
+    int64_t index = -1;
+    size_t skeletonIndex;
+
+    std::vector<GraphNode*> parents;
+    std::vector<GraphNode*> children;
 
     bool isNodeInChildren(int64_t childNodeIndex)
     {
@@ -436,105 +441,87 @@ struct NodeX
 
 void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
 {
-    // Construct the valid branches
-    SkeletonBranches validBranches;
+    // Construct all the graph edges from the valid branches
+    SkeletonWeightedEdges weighteEdges;
     for (auto& branch: branches)
     {
-        // The branch must be valid to add it to the weighted graph
         if (branch->valid)
         {
-            validBranches.push_back(branch);
+            // Reset the nodes of the branch
+            branch->nodes.front()->visited = false;
+            branch->nodes.back()->visited = false;
+
+            // Create a weighted edge and append it to the list
+            SkeletonWeightedEdge* weighteEdge = new SkeletonWeightedEdge(branch);
+            weighteEdges.push_back(weighteEdge);
         }
     }
 
-    // Construct all the graph edges from the valid branches
-    SkeletonWeightedEdges weighteEdges;
-    for (auto& branch: validBranches)
-    {
-        // Reset the nodes of the branch
-        branch->nodes.front()->visited = false;
-        branch->nodes.back()->visited = false;
+    /// Collect the branching nodes of the skeleton in a dedicated list
+    // Use a new index to label the branching nodes, where the maximum value corresponds to the
+    // actual number of the branching nodes in the graph
+    int64_t branchingNodeIndex = 0;
 
-        // Create a weighted edge and append it to the list
-        SkeletonWeightedEdge* weighteEdge = new SkeletonWeightedEdge(branch);
-        weighteEdges.push_back(weighteEdge);
-    }
-
-    // Renumbering the nodes in the graph edges, using the indexOrder;
-    SkeletonNodes simplifiedNodes;
-    size_t nodeReorderingIndex = 0;
+    // The list that will collect the branching nodes
+    SkeletonNodes branchingNodes;
     for (size_t i = 0; i < weighteEdges.size(); ++i)
     {
+        // The node must be visited once to append it to the @branchingNodes list
         auto& edge = weighteEdges[i];
         auto node1 = edge->node1;
         auto node2 = edge->node2;
 
+        // First node of the edge
         if (!node1->visited)
         {
-            node1->orderIndex = nodeReorderingIndex;
-            edge->node1WeightedIndex = nodeReorderingIndex;
-            simplifiedNodes.push_back(node1);
-            nodeReorderingIndex++;
+            node1->graphIndex = branchingNodeIndex;
+            branchingNodes.push_back(node1);
+            branchingNodeIndex++;
             node1->visited = true;
         }
 
+        // Second node of the edge
         if (!node2->visited)
         {
-            node2->orderIndex = nodeReorderingIndex;
-            edge->node2WeightedIndex = nodeReorderingIndex;
-            simplifiedNodes.push_back(node2);
-            nodeReorderingIndex++;
+            node2->graphIndex = branchingNodeIndex;
+            branchingNodes.push_back(node2);
+            branchingNodeIndex++;
             node2->visited = true;
         }
     }
 
-
-//    std::fstream stream;
-//    stream.open("/abdellah2/scratch/thinning/output/projections/nodes.txt", std::ios::out);
-
-//    for (auto& node: simplifiedNodes)
-//    {
-//        stream << node->point.x() << " "
-//               << node->point.y() << " "
-//               << node->point.z() << " "
-//               << node->radius << " "
-//               << node->orderIndex << " "
-//               <<"\n";
-//    }
-//    stream.close();
-
-    // TODO: Get reference to the soma node
-    int64_t somaNodeSimplifiedIndex = -1;
-    for (size_t i = 0; simplifiedNodes.size(); ++i)
+    /// Get the soma node index in the weighted graph
+    int64_t somaNodeIndex = -1;
+    for (size_t i = 0; branchingNodes.size(); ++i)
     {
-        if (simplifiedNodes[i]->isSoma)
+        if (branchingNodes[i]->isSoma)
         {
-            somaNodeSimplifiedIndex = simplifiedNodes[i]->orderIndex;
+            somaNodeIndex = branchingNodes[i]->graphIndex;
             break;
         }
     }
-    std::cout << "The Soma Sample Index: " << somaNodeSimplifiedIndex << std::endl;
 
-
-    std::vector<NodeX*> nodesX;
-    nodesX.resize(simplifiedNodes.size());
+    // Construct the weighted graph node list
+    std::vector< GraphNode* > graphNodes;
+    graphNodes.resize(branchingNodes.size());
 
     OMP_PARALLEL_FOR
-    for (size_t i = 0; i < simplifiedNodes.size(); ++i)
+    for (size_t i = 0; i < branchingNodes.size(); ++i)
     {
-        nodesX[i] = (new NodeX(simplifiedNodes[i]->orderIndex));
+        const auto& branchingNode = branchingNodes[i];
+        graphNodes[i] = (new GraphNode(branchingNode->graphIndex, branchingNode->index));
     }
 
-    for (size_t i = 0; i < simplifiedNodes.size(); i++)
+    for (size_t i = 0; i < branchingNodes.size(); i++)
     {
-        if (simplifiedNodes[i]->terminal)
+        if (branchingNodes[i]->terminal)
         {
             // Construct the ShortestPathFinder solution
             std::unique_ptr< ShortestPathFinder > pathFinder =
-                    std::make_unique< ShortestPathFinder >(weighteEdges, simplifiedNodes.size());
+                    std::make_unique< ShortestPathFinder >(weighteEdges, branchingNodes.size());
 
             // Find the path between the terminal node and the soma node
-            auto path = pathFinder->findPath(simplifiedNodes[i]->orderIndex, somaNodeSimplifiedIndex);
+            auto path = pathFinder->findPath(branchingNodes[i]->graphIndex, somaNodeIndex);
 
             // Reverse the path
             std::reverse(path.begin(), path.end());
@@ -545,94 +532,76 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
                 auto nextNodeIndex = path[j + 1];
 
                 // If the next node index is not in the current node index, then add it
-                if (!nodesX[currentNodeIndex]->isNodeInChildren(nextNodeIndex))
+                if (!graphNodes[currentNodeIndex]->isNodeInChildren(nextNodeIndex))
                 {
-                    nodesX[currentNodeIndex]->children.push_back(nodesX[nextNodeIndex]);
+                    graphNodes[currentNodeIndex]->children.push_back(graphNodes[nextNodeIndex]);
                 }
             }
-
-
-            for (size_t j = 0; j < path.size(); ++j)
-            {
-                std::cout << path[j] << " ";
-            }
-            std::cout << "\n";
         }
     }
 
-    for (size_t i = 0; i < nodesX.size(); i++)
+
+
+    for (size_t i = 0; i < graphNodes.size(); i++)
     {
-        std::cout << "Children " << i << ": ";
-        for (size_t j = 0; j < nodesX[i]->children.size(); ++j)
+        std::cout << "Children " << i << ": " << graphNodes[i]->index
+                  << "(" << graphNodes[i]->skeletonIndex << ") ";
+        for (size_t j = 0; j < graphNodes[i]->children.size(); ++j)
         {
-            std::cout << nodesX[i]->children[j]->index << " ";
+            std::cout << graphNodes[i]->children[j]->index
+                      << "(" << graphNodes[i]->children[j]->skeletonIndex << ") ";
         }
 
         std::cout << "\n";
     }
 
 
-
-
-
-
-
-
-}
-
-bool traversePath(SkeletonBranch* branch, SkeletonBranches& path)
-{
-    // If the branch is visited before, then return
-    if (branch->visited)
-        return false;
-
-    // Set the branch to true
-    branch->visited = true;
-
-    // If this branch is a terminal, then return false
-    if (branch->terminal)
+    // Construct the valid branches at the end
+    for (size_t i = 0; i < graphNodes.size(); i++)
     {
-        return false;
-    }
-
-    // If this path is a root, then return false
-    if (branch->root)
-    {
-        return true;
-    }
-}
-
-SkeletonBranches findShortestPathToSoma(SkeletonBranch* terminalBranch)
-{
-    SkeletonBranches path;
-
-    auto& t1Connections = terminalBranch->t1Connections;
-    auto& t2Connections = terminalBranch->t2Connections;
-
-    // If t1Connections are zero, then use t2Connections to make the search
-    if (t1Connections.size() == 0)
-    {
-        for (size_t i = 0; i < t2Connections.size(); ++i)
+        if (graphNodes[i]->children.size() > 0)
         {
-            // traversePath(t2Connections[i]);
+            // This graph node is always the first node, becuase all the other nodes are children
+            const auto& firstNodeIndex = graphNodes[i]->skeletonIndex;
 
-            // SkeletonBranches pathToSoma =
+            for (size_t j = 0; j < graphNodes[i]->children.size(); ++j)
+            {
+                // This graph node is always the last node, because it is a child node
+                const auto& lastNodeIndex = graphNodes[i]->children[j]->skeletonIndex;
+
+                // Search for the branches
+                for (size_t k = 0; k < branches.size(); k++)
+                {
+                    // Reference to the branch
+                    auto& branch = branches[k];
+
+                    // The branch must be valid
+                    if (branch->valid && branch->hasTerminalNodes(firstNodeIndex, lastNodeIndex))
+                    {
+                        std::cout << "Branch: " << branch->index << " ";
+                        std::cout << "(" << firstNodeIndex << ", " << lastNodeIndex << ") ";
+                    }
+                }
+
+            }
+
+            std::cout << "\n";
         }
+
+
     }
 
-    // Otherwise, it is t2Connections
-    else
-    {
-        for (size_t i = 0; i < t1Connections.size(); ++i)
-        {
 
-        }
-    }
 
-    return path;
+
+
+
+
+
+
+
+
 }
-
-
 
 
 

@@ -43,30 +43,7 @@ public:
         this->node1 = branch->nodes.front();
         this->node2 = branch->nodes.back();
         this->edgeWeight = branch->nodes.size();
-
-        // Initially, the weights are set to -1 to know that they were not initialized
-        this->node1WeightedIndex = -1;
-        this->node2WeightedIndex = -1;
     }
-
-//    /**
-//     * @brief WeightedEdge
-//     * Constructor
-//     * @param node1Index
-//     * The index of the first node of the edge.
-//     * @param node2Index
-//     * The index of the second node of the edge.
-//     * @param edgeWeight
-//     * The weight of the edge. This weight could be positive or negative.
-//     */
-//    SkeletonWeightedEdge(const int64_t& node1Index,
-//                         const int64_t& node2Index,
-//                         const int64_t& edgeWeight)
-//    {
-//        this->node1WeightedIndex = node1Index;
-//        this->node2WeightedIndex = node2Index;
-//        this->edgeWeight = edgeWeight;
-//    }
 
 public:
 
@@ -84,20 +61,6 @@ public:
      * @brief node2
      */
     SkeletonNode* node2;
-
-    /**
-     * @brief node1WeightedIndex
-     * The index of the first node of the weighted edge.
-     * This is different from the index of the first node in the SkeletonNode.
-     */
-    int64_t node1WeightedIndex;
-
-    /**
-     * @brief node2Index
-     * The index of the second node of the weighted edge.
-     * This is different from the index of the first node in the SkeletonNode.
-     */
-    int64_t node2WeightedIndex;
 
     /**
      * @brief edgeWeight

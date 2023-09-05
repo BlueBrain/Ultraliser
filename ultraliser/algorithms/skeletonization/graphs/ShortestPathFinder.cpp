@@ -131,8 +131,8 @@ void ShortestPathFinder::_constructGraphAdjacencyMatrix(const SkeletonWeightedEd
     // Construct the graph adjacency matrix from the edges
     for (size_t i = 0; i < edges.size(); ++i)
     {
-        _graph[edges[i]->node1->orderIndex][edges[i]->node2->orderIndex] = edges[i]->edgeWeight;
-        _graph[edges[i]->node2->orderIndex][edges[i]->node1->orderIndex] = edges[i]->edgeWeight;
+        _graph[edges[i]->node1->graphIndex][edges[i]->node2->graphIndex] = edges[i]->edgeWeight;
+        _graph[edges[i]->node2->graphIndex][edges[i]->node1->graphIndex] = edges[i]->edgeWeight;
     }
 }
 

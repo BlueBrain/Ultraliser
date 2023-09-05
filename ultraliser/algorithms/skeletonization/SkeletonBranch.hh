@@ -54,6 +54,31 @@ public:
         /// EMPTY CONSTRUCTOR
     }
 
+    /**
+     * @brief hasTerminalNodes
+     * Checks if the branch has terminal nodes associated with the given node indices.
+     * @param node1Index
+     * @param node2Index
+     * @return
+     */
+    bool hasTerminalNodes(const size_t& node1Index, const size_t& node2Index)
+    {
+        const auto& frontNode = nodes.front();
+        const auto& backNode = nodes.back();
+
+        if (node1Index == backNode->index && node2Index == frontNode->index)
+        {
+            return true;
+        }
+
+        if (node1Index == frontNode->index && node2Index == backNode->index)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
 public:
 
     /**
