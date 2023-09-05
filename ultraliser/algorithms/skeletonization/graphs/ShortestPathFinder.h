@@ -93,8 +93,14 @@ private:
      */
     size_t _computeMinimumDistanceIndex(int64_t* distances, const bool* visited);
 
+    /**
+     * @brief _allocateGraph
+     */
     void _allocateGraph();
 
+    /**
+     * @brief _releaseGraph
+     */
     void _releaseGraph();
 
 private:

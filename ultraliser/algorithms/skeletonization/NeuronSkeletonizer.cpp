@@ -438,6 +438,46 @@ struct GraphNode
     }
 };
 
+struct GraphBranch
+{
+    GraphBranch(int64_t index)
+    {
+        this->index = index;
+    }
+
+    void printTree(size_t order = 0)
+    {
+        std::cout << std::string(order * 4, '-') << skeletonIndex << "\n";
+        for (size_t i = 0; i < children.size(); ++i)
+        {
+            children[i]->printTree(order + 1);
+        }
+    }
+
+    void printStatus()
+    {
+        if (this->isRoot)
+        {
+            std::cout << "Branch " << this->skeletonIndex << " is Root \n";
+        }
+    }
+
+    size_t firstNodeIndex;
+    size_t lastNodeIndex;
+
+    size_t firstNodeSkeletonIndex;
+    size_t lastNodeSkeletonIndex;
+
+    int64_t index;
+    size_t skeletonIndex;
+
+    GraphBranch* parent;
+    std::vector< GraphBranch* > children;
+
+    bool isRoot = false;
+};
+
+
 
 void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
 {
@@ -521,15 +561,20 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
                     std::make_unique< ShortestPathFinder >(weighteEdges, branchingNodes.size());
 
             // Find the path between the terminal node and the soma node
-            auto path = pathFinder->findPath(branchingNodes[i]->graphIndex, somaNodeIndex);
+            auto terminalToSomaPath = pathFinder->findPath(branchingNodes[i]->graphIndex,
+                                                           somaNodeIndex);
 
-            // Reverse the path
-            std::reverse(path.begin(), path.end());
+            // Reverse the terminal to soma path to have the correct order
+            std::reverse(terminalToSomaPath.begin(), terminalToSomaPath.end());
 
-            for (size_t j = 0; j < path.size() - 1; ++j)
+            // Find the path between the soma node and the terminal node to confirm
+            auto somaToTerminalPath = pathFinder->findPath(somaNodeIndex,
+                                                           branchingNodes[i]->graphIndex);
+
+            for (size_t j = 0; j < terminalToSomaPath.size() - 1; ++j)
             {
-                auto currentNodeIndex = path[j];
-                auto nextNodeIndex = path[j + 1];
+                auto currentNodeIndex = terminalToSomaPath[j];
+                auto nextNodeIndex = terminalToSomaPath[j + 1];
 
                 // If the next node index is not in the current node index, then add it
                 if (!graphNodes[currentNodeIndex]->isNodeInChildren(nextNodeIndex))
@@ -556,18 +601,25 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
     }
 
 
+    size_t branchGraphIndex = 0;
+    // Convert the graph nodes into graph branches
+    std::vector< GraphBranch* > graphBranches;
+
+
     // Construct the valid branches at the end
     for (size_t i = 0; i < graphNodes.size(); i++)
     {
         if (graphNodes[i]->children.size() > 0)
         {
             // This graph node is always the first node, becuase all the other nodes are children
-            const auto& firstNodeIndex = graphNodes[i]->skeletonIndex;
+            const auto& firstNodeIndex = graphNodes[i]->index;
+            const auto& firstNodeSkeletonIndex = graphNodes[i]->skeletonIndex;
 
             for (size_t j = 0; j < graphNodes[i]->children.size(); ++j)
             {
                 // This graph node is always the last node, because it is a child node
-                const auto& lastNodeIndex = graphNodes[i]->children[j]->skeletonIndex;
+                const auto& lastNodeIndex = graphNodes[i]->children[j]->index;
+                const auto& lastNodeSkeletonIndex = graphNodes[i]->children[j]->skeletonIndex;
 
                 // Search for the branches
                 for (size_t k = 0; k < branches.size(); k++)
@@ -576,29 +628,96 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
                     auto& branch = branches[k];
 
                     // The branch must be valid
-                    if (branch->valid && branch->hasTerminalNodes(firstNodeIndex, lastNodeIndex))
+                    if (branch->valid &&
+                        branch->hasTerminalNodes(firstNodeSkeletonIndex, lastNodeSkeletonIndex))
                     {
+
+                        GraphBranch* gBranch = new GraphBranch(branchGraphIndex);
+                        branchGraphIndex++;
+
+                        gBranch->skeletonIndex = branch->index;
+                        gBranch->firstNodeIndex = firstNodeIndex;
+                        gBranch->firstNodeSkeletonIndex = firstNodeSkeletonIndex;
+                        gBranch->lastNodeIndex = lastNodeIndex;
+                        gBranch->lastNodeSkeletonIndex = lastNodeSkeletonIndex;
+                        if (somaNodeIndex == firstNodeIndex) gBranch->isRoot = true;
+
+                        graphBranches.push_back(gBranch);
+
                         std::cout << "Branch: " << branch->index << " ";
                         std::cout << "(" << firstNodeIndex << ", " << lastNodeIndex << ") ";
                     }
                 }
-
             }
 
             std::cout << "\n";
         }
+    }
 
+    // Sorting
+
+    for (size_t i = 0; i < graphBranches.size(); ++i)
+    {
+        auto& iBranch = graphBranches[i];
+
+        const auto& iLastNodeIndex = iBranch->lastNodeIndex;
+
+        for (size_t j = 0; j < graphBranches.size(); ++j)
+        {
+            auto& jBranch = graphBranches[j];
+
+            // If the same branch, next branch
+            if (iBranch->index == jBranch->index) continue;
+
+            // Get the first node of the jBranch
+            const auto& jFirstNodeIndex = jBranch->firstNodeIndex;
+
+            // jBranch is a child of the iBranch
+            if (iLastNodeIndex == jFirstNodeIndex)
+            {
+                iBranch->children.push_back(jBranch);
+            }
+        }
 
     }
 
+    for(size_t i = 0; i < graphBranches.size(); ++i)
+    {
+        if (graphBranches[i]->isRoot)
+            graphBranches[i]->printTree();
+    }
+
+    // Re-arrange the branches
+    for(size_t i = 0; i < graphBranches.size(); ++i)
+    {
+        // Reference to the GraphBranch
+        const auto& graphBranch = graphBranches[i];
+
+        auto& skeletonBranch = branches[graphBranch->skeletonIndex];
+
+        // Adjust the direction
+        skeletonBranch->adjustDirection(graphBranch->firstNodeSkeletonIndex,
+                                        graphBranch->lastNodeSkeletonIndex);
+
+        // Updating the tree
+        for(size_t j = 0; j < graphBranch->children.size(); ++j)
+        {
+            skeletonBranch->children.push_back(branches[graphBranch->children[j]->skeletonIndex]);
+        }
+    }
+
+    // merge branches with a single child
+
+    // remove loops
 
 
 
 
-
-
-
-
+    for(size_t i = 0; i < branches.size(); ++i)
+    {
+        if (branches[i]->root)
+            branches[i]->printTree();
+    }
 
 
 }
@@ -798,86 +917,89 @@ void NeuronSkeletonizer::_connectBranches()
 
 
 
-    size_t cnt = 0;
-    for (size_t i = 0; i < _branches.size(); ++i)
-    {
-        if (!_branches[i]->valid)
-            std::cout << "Branch: " << _branches[i]->index << " Invalid \n";
-        else if (_branches[i]->root)
-        {
-            std::cout << "Root : " << cnt
-                      << ", T1 : " << _branches[i]->t1Connections.size()
-                      << ", T2 : " << _branches[i]->t2Connections.size()
-                      << ", Root: " << _branches[i]->root << std::endl;
-            cnt++;
-        }
-        else if (_branches[i]->terminal)
-        {
-            std::cout << "Terminal : " << cnt
-                      << ", T1 : " << _branches[i]->t1Connections.size()
-                      << ", T2 : " << _branches[i]->t2Connections.size()
-                      << ", Root: " << _branches[i]->root << std::endl;
-            cnt++;
-        }
-        else
-        {
-            std::cout << "Branch: " << cnt
-                      << ", T1 : " << _branches[i]->t1Connections.size()
-                      << ", T2 : " << _branches[i]->t2Connections.size()
-                      << ", Root: " << _branches[i]->root << std::endl;
-            cnt++;
-        }
-    }
+//    size_t cnt = 0;
+//    for (size_t i = 0; i < _branches.size(); ++i)
+//    {
+//        if (!_branches[i]->valid)
+//            std::cout << "Branch: " << _branches[i]->index << " Invalid \n";
+//        else if (_branches[i]->root)
+//        {
+//            std::cout << "Root : " << cnt
+//                      << ", T1 : " << _branches[i]->t1Connections.size()
+//                      << ", T2 : " << _branches[i]->t2Connections.size()
+//                      << ", Root: " << _branches[i]->root << std::endl;
+//            cnt++;
+//        }
+//        else if (_branches[i]->terminal)
+//        {
+//            std::cout << "Terminal : " << cnt
+//                      << ", T1 : " << _branches[i]->t1Connections.size()
+//                      << ", T2 : " << _branches[i]->t2Connections.size()
+//                      << ", Root: " << _branches[i]->root << std::endl;
+//            cnt++;
+//        }
+//        else
+//        {
+//            std::cout << "Branch: " << cnt
+//                      << ", T1 : " << _branches[i]->t1Connections.size()
+//                      << ", T2 : " << _branches[i]->t2Connections.size()
+//                      << ", Root: " << _branches[i]->root << std::endl;
+//            cnt++;
+//        }
+//    }
 
 
     return;
-    for (size_t i = 0; i < _roots.size(); ++i)
-    {
-        auto& root = _roots[i];
 
-        std::cout << "Root : " << root->index << std::endl;
-        _constructTree(root, _branches);
 
-//        // We are going to check for all the other branches if they have any nodes that have the same last node
-//        for (size_t j = 0; j < _branches.size(); ++j)
-//        {
-//            auto& branch = _branches[j];
 
-//            // If the branch and the root have the same index, then invalid
-//            if (root->index == branch->index) continue;
+//    for (size_t i = 0; i < _roots.size(); ++i)
+//    {
+//        auto& root = _roots[i];
 
-//            // If the branch is not valid, then next branch
-//            if (!branch->valid) continue;
+//        std::cout << "Root : " << root->index << std::endl;
+//        _constructTree(root, _branches);
 
-//            // Access the nodes of the branch
-//            auto& branchFirstNode = branch->nodes.front();
-//            auto& branchLastNode = branch->nodes.back();
+////        // We are going to check for all the other branches if they have any nodes that have the same last node
+////        for (size_t j = 0; j < _branches.size(); ++j)
+////        {
+////            auto& branch = _branches[j];
 
-//            // If the last node of the root is the first node of the branch, then it is a child
-//            if (rootLastNode->index == branchFirstNode->index)
-//            {
-//                // Add the branch to the children list
-//                root->children.push_back(branch);
+////            // If the branch and the root have the same index, then invalid
+////            if (root->index == branch->index) continue;
 
-//                // Add the root to be a parent of the branch
-//                branch->parents.push_back(root);
-//            }
+////            // If the branch is not valid, then next branch
+////            if (!branch->valid) continue;
 
-//            // If the last node of the root is the last node of the branch, then it is a
-//            // reversed child
-//            if (rootLastNode->index == branchLastNode->index)
-//            {
-//                // Reverse the order of the nodes
-//                std::reverse(std::begin(branch->nodes), std::end(branch->nodes));
+////            // Access the nodes of the branch
+////            auto& branchFirstNode = branch->nodes.front();
+////            auto& branchLastNode = branch->nodes.back();
 
-//                // Add the branch to the children list
-//                root->children.push_back(branch);
+////            // If the last node of the root is the first node of the branch, then it is a child
+////            if (rootLastNode->index == branchFirstNode->index)
+////            {
+////                // Add the branch to the children list
+////                root->children.push_back(branch);
 
-//                // Add the root to be a parent of the branch
-//                branch->parents.push_back(root);
-//            }
-//        }
-    }
+////                // Add the root to be a parent of the branch
+////                branch->parents.push_back(root);
+////            }
+
+////            // If the last node of the root is the last node of the branch, then it is a
+////            // reversed child
+////            if (rootLastNode->index == branchLastNode->index)
+////            {
+////                // Reverse the order of the nodes
+////                std::reverse(std::begin(branch->nodes), std::end(branch->nodes));
+
+////                // Add the branch to the children list
+////                root->children.push_back(branch);
+
+////                // Add the root to be a parent of the branch
+////                branch->parents.push_back(root);
+////            }
+////        }
+//    }
 }
 
 void NeuronSkeletonizer::constructGraph()

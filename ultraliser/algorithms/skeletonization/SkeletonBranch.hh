@@ -24,6 +24,7 @@
 #pragma once
 
 #include <algorithms/skeletonization/SkeletonNode.hh>
+#include <data/common/CommonData.h>
 
 namespace Ultraliser
 {
@@ -38,6 +39,9 @@ enum BRANCH_CONNECTION_TYPE{
 
 
 
+#define ULTRALISER_VALIDAITY_BIT_INDEX 0
+#define ULTRALISER_TERMINAL_BIT_INDEX 1
+
 /**
  * @brief The SkeletonBranch struct
  * A branch in the segmented skeleton.
@@ -51,7 +55,19 @@ public:
      */
     SkeletonBranch()
     {
-        /// EMPTY CONSTRUCTOR
+        _flags = new BitArray(8);
+        _flags->clearAll();
+    }
+
+    ~SkeletonBranch() { _flags->~BitArray(); }
+
+    void printTree(size_t order = 0)
+    {
+        std::cout << std::string(order * 4, '-') << index << "\n";
+        for (size_t i = 0; i < children.size(); ++i)
+        {
+            children[i]->printTree(order + 1);
+        }
     }
 
     /**
@@ -78,6 +94,27 @@ public:
 
         return false;
     }
+
+    /**
+     * @brief adjustDirection
+     * @param frontNodeIndex
+     * @param backNodeIndex
+     */
+    void adjustDirection(const size_t& frontNodeIndex, const size_t& backNodeIndex)
+    {
+        if (nodes.front()->index == backNodeIndex && nodes.back()->index == frontNodeIndex)
+        {
+            std::reverse(this->nodes.begin(), this->nodes.end());
+        }
+    }
+
+public:
+
+    void setValid() { _flags->setBit(0); }
+
+    void setInvalid() { _flags->clearBit(0); }
+
+    bool isValid() const { return _flags->bit(0); }
 
 public:
 
@@ -116,6 +153,14 @@ public:
      * Connecting branches at termianl 2.
      */
     std::vector< SkeletonBranch* > t2Connections;
+
+
+
+
+private:
+    BitArray* _flags;
+
+public:
 
     /**
      * @brief root

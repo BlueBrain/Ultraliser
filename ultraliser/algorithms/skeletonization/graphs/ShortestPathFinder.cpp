@@ -47,7 +47,7 @@ PathIndices ShortestPathFinder::findPath(const size_t& sourceNodeIndex,
     return paths[destinationNodeIndex];
 }
 
-PathsIndices ShortestPathFinder::_findShortestPathesWithDijkstra( int64_t sourceNodeIndex)
+PathsIndices ShortestPathFinder::_findShortestPathesWithDijkstra(int64_t sourceNodeIndex)
 {
     int64_t* distances = new int64_t[_numberNodes];
     bool* visited = new bool[_numberNodes];
