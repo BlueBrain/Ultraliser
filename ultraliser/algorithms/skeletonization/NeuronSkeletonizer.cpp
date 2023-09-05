@@ -709,26 +709,28 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
 
     for (size_t i = 0; i < branches.size(); ++i)
     {
+        // A reference to the branch
         auto& branch = branches[i];
 
-        // If the branch has a single child, merge it with the parent
-        if (branch->children.size() == 1)
+        // If the branch is valid and has a single child, merge it with the parent
+        if (branch->valid && branch->children.size() == 1)
         {
+            // Append the SkeletonNodes from the child branch
+            for(size_t j = 1; j < branch->children[0]->nodes.size(); ++j)
+            {
+                branch->nodes.push_back(branch->children[0]->nodes[j]);
+            }
 
-            // first branch first node
-            // second branch last node
+            // Invalidate the child branch
+            branch->children[0]->valid = false;
 
-           // update nodes
-
-            // create new branch
-
-
+            // If the child branch has any children, then update the children of the parent
+            if (branch->children[0]->children.size() > 0)
+            {
+                branch->children = branch->children[0]->children;
+            }
         }
     }
-
-
-
-    // remove loops
 
     for(size_t i = 0; i < branches.size(); ++i)
     {
