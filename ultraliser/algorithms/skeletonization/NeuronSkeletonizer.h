@@ -63,6 +63,11 @@ public:
 
 
      void exportIndividualBranches(const std::string& prefix) const;
+     void exportSWCFile(const std::string& prefix);
+
+
+     SkeletonNodes constructSWCTable();
+     void collectSWCNodes(const SkeletonBranch* branch, SkeletonNodes& swcNodes, int64_t &swcIndex, int64_t branchingNodeSWCIndex);
 
 
 private:
@@ -81,6 +86,8 @@ private:
 private:
 
     Mesh* _somaMesh = nullptr;
+
+    SkeletonNode* _somaNode = nullptr;
 
 
     SkeletonBranches _roots;

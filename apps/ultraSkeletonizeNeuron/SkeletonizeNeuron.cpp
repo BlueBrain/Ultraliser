@@ -91,6 +91,8 @@ void run(int argc , const char** argv)
 
     skeletonizer->skeletonizeVolume();
     skeletonizer->exportIndividualBranches(options->morphologyPrefix);
+    skeletonizer->exportSWCFile(options->morphologyPrefix);
+
 }
 }
 

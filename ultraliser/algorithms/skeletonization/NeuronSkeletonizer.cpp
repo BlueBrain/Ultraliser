@@ -66,6 +66,8 @@ SkeletonNode* NeuronSkeletonizer::_addSomaNode()
     somaNode->isSoma = true;
     somaNode->insideSoma = true; // The somatic node is considered inside the soma in the processing
     _nodes.push_back(somaNode);
+
+    _somaNode = somaNode;
     return somaNode;
 }
 
@@ -253,6 +255,109 @@ void NeuronSkeletonizer::_segmentSomaVolume()
     _volume->~Volume();
     _volume = nullptr;
 }
+
+void NeuronSkeletonizer::collectSWCNodes(const SkeletonBranch* branch, SkeletonNodes& swcNodes, int64_t& swcIndex, int64_t branchingNodeSWCIndex)
+{
+    // Get a reference to the nodes of the current branch
+    auto& currentBranchNodes = branch->nodes;
+
+    for (size_t i = 1; i < currentBranchNodes.size(); ++i)
+    {
+        currentBranchNodes[i]->swcIndex = swcIndex;
+
+        if (i == 1)
+        {
+            currentBranchNodes[i]->prevSampleSWCIndex = branchingNodeSWCIndex;
+        }
+        else
+        {
+            currentBranchNodes[i]->prevSampleSWCIndex= swcIndex - 1;
+        }
+
+        swcIndex++;
+        swcNodes.push_back(currentBranchNodes[i]);
+    }
+
+    const int64_t branchingIndex = swcIndex - 1;
+
+    for (size_t i = 0; i < branch->children.size(); ++i)
+    {
+        collectSWCNodes(branch->children[i], swcNodes, swcIndex, branchingIndex);
+    }
+}
+
+
+SkeletonNodes NeuronSkeletonizer::constructSWCTable()
+{
+    // A table, or list that contains all the nodes in order
+    SkeletonNodes swcNodes;
+
+    // A global index that will be used to correctly index the nodes
+    int64_t swcIndex = 1;
+
+    // Append the somatic mode
+    _somaNode->swcIndex = swcIndex;
+    _somaNode->prevSampleSWCIndex = -1;
+
+    swcIndex++;
+    swcNodes.push_back(_somaNode);
+
+    // Get all the root branches
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        auto& branch = _branches[i];
+        if (branch->root and branch->valid)
+        {
+            // The branching index is that of the soma
+            collectSWCNodes(branch, swcNodes, swcIndex, 1);
+        }
+    }
+
+    return swcNodes;
+}
+
+
+
+void NeuronSkeletonizer::exportSWCFile(const std::string& prefix)
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Construct the file path
+    std::string filePath = prefix + SWC_EXTENSION;
+    LOG_STATUS("Exporting Neuron to SWC file: [ %s ]", filePath.c_str());
+
+    auto swcNodes = constructSWCTable();
+
+
+    std::fstream stream;
+    stream.open(filePath, std::ios::out);
+
+    auto somaNode = swcNodes[0];
+    stream << somaNode->swcIndex << " "
+           << "1" << " "
+           << somaNode->point.x() << " "
+           << somaNode->point.y() << " "
+           << somaNode->point.z() << " "
+           << somaNode->radius << " "
+           << "-1" << "\n";
+
+    for (size_t i = 1; i < swcNodes.size(); ++i)
+    {
+        auto swcNode = swcNodes[i];
+        stream << swcNode->swcIndex << " "
+               << "4" << " "
+               << swcNode->point.x() << " "
+               << swcNode->point.y() << " "
+               << swcNode->point.z() << " "
+               << swcNode->radius << " "
+               << swcNode->prevSampleSWCIndex << "\n";
+    }
+
+    // Close the file
+    stream.close();
+}
+
 
 void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) const
 {

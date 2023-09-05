@@ -73,6 +73,11 @@ public:
      */
     int64_t graphIndex = -1;
 
+    int64_t swcIndex = -1;
+
+    int64_t prevSampleSWCIndex = -1;
+
+
     /**
      * @brief point
      * The Cartesian coordinates of the node.

@@ -84,6 +84,7 @@
 #define VMV_EXTENSION                           STRING(".vmv")
 #define VMV5_EXTENSION                          STRING(".vmv5")
 #define H5_EXTENSION                            STRING(".h5")
+#define SWC_EXTENSION                           STRING(".swc")
 
 // Volume formats
 #define FORMAT_BIT                              STRING("bit")
