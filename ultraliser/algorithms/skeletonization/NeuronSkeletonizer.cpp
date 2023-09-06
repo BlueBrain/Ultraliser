@@ -256,7 +256,8 @@ void NeuronSkeletonizer::_segmentSomaVolume()
     _volume = nullptr;
 }
 
-void NeuronSkeletonizer::collectSWCNodes(const SkeletonBranch* branch, SkeletonNodes& swcNodes, int64_t& swcIndex, int64_t branchingNodeSWCIndex)
+void NeuronSkeletonizer::collectSWCNodes(const SkeletonBranch* branch, SkeletonNodes& swcNodes,
+                                         int64_t& swcIndex, int64_t branchingNodeSWCIndex)
 {
     // Get a reference to the nodes of the current branch
     auto& currentBranchNodes = branch->nodes;
@@ -282,7 +283,10 @@ void NeuronSkeletonizer::collectSWCNodes(const SkeletonBranch* branch, SkeletonN
 
     for (size_t i = 0; i < branch->children.size(); ++i)
     {
-        collectSWCNodes(branch->children[i], swcNodes, swcIndex, branchingIndex);
+        if (branch->valid)
+        {
+            collectSWCNodes(branch->children[i], swcNodes, swcIndex, branchingIndex);
+        }
     }
 }
 
@@ -306,7 +310,7 @@ SkeletonNodes NeuronSkeletonizer::constructSWCTable()
     for (size_t i = 0; i < _branches.size(); ++i)
     {
         auto& branch = _branches[i];
-        if (branch->root and branch->valid)
+        if (branch->root && branch->valid)
         {
             // The branching index is that of the soma
             collectSWCNodes(branch, swcNodes, swcIndex, 1);
@@ -329,7 +333,6 @@ void NeuronSkeletonizer::exportSWCFile(const std::string& prefix)
 
     auto swcNodes = constructSWCTable();
 
-
     std::fstream stream;
     stream.open(filePath, std::ios::out);
 
@@ -346,7 +349,7 @@ void NeuronSkeletonizer::exportSWCFile(const std::string& prefix)
     {
         auto swcNode = swcNodes[i];
         stream << swcNode->swcIndex << " "
-               << "4" << " "
+               << "3" << " "
                << swcNode->point.x() << " "
                << swcNode->point.y() << " "
                << swcNode->point.z() << " "
@@ -567,6 +570,21 @@ struct GraphBranch
         }
     }
 
+    bool hasTerminalNodes(const size_t& node1Index, const size_t& node2Index)
+    {
+        if (node1Index == firstNodeIndex && node2Index == lastNodeIndex)
+        {
+            return true;
+        }
+
+        if (node1Index == lastNodeIndex && node2Index == firstNodeIndex)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     size_t firstNodeIndex;
     size_t lastNodeIndex;
 
@@ -580,6 +598,7 @@ struct GraphBranch
     std::vector< GraphBranch* > children;
 
     bool isRoot = false;
+    bool active = false;
 };
 
 
@@ -704,6 +723,26 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
         graphNodes[i] = (new GraphNode(branchingNode->graphIndex, branchingNode->index));
     }
 
+    std::fstream stream;
+    stream.open("/abdellah2/scratch/thinning/output/projections/nodes.txt", std::ios::out);
+
+    for (auto& node: branchingNodes)
+    {
+        stream << node->point.x() << " "
+               << node->point.y() << " "
+               << node->point.z() << " "
+               << node->radius << " "
+               << node->graphIndex << " "
+               <<"\n";
+    }
+    stream.close();
+
+
+
+    // Get the edges that were not used
+
+
+    PathsIndices allPaths;
     for (size_t i = 0; i < branchingNodes.size(); i++)
     {
         if (branchingNodes[i]->terminal)
@@ -715,6 +754,8 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
             // Find the path between the terminal node and the soma node
             auto terminalToSomaPath = pathFinder->findPath(branchingNodes[i]->graphIndex,
                                                            somaNodeIndex);
+
+            allPaths.push_back(terminalToSomaPath);
 
             // Reverse the terminal to soma path to have the correct order
             std::reverse(terminalToSomaPath.begin(), terminalToSomaPath.end());
@@ -736,6 +777,15 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
             }
         }
     }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -783,7 +833,6 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
                     if (branch->valid &&
                         branch->hasTerminalNodes(firstNodeSkeletonIndex, lastNodeSkeletonIndex))
                     {
-
                         GraphBranch* gBranch = new GraphBranch(branchGraphIndex);
                         branchGraphIndex++;
 
@@ -798,13 +847,20 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
 
                         std::cout << "Branch: " << branch->index << " ";
                         std::cout << "(" << firstNodeIndex << ", " << lastNodeIndex << ") ";
+
+                        //continue;
                     }
+
+                    // If the branch is valid
+                    //if (branch->valid)
                 }
             }
 
             std::cout << "\n";
         }
     }
+
+
 
     // Sorting
 
@@ -847,6 +903,7 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
 
         auto& skeletonBranch = branches[graphBranch->skeletonIndex];
 
+
         // Adjust the direction
         skeletonBranch->adjustDirection(graphBranch->firstNodeSkeletonIndex,
                                         graphBranch->lastNodeSkeletonIndex);
@@ -858,6 +915,78 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
         }
     }
 
+
+    // Get the used edges
+    std::vector< std::pair< int64_t, int64_t > > activeGrphaBranches;
+
+    for (size_t i = 0; i < allPaths.size(); ++i)
+    {
+        auto& path = allPaths[i];
+
+        std::cout << "Path " << i << "-> ";
+        for (size_t j = 0; j < path.size(); ++j)
+        {
+            std::cout << path[j] << " ";
+        }
+        std::cout << "\n";
+    }
+
+    for (size_t i = 0; i < allPaths.size(); ++i)
+    {
+        auto& path = allPaths[i];
+
+        if (path.size() > 1)
+        {
+            for (size_t j = 0; j < path.size() - 1; ++j)
+            {
+                auto p1 = path[j];
+                auto p2 = path[j + 1];
+
+                activeGrphaBranches.push_back(std::pair< int64_t, int64_t >(p1, p2));
+            }
+        }
+    }
+
+
+    std::cout << "Graphs " << graphBranches.size() << "\n";
+    for(size_t i = 0; i < graphBranches.size(); ++i)
+    {
+        auto& gBranch = graphBranches[i];
+
+        std::cout << "* Branch: " << gBranch->skeletonIndex << "->";
+        for(size_t j = 0; j < activeGrphaBranches.size(); ++j)
+        {
+            auto edgePair = activeGrphaBranches[j];
+
+            if (gBranch->hasTerminalNodes(edgePair.first, edgePair.second))
+            {
+                std::cout << "<" << edgePair.first << ", " << edgePair.second << ">, ";
+                std::cout << "[" << gBranch->firstNodeIndex << ", " << gBranch->lastNodeIndex << "],,  ";
+
+                gBranch->active = true;
+//                std::cout << "Active: " << gBranch->index << "\n";
+            }
+
+
+        }
+        std::cout << "\n";
+    }
+
+    for(size_t i = 0; i < graphBranches.size(); ++i)
+    {
+        auto& gBranch = graphBranches[i];
+        if (gBranch->active)
+        {
+            std::cout << i << " Active: " << gBranch->skeletonIndex << "\n";
+        }
+        else
+        {
+             std::cout << i << " Inactive: " << gBranch->skeletonIndex << "\n";
+        }
+    }
+
+
+
     // merge branches with a single child
 
     for (size_t i = 0; i < branches.size(); ++i)
@@ -866,7 +995,7 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
         auto& branch = branches[i];
 
         // If the branch is valid and has a single child, merge it with the parent
-        if (branch->valid && branch->children.size() == 1)
+        if (branch->valid && branch->active && branch->children.size() == 1)
         {
             // Append the SkeletonNodes from the child branch
             for(size_t j = 1; j < branch->children[0]->nodes.size(); ++j)
@@ -890,6 +1019,27 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
         if (branches[i]->root)
             branches[i]->printTree();
     }
+
+    // Update the validity of all the branches
+
+    for(size_t i = 0; i < graphBranches.size(); ++i)
+    {
+        // Reference to the GraphBranch
+        const auto& graphBranch = graphBranches[i];
+
+        // Validate the graph branches only
+        auto& skeletonBranch = branches[graphBranch->skeletonIndex];
+
+        if (skeletonBranch->valid && graphBranch->active)
+        {
+            skeletonBranch->valid = true;
+        }
+        else
+        {
+            skeletonBranch->valid = false;
+        }
+    }
+
 }
 
 

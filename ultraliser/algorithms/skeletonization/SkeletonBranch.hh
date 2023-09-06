@@ -175,6 +175,8 @@ public:
     bool duplicate = false;
 
     bool visited = false;
+
+    bool active = false;
 };
 
 /**
