@@ -27,7 +27,7 @@
 #include <data/volumes/Volume.h>
 #include <algorithms/skeletonization/SkeletonNode.hh>
 #include <algorithms/skeletonization/SkeletonEdge.hh>
-#include <algorithms/skeletonization/SkeletonBranch.hh>
+#include <algorithms/skeletonization/SkeletonBranch.h>
 #include <common/Headers.hh>
 #include <math/Vector3f.h>
 

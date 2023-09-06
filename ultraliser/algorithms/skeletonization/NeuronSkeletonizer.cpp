@@ -32,7 +32,7 @@ namespace Ultraliser
 NeuronSkeletonizer::NeuronSkeletonizer(Volume* volume, const Mesh *mesh)
     : Skeletonizer(volume, mesh)
 {
-
+    /// EMPTY CONSTRUCTOR
 }
 
 void NeuronSkeletonizer::skeletonizeVolume()
@@ -123,8 +123,8 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
         if (branch->nodes.front()->insideSoma && branch->nodes.back()->insideSoma)
         {
             // TODO: What could be other possible cases!
-            branch->setInvalid(); // branch->valid = false;
-            branch->root = false;
+            branch->setInvalid();
+            branch->unsetRoot();
         }
         else
         {
@@ -139,14 +139,14 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
             // branch, but it is not a root branch
             if (countSamplesInsideSoma == 0)
             {
-                branch->root = false;
-                branch->setValid(); // branch->valid = true;
+                branch->unsetRoot();;
+                branch->setValid();
             }
 
             // If all the branch nodes are located inside the soma, then it is not valid
             else if (countSamplesInsideSoma == branch->nodes.size())
             {
-                branch->root = false;
+                branch->unsetRoot();
                 branch->setInvalid(); // branch->valid = false;
             }
 
@@ -170,8 +170,8 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
                     branch->nodes.shrink_to_fit();
                     branch->nodes = newNodes;
 
-                    branch->root = true;
-                    branch->setValid(); // branch->valid = true;
+                    branch->setRoot();
+                    branch->setValid();
 
                     // Add this branch to the roots
                     _roots.push_back(branch);
@@ -195,11 +195,10 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
                     branch->nodes = newNodes;
 
                     // Reverse the nodes, to make the first node in front
-                    // std::reverse(branch->nodes.front(), branch->nodes.back());
                     std::reverse(std::begin(branch->nodes), std::end(branch->nodes));
 
-                    branch->root = true;
-                    branch->setValid(); // branch->valid = true;
+                    branch->setRoot();
+                    branch->setValid();
 
                     // Add this branch to the roots
                     _roots.push_back(branch);
@@ -310,7 +309,7 @@ SkeletonNodes NeuronSkeletonizer::constructSWCTable()
     for (size_t i = 0; i < _branches.size(); ++i)
     {
         auto& branch = _branches[i];
-        if (branch->root && branch->isValid())
+        if (branch->isRoot() && branch->isValid())
         {
             // The branching index is that of the soma
             collectSWCNodes(branch, swcNodes, swcIndex, 1);
@@ -452,7 +451,7 @@ void _constructTree(SkeletonBranch* root, SkeletonBranches& allBranches)
         auto& branch = allBranches[i];
 
         // If the branch is a root, then next branch
-        if (branch->root) continue;
+        if (branch->isRoot()) continue;
 
         // If the branch and the root have the same index, then invalid
         if (root->index == branch->index) continue;
@@ -906,15 +905,10 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
 
     for(size_t i = 0; i < branches.size(); ++i)
     {
-        if (branches[i]->root)
+        if (branches[i]->isRoot())
             branches[i]->printTree();
     }
 }
-
-
-
-
-
 
 void identifyTerminalConnections(SkeletonBranches& branches)
 {
@@ -989,13 +983,13 @@ void confirmTerminalsBranches(SkeletonBranches& branches)
         if (!branch->isValid()) continue;
 
         // If root branch, then next
-        if (branch->root) continue;
+        if (branch->isRoot()) continue;
 
         // If terminal branch, then adjust the samples
         if (branch->t1Connections.size() == 0 || branch->t2Connections.size() == 0)
         {
             // Update the status
-            branch->terminal = true;
+            branch->setTerminal();
 
             // Reverse the sample if needed
             if (branch->nodes.back()->edgeNodes.size() > 1)
@@ -1023,7 +1017,7 @@ SkeletonBranches _detectChildren(SkeletonBranch* currentBranch, SkeletonBranches
         if (!branch->isValid()) continue;
 
         // If root branch, then next
-        if (branch->root) continue;
+        if (branch->isRoot()) continue;
 
         // If the currentBranch and the branch have the same index, then invalid
         if (currentBranch->index == branch->index) continue;
@@ -1140,7 +1134,4 @@ void Skeletonizer::segmentComponents()
 
     xxxxx(_branches, _nodes);
 }
-
-
-
 }

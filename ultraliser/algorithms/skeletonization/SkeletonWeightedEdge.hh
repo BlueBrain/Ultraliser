@@ -25,7 +25,7 @@
 
 #include <common/Headers.hh>
 #include <algorithms/skeletonization/SkeletonNode.hh>
-#include <algorithms/skeletonization/SkeletonBranch.hh>
+#include <algorithms/skeletonization/SkeletonBranch.h>
 
 namespace Ultraliser
 {

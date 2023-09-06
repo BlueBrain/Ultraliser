@@ -29,5 +29,5 @@
 #include <algorithms/skeletonization/SkeletonizerUtils.h>
 #include <algorithms/skeletonization/SkeletonNode.hh>
 #include <algorithms/skeletonization/SkeletonEdge.hh>
-#include <algorithms/skeletonization/SkeletonBranch.hh>
+#include <algorithms/skeletonization/SkeletonBranch.h>
 #include <algorithms/skeletonization/thinning/Thinning.h>
