@@ -24,6 +24,10 @@
 #pragma once
 
 #include <algorithms/skeletonization/Skeletonizer.h>
+#include <algorithms/skeletonization/SkeletonWeightedEdge.hh>
+#include <algorithms/skeletonization/graphs/GraphNode.h>
+#include <algorithms/skeletonization/graphs/ShortestPathFinder.h>
+
 
 namespace Ultraliser
 {
@@ -89,6 +93,21 @@ private:
     void _filterLoopsBetweenTwoBranchingPoints();
 
     void _filterLoopsAtSingleBranchingPoint();
+
+
+
+    SkeletonWeightedEdges _reduceSkeletonToWeightedEdges();
+
+    SkeletonNodes _selectBranchingNodesFromWeightedEdges(const SkeletonWeightedEdges& edges);
+
+    int64_t _getSomaIndexFromGraphNodes(const SkeletonNodes& nodes) const;
+
+    GraphNodes _constructGraphNodesFromSkeletonNodes(const SkeletonNodes& skeletonNodes);
+
+    EdgesIndices _findShortestPathsFromTerminalNodesToSoma(SkeletonWeightedEdges& edges,
+                                                           SkeletonNodes& skeletonBranchingNodes,
+                                                           GraphNodes &graphNodes,
+                                                           const int64_t& somaNodeIndex);
 
 
 private:

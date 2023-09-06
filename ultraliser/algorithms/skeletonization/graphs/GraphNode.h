@@ -57,4 +57,7 @@ public:
     }
 };
 
+typedef std::vector< GraphNode* > GraphNodes;
+
+
 }

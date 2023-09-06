@@ -38,6 +38,17 @@ typedef std::vector< int64_t > PathIndices;
  */
 typedef std::vector< PathIndices > PathsIndices;
 
+/**
+ * @brief EdgeIndex
+ */
+typedef std::pair< int64_t, int64_t > EdgeIndex;
+
+/**
+ * @brief EdgesIndices
+ */
+typedef std::vector< EdgeIndex > EdgesIndices;
+
+
 class ShortestPathFinder
 {
 public:
