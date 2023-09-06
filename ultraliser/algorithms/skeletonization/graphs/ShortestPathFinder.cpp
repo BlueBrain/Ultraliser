@@ -136,6 +136,29 @@ void ShortestPathFinder::_constructGraphAdjacencyMatrix(const SkeletonWeightedEd
     }
 }
 
+void ShortestPathFinder::markVisitedEdges(const PathIndices& path, SkeletonWeightedEdges &edges)
+{
+    for (size_t j = 0; j < edges.size(); ++j)
+    {
+        auto& edge = edges[j];
+
+        for (size_t i = 0; i < path.size() - 1; ++i)
+        {
+            auto p1 = path[i];
+            auto p2 = path[i + 1];
+
+            if (edge->hasGraphNodeTerminals(p1, p2))
+            {
+                std::cout << "Yes: " << edge->branch->index << "\n";
+                edge->valid = true;
+            }
+        }
+
+        std::cout << "\n";
+    }
+}
+
+
 size_t ShortestPathFinder::_computeMinimumDistanceIndex(int64_t* distances, const bool* visited)
 {
     int64_t minDistance = INT64_MAX;

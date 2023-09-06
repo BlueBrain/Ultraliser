@@ -45,6 +45,21 @@ public:
         this->edgeWeight = branch->nodes.size();
     }
 
+    bool hasGraphNodeTerminals(const size_t& node1Index, const size_t& node2Index)
+    {
+        if (node1Index == node1->graphIndex && node2Index == node2->graphIndex)
+        {
+            return true;
+        }
+
+        if (node1Index == node2->graphIndex && node2Index == node1->graphIndex)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
 public:
 
     /**
@@ -67,6 +82,8 @@ public:
      * The weight of the edge. This weight could be positive or negative.
      */
     int64_t edgeWeight;
+
+    bool valid = false;
 };
 
 /**
