@@ -467,6 +467,7 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
     LOG_STATS(GET_TIME_SECONDS);
 
     indicesFilledVoxels.clear();
+    indicesFilledVoxels.shrink_to_fit();
 
     return indicesMapper;
 }

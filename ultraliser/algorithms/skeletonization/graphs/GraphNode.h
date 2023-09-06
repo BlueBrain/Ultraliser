@@ -23,6 +23,38 @@
 
 #pragma once
 
-#include <algorithms/skeletonization/graphs/GraphBranch.h>
-#include <algorithms/skeletonization/graphs/GraphNode.h>
-#include <algorithms/skeletonization/graphs/ShortestPathFinder.h>
+#include <algorithms/skeletonization/SkeletonWeightedEdge.hh>
+
+namespace Ultraliser
+{
+
+class GraphNode
+{
+public:
+
+    GraphNode(int64_t index, size_t skeletonIndex = 0)
+    {
+        this->index = index;
+        this->skeletonIndex = skeletonIndex;
+    }
+
+    int64_t index = -1;
+    size_t skeletonIndex;
+
+    std::vector<GraphNode*> parents;
+    std::vector<GraphNode*> children;
+
+    bool isNodeInChildren(int64_t childNodeIndex)
+    {
+        for (size_t i = 0; i < children.size(); ++i)
+        {
+            if (childNodeIndex == children[i]->index)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
+}

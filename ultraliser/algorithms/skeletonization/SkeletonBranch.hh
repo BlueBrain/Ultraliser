@@ -110,11 +110,20 @@ public:
 
 public:
 
-    void setValid() { _flags->setBit(0); }
+    void setValid()
+    {
+        _flags->setBit(0);
+    }
 
-    void setInvalid() { _flags->clearBit(0); }
+    void setInvalid()
+    {
+        _flags->clearBit(0);
+    }
 
-    bool isValid() const { return _flags->bit(0); }
+    bool isValid() const
+    {
+        return _flags->bit(0);
+    }
 
 public:
 
@@ -170,7 +179,6 @@ public:
 
     bool terminal = false;
 
-    bool valid = true;
 
     bool duplicate = false;
 
