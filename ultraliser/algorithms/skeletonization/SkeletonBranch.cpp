@@ -79,6 +79,11 @@ void SkeletonBranch::adjustDirection(const size_t& frontNodeIndex, const size_t&
     }
 }
 
+bool SkeletonBranch::isLoop() const
+{
+    return this->nodes.front()->index == this->nodes.back()->index;
+}
+
 void SkeletonBranch::setValid()
 {
     _flags->setBit(VALIDAITY_BIT_INDEX);

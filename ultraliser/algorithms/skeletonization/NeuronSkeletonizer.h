@@ -69,6 +69,8 @@ public:
      SkeletonNodes constructSWCTable();
      void collectSWCNodes(const SkeletonBranch* branch, SkeletonNodes& swcNodes, int64_t &swcIndex, int64_t branchingNodeSWCIndex);
 
+     void segmentComponents() override;
+
 
 private:
 
@@ -81,6 +83,12 @@ private:
     void _removeBranchesInsideSoma(SkeletonNode *somaNode);
 
     void _connectBranches();
+
+    void _processBranchesToYieldCyclicGraph();
+
+    void _filterLoopsBetweenTwoBranchingPoints();
+
+    void _filterLoopsAtSingleBranchingPoint();
 
 
 private:

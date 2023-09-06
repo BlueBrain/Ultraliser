@@ -64,7 +64,7 @@ public:
 
 
 
-    virtual void segmentComponents();
+    virtual void segmentComponents() = 0;
 
 
     void applyVolumeThinningWithDomainDecomposition();

@@ -501,49 +501,78 @@ void _constructTree(SkeletonBranch* root, SkeletonBranches& allBranches)
 }
 
 
-
-void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
+void NeuronSkeletonizer::_filterLoopsBetweenTwoBranchingPoints()
 {
-    // Filter the loops
-    for (size_t i = 0; i < branches.size(); ++i)
+    for (size_t i = 0; i < _branches.size(); ++i)
     {
-        auto& iBranch = branches[i];
+        // Reference to the iBranch
+        auto& iBranch = _branches[i];
+
+        // The iBranch must be valid to be processed
         if (iBranch->isValid())
         {
-            for (size_t j = 0; j < branches.size(); ++j)
+            for (size_t j = 0; j < _branches.size(); ++j)
             {
-                auto& jBranch = branches[j];
+                // Reference to the jBranch
+                auto& jBranch = _branches[j];
 
+                // If the same branch, continue
                 if (i == j) continue;
 
+                // The jBranch must be valid as well to be processed
                 if (jBranch->isValid())
                 {
                     // If the jBranch has the same terminal nodes as iBranch
                     if (iBranch->nodes.front()->index == jBranch->nodes.front()->index &&
-                        iBranch->nodes.back()->index == jBranch->nodes.back()->index ||
+                        iBranch->nodes.back()->index  == jBranch->nodes.back()->index ||
                         iBranch->nodes.front()->index == jBranch->nodes.back()->index &&
-                        iBranch->nodes.back()->index == jBranch->nodes.front()->index)
+                        iBranch->nodes.back()->index  == jBranch->nodes.front()->index)
                     {
                         // Select the shortest path
                         if (iBranch->nodes.size() < jBranch->nodes.size())
                         {
-                            iBranch->setValid(); // iBranch->valid = true;
-                            jBranch->setInvalid(); // jBranch->valid = false;
+                            iBranch->setValid();
+                            jBranch->setInvalid();
                         }
                         else
                         {
-                            iBranch->setInvalid(); // iBranch->valid = false;
-                            jBranch->setValid(); // jBranch->valid = true;
+                            iBranch->setInvalid();
+                            jBranch->setValid();
                         }
                     }
                 }
             }
         }
     }
+}
+
+void NeuronSkeletonizer::_filterLoopsAtSingleBranchingPoint()
+{
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        // Reference to the iBranch
+        auto& iBranch = _branches[i];
+
+        // If forming a self-loop, i.e. starts and ends at the same node, it is invalid
+        if (iBranch->isLoop())
+        {
+            iBranch->setInvalid();
+        }
+    }
+}
+
+void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
+{
+    // Initially, and before constructing the graph, remove the loops between two branching points
+    _filterLoopsBetweenTwoBranchingPoints();
+
+    // Remove the loops at a single branching point, i.e. starting and ending at the same node.
+    _filterLoopsAtSingleBranchingPoint();
 
     // Construct all the graph edges from the valid branches
     SkeletonWeightedEdges weighteEdges;
-    for (auto& branch: branches)
+    for (auto& branch: _branches)
     {
         if (branch->isValid())
         {
@@ -667,17 +696,6 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
     for (size_t i = 0; i < graphNodes.size(); i++)
     {
         std::cout << "Children " << i << ": " << graphNodes[i]->index
@@ -713,10 +731,10 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
                 const auto& lastNodeSkeletonIndex = graphNodes[i]->children[j]->skeletonIndex;
 
                 // Search for the branches
-                for (size_t k = 0; k < branches.size(); k++)
+                for (size_t k = 0; k < _branches.size(); k++)
                 {
                     // Reference to the branch
-                    auto& branch = branches[k];
+                    auto& branch = _branches[k];
 
                     // The branch must be valid
                     if (branch->isValid() &&
@@ -790,7 +808,7 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
         // Reference to the GraphBranch
         const auto& graphBranch = graphBranches[i];
 
-        auto& skeletonBranch = branches[graphBranch->skeletonIndex];
+        auto& skeletonBranch = _branches[graphBranch->skeletonIndex];
 
 
         // Adjust the direction
@@ -800,7 +818,7 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
         // Updating the tree
         for(size_t j = 0; j < graphBranch->children.size(); ++j)
         {
-            skeletonBranch->children.push_back(branches[graphBranch->children[j]->skeletonIndex]);
+            skeletonBranch->children.push_back(_branches[graphBranch->children[j]->skeletonIndex]);
         }
     }
 
@@ -878,10 +896,10 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
 
     // merge branches with a single child
 
-    for (size_t i = 0; i < branches.size(); ++i)
+    for (size_t i = 0; i < _branches.size(); ++i)
     {
         // A reference to the branch
-        auto& branch = branches[i];
+        auto& branch = _branches[i];
 
         // If the branch is valid and has a single child, merge it with the parent
         if (branch->isValid() && branch->active && branch->children.size() == 1)
@@ -903,12 +921,13 @@ void xxxxx(const SkeletonBranches& branches, SkeletonNodes& nodes)
         }
     }
 
-    for(size_t i = 0; i < branches.size(); ++i)
+    for(size_t i = 0; i < _branches.size(); ++i)
     {
-        if (branches[i]->isRoot())
-            branches[i]->printTree();
+        if (_branches[i]->isRoot())
+            _branches[i]->printTree();
     }
 }
+
 
 void identifyTerminalConnections(SkeletonBranches& branches)
 {
@@ -999,7 +1018,6 @@ void confirmTerminalsBranches(SkeletonBranches& branches)
         }
     }
 }
-
 
 SkeletonBranches _detectChildren(SkeletonBranch* currentBranch, SkeletonBranches& allBranches)
 {
@@ -1101,10 +1119,8 @@ void NeuronSkeletonizer::constructGraph()
     _connectBranches();
 }
 
-void Skeletonizer::segmentComponents()
+void NeuronSkeletonizer::segmentComponents()
 {
-    // SkeletonNode* somaNode = nodes.back();
-
     // Build the branches from the nodes
     _buildBranchesFromNodes(_nodes);
 
@@ -1128,10 +1144,6 @@ void Skeletonizer::segmentComponents()
     }
     stream.close();
 
-    std::cout << "Branchs: " << _branches.size() << "\n";
-
-
-
-    xxxxx(_branches, _nodes);
+    _processBranchesToYieldCyclicGraph();
 }
 }
