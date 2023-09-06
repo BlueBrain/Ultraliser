@@ -377,7 +377,7 @@ void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) con
     for (size_t i = 0; i < _branches.size(); ++i)
     {
         // If the branch does not have any valid nodes, then don't write it
-        if (!_branches[i]->isValid() || _branches[i]->nodes.size() == 0) continue;
+        if (!_branches[i]->isValid() || _branches[i]->isDuplicate() || _branches[i]->nodes.size() == 0) continue;
         // if (!_branches[i]->root) continue;
 
         LOOP_PROGRESS(progress, _branches.size());
@@ -648,98 +648,14 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
     return edgesIndices;
 }
 
-void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
+GraphBranches NeuronSkeletonizer::_constructGraphBranchesFromGraphNodes(
+        GraphNodes &graphNodes, const int64_t& somaNodeIndex)
 {
-    // Initially, and before constructing the graph, remove the loops between two branching points
-    _filterLoopsBetweenTwoBranchingPoints();
-
-    // Remove the loops at a single branching point, i.e. starting and ending at the same node.
-    _filterLoopsAtSingleBranchingPoint();
-
-    // Reduce the skeleton into a list of SkeletonWeightedEdge's
-    SkeletonWeightedEdges weighteEdges = _reduceSkeletonToWeightedEdges();
-
-    // Get a list of all the branching nodes within the skeleton from the SkeletonWeightedEdges list
-    SkeletonNodes skeletonBranchingNodes = _selectBranchingNodesFromWeightedEdges(weighteEdges);
-
-    // Get the soma node index within the weighted graph
-    int64_t somaNodeIndex = _getSomaIndexFromGraphNodes(skeletonBranchingNodes);
-
-    // Construct the graph nodes list
-    GraphNodes graphNodes = _constructGraphNodesFromSkeletonNodes(skeletonBranchingNodes);
-
-    EdgesIndices edgeIndices = _findShortestPathsFromTerminalNodesToSoma(weighteEdges,
-                                                                         skeletonBranchingNodes,
-                                                                         graphNodes, somaNodeIndex);
-
-    //    std::fstream stream;
-//    stream.open("nodes.txt", std::ios::out);
-//    for (auto& node: skeletonBranchingNodes)
-//    {
-//        stream << node->point.x() << " "
-//               << node->point.y() << " "
-//               << node->point.z() << " "
-//               << node->radius << " "
-//               << node->graphIndex << " "
-//               <<"\n";
-//    }
-//    stream.close();
-
-
-
-    // Get the edges that were not used
-
-
-//    PathsIndices allPaths;
-//    for (size_t i = 0; i < skeletonBranchingNodes.size(); i++)
-//    {
-//        if (skeletonBranchingNodes[i]->terminal)
-//        {
-//            // Construct the ShortestPathFinder solution
-//            std::unique_ptr< ShortestPathFinder > pathFinder =
-//                    std::make_unique< ShortestPathFinder >(weighteEdges, skeletonBranchingNodes.size());
-
-//            // Find the path between the terminal node and the soma node
-//            auto terminalToSomaPath = pathFinder->findPath(skeletonBranchingNodes[i]->graphIndex,
-//                                                           somaNodeIndex);
-
-//            allPaths.push_back(terminalToSomaPath);
-
-//            // Reverse the terminal to soma path to have the correct order
-//            std::reverse(terminalToSomaPath.begin(), terminalToSomaPath.end());
-
-//            for (size_t j = 0; j < terminalToSomaPath.size() - 1; ++j)
-//            {
-//                auto currentNodeIndex = terminalToSomaPath[j];
-//                auto nextNodeIndex = terminalToSomaPath[j + 1];
-
-//                // If the next node index is not in the current node index, then add it
-//                if (!graphNodes[currentNodeIndex]->isNodeInChildren(nextNodeIndex))
-//                {
-//                    graphNodes[currentNodeIndex]->children.push_back(graphNodes[nextNodeIndex]);
-//                }
-//            }
-//        }
-//    }
-
-//    for (size_t i = 0; i < graphNodes.size(); i++)
-//    {
-//        std::cout << "Children " << i << ": " << graphNodes[i]->index
-//                  << "(" << graphNodes[i]->skeletonIndex << ") ";
-//        for (size_t j = 0; j < graphNodes[i]->children.size(); ++j)
-//        {
-//            std::cout << graphNodes[i]->children[j]->index
-//                      << "(" << graphNodes[i]->children[j]->skeletonIndex << ") ";
-//        }
-
-//        std::cout << "\n";
-//    }
-
-
+    // Use a new index to label graph branches
     size_t branchGraphIndex = 0;
-    // Convert the graph nodes into graph branches
-    std::vector< GraphBranch* > graphBranches;
 
+    // A list of all the constructed GraphBranches
+    GraphBranches graphBranches;
 
     // Construct the valid branches at the end
     for (size_t i = 0; i < graphNodes.size(); i++)
@@ -793,14 +709,16 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
         }
     }
 
+    return graphBranches;
+}
 
-
-    // Sorting
-
+void NeuronSkeletonizer::_constructGraphHierarchy(GraphBranches& graphBranches)
+{
     for (size_t i = 0; i < graphBranches.size(); ++i)
     {
         auto& iBranch = graphBranches[i];
 
+        // Get the last node of the iBranch
         const auto& iLastNodeIndex = iBranch->lastNodeIndex;
 
         for (size_t j = 0; j < graphBranches.size(); ++j)
@@ -813,97 +731,131 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
             // Get the first node of the jBranch
             const auto& jFirstNodeIndex = jBranch->firstNodeIndex;
 
-            // jBranch is a child of the iBranch
+            // jBranch is a child of the iBranch if the nodes are the same
             if (iLastNodeIndex == jFirstNodeIndex)
             {
                 iBranch->children.push_back(jBranch);
             }
         }
     }
+}
 
-    for(size_t i = 0; i < graphBranches.size(); ++i)
-    {
-        if (graphBranches[i]->isRoot)
-            graphBranches[i]->printTree();
-    }
-
-    std::cout << "\n\n\n";
-    // Re-arrange the branches
+void NeuronSkeletonizer::_constructSkeletonHierarchy(GraphBranches& graphBranches)
+{
     for(size_t i = 0; i < graphBranches.size(); ++i)
     {
         // Reference to the GraphBranch
         const auto& graphBranch = graphBranches[i];
 
+        // Reference to the corresponding SkeletonBranch
         auto& skeletonBranch = _branches[graphBranch->skeletonIndex];
 
-
-        // Adjust the direction
+        // Adjust the direction, i.e. the samples list
         skeletonBranch->adjustDirection(graphBranch->firstNodeSkeletonIndex,
                                         graphBranch->lastNodeSkeletonIndex);
 
-        // Updating the tree
+        // Update the tree
         for(size_t j = 0; j < graphBranch->children.size(); ++j)
         {
             skeletonBranch->children.push_back(_branches[graphBranch->children[j]->skeletonIndex]);
         }
     }
+}
+
+void NeuronSkeletonizer::_mergeBranchesWithSingleChild()
+{
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        // A reference to the branch
+        auto& branch = _branches[i];
+
+        // If the branch is valid and has a single child, merge it with the parent
+        if (branch->isValid() && branch->children.size() == 1)
+        {
+            // Append the SkeletonNodes from the child branch
+            for(size_t j = 1; j < branch->children[0]->nodes.size(); ++j)
+            {
+                branch->nodes.push_back(branch->children[0]->nodes[j]);
+            }
+
+            // Invalidate the child branch
+            branch->children[0]->setInvalid();
+            branch->children[0]->setDuplicate();
+
+            // If the child branch has any children, then update the children of the parent
+            if (branch->children[0]->children.size() > 0)
+            {
+                branch->children = branch->children[0]->children;
+            }
+        }
+    }
+}
 
 
-//    // Get the used edges
-//    std::vector< std::pair< int64_t, int64_t > > activeGrphaBranches;
+void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
+{
+    // Initially, and before constructing the graph, remove the loops between two branching points
+    _filterLoopsBetweenTwoBranchingPoints();
 
-//    for (size_t i = 0; i < allPaths.size(); ++i)
-//    {
-//        auto& path = allPaths[i];
+    // Remove the loops at a single branching point, i.e. starting and ending at the same node.
+    _filterLoopsAtSingleBranchingPoint();
 
-//        std::cout << "Path " << i << "-> ";
-//        for (size_t j = 0; j < path.size(); ++j)
-//        {
-//            std::cout << path[j] << " ";
-//        }
-//        std::cout << "\n";
-//    }
+    // Reduce the skeleton into a list of SkeletonWeightedEdge's
+    SkeletonWeightedEdges weighteEdges = _reduceSkeletonToWeightedEdges();
 
-//    for (size_t i = 0; i < allPaths.size(); ++i)
-//    {
-//        auto& path = allPaths[i];
+    // Get a list of all the branching nodes within the skeleton from the SkeletonWeightedEdges list
+    SkeletonNodes skeletonBranchingNodes = _selectBranchingNodesFromWeightedEdges(weighteEdges);
 
-//        if (path.size() > 1)
-//        {
-//            for (size_t j = 0; j < path.size() - 1; ++j)
-//            {
-//                auto p1 = path[j];
-//                auto p2 = path[j + 1];
+    // Get the soma node index within the weighted graph
+    int64_t somaNodeIndex = _getSomaIndexFromGraphNodes(skeletonBranchingNodes);
 
-//                activeGrphaBranches.push_back(std::pair< int64_t, int64_t >(p1, p2));
-//            }
-//        }
-//    }
+    // Construct the graph nodes list
+    GraphNodes graphNodes = _constructGraphNodesFromSkeletonNodes(skeletonBranchingNodes);
 
+    // Find the shortest paths of all the terminals and get a list of the indices of the active edges
+    EdgesIndices edgeIndices = _findShortestPathsFromTerminalNodesToSoma(weighteEdges,
+                                                                         skeletonBranchingNodes,
+                                                                         graphNodes, somaNodeIndex);
 
-//    std::cout << "Graphs " << graphBranches.size() << "\n";
-//    for(size_t i = 0; i < graphBranches.size(); ++i)
-//    {
-//        auto& gBranch = graphBranches[i];
+    // Construct the GraphBranches from the GraphNodes
+    GraphBranches graphBranches = _constructGraphBranchesFromGraphNodes(graphNodes, somaNodeIndex);
 
-//        std::cout << "* Branch: " << gBranch->skeletonIndex << "->";
-//        for(size_t j = 0; j < activeGrphaBranches.size(); ++j)
-//        {
-//            auto edgePair = activeGrphaBranches[j];
+    // Construct the hierarchy of the graph
+    _constructGraphHierarchy(graphBranches);
 
-//            if (gBranch->hasTerminalNodes(edgePair.first, edgePair.second))
-//            {
-//                std::cout << "<" << edgePair.first << ", " << edgePair.second << ">, ";
-//                std::cout << "[" << gBranch->firstNodeIndex << ", " << gBranch->lastNodeIndex << "],,  ";
+    // Construct the hierarchy of the skeleton
+    _constructSkeletonHierarchy(graphBranches);
 
-//                gBranch->active = true;
-////                std::cout << "Active: " << gBranch->index << "\n";
-//            }
+    // Merge the branches that have a single child
+    _mergeBranchesWithSingleChild();
 
 
-//        }
-//        std::cout << "\n";
-//    }
+
+
+
+    std::cout << "Graphs " << graphBranches.size() << "\n";
+    for(size_t i = 0; i < graphBranches.size(); ++i)
+    {
+        auto& gBranch = graphBranches[i];
+
+        std::cout << "* Branch: " << gBranch->skeletonIndex << "->";
+        for(size_t j = 0; j < edgeIndices.size(); ++j)
+        {
+            auto edgePair = edgeIndices[j];
+
+            if (gBranch->hasTerminalNodes(edgePair.first, edgePair.second))
+            {
+                std::cout << "<" << edgePair.first << ", " << edgePair.second << ">, ";
+                std::cout << "[" << gBranch->firstNodeIndex << ", " << gBranch->lastNodeIndex << "],,  ";
+
+                gBranch->active = true;
+                std::cout << "Active: " << gBranch->index << "\n";
+            }
+
+
+        }
+        std::cout << "\n";
+    }
 
 //    for(size_t i = 0; i < graphBranches.size(); ++i)
 //    {
@@ -922,30 +874,7 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
 
     // merge branches with a single child
 
-    for (size_t i = 0; i < _branches.size(); ++i)
-    {
-        // A reference to the branch
-        auto& branch = _branches[i];
 
-        // If the branch is valid and has a single child, merge it with the parent
-        if (branch->isValid() && branch->active && branch->children.size() == 1)
-        {
-            // Append the SkeletonNodes from the child branch
-            for(size_t j = 1; j < branch->children[0]->nodes.size(); ++j)
-            {
-                branch->nodes.push_back(branch->children[0]->nodes[j]);
-            }
-
-            // Invalidate the child branch
-            branch->children[0]->setInvalid(); //  = false;
-
-            // If the child branch has any children, then update the children of the parent
-            if (branch->children[0]->children.size() > 0)
-            {
-                branch->children = branch->children[0]->children;
-            }
-        }
-    }
 
     for(size_t i = 0; i < _branches.size(); ++i)
     {

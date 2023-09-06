@@ -89,4 +89,6 @@ public:
 
 };
 
+typedef std::vector< GraphBranch* > GraphBranches;
+
 }
