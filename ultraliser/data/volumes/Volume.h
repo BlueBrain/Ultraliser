@@ -909,14 +909,6 @@ public:
     bool isBorderVoxel(const int64_t& x, const int64_t& y,const int64_t& z) const;
 
     /**
-     * @brief applyThinning
-     * @param centers
-     * @param radii
-     * @return
-     */
-    std::vector< Vector3f > applyThinning(std::vector<Vector3f> &centers, std::vector<float> &radii);
-
-    /**
      * @brief surfaceVoxelizationReion
      * @param mesh
      * @param pMinRegion

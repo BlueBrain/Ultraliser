@@ -731,7 +731,6 @@ void Volume::surfaceVoxelizeNeuronMorphology(
     LOG_STATS(_surfaceVoxelizationTime);
 }
 
-
 void Volume::surfaceVoxelizeVasculatureMorphology(
         VasculatureMorphology* vasculatureMorphology,
         const std::string &packingAlgorithm)
@@ -828,8 +827,9 @@ void Volume::surfaceVoxelizeVasculatureMorphology(
     LOG_STATS(_surfaceVoxelizationTime);
 }
 
-void Volume::surfaceVoxelizeAstrocyteMorphology(
-        const AstrocyteMorphology* astrocyteMorphology, float threshold, const std::string &packingAlgorithm)
+void Volume::surfaceVoxelizeAstrocyteMorphology(const AstrocyteMorphology* astrocyteMorphology,
+                                                float threshold,
+                                                const std::string &packingAlgorithm)
 {
     LOG_TITLE("Astrocyte Surface Voxelization");
 
@@ -1090,12 +1090,9 @@ void Volume::surfaceVoxelization(const std::string &inputDirectory,
                processedMeshCount, meshFiles.size());
 }
 
-
-
 std::vector< Vec3ui_64 > Volume::verifyBorderVoxels(Mesh* mesh,
-                                const float& sideRatio, const bool& verbose)
+                                                    const float& sideRatio, const bool& verbose)
 {
-
     std::vector< Vec3ui_64 > candidates;
 
     if (verbose) LOOP_STARTS("Rasterization");
@@ -1142,8 +1139,6 @@ std::vector< Vec3ui_64 > Volume::verifyBorderVoxels(Mesh* mesh,
     }
     if (verbose) LOOP_DONE;
 
-    std::cout << computeNumberNonZeroVoxels() << "\n";
-
     return candidates;
 }
 
@@ -1176,7 +1171,6 @@ void Volume::_rasterize(Mesh* mesh, VolumeGrid* grid, const float& sideRatio, co
     }
     if (verbose) LOOP_DONE;
 }
-
 
 void Volume::_rasterizeRegion(Mesh* mesh, VolumeGrid* grid,
                               const Vector3f& pMinRegion,
@@ -1217,8 +1211,6 @@ void Volume::_rasterizeRegion(Mesh* mesh, VolumeGrid* grid,
         tMin[2] = std::max(int64_t(0), tMin[2]);
         tMax[2] = std::min(int64_t(_grid->getDepth() - 1) , tMax[2]);
 
-
-        // std::cout << pMinTriangle[0] << " " << pMinTriangle[1] << " " << pMinTriangle[2] << "\n";
         if (pMinTriangle[0] >= tMin[0] &&
             pMinTriangle[1] >= tMin[1] &&
             pMinTriangle[2] >= tMin[2] &&
@@ -1474,30 +1466,42 @@ void Volume::_floodFillAlongXYZ(VolumeGrid *grid)
 
     case VOLUME_TYPE::UI8:
     {
-        xGrid = new UnsignedVolumeGrid<uint8_t>(static_cast< UnsignedVolumeGrid<uint8_t>* >(grid));
-        yGrid = new UnsignedVolumeGrid<uint8_t>(static_cast< UnsignedVolumeGrid<uint8_t>* >(grid));
-        zGrid = new UnsignedVolumeGrid<uint8_t>(static_cast< UnsignedVolumeGrid<uint8_t>* >(grid));
+        xGrid = new UnsignedVolumeGrid< uint8_t >(
+                    static_cast< UnsignedVolumeGrid< uint8_t >* >(grid));
+        yGrid = new UnsignedVolumeGrid< uint8_t >(
+                    static_cast< UnsignedVolumeGrid< uint8_t >* >(grid));
+        zGrid = new UnsignedVolumeGrid< uint8_t >(
+                    static_cast< UnsignedVolumeGrid< uint8_t >* >(grid));
     } break;
 
     case VOLUME_TYPE::UI16:
     {
-        xGrid = new UnsignedVolumeGrid<uint16_t>(static_cast< UnsignedVolumeGrid<uint16_t>* >(grid));
-        yGrid = new UnsignedVolumeGrid<uint16_t>(static_cast< UnsignedVolumeGrid<uint16_t>* >(grid));
-        zGrid = new UnsignedVolumeGrid<uint16_t>(static_cast< UnsignedVolumeGrid<uint16_t>* >(grid));
+        xGrid = new UnsignedVolumeGrid< uint16_t >(
+                    static_cast< UnsignedVolumeGrid< uint16_t >* >(grid));
+        yGrid = new UnsignedVolumeGrid< uint16_t >(
+                    static_cast< UnsignedVolumeGrid< uint16_t >* >(grid));
+        zGrid = new UnsignedVolumeGrid< uint16_t >(
+                    static_cast< UnsignedVolumeGrid< uint16_t >* >(grid));
     } break;
 
     case VOLUME_TYPE::UI32:
     {
-        xGrid = new UnsignedVolumeGrid<uint32_t>(static_cast< UnsignedVolumeGrid<uint32_t>* >(grid));
-        yGrid = new UnsignedVolumeGrid<uint32_t>(static_cast< UnsignedVolumeGrid<uint32_t>* >(grid));
-        zGrid = new UnsignedVolumeGrid<uint32_t>(static_cast< UnsignedVolumeGrid<uint32_t>* >(grid));
+        xGrid = new UnsignedVolumeGrid< uint32_t >(
+                    static_cast< UnsignedVolumeGrid< uint32_t >* >(grid));
+        yGrid = new UnsignedVolumeGrid< uint32_t >(
+                    static_cast< UnsignedVolumeGrid< uint32_t >* >(grid));
+        zGrid = new UnsignedVolumeGrid< uint32_t >(
+                    static_cast< UnsignedVolumeGrid< uint32_t >* >(grid));
     } break;
 
     case VOLUME_TYPE::UI64:
     {
-        xGrid = new UnsignedVolumeGrid<uint64_t>(static_cast< UnsignedVolumeGrid<uint64_t>* >(grid));
-        yGrid = new UnsignedVolumeGrid<uint64_t>(static_cast< UnsignedVolumeGrid<uint64_t>* >(grid));
-        zGrid = new UnsignedVolumeGrid<uint64_t>(static_cast< UnsignedVolumeGrid<uint64_t>* >(grid));
+        xGrid = new UnsignedVolumeGrid< uint64_t >(
+                    static_cast< UnsignedVolumeGrid< uint64_t >* >(grid));
+        yGrid = new UnsignedVolumeGrid< uint64_t >(
+                    static_cast< UnsignedVolumeGrid< uint64_t >* >(grid));
+        zGrid = new UnsignedVolumeGrid< uint64_t >(
+                    static_cast< UnsignedVolumeGrid< uint64_t >* >(grid));
     } break;
 
     case VOLUME_TYPE::F32:
@@ -1615,24 +1619,8 @@ bool Volume::_testTriangleCubeIntersection(Mesh* mesh, size_t triangleIdx,
     voxelCenter[1] = voxelOrigin[1] + voxelHalfSize[1];
     voxelCenter[2] = voxelOrigin[2] + voxelHalfSize[2];
 
-//    auto v1 = mesh->getVertices()[mesh->getTriangles()[triangleIdx][0]];
-//    auto v2 = mesh->getVertices()[mesh->getTriangles()[triangleIdx][1]];
-//    auto v3 = mesh->getVertices()[mesh->getTriangles()[triangleIdx][2]];
-
     // Triangle vertices
     double triangle[3][3];
-
-//    triangle[0][0] = v1.x();
-//    triangle[0][1] = v1.y();
-//    triangle[0][2] = v1.z();
-
-//    triangle[1][0] = v2.x();
-//    triangle[1][1] = v2.y();
-//    triangle[1][2] = v2.z();
-
-//    triangle[2][0] = v3.x();
-//    triangle[2][1] = v3.y();
-//    triangle[2][2] = v3.z();
 
     // For each vertex in the triangle
     for (size_t i = 0; i < 3; ++i)
@@ -3408,7 +3396,6 @@ CandidateVoxels Volume::searchForCandidateVoxelsOne() const
     return candiateVoxels;
 }
 
-
 std::vector< std::vector< Vec3ui_64 > > Volume::searchForBorderVoxels() const
 {
     // This list will collect the border voxels per slice (along the width)
@@ -3432,292 +3419,6 @@ std::vector< std::vector< Vec3ui_64 > > Volume::searchForBorderVoxels() const
     }
 
     return perSliceBorderVoxels;
-}
-
-
-void Volume::confirmDeletableVoxels(CandidateVoxels& candidateVoxels,
-                                    std::unique_ptr< Thinning6Iterations > &thinning,
-                                    int direction) const
-{
-    for (size_t i = 0; i < candidateVoxels.size(); ++i)
-    {
-        // A block of the volume that is scanned every iteration
-        int8_t volumeBlock[26];
-
-        for (size_t k = 0; k < 26; k++)
-        {
-            size_t idx, idy, idz;
-
-            idx = candidateVoxels[i]->x + VDX[k];
-            idy = candidateVoxels[i]->y + VDY[k];
-            idz = candidateVoxels[i]->z + VDZ[k];
-            volumeBlock[k] = isFilledWithoutBoundCheck(idx, idy, idz) ? 1 : 0;
-        }
-
-        if (thinning->matches(direction, volumeBlock))
-        {
-            candidateVoxels[i]->deletable = true;
-        }
-    }
-}
-
-std::vector< Vec3ui_64 >
-Volume::searchForDeletableVoxels(std::vector< std::vector< Vec3ui_64 > > &perSliceBorderVoxels,
-                                 std::unique_ptr< Thinning6Iterations > &thinning,
-                                 int direction) const
-{
-    std::vector< Vec3ui_64 > voxelsToBeDeleted;
-
-
-    for (size_t i = 0; i < perSliceBorderVoxels.size(); ++i)
-    {
-        for (size_t j = 0; j < perSliceBorderVoxels[i].size(); ++j)
-        {
-            const auto& borderVoxel = perSliceBorderVoxels[i][j];
-
-            // A block of the volume that is scanned every iteration
-            int8_t volumeBlock[26];
-
-            //
-            for (size_t k = 0; k < 26; k++)
-            {
-                const auto idx = borderVoxel[0] + VDX[k];
-                const auto idy = borderVoxel[1] + VDY[k];
-                const auto idz = borderVoxel[2] + VDZ[k];
-
-                volumeBlock[k] = isFilledWithoutBoundCheck(idx, idy, idz) ? 1 : 0;
-            }
-
-            if (thinning->matches(direction, volumeBlock))
-            {
-                voxelsToBeDeleted.push_back(perSliceBorderVoxels[i][j]);
-            }
-        }
-    }
-    return voxelsToBeDeleted;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-struct GraphEdge
-{
-    GraphEdge() {}
-    GraphEdge(size_t index, size_t index0, size_t index1)
-    {
-        i = index;
-        p0Index = index0;
-        p1Index = index1;
-    }
-
-    size_t i;
-    size_t p0Index;
-    size_t p1Index;
-};
-
-struct GraphNode
-{
-    GraphNode() { }
-    GraphNode(Vector3f point, Vector3f voxel, size_t index)
-    {
-        this->pNode = point;
-        this->pVoxel = voxel;
-        this->index = index;
-    }
-
-    Vector3f pNode;
-    Vector3f pVoxel;
-
-    size_t index = 0;
-
-    float radius;
-
-    // If the node has been visited before
-    bool visited = false;
-
-    // If the node represents a branching point
-    bool branching = false;
-
-    // If the node is a terminal one, i.e. only has a single edge
-    bool terminal = false;
-
-    // If the node is located inside the soma
-    bool insideSoma = false;
-
-    bool isSoma = false;
-
-    // If the node is connected to soma (node of emanating branch from the soma)
-    bool connectedToSoma = false;
-
-    std::vector< GraphNode* > edgeNodes;
-};
-
-
-struct Branch
-{
-    // A list of points
-    std::vector< GraphNode* > nodes;
-
-    size_t index;
-
-    bool valid = true;
-
-    Branch* parent = nullptr;
-    std::vector< Branch* > children;
-};
-
-
-typedef std::vector< Branch* > Branches;
-
-
-
-
-Branch* buildBranchTillNextBranchingPoint(GraphNode* branchingNode, GraphNode* edgeNode)
-{
-    Branch* branch = new Branch();
-
-    branch->nodes.push_back(branchingNode);
-    branch->nodes.push_back(edgeNode);
-
-    if (edgeNode->terminal)
-        return branch;
-
-    if (edgeNode->branching)
-        return branch;
-
-    GraphNode *aux0 = branchingNode;
-    GraphNode *aux1 = edgeNode;
-
-    while (aux1->edgeNodes.size() == 2)
-    {
-        auto n0 = aux1->edgeNodes[0];
-        auto n1 = aux1->edgeNodes[1];
-
-        if (n0->index == aux0->index)
-        {
-            aux0 = aux1;
-            aux1 = n1;
-        }
-        else
-        {
-            aux0 = aux1;
-            aux1 = n0;
-        }
-
-        branch->nodes.push_back(aux1);
-    }
-
-    return branch;
-}
-
-Branch* buildBranch(GraphNode* firstNode, GraphNode* edgeNode)
-{
-    Branch* branch = new Branch();
-
-    firstNode->visited = true;
-    edgeNode->visited = true;
-
-    branch->nodes.push_back(firstNode);
-    branch->nodes.push_back(edgeNode);
-
-    // If the node along the edge is a terminal, then append this branch to the list and return
-    if (edgeNode->edgeNodes.size() == 1)
-    {
-        return branch;
-    }
-
-    // If the node along the edge is a branching node, then append this branch to the list and
-    // consider the next branch
-    else if (edgeNode->edgeNodes.size() > 2)
-    {
-        return branch;
-    }
-
-    // Otherwise, construct the branches from connected segments
-    else
-    {
-        // The previous node is the first node
-        GraphNode *previousNode = firstNode;
-
-        // The current node is the edge node
-        GraphNode *currentNode = edgeNode;
-
-        // Ensure that the current node has only two connected edges (or nodes)
-        while (true)
-        {
-            // Get a reference to the connecting nodes to the current node
-            auto edgeNode0 = currentNode->edgeNodes[0];
-            auto edgeNode1 = currentNode->edgeNodes[1];
-
-            // Ignore the previous node
-            if (edgeNode0->index == previousNode->index)
-            {
-                previousNode = currentNode;
-                currentNode = edgeNode1;
-            }
-            else
-            {
-                previousNode = currentNode;
-                currentNode = edgeNode0;
-            }
-
-            branch->nodes.push_back(currentNode);
-            currentNode->visited = true;
-
-            if (!(currentNode->edgeNodes.size() == 2))
-                break;
-        }
-    }
-
-    return branch;
-
-}
-Branches buildBranchesFromNodes(std::vector< GraphNode* > nodes)
-{
-    Branches branches;
-    size_t branchIndex = 0;
-
-    // Construct the heirarichy to the terminal
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-        auto& node = nodes[i];
-
-        // The node must be branching
-        if (node->branching)
-        {
-            // Construct the branch
-            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
-            {
-                auto& edgeNode = node->edgeNodes[j];
-                {
-                    // If the edgeNode is visited before, then this branch has been reconstructed
-                    if (edgeNode->visited)
-                        continue;
-
-                    auto branch = buildBranch(node, edgeNode);
-                    branch->index = branchIndex;
-                    branchIndex++;
-
-                    branches.push_back(branch);
-                }
-            }
-        }
-    }
-
-    return branches;
 }
 
 Volume* Volume:: extractBrickFromVolume(const size_t& xVolumeStart, const size_t& xVolumeEnd,
@@ -4128,32 +3829,6 @@ bool Volume::insertOverlappingBoundedBrickToVolume(
     return true;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void Volume::addBrickToVolume(const Volume* brick,
                               const size_t& xMin, const size_t& xMax,
                               const size_t& yMin, const size_t& yMax,
@@ -4239,7 +3914,6 @@ void Volume::andBrickToVolume(const Volume* brick,
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-
 Volume* Volume::getBrick(const size_t& x1, const size_t& x2,
                          const size_t& y1, const size_t& y2,
                          const size_t& z1, const size_t& z2,
@@ -4302,646 +3976,5 @@ Volume* Volume::getBrick(const size_t& x1, const size_t& x2,
     // Return the created volume brick
     return brick;
 }
-
-std::vector< Vector3f > Volume::applyThinning(std::vector< Vector3f > & centers, std::vector< float >& radii)
-{
-    // The thinning kernel that will be used to thin the volume
-    std::unique_ptr< Thinning6Iterations > thinningKernel = std::make_unique<Thinning6Iterations>();
-
-    // Parameters to calculate the loop progress
-    size_t initialNumberVoxelsToBeDeleted = 0;
-    size_t loopCounter = 0;
-
-    // Compute the dimensions of the resulting volume mesh
-    const Vector3f inputMeshbounds = _pMax - _pMin;
-    const Vector3f inputMeshCenter = _pMin + inputMeshbounds * 0.5f;
-
-    // Vector3f pMinVolume, pMaxVolume, boundsVolume;
-    const Vector3f pMaxVolume(getWidth() * 1.f, getHeight() * 1.f, getDepth() * 1.f);
-    const Vector3f volumeCenter = (0.5f * pMaxVolume);
-    const Vector3f scaleFactor = inputMeshbounds / pMaxVolume;
-
-    std::vector< Vector3f > shellPoints;
-    std::vector< std::vector< Vec3ui_64 > > perSliceSurfaceShell = searchForBorderVoxels();
-    for (size_t i = 0; i < perSliceSurfaceShell.size(); ++i)
-    {
-        for (size_t j = 0; j < perSliceSurfaceShell[i].size(); ++j)
-        {
-            const auto voxel = perSliceSurfaceShell[i][j];
-            shellPoints.push_back(Vector3f(voxel.x(), voxel.y(), voxel.z()));
-        }
-        perSliceSurfaceShell[i].clear();
-    }
-    perSliceSurfaceShell.clear();
-
-    // Adjust the locations of the shell points
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < shellPoints.size(); ++i)
-    {
-        // Center at the origin
-        shellPoints[i] -= volumeCenter;
-
-        // Scale
-        shellPoints[i].x() *= scaleFactor.x();
-        shellPoints[i].y() *= scaleFactor.y();
-        shellPoints[i].z() *= scaleFactor.z();
-
-        // Translate
-        shellPoints[i] += inputMeshCenter;
-    }
-
-    TIMER_SET;
-    LOG_STATUS("Thinning Volume");
-    LOOP_STARTS("Thinning Loop");
-    LOOP_PROGRESS(0, 100);
-    while(1)
-    {
-        size_t numberDeletedVoxels = 0;
-
-        // std::vector< std::vector< Vec3ui_64 > > perSliceBorderVoxels = searchForBorderVoxels();
-
-        CandidateVoxels candidateVoxels = searchForCandidateVoxelsOne();
-        std::cout << "Hola \n";
-
-        for (size_t direction = 0; direction < 6; direction++)
-        {
-            // Search for the delerable voxels
-            // std::vector< Vec3ui_64 > voxelsToBeDeleted =
-            //        searchForDeletableVoxels(
-            //            perSliceBorderVoxels, thinningKernel, direction);
-
-            confirmDeletableVoxels(candidateVoxels, thinningKernel, direction);
-
-            // Delete the voxels
-            for (size_t i = 0; i < candidateVoxels.size(); ++i)
-            {
-                if (candidateVoxels[i]->deletable)
-                {
-                    numberDeletedVoxels++;
-                    clear(candidateVoxels[i]->x, candidateVoxels[i]->y, candidateVoxels[i]->z);
-                }
-            }
-
-            // Clear the container of the deleted voxels
-            // voxelsToBeDeleted.clear();
-        }
-
-        // Clear all the containers of the border voxels
-//        for (size_t i = 0; i < perSliceBorderVoxels.size(); ++i)
-//        {
-//            perSliceBorderVoxels[i].clear();
-//        }
-//         perSliceBorderVoxels.clear();
-
-         // Updating the progess bar
-        if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
-        //LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
-        //              initialNumberVoxelsToBeDeleted);
-
-        if (numberDeletedVoxels == 0)
-            break;
-
-        loopCounter++;
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-
-    std::map< size_t, size_t > volumeToNodeMap;
-
-
-    // Construct all the nodes
-    size_t nodeIndex =0;
-    std::vector< GraphNode* > nodes;
-    for (size_t i = 0; i < getWidth(); ++i)
-    {
-        for (size_t j = 0; j < getHeight(); ++j)
-        {
-            for (size_t k = 0; k < getDepth(); ++k)
-            {
-                if (isFilled(i, j, k))
-                {
-                    size_t voxelIndex = mapTo1DIndexWithoutBoundCheck(i, j, k);
-
-                    Vector3f pVoxel(i * 1.f, j * 1.f, k * 1.f);
-
-                    Vector3f pNode(pVoxel);
-                    pNode -= volumeCenter;
-                    pNode.x() *= scaleFactor.x();
-                    pNode.y() *= scaleFactor.y();
-                    pNode.z() *= scaleFactor.z();
-                    pNode += inputMeshCenter;
-
-                    nodes.push_back(new GraphNode(pNode, pVoxel, voxelIndex));
-                    volumeToNodeMap.insert(std::pair< size_t, size_t >(voxelIndex, nodeIndex));
-                    nodeIndex++;
-                }
-            }
-        }
-    }
-
-    // Calculate the radii of every point
-    std::vector< float > nodesRadii;
-    nodesRadii.resize(nodes.size());
-
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-        float minimumDistance = 1e32;
-        for (size_t j = 0; j < shellPoints.size(); ++j)
-        {
-            const float distance = (nodes[i]->pNode - shellPoints[j]).abs();
-
-            if (distance < minimumDistance)
-                minimumDistance = distance;
-        }
-        nodesRadii[i] = minimumDistance;
-    }
-
-
-    auto it = std::max_element(std::begin(nodesRadii), std::end(nodesRadii));
-    auto largestRadiusIndex = std::distance(std::begin(nodesRadii), it);
-
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-        nodes[i]->radius = nodesRadii[i];
-    }
-    nodesRadii.clear();
-
-    // Rasterize a sphere
-    Vector3f somaCenter(nodes[largestRadiusIndex]->pNode.x(),
-                        nodes[largestRadiusIndex]->pNode.y(),
-                        nodes[largestRadiusIndex]->pNode.z());
-    Vector3f somaCenterVoxel(nodes[largestRadiusIndex]->pVoxel.x(),
-                             nodes[largestRadiusIndex]->pVoxel.y(),
-                             nodes[largestRadiusIndex]->pVoxel.z());
-    const auto somaRadius = nodes[largestRadiusIndex]->radius;
-    Sample* somaSphere  = new Sample(somaCenter, somaRadius, 0);
-
-    std::cout << "Soma: "
-              << somaSphere->getPosition().x() << " "
-              << somaSphere->getPosition().y() << " "
-              << somaSphere->getPosition().z() << " "
-              << somaSphere->getRadius() << "\n";
-
-    // Construct the graph and connect the nodes
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-        // Check if the node has been visited before
-        GraphNode* node = nodes[i];
-
-        // Count the number of the connected edges to the node
-        size_t connectedEdges = 0;
-
-        // Search for the neighbours
-        for (size_t l = 0; l < 26; l++)
-        {
-            size_t idx = node->pVoxel.x() + VDX[l];
-            size_t idy = node->pVoxel.y() + VDY[l];
-            size_t idz = node->pVoxel.z() + VDZ[l];
-
-            if (isFilled(idx, idy, idz))
-            {
-                connectedEdges++;
-
-                // Find the index of the voxel
-                const auto& voxelIndex = mapTo1DIndexWithoutBoundCheck(idx, idy, idz);
-
-                // Find the corresponding index of the node to access the node from the nodes list
-                const auto& nodeIndex = volumeToNodeMap.find(voxelIndex)->second;
-
-                // Add the node to the edgeNodes, only to be able to access it later
-                node->edgeNodes.push_back(nodes[nodeIndex]);
-            }
-        }
-
-        if (connectedEdges == 1)
-            node->terminal = true;
-        else if (connectedEdges > 2)
-            node->branching = true;
-
-    }
-
-//    // Verify the nodes that are located within the soma
-//    // OMP_PARALLEL_FOR
-//    size_t insideSomaSample = 0;
-//    for (size_t i = 0; i < nodes.size(); ++i)
-//    {
-//        GraphNode* node = nodes[i];
-
-//        if (isPointInSphere(node->pNode, somaCenter, somaRadius))
-//        {
-//            node->insideSoma = true;
-//            insideSomaSample++;
-//        }
-//    }
-
-    // Build soma node
-    GraphNode* somaNode = new GraphNode(somaCenter, somaCenterVoxel, nodeIndex++);
-    somaNode->radius = somaRadius;
-    somaNode->isSoma = true;
-    nodes.push_back(somaNode);
-
-    // Re-index the samples
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-        nodes[i]->index = i;
-    }
-
-
-
-
-
-
-//    // OMP_PARALLEL_FOR
-//    size_t arbors = 0;
-//    for (size_t i = 0; i < nodes.size(); ++i)
-//    {
-//        GraphNode* node = nodes[i];
-
-//        if (!node->insideSoma)
-//        {
-//            // Detect if the node is located on the soma
-//            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
-//            {
-//                if (node->edgeNodes[j]->insideSoma)
-//                {
-//                    node->connectedToSoma = true;
-//                    arbors++;
-//                    break;
-//                }
-//            }
-
-//            // Disconnect the samples that are located in the soma
-//            std::vector< GraphNode* > edgeNodes;
-//            bool connectToSomaNode = false;
-//            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
-//            {
-//                // If the edge node is not located in the soma, then add it to the edgeNodes list
-//                if (!node->edgeNodes[j]->insideSoma)
-//                {
-//                    edgeNodes.push_back(node->edgeNodes[j]);
-//                }
-//                else
-//                {
-//                    // Connect to the soma node flag
-//                    connectToSomaNode = true;
-//                }
-//            }
-
-//            // If connected to soma, then connect to soma
-//            if (connectToSomaNode)
-//            {
-//                edgeNodes.push_back(somaNode);
-//            }
-
-//            // Clear the current edgeNodes vector
-//            node->edgeNodes.clear();
-//            node->edgeNodes.shrink_to_fit();
-
-//            // Connect it to the new vector
-//            node->edgeNodes = edgeNodes;
-//        }
-//    }
-
-    Branches branches = buildBranchesFromNodes(nodes);
-
-    std::cout << "Branches: " << branches.size() << "\n";
-    std::cout << "Nodes (Samples): " << nodes.size() << "\n";
-
-    // Filter the branches the are located inside the soma
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < branches.size(); ++i)
-    {
-        auto& branch = branches[i];
-
-        size_t countSamplesInsideSoma = 0;
-        for (size_t j = 0; j < branch->nodes.size(); ++j)
-        {
-            if (isPointInSphere(branch->nodes[j]->pNode, somaCenter, somaRadius))
-            {
-                branch->nodes[j]->insideSoma = true;
-                countSamplesInsideSoma++;
-            }
-        }
-
-        // If the count of the sample located inside the soma is zero, then it is a valid branch
-        if (countSamplesInsideSoma == 0)
-        {
-            branch->valid = true;
-        }
-
-        // If all the branch nodes are located inside the soma, then it is not valid
-        else if (countSamplesInsideSoma == branch->nodes.size())
-        {
-            branch->valid = false;
-        }
-
-        // Otherwise, it is a branch that is connected to the soma
-        else
-        {
-            std::vector< GraphNode* > newNodes;
-
-            // Get the first and last nodes
-            auto& firstNode = branch->nodes.front();
-            auto& lastNode = branch->nodes.back();
-
-            if (firstNode->insideSoma)
-            {
-                newNodes.push_back(somaNode);
-                for (size_t j = 0; j < branch->nodes.size(); ++j)
-                {
-                    if (branch->nodes[j]->insideSoma)
-                        continue;
-                    else
-                    {
-                        newNodes.push_back(branch->nodes[j]);
-                    }
-                }
-            }
-            else if (lastNode->insideSoma)
-            {
-                for (size_t j = 0; j < branch->nodes.size(); ++j)
-                {
-                    if (branch->nodes[j]->insideSoma)
-                        continue;
-                    else
-                    {
-                        newNodes.push_back(branch->nodes[j]);
-                    }
-                }
-                newNodes.push_back(somaNode);
-            }
-
-            branch->nodes.clear();
-            branch->nodes.shrink_to_fit();
-            branch->nodes = newNodes;
-            branch->valid = true;
-        }
-    }
-
-
-    // sCenter = somaCenter;
-    // sRadius = somaRadius;
-
-
-
-
-
-//    std::cout << "Writing \n";
-
-    std::fstream xstream;
-//    xstream.open("/abdellah2/scratch/thinning/output/projections/nodes.txt", std::ios::out);
-
-//    for (size_t i = 0; i < branches.size(); ++i)
-//    {
-//        if (branches[i]->nodes.size() == 0)
-//        {
-//            std::cout << "Empty branch \n";
-//            continue;
-//        }
-
-//        if (!branches[i]->valid)
-//        {
-//            std::cout << "Invalid branch \n";
-//            continue;
-//        }
-
-//        xstream << "start\n";
-//        for (size_t j = 0; j < branches[i]->nodes.size(); ++j)
-//        {
-//            auto& node0 = branches[i]->nodes[j];
-//            xstream << node0->pNode.x() << " "
-//                    << node0->pNode.y() << " "
-//                    << node0->pNode.z() << " "
-//                    << node0->radius << "\n";
-//        }
-//        xstream << "done\n";
-
-//    }
-
-//    xstream.close();
-
-
-    xstream.open("/abdellah2/scratch/thinning/output/projections/radii.txt", std::ios::out);
-
-    for (size_t i = 0; i < branches.size(); ++i)
-    {
-        if (branches[i]->nodes.size() == 0)
-        {
-            std::cout << "Empty branch \n";
-            continue;
-        }
-
-        if (!branches[i]->valid)
-        {
-            std::cout << "Invalid branch \n";
-            continue;
-        }
-
-        //xstream << "start\n";
-        for (size_t j = 0; j < branches[i]->nodes.size(); ++j)
-        {
-            auto& node0 = branches[i]->nodes[j];
-            if (node0->radius >= 2.0)
-            {
-
-                centers.push_back(Vector3f(node0->pNode.x(), node0->pNode.y(), node0->pNode.z()));
-                radii.push_back(node0->radius);
-
-                xstream << node0->pNode.x() << " "
-                        << node0->pNode.y() << " "
-                        << node0->pNode.z() << " "
-                        << node0->radius << "\n";
-            }
-        }
-        //xstream << "done\n";
-
-    }
-
-    xstream.close();
-
-
-
-    std::vector< GraphNode* > somaRegion;
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-        if (nodes[i]->radius > 1.5)
-        {
-            somaRegion.push_back(nodes[i]);
-        }
-    }
-
-
-
-    return shellPoints;
-
-    // Sample* somaRegion  = new Sample(somaCenter, somaRadius, 0);
-
-    _rasterize(somaSphere, _grid);
-    // return;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Filter the nodes
-    std::vector< GraphNode* > filteredNodes;
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-        if (nodes[i]->insideSoma)
-            continue;
-
-        filteredNodes.push_back(nodes[i]);
-    }
-
-    // Add the soma node to the list
-    filteredNodes.push_back(somaNode);
-    std::cout << "New Nodes (Samples): " << filteredNodes.size() << "\n";
-
-    // nodes.clear();
-    // nodes.shrink_to_fit();
-
-
-    std::fstream sstream;
-    sstream.open("/abdellah2/scratch/thinning/output/projections/file2.txt", std::ios::out);
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
-
-        auto& node = nodes[i];
-        sstream << node->pNode.x() << " "
-               << node->pNode.y() << " "
-               << node->pNode.z() << " "
-               << node->radius << "\n";
-
-    }
-
-    sstream.close();
-
-
-
-//    // Construct the heirarichy to the terminal
-//    for (size_t i = 0; i < filteredNodes.size(); ++i)
-//    {
-//        //
-//        auto& node = filteredNodes[i];
-
-////        // It must be a branching node
-////        if (node->connectedToSoma)
-////        {
-////            // Construct the branch
-////            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
-////            {
-////                auto& edgeNode = node->edgeNodes[j];
-
-////                if (edgeNode->isSoma)
-////                    continue;
-
-////                std::cout << node->index << " " << edgeNode->index << " \n";
-////                buildBranchesRecursively(node, edgeNode, branches);
-////            }
-////        }
-
-
-//        if (node->branching)
-//        {
-//            // Construct the branch
-//            for (size_t j = 0; j < node->edgeNodes.size(); ++j)
-//            {
-//                auto& edgeNode = node->edgeNodes[j];
-//                {
-//                    branches.push_back(buildBranch(node, edgeNode));
-//                }
-//            }
-//        }
-//    }
-
-    std::cout << "Branches: " << branches.size() << "\n";
-
-    std::fstream stream;
-    stream.open("/abdellah2/scratch/thinning/output/projections/file.txt", std::ios::out);
-    for (size_t i = 0; i < branches.size(); i++)
-    {
-        for (size_t j =0; j < branches[i]->nodes.size(); ++j)
-        {
-            auto& node = branches[i]->nodes[j];
-            stream << node->pNode.x() << " "
-                   << node->pNode.y() << " "
-                   << node->pNode.z() << " "
-                   << node->radius << "\n";
-        }
-    }
-    stream.close();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//    std::vector< std::vector< size_t > > branches;
-//    // From every bifurcation point, start collecting the edges to construct the graph
-//    for (size_t i = 0; i < nodes.size(); ++i)
-//    {
-//        // Keep a reference to the node ID
-//        const GraphNode* node = nodes[i];
-
-//        // Only for the branching points
-//        if (node->isBranching)
-//        {
-//            // Get all the edges connected to the node
-//            for (size_t j = 0; j < node->edges.size(); ++j)
-//            {
-//                const GraphEdge* edge = node->edges[j];
-
-//                std::vector< size_t > branch;
-//                constructBranch(node, edge, nodes, branch);
-//                // branches.push_back(branch);
-//            }
-//        }
-//    }
-
-//    std::cout << branches.size() << "\n : Branches \n";
-}
-
-
 
 }

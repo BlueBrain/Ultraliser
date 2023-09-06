@@ -268,7 +268,8 @@ void Skeletonizer::applyVolumeThinning()
     LOG_STATUS("Volume Thinning");
 
     // The thinning kernel that will be used to thin the volume
-    std::unique_ptr< Thinning6Iterations > thinningKernel = std::make_unique<Thinning6Iterations>();
+    std::unique_ptr< Thinning6Iterations > thinningKernel =
+            std::make_unique< Thinning6Iterations >();
 
     // Parameters to calculate the loop progress
     size_t initialNumberVoxelsToBeDeleted = 0;
