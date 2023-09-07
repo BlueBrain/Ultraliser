@@ -791,6 +791,49 @@ void NeuronSkeletonizer::_mergeBranchesWithSingleChild()
     }
 }
 
+void NeuronSkeletonizer::_detectInactiveBranches(SkeletonWeightedEdges& graphEdges,
+                                                 EdgesIndices& visitedEdgesIndices)
+{
+    // For every edge in the graph, verifiy if this edge contains the nodes that are visited
+    for (size_t i = 0; i < graphEdges.size(); i++)
+    {
+        // Get a reference to the edge
+        auto& edge = graphEdges[i];
+
+        // If the edge is already set to be visited, there is no need to search
+        if (!edge->visited)
+        {
+            // Search for all the visited edges indices
+            for (size_t j = 0; j < visitedEdgesIndices.size(); ++j)
+            {
+                // Get a reference to a single edge indices pair
+                auto& edgeIndices = visitedEdgesIndices[j];
+
+                // Verification
+                if (edge->hasTerminalGraphNodes(edgeIndices.first, edgeIndices.second))
+                {
+                    // Set the edge to be visited
+                    edge->visited = true;
+
+                    // There is no need to continue, then break to save performance
+                    break;
+                }
+            }
+        }
+    }
+
+    // Update the skeleton using the SkeletonWeightedEdges list
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < graphEdges.size(); ++i)
+    {
+        // If the edge is not visited, the invalidate and deactivate it in the skeleton
+        if (!graphEdges[i]->visited)
+        {
+            graphEdges[i]->branch->setInvalid();
+            graphEdges[i]->branch->setInactive();
+        }
+    }
+}
 
 void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
 {
@@ -813,58 +856,11 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
     GraphNodes graphNodes = _constructGraphNodesFromSkeletonNodes(skeletonBranchingNodes);
 
     // Find the shortest paths of all the terminals and get a list of the indices of the active edges
-    EdgesIndices edgeIndices = _findShortestPathsFromTerminalNodesToSoma(weighteEdges,
-                                                                         skeletonBranchingNodes,
-                                                                         graphNodes, somaNodeIndex);
+    EdgesIndices edgesIndices = _findShortestPathsFromTerminalNodesToSoma(
+                weighteEdges, skeletonBranchingNodes, graphNodes, somaNodeIndex);
 
-
-
-    for (size_t i = 0; i < edgeIndices.size(); i++)
-    {
-           std::cout << "edges: " << edgeIndices[i].first << ", " << edgeIndices[i].second << "\n";
-    }
-
-    for (size_t i = 0; i < weighteEdges.size(); i++)
-    {
-           std::cout << "w Edge: " << weighteEdges[i]->node1->graphIndex << ", " << weighteEdges[i]->node2->graphIndex << "\n";
-    }
-
-
-
-    // From the edge indices, find the branches that were traversed in the graph and then the skeleton
-    for (size_t i = 0; i < weighteEdges.size(); i++)
-    {
-        auto& edge = weighteEdges[i];
-        if (!edge->visited)
-        {
-            for (size_t j = 0; j < edgeIndices.size(); ++j)
-            {
-                auto& indices = edgeIndices[j];
-                if (edge->hasTerminalGraphNodes(indices.first, indices.second))
-                {
-                    edge->visited = true;
-                    break;
-                }
-            }
-        }
-    }
-
-
-    for (size_t i = 0; i < weighteEdges.size(); ++i)
-    {
-        if (weighteEdges[i]->visited)
-        {
-            std::cout << "Visited Edge : " << weighteEdges[i]->branch->index << "\n";
-        }
-        else
-        {
-            weighteEdges[i]->branch->setInvalid();
-            std::cout << "Useless Edge : " << weighteEdges[i]->branch->index << "\n";
-        }
-    }
-
-
-
+    // Mark the unvisited branches in the graph
+    _detectInactiveBranches(weighteEdges, edgesIndices);
 
     // Construct the GraphBranches from the GraphNodes
     GraphBranches graphBranches = _constructGraphBranchesFromGraphNodes(graphNodes, somaNodeIndex);
@@ -877,53 +873,6 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
 
     // Merge the branches that have a single child
     _mergeBranchesWithSingleChild();
-
-
-
-
-
-//    std::cout << "Graphs " << graphBranches.size() << "\n";
-//    for(size_t i = 0; i < graphBranches.size(); ++i)
-//    {
-//        auto& gBranch = graphBranches[i];
-
-//        std::cout << "* Branch: " << gBranch->skeletonIndex << "->";
-//        for(size_t j = 0; j < edgeIndices.size(); ++j)
-//        {
-//            auto edgePair = edgeIndices[j];
-
-//            if (gBranch->hasTerminalNodes(edgePair.first, edgePair.second))
-//            {
-//                std::cout << "<" << edgePair.first << ", " << edgePair.second << ">, ";
-//                std::cout << "[" << gBranch->firstNodeIndex << ", " << gBranch->lastNodeIndex << "],,  ";
-
-//                gBranch->active = true;
-//                std::cout << "Active: " << gBranch->index << "\n";
-//            }
-
-
-//        }
-//        std::cout << "\n";
-//    }
-
-//    for(size_t i = 0; i < graphBranches.size(); ++i)
-//    {
-//        auto& gBranch = graphBranches[i];
-//        if (gBranch->active)
-//        {
-//            std::cout << i << " Active: " << gBranch->skeletonIndex << "\n";
-//        }
-//        else
-//        {
-//             std::cout << i << " Inactive: " << gBranch->skeletonIndex << "\n";
-//        }
-//    }
-
-
-
-    // merge branches with a single child
-
-
 
     for(size_t i = 0; i < _branches.size(); ++i)
     {

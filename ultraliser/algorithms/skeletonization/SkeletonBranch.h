@@ -113,7 +113,7 @@ public:
      * Has the branch been visited before or not.
      * @return
      */
-    bool visited();
+    bool visited() const;
 
     /**
      * @brief setTerminal
@@ -132,7 +132,7 @@ public:
      * Verifies if the branch is a terminal branch or not.
      * @return True if the branch is terminal, otherwise false.
      */
-    bool isTerminal();
+    bool isTerminal() const;
 
     /**
      * @brief setRoot
@@ -151,7 +151,7 @@ public:
      * Verifies if the branch is root branch, i.e. emanating from a soma, or not.
      * @return True if the branch was set to be root.
      */
-    bool isRoot();
+    bool isRoot() const;
 
     /**
      * @brief setDuplicate
@@ -170,7 +170,28 @@ public:
      * Verifies if the branch is duplicate or not.
      * @return True if the branch is duplicate, otherwise false.
      */
-    bool isDuplicate();
+    bool isDuplicate() const;
+
+    /**
+     * @brief setActive
+     * Sets the branch to be active, i.e. has an active role connecting other branches in
+     * the skeleton.
+     */
+    void setActive();
+
+    /**
+     * @brief setInactive
+     * Sets the branch to be inactive, i.e. has no role in the skeleton and will be removed.
+     */
+    void setInactive();
+
+    /**
+     * @brief isActive
+     * Verifies if the branch is active or not.
+     * @return True if the branch is active in the skeleton, otherwise false.
+     */
+    bool isActive() const;
+
 
     /**
      * @brief printTree

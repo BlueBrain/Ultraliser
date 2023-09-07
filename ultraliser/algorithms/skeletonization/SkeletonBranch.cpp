@@ -26,7 +26,7 @@
 #define TERMINAL_BIT_INDEX      2
 #define ROOT_BIT_INDEX          3
 #define DUPLICATE_BIT_INDEX     4
-
+#define ACTIVE_BIT_INDEX        5
 
 #include "SkeletonBranch.h"
 
@@ -35,8 +35,12 @@ namespace Ultraliser
 
 SkeletonBranch::SkeletonBranch()
 {
+    // Clear the flags array
     _flags = new BitArray(8);
     _flags->clearAll();
+
+    // By default, any branch is active unless it is proven otherwise
+    setActive();
 }
 
 SkeletonBranch::~SkeletonBranch()
@@ -109,7 +113,7 @@ void SkeletonBranch::setUnvisited()
      _flags->clearBit(VISITED_BIT_INDEX);
 }
 
-bool SkeletonBranch::visited()
+bool SkeletonBranch::visited() const
 {
     return _flags->bit(VISITED_BIT_INDEX);
 }
@@ -124,7 +128,7 @@ void SkeletonBranch::unsetTermainal()
     _flags->clearBit(TERMINAL_BIT_INDEX);
 }
 
-bool SkeletonBranch::isTerminal()
+bool SkeletonBranch::isTerminal() const
 {
     return _flags->bit(TERMINAL_BIT_INDEX);
 }
@@ -139,7 +143,7 @@ void SkeletonBranch::unsetRoot()
     _flags->clearBit(ROOT_BIT_INDEX);
 }
 
-bool SkeletonBranch::isRoot()
+bool SkeletonBranch::isRoot() const
 {
     return _flags->bit(ROOT_BIT_INDEX);
 }
@@ -154,9 +158,24 @@ void SkeletonBranch::unsetDuplicate()
     _flags->clearBit(DUPLICATE_BIT_INDEX);
 }
 
-bool SkeletonBranch::isDuplicate()
+bool SkeletonBranch::isDuplicate() const
 {
     return _flags->bit(DUPLICATE_BIT_INDEX);
+}
+
+void SkeletonBranch::setActive()
+{
+    _flags->setBit(ACTIVE_BIT_INDEX);
+}
+
+void SkeletonBranch::setInactive()
+{
+    _flags->clearBit(ACTIVE_BIT_INDEX);
+}
+
+bool SkeletonBranch::isActive() const
+{
+    return _flags->bit(ACTIVE_BIT_INDEX);
 }
 
 }

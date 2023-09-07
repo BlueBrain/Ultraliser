@@ -117,6 +117,9 @@ private:
 
     void _mergeBranchesWithSingleChild();
 
+    void _detectInactiveBranches(SkeletonWeightedEdges &graphEdges, EdgesIndices& visitedEdgesIndices);
+
+
 
 private:
 
