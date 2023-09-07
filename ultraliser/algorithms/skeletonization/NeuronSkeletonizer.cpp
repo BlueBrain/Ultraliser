@@ -806,7 +806,7 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
     // Get a list of all the branching nodes within the skeleton from the SkeletonWeightedEdges list
     SkeletonNodes skeletonBranchingNodes = _selectBranchingNodesFromWeightedEdges(weighteEdges);
 
-    // Get the soma node index within the weighted graph
+    // Get the soma node index within the weighted graph to be used to construct the paths
     int64_t somaNodeIndex = _getSomaIndexFromGraphNodes(skeletonBranchingNodes);
 
     // Construct the graph nodes list
@@ -816,6 +816,55 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
     EdgesIndices edgeIndices = _findShortestPathsFromTerminalNodesToSoma(weighteEdges,
                                                                          skeletonBranchingNodes,
                                                                          graphNodes, somaNodeIndex);
+
+
+
+    for (size_t i = 0; i < edgeIndices.size(); i++)
+    {
+           std::cout << "edges: " << edgeIndices[i].first << ", " << edgeIndices[i].second << "\n";
+    }
+
+    for (size_t i = 0; i < weighteEdges.size(); i++)
+    {
+           std::cout << "w Edge: " << weighteEdges[i]->node1->graphIndex << ", " << weighteEdges[i]->node2->graphIndex << "\n";
+    }
+
+
+
+    // From the edge indices, find the branches that were traversed in the graph and then the skeleton
+    for (size_t i = 0; i < weighteEdges.size(); i++)
+    {
+        auto& edge = weighteEdges[i];
+        if (!edge->visited)
+        {
+            for (size_t j = 0; j < edgeIndices.size(); ++j)
+            {
+                auto& indices = edgeIndices[j];
+                if (edge->hasTerminalGraphNodes(indices.first, indices.second))
+                {
+                    edge->visited = true;
+                    break;
+                }
+            }
+        }
+    }
+
+
+    for (size_t i = 0; i < weighteEdges.size(); ++i)
+    {
+        if (weighteEdges[i]->visited)
+        {
+            std::cout << "Visited Edge : " << weighteEdges[i]->branch->index << "\n";
+        }
+        else
+        {
+            weighteEdges[i]->branch->setInvalid();
+            std::cout << "Useless Edge : " << weighteEdges[i]->branch->index << "\n";
+        }
+    }
+
+
+
 
     // Construct the GraphBranches from the GraphNodes
     GraphBranches graphBranches = _constructGraphBranchesFromGraphNodes(graphNodes, somaNodeIndex);
@@ -833,29 +882,29 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
 
 
 
-    std::cout << "Graphs " << graphBranches.size() << "\n";
-    for(size_t i = 0; i < graphBranches.size(); ++i)
-    {
-        auto& gBranch = graphBranches[i];
+//    std::cout << "Graphs " << graphBranches.size() << "\n";
+//    for(size_t i = 0; i < graphBranches.size(); ++i)
+//    {
+//        auto& gBranch = graphBranches[i];
 
-        std::cout << "* Branch: " << gBranch->skeletonIndex << "->";
-        for(size_t j = 0; j < edgeIndices.size(); ++j)
-        {
-            auto edgePair = edgeIndices[j];
+//        std::cout << "* Branch: " << gBranch->skeletonIndex << "->";
+//        for(size_t j = 0; j < edgeIndices.size(); ++j)
+//        {
+//            auto edgePair = edgeIndices[j];
 
-            if (gBranch->hasTerminalNodes(edgePair.first, edgePair.second))
-            {
-                std::cout << "<" << edgePair.first << ", " << edgePair.second << ">, ";
-                std::cout << "[" << gBranch->firstNodeIndex << ", " << gBranch->lastNodeIndex << "],,  ";
+//            if (gBranch->hasTerminalNodes(edgePair.first, edgePair.second))
+//            {
+//                std::cout << "<" << edgePair.first << ", " << edgePair.second << ">, ";
+//                std::cout << "[" << gBranch->firstNodeIndex << ", " << gBranch->lastNodeIndex << "],,  ";
 
-                gBranch->active = true;
-                std::cout << "Active: " << gBranch->index << "\n";
-            }
+//                gBranch->active = true;
+//                std::cout << "Active: " << gBranch->index << "\n";
+//            }
 
 
-        }
-        std::cout << "\n";
-    }
+//        }
+//        std::cout << "\n";
+//    }
 
 //    for(size_t i = 0; i < graphBranches.size(); ++i)
 //    {

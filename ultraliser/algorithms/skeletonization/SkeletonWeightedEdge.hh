@@ -45,6 +45,23 @@ public:
         this->edgeWeight = branch->nodes.size();
     }
 
+    bool hasTerminalGraphNodes(const int64_t node1Index, const int64_t node2Index)
+    {
+        if (node1->graphIndex == node1Index && node2->graphIndex == node2Index)
+        {
+            return true;
+        }
+
+        if (node1->graphIndex == node2Index && node2->graphIndex == node1Index)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool visited = false;
+
 public:
 
     /**
