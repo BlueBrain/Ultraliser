@@ -881,7 +881,6 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
     }
 }
 
-
 void identifyTerminalConnections(SkeletonBranches& branches)
 {
     for (size_t i = 0; i < branches.size(); ++i)

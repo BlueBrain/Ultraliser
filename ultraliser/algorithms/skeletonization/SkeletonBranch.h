@@ -29,15 +29,6 @@
 namespace Ultraliser
 {
 
-
-enum BRANCH_CONNECTION_TYPE{
-    ROOT,
-    TERMINAL,
-    ROOT_AND_TERMINAL,
-};
-
-
-
 /**
  * @brief The SkeletonBranch struct
  * A branch in the segmented skeleton.
@@ -237,9 +228,6 @@ public:
      */
     std::vector< SkeletonBranch* > t2Connections;
 
-
-
-
 private:
 
     /**
@@ -248,10 +236,6 @@ private:
      * bit not a full byte.
      */
     BitArray* _flags;
-
-public:
-
-    bool active = false;
 };
 
 /**
