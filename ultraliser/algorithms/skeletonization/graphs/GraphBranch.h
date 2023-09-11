@@ -84,9 +84,9 @@ public:
 
     bool isRoot = false;
     bool active = false;
-
-
-
 };
+
+
+typedef std::vector< GraphBranch* > GraphBranches;
 
 }

@@ -495,8 +495,18 @@ void Skeletonizer::_inflateNodes()
             const float distance = (_nodes[i]->point - _shellPoints[j]).abs();
             if (distance < minimumDistance) { minimumDistance = distance; }
         }
-        _nodes[i]->radius = minimumDistance;
-        nodesRadii[i] = minimumDistance;
+
+        if (minimumDistance > 0.05)
+        {
+            _nodes[i]->radius = minimumDistance;
+            nodesRadii[i] = minimumDistance;
+        }
+        else
+        {
+            _nodes[i]->radius = 0.05;
+            nodesRadii[i] = 0.05;
+        }
+
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);

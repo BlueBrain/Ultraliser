@@ -26,6 +26,7 @@
 #include <algorithms/skeletonization/Skeletonizer.h>
 #include <algorithms/skeletonization/SkeletonWeightedEdge.hh>
 #include <algorithms/skeletonization/graphs/GraphNode.h>
+#include <algorithms/skeletonization/graphs/GraphBranch.h>
 #include <algorithms/skeletonization/graphs/ShortestPathFinder.h>
 
 
@@ -108,6 +109,19 @@ private:
                                                            SkeletonNodes& skeletonBranchingNodes,
                                                            GraphNodes &graphNodes,
                                                            const int64_t& somaNodeIndex);
+
+    GraphBranches _constructGraphBranchesFromGraphNodes(
+            GraphNodes &graphNodes, const int64_t& somaNodeIndex);
+
+    void _constructGraphHierarchy(GraphBranches& graphBranches);
+
+    void _constructSkeletonHierarchy(GraphBranches& graphBranches);
+
+    void _mergeBranchesWithSingleChild();
+
+    void _detectInactiveBranches(SkeletonWeightedEdges& graphEdges,
+                                 EdgesIndices& visitedEdgesIndices);
+
 
 
 private:
