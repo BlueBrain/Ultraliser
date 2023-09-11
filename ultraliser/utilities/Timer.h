@@ -95,16 +95,16 @@ private:
 }
 
 // Sets a timer and starts it
-#define TIMER_SET Ultraliser::Utilities::Timer timer; timer.start()
+#define TIMER_SET Ultraliser::Utilities::Timer __timer__; __timer__.start()
 
 // Resets a previously declared timer
-#define TIMER_RESET timer.start()
+#define TIMER_RESET __timer__.start()
 
 // Gets the time in seconds, TIMER_SET must be called before calling this
-#define GET_TIME_SECONDS timer.elapsedTimeInSeconds()
+#define GET_TIME_SECONDS __timer__.elapsedTimeInSeconds()
 
 // Gets the time in milli-seconds, TIMER_SET must be called before calling this
-#define GET_TIME_MILLI_SECONDS timer.elapsedTimeInMilliSeconds()
+#define GET_TIME_MILLI_SECONDS __timer__.elapsedTimeInMilliSeconds()
 
 // Gets the time in micro-seconds, TIMER_SET must be called before calling this
-#define GET_TIME_MICRO_SECONDS timer.elapsedTimeInMicroSeconds()
+#define GET_TIME_MICRO_SECONDS __timer__.elapsedTimeInMicroSeconds()

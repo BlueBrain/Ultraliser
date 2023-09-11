@@ -440,8 +440,12 @@ void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) con
 
 void NeuronSkeletonizer::_filterLoopsBetweenTwoBranchingPoints()
 {
+    TIMER_SET;
+    LOG_STATUS("Filtering Loops Between Two Branches");
     for (size_t i = 0; i < _branches.size(); ++i)
     {
+        LOOP_PROGRESS(i, _branches.size());
+
         // Reference to the iBranch
         auto& iBranch = _branches[i];
 
@@ -481,6 +485,8 @@ void NeuronSkeletonizer::_filterLoopsBetweenTwoBranchingPoints()
             }
         }
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void NeuronSkeletonizer::_filterLoopsAtSingleBranchingPoint()
@@ -503,11 +509,19 @@ void NeuronSkeletonizer::_filterLoopsAtSingleBranchingPoint()
 
 SkeletonWeightedEdges NeuronSkeletonizer::_reduceSkeletonToWeightedEdges()
 {
+    TIMER_SET;
+    LOG_STATUS("Created Weighted Graph from Skeleton");
+
     // A list that should have all the branches of the valid branches of the neuron represented
     // by weighted edges
     SkeletonWeightedEdges edges;
-    for (auto& branch: _branches)
+    const auto branchesCount = _branches.size();
+    for (size_t i = 0; i < _branches.size(); ++i)
     {
+        auto& branch = _branches[i];
+
+        LOOP_PROGRESS(i, branchesCount);
+
         // The branch must be valid to be able to have a valid graph
         if (branch->isValid())
         {
@@ -520,14 +534,20 @@ SkeletonWeightedEdges NeuronSkeletonizer::_reduceSkeletonToWeightedEdges()
             edges.push_back(edge);
         }
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     // Return the resulting edges array that will be used for constructing the graph
     return edges;
 }
 
 
-SkeletonNodes NeuronSkeletonizer::_selectBranchingNodesFromWeightedEdges(const SkeletonWeightedEdges& edges)
+SkeletonNodes NeuronSkeletonizer::_selectBranchingNodesFromWeightedEdges(
+        const SkeletonWeightedEdges& edges)
 {
+    TIMER_SET;
+    LOG_STATUS("Identifying Branching Nodes");
+
     // Use a new index to label the branching nodes, where the maximum value corresponds to the
     // actual number of the branching nodes in the graph
     int64_t branchingNodeIndex = 0;
@@ -536,6 +556,8 @@ SkeletonNodes NeuronSkeletonizer::_selectBranchingNodesFromWeightedEdges(const S
     SkeletonNodes nodes;
     for (size_t i = 0; i < edges.size(); ++i)
     {
+        LOOP_PROGRESS(i, edges.size());
+
         // The node must be visited once to append it to the @skeletonBranchingNodes list
         auto& edge = edges[i];
         auto node1 = edge->node1;
@@ -559,6 +581,8 @@ SkeletonNodes NeuronSkeletonizer::_selectBranchingNodesFromWeightedEdges(const S
             node2->visited = true;
         }
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     return nodes;
 }
@@ -606,12 +630,17 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
         SkeletonNodes &skeletonBranchingNodes, GraphNodes &graphNodes,
         const int64_t& somaNodeIndex)
 {
+    TIMER_SET;
+    LOG_STATUS("Identifying Short Paths from Terminals");
+
     // The indices of all the edges that have been traversed
     EdgesIndices edgesIndices;
 
     // Search for all the terminal nodes
     for (size_t i = 0; i < skeletonBranchingNodes.size(); i++)
     {
+        LOOP_PROGRESS(i, skeletonBranchingNodes.size());
+
         // The node must be a terminal
         if (skeletonBranchingNodes[i]->terminal)
         {
@@ -642,6 +671,8 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
             }
         }
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     // Return the EdgesIndices list
     return edgesIndices;
@@ -650,6 +681,9 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
 GraphBranches NeuronSkeletonizer::_constructGraphBranchesFromGraphNodes(
         GraphNodes &graphNodes, const int64_t& somaNodeIndex)
 {
+    TIMER_SET;
+    LOG_STATUS("Constructing Graph Branches");
+
     // Use a new index to label graph branches
     size_t branchGraphIndex = 0;
 
@@ -659,6 +693,7 @@ GraphBranches NeuronSkeletonizer::_constructGraphBranchesFromGraphNodes(
     // Construct the valid branches at the end
     for (size_t i = 0; i < graphNodes.size(); i++)
     {
+         LOOP_PROGRESS(i, graphNodes.size());
         if (graphNodes[i]->children.size() > 0)
         {
             // This graph node is always the first node, becuase all the other nodes are children
@@ -692,29 +727,25 @@ GraphBranches NeuronSkeletonizer::_constructGraphBranchesFromGraphNodes(
                         if (somaNodeIndex == firstNodeIndex) gBranch->isRoot = true;
 
                         graphBranches.push_back(gBranch);
-
-                        std::cout << "Branch: " << branch->index << " ";
-                        std::cout << "(" << firstNodeIndex << ", " << lastNodeIndex << ") ";
-
-                        //continue;
                     }
-
-                    // If the branch is valid
-                    //if (branch->valid)
                 }
             }
-
-            std::cout << "\n";
         }
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     return graphBranches;
 }
 
 void NeuronSkeletonizer::_constructGraphHierarchy(GraphBranches& graphBranches)
 {
+    TIMER_SET;
+    LOG_STATUS("Constructing Graph Hierarchy");
+
     for (size_t i = 0; i < graphBranches.size(); ++i)
     {
+        LOOP_PROGRESS(i, graphBranches.size());
         auto& iBranch = graphBranches[i];
 
         // Get the last node of the iBranch
@@ -737,12 +768,19 @@ void NeuronSkeletonizer::_constructGraphHierarchy(GraphBranches& graphBranches)
             }
         }
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void NeuronSkeletonizer::_constructSkeletonHierarchy(GraphBranches& graphBranches)
 {
+    TIMER_SET;
+    LOG_STATUS("Constructing Skeleton Hierarchy");
+
     for(size_t i = 0; i < graphBranches.size(); ++i)
     {
+        LOOP_PROGRESS(i, graphBranches.size());
+
         // Reference to the GraphBranch
         const auto& graphBranch = graphBranches[i];
 
@@ -759,38 +797,18 @@ void NeuronSkeletonizer::_constructSkeletonHierarchy(GraphBranches& graphBranche
             skeletonBranch->children.push_back(_branches[graphBranch->children[j]->skeletonIndex]);
         }
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void NeuronSkeletonizer::_mergeBranchesWithSingleChild()
 {
-//    for (size_t i = 0; i < _branches.size(); ++i)
-//    {
-//        // A reference to the branch
-//        auto& branch = _branches[i];
-
-//        // If the branch is valid and has a single child, merge it with the parent
-//        if (branch->isValid() && branch->children.size() == 1)
-//        {
-//            // Append the SkeletonNodes from the child branch
-//            for(size_t j = 1; j < branch->children[0]->nodes.size(); ++j)
-//            {
-//                branch->nodes.push_back(branch->children[0]->nodes[j]);
-//            }
-
-//            // Invalidate the child branch
-//            branch->children[0]->setInvalid();
-//            branch->children[0]->setDuplicate();
-
-//            // If the child branch has any children, then update the children of the parent
-//            if (branch->children[0]->children.size() > 0)
-//            {
-//                branch->children = branch->children[0]->children;
-//            }
-//        }
-//    }
-
+    TIMER_SET;
+    LOG_STATUS("Merging Branches with Single Child");
     for (size_t i = 0; i < _branches.size(); ++i)
     {
+        LOOP_PROGRESS(i, _branches.size());
+
         // A reference to the branch
         auto& branch = _branches[i];
 
@@ -813,6 +831,8 @@ void NeuronSkeletonizer::_mergeBranchesWithSingleChild()
             }
         }
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void NeuronSkeletonizer::_detectInactiveBranches(SkeletonWeightedEdges& graphEdges,
@@ -895,12 +915,28 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
     _mergeBranchesWithSingleChild();
 
     _detectInactiveBranches(weighteEdges, edgeIndices);
-    \
+
+    size_t roots = 0;
+    float somaRadius = 0.;
     for(size_t i = 0; i < _branches.size(); ++i)
     {
         if (_branches[i]->isRoot())
-            _branches[i]->printTree();
+        {
+            auto sample = _branches[i]->nodes[1]->point;
+            auto dist = _branches[i]->nodes[1]->point.distance(_somaNode->point);
+            somaRadius += dist;
+            roots++;
+        }
     }
+
+    somaRadius /= roots;
+    _somaNode->radius = somaRadius;
+
+//    for(size_t i = 0; i < _branches.size(); ++i)
+//    {
+//        if (_branches[i]->isRoot())
+//            _branches[i]->printTree();
+//    }
 }
 
 
@@ -1099,8 +1135,8 @@ void NeuronSkeletonizer::segmentComponents()
     // Build the branches from the nodes
     _buildBranchesFromNodes(_nodes);
 
-    std::cout << "Branches: " << _branches.size() << "\n";
-    std::cout << "Nodes (Samples): " << _nodes.size() << "\n";
+    // std::cout << "Branches: " << _branches.size() << "\n";
+    // std::cout << "Nodes (Samples): " << _nodes.size() << "\n";
 
     std::fstream stream;
     stream.open("branches.txt", std::ios::out);

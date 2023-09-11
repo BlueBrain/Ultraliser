@@ -96,13 +96,13 @@ static void inline progressUpdate(size_t& progressValue)
 #define LOOP_COUNTER_RESET COUNTER = 0
 
 // Prints a simple message before starting the loop
-#define LOOP_STARTS(MESSAGE) printf("\t%s \n", MESSAGE);
+#define LOOP_STARTS(MESSAGE) (printf("\t%s \n", MESSAGE));
 
 // Print the progress in a loop
-#define LOOP_PROGRESS(PROGRESS, TOTAL) printProgressBar(PROGRESS, TOTAL)
+#define LOOP_PROGRESS(PROGRESS, TOTAL) (printProgressBar(PROGRESS, TOTAL))
 
 // Print the progress in a loop only in fractions
-#define LOOP_PROGRESS_FRACTION(PROGRESS, TOTAL) printFractionProgressBar(PROGRESS, TOTAL)
+#define LOOP_PROGRESS_FRACTION(PROGRESS, TOTAL) (printFractionProgressBar(PROGRESS, TOTAL))
 
 // Print the status after the loop is done
 #define LOOP_DONE { LOOP_PROGRESS(100, 100); printf(" \n"); }
@@ -114,7 +114,7 @@ static void inline progressUpdate(size_t& progressValue)
 #define PROGRESS_SET size_t ULTRALISER_PROGRESS = 0
 
 // Reset the progress
-#define PROGRESS_RESET ULTRALISER_PROGRESS = 0
+#define PROGRESS_RESET (ULTRALISER_PROGRESS = 0)
 
 // Update the progress bar
-#define PROGRESS_UPDATE progressUpdate(ULTRALISER_PROGRESS)
+#define PROGRESS_UPDATE (progressUpdate(ULTRALISER_PROGRESS))

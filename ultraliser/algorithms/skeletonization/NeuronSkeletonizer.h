@@ -77,6 +77,7 @@ public:
      void segmentComponents() override;
 
 
+
 private:
 
     SkeletonNode *_addSomaNode();
@@ -94,6 +95,8 @@ private:
     void _filterLoopsBetweenTwoBranchingPoints();
 
     void _filterLoopsAtSingleBranchingPoint();
+
+
 
 
 
@@ -121,6 +124,7 @@ private:
 
     void _detectInactiveBranches(SkeletonWeightedEdges& graphEdges,
                                  EdgesIndices& visitedEdgesIndices);
+
 
 
 

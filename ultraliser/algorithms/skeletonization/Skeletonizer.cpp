@@ -496,16 +496,9 @@ void Skeletonizer::_inflateNodes()
             if (distance < minimumDistance) { minimumDistance = distance; }
         }
 
-        if (minimumDistance > 0.05)
-        {
-            _nodes[i]->radius = minimumDistance;
-            nodesRadii[i] = minimumDistance;
-        }
-        else
-        {
-            _nodes[i]->radius = 0.05;
-            nodesRadii[i] = 0.05;
-        }
+        _nodes[i]->radius = minimumDistance;
+        nodesRadii[i] = minimumDistance;
+
 
     }
     LOOP_DONE;
@@ -523,14 +516,10 @@ void Skeletonizer::_inflateNodes()
 
 void Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indicesMapper)
 {
-    TIMER_SET;
-    LOG_STATUS("Connecting Graph Nodes");
-
     // Construct the graph and connect the nodes
-    size_t progress = 0;
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
-        LOOP_PROGRESS(0, progress);
+        // LOOP_PROGRESS(loopProgress, _nodes.size());
 
         // Check if the node has been visited before
         SkeletonNode* node = _nodes[i];
@@ -566,18 +555,21 @@ void Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indicesMapper
 
         if (connectedEdges > 2)
             node->branching = true;
-
-        progress++;
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void Skeletonizer::_removeTriangleLoops()
 {    
+    TIMER_SET;
+    LOG_STATUS("Removing Triangle Loops");
+
     const size_t currentNodesSize = _nodes.size();
+    size_t progress = 0;
     for (size_t i = 0; i < currentNodesSize; ++i)
     {
+        LOOP_PROGRESS(progress, currentNodesSize);
+        progress++;
+
         if (_nodes[i]->branching)
         {
             SkeletonNodes sideNodes;
@@ -613,28 +605,14 @@ void Skeletonizer::_removeTriangleLoops()
             }
         }
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
+    OMP_PARALLEL_FOR
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
         _nodes[i]->visited = false;
     }
-
-
-//    std::string filePath = "/data/neuron-meshes/output/morphologies/new-nodes" + TXT_EXTENSION;
-//    std::fstream stream;
-//    stream.open(filePath, std::ios::out);
-//    for (size_t i = currentNodesSize; i < _nodes.size(); ++i)
-//    {
-//        auto& node = _nodes[i];
-//            stream << node->point.x() << " "
-//                   << node->point.y() << " "
-//                   << node->point.z() << " "
-//                   << node->radius << "\n";
-
-//    }
-//     stream.close();
-
-
 }
 
 void Skeletonizer::constructGraph()
