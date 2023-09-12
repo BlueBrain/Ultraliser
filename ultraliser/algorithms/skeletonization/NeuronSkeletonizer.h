@@ -54,12 +54,9 @@ public:
 
     void skeletonizeVolume() override;
 
-    /**
-     * @brief exportSomaMesh
-     * Exports the soma mesh.
-     * @param filePrefix
-     */
-    void exportSomaMesh(const std::string& filePrefix);
+
+    void exportSomaMesh(const std::string& filePrefix,
+                        const bool &formatOBJ, const bool &formatPLY, const bool &formatOFF, const bool &formatSTL);
 
 
     void skeletonizeVolumeBlockByBlock(const size_t& blockSize = 512,
@@ -75,6 +72,8 @@ public:
      void collectSWCNodes(const SkeletonBranch* branch, SkeletonNodes& swcNodes, int64_t &swcIndex, int64_t branchingNodeSWCIndex);
 
      void segmentComponents() override;
+
+
 
 
 
@@ -124,6 +123,8 @@ private:
 
     void _detectInactiveBranches(SkeletonWeightedEdges& graphEdges,
                                  EdgesIndices& visitedEdgesIndices);
+
+    void _adjustSomaRadius();
 
 
 

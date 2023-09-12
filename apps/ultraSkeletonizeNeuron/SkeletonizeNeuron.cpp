@@ -93,6 +93,9 @@ void run(int argc , const char** argv)
     skeletonizer->exportIndividualBranches(options->morphologyPrefix);
     skeletonizer->exportSWCFile(options->morphologyPrefix);
 
+    skeletonizer->exportSomaMesh(options->meshPrefix,
+                                 options->exportOBJ, options->exportPLY,
+                                 options->exportOFF, options->exportSTL);
 }
 }
 

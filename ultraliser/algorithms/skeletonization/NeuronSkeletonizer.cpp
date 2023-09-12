@@ -210,9 +210,14 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
     }
 }
 
-void NeuronSkeletonizer::exportSomaMesh(const std::string& filePrefix)
+void NeuronSkeletonizer::exportSomaMesh(const std::string& filePrefix,
+                                        const bool& formatOBJ = false,
+                                        const bool& formatPLY = false,
+                                        const bool& formatOFF = false,
+                                        const bool& formatSTL = false)
 {
-
+    const std::string somaMeshPrefix = filePrefix + "-soma";
+    _somaMesh->exportMesh(somaMeshPrefix, formatOBJ, formatPLY, formatOFF, formatSTL);
 }
 
 void NeuronSkeletonizer::_segmentSomaVolume()
@@ -878,6 +883,34 @@ void NeuronSkeletonizer::_detectInactiveBranches(SkeletonWeightedEdges& graphEdg
     }
 }
 
+void NeuronSkeletonizer::_adjustSomaRadius()
+{
+    // Only count the valid roots to normalize the size of the soma
+    size_t numberValidRoots = 0;
+
+    // Calculate the actual radius of the soma from the valid roots
+    float somaRadius = 0.;
+    for(size_t i = 0; i < _branches.size(); ++i)
+    {
+        // Get the branch
+        const auto branch = _branches[i];
+
+        // Ensure that the branch is a root and also a valid one
+        if (branch->isRoot() && branch->isValid())
+        {
+            // The second sample is the first sample of the branch and the first sample is
+            // the soma center
+            somaRadius += branch->nodes[1]->point.distance(_somaNode->point);;
+            numberValidRoots++;
+        }
+    }
+
+
+    // Normalize and update the soma node
+    somaRadius /= numberValidRoots;
+    _somaNode->radius = somaRadius;
+}
+
 void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
 {
     // Initially, and before constructing the graph, remove the loops between two branching points
@@ -914,29 +947,12 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
     // merge branches with a single child
     _mergeBranchesWithSingleChild();
 
+
+    // Invalidate the inactive branches
     _detectInactiveBranches(weighteEdges, edgeIndices);
 
-    size_t roots = 0;
-    float somaRadius = 0.;
-    for(size_t i = 0; i < _branches.size(); ++i)
-    {
-        if (_branches[i]->isRoot())
-        {
-            auto sample = _branches[i]->nodes[1]->point;
-            auto dist = _branches[i]->nodes[1]->point.distance(_somaNode->point);
-            somaRadius += dist;
-            roots++;
-        }
-    }
-
-    somaRadius /= roots;
-    _somaNode->radius = somaRadius;
-
-//    for(size_t i = 0; i < _branches.size(); ++i)
-//    {
-//        if (_branches[i]->isRoot())
-//            _branches[i]->printTree();
-//    }
+    // Adkjust the soma radius
+    _adjustSomaRadius();
 }
 
 
