@@ -496,10 +496,17 @@ void Skeletonizer::_inflateNodes()
             if (distance < minimumDistance) { minimumDistance = distance; }
         }
 
-        _nodes[i]->radius = minimumDistance;
-        nodesRadii[i] = minimumDistance;
-
-
+        // TODO: Make some logic to detect the actual radius based on the voxel size
+        if (minimumDistance > 0.01)
+        {
+            _nodes[i]->radius = minimumDistance;
+            nodesRadii[i] = minimumDistance;
+        }
+        else
+        {
+            _nodes[i]->radius = 0.1;
+            nodesRadii[i] = 0.1;
+        }
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);

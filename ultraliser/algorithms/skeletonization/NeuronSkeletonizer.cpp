@@ -43,15 +43,15 @@ void NeuronSkeletonizer::skeletonizeVolume()
 
     applyVolumeThinning();
     constructGraph();
-    segmentComponents();
+
 
     LOG_STATUS_IMPORTANT("Skeletonization Stats.");
     LOG_STATS(GET_TIME_SECONDS);
 }
 
 void NeuronSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
-                                                 const size_t& numberOverlappingVoxels,
-                                                 const size_t& numberZeroVoxels)
+                                                       const size_t& numberOverlappingVoxels,
+                                                       const size_t& numberZeroVoxels)
 {
     thinVolumeBlockByBlock(blockSize, numberOverlappingVoxels, numberZeroVoxels);
     constructGraph();
@@ -101,7 +101,7 @@ void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
     // Normalize
     estimatedSomaCenter /= numberSamples;
 
-    // Update the location of the soma point
+    // Update the location of the soma point, the radius will be updated after detecting root arbors
     somaNode->point = estimatedSomaCenter;
     somaNode->radius = 0.5; /// TODO: Fix me
 }
@@ -222,12 +222,9 @@ void NeuronSkeletonizer::exportSomaMesh(const std::string& filePrefix,
 
 void NeuronSkeletonizer::_segmentSomaVolume()
 {
-    // _somaMesh->exportMesh("/data/neuron-meshes/output/soma", true);
-
     _volume->clear();
     _volume->surfaceVoxelization(_somaMesh, false, false);
     _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
-    // _volume->project("/data/neuron-meshes/output/soma", true);
 
     // TODO: This could be parallelized
     std::vector< size_t > somaVoxels;
@@ -283,6 +280,7 @@ void NeuronSkeletonizer::collectSWCNodes(const SkeletonBranch* branch, SkeletonN
 
     const int64_t branchingIndex = swcIndex - 1;
 
+    // TODO: filter the branches of the spines
     for (size_t i = 0; i < branch->children.size(); ++i)
     {
         if (branch->isValid())
@@ -291,7 +289,6 @@ void NeuronSkeletonizer::collectSWCNodes(const SkeletonBranch* branch, SkeletonN
         }
     }
 }
-
 
 SkeletonNodes NeuronSkeletonizer::constructSWCTable()
 {
@@ -321,8 +318,6 @@ SkeletonNodes NeuronSkeletonizer::constructSWCTable()
 
     return swcNodes;
 }
-
-
 
 void NeuronSkeletonizer::exportSWCFile(const std::string& prefix)
 {

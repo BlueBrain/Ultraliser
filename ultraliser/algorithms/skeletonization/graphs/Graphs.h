@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include <algorithms/skeletonization/graphs/Graph.h>
 #include <algorithms/skeletonization/graphs/GraphBranch.h>
 #include <algorithms/skeletonization/graphs/GraphNode.h>
 #include <algorithms/skeletonization/graphs/ShortestPathFinder.h>
