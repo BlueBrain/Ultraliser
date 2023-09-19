@@ -505,8 +505,6 @@ void NeuronSkeletonizer::_filterLoopsAtSingleBranchingPoint()
     }
 }
 
-
-
 SkeletonWeightedEdges NeuronSkeletonizer::_reduceSkeletonToWeightedEdges()
 {
     TIMER_SET;
@@ -540,7 +538,6 @@ SkeletonWeightedEdges NeuronSkeletonizer::_reduceSkeletonToWeightedEdges()
     // Return the resulting edges array that will be used for constructing the graph
     return edges;
 }
-
 
 SkeletonNodes NeuronSkeletonizer::_selectBranchingNodesFromWeightedEdges(
         const SkeletonWeightedEdges& edges)
@@ -604,7 +601,6 @@ int64_t NeuronSkeletonizer::_getSomaIndexFromGraphNodes(const SkeletonNodes& nod
     return somaNodeIndex;
 }
 
-
 GraphNodes NeuronSkeletonizer::_constructGraphNodesFromSkeletonNodes(
         const SkeletonNodes& skeletonNodes)
 {
@@ -614,7 +610,7 @@ GraphNodes NeuronSkeletonizer::_constructGraphNodesFromSkeletonNodes(
     // Resize it to be allow the parallelization of the list
     graphNodes.resize(skeletonNodes.size());
 
-    OMP_PARALLEL_FOR
+    // OMP_PARALLEL_FOR
     for (size_t i = 0; i < skeletonNodes.size(); ++i)
     {
         const auto& skeletonNode = skeletonNodes[i];
@@ -925,6 +921,13 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
 
     // Construct the graph nodes list
     GraphNodes graphNodes = _constructGraphNodesFromSkeletonNodes(skeletonBranchingNodes);
+
+    /// After having the weighted edges and the nodes computed, compute the number of components in
+    /// the graph, if the result is more than 1 then then re-connect them to be in a single graph
+
+
+
+
 
     // Find the shortest paths of all the terminals and get a list of the indices of the active edges
     EdgesIndices edgeIndices = _findShortestPathsFromTerminalNodesToSoma(

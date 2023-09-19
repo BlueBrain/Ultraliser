@@ -57,7 +57,15 @@ public:
     }
 };
 
+/**
+ * @brief GraphNodes
+ * A list of GraphNodes.
+ */
 typedef std::vector< GraphNode* > GraphNodes;
 
-
+/**
+ * @brief GraphNodesGroups
+ * A group of a list of GraphNodes.
+ */
+typedef std::vector< GraphNodes > GraphNodesGroups;
 }

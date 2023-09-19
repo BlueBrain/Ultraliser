@@ -3,56 +3,103 @@
 namespace Ultraliser
 {
 
-Graph::Graph(int V)
+Graph::Graph(const size_t& numberNodes)
 {
-    this->V = V;
-    adj = new std::list<int>[V];
+    // Get the total number of nodes in the graph
+    this->_numberNodes = numberNodes;
+
+    // Allocate the adjacency list
+    _adjacencyLists = new std::list< size_t >[numberNodes];
 }
 
-// Method to print connected components in an
-// undirected graph
-void Graph::connectedComponents()
+Graph::Graph(SkeletonWeightedEdges& weighteEdges, GraphNodes& graphNodes)
 {
-    // Mark all the vertices as not visited
-    bool* visited = new bool[V];
-    for (int v = 0; v < V; v++)
-        visited[v] = false;
+    // Get the total number of nodes in the graph
+    _numberNodes = graphNodes.size();
 
-    for (int v = 0; v < V; v++) {
-        if (visited[v] == false) {
-            // print all reachable vertices
-            // from v
-            DFSUtil(v, visited);
+    // Allocate the adjacency list
+    _adjacencyLists = new std::list< size_t >[_numberNodes];
+}
 
-            std::cout << "\n";
-        }
+Graph::~Graph()
+{
+    delete[] _adjacencyLists;
+}
+
+void Graph::_addEdges(SkeletonWeightedEdges& edges)
+{
+    for (size_t i =0; i < edges.size(); i++)
+    {
+        auto n1 = edges[i]->node1;
+        auto n2 = edges[i]->node2;
+
+        _adjacencyLists[n1->graphIndex].push_back(n2->graphIndex);
+        _adjacencyLists[n2->graphIndex].push_back(n1->graphIndex);
     }
-    delete[] visited;
 }
 
-void Graph::DFSUtil(int v, bool visited[])
+void Graph::addEdge(const size_t& n1, const size_t& n2)
 {
-    // Mark the current node as visited and print it
-    visited[v] = true;
-    std::cout << v << " ";
+    _adjacencyLists[n1].push_back(n2);
+    _adjacencyLists[n2].push_back(n1);
+}
+
+void Graph::_makeDSF(size_t nodeIndex, bool* visited, GraphComponent& component)
+{
+    // Set the current node to visited
+    visited[nodeIndex] = true;
+
+    // Add the node index to the component
+    component.push_back(nodeIndex);
 
     // Recur for all the vertices
     // adjacent to this vertex
-    std::list<int>::iterator i;
-    for (i = adj[v].begin(); i != adj[v].end(); ++i)
+
+    // Apply the operation to all the nodes that are connected, i.e. adjacent to the current node
+    std::list< size_t >::iterator i;
+    for (i = _adjacencyLists[nodeIndex].begin(); i != _adjacencyLists[nodeIndex].end(); ++i)
+    {
+        // Ensure that the node is not visited
         if (!visited[*i])
-            DFSUtil(*i, visited);
+        {
+            // Recursively, make a DFS
+            _makeDSF(*i, visited, component);
+        }
+    }
 }
 
-
-Graph::~Graph() { delete[] adj; }
-
-// method to add an undirected edge
-void Graph::addEdge(int v, int w)
+GraphComponents Graph::getComponents()
 {
-    adj[v].push_back(w);
-    adj[w].push_back(v);
-}
+    // The components list
+    GraphComponents components;
 
+    // Mark all the nodes as not visited
+    bool* visited = new bool[_numberNodes];
+
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _numberNodes; ++i)
+        visited[i] = false;
+
+    for (size_t i = 0; i < _numberNodes; ++i)
+    {
+        if (visited[i] == false)
+        {
+            // Establish a new component and get all the nodes within it
+            GraphComponent component;
+
+            // Make a DFS and get all the nodes connected to the component
+            _makeDSF(i, visited, component);
+
+            // Add the GraphComponent to GraphComponents list
+            components.push_back(component);
+        }
+    }
+
+    // Delete the temporary visited array
+    delete[] visited;
+
+    // Return the components list
+    return components;
+}
 
 }
