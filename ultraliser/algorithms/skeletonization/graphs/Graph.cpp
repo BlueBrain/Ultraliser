@@ -19,6 +19,8 @@ Graph::Graph(SkeletonWeightedEdges& weighteEdges, GraphNodes& graphNodes)
 
     // Allocate the adjacency list
     _adjacencyLists = new std::list< size_t >[_numberNodes];
+
+    _addEdges(weighteEdges);
 }
 
 Graph::~Graph()

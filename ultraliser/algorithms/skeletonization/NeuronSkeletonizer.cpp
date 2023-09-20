@@ -925,8 +925,12 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
     /// After having the weighted edges and the nodes computed, compute the number of components in
     /// the graph, if the result is more than 1 then then re-connect them to be in a single graph
 
+    auto graph = new Graph(weighteEdges, graphNodes);
 
+    auto components = graph->getComponents();
+    std::cout << "Number Components " << components.size() << "\n";
 
+    exit(0);
 
 
     // Find the shortest paths of all the terminals and get a list of the indices of the active edges
