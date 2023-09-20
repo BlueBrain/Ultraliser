@@ -90,12 +90,22 @@ void run(int argc , const char** argv)
     NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(solidVolume, inputMesh);
 
     skeletonizer->skeletonizeVolume();
+
+    // Project the volume
+    solidVolume->project(options->morphologyPrefix, true, true, true);
+
+
+    // Build the graph
+    skeletonizer->constructGraph();
+
     skeletonizer->exportIndividualBranches(options->morphologyPrefix + "-1");
 
 
     skeletonizer->segmentComponents();
 
     skeletonizer->exportIndividualBranches(options->morphologyPrefix + "-2");
+
+
     skeletonizer->exportSWCFile(options->morphologyPrefix);
 
     skeletonizer->exportSomaMesh(options->meshPrefix,

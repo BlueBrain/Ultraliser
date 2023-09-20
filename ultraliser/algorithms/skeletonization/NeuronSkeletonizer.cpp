@@ -42,7 +42,6 @@ void NeuronSkeletonizer::skeletonizeVolume()
     TIMER_SET;
 
     applyVolumeThinning();
-    constructGraph();
 
 
     LOG_STATUS_IMPORTANT("Skeletonization Stats.");
@@ -62,10 +61,13 @@ SkeletonNode* NeuronSkeletonizer::_addSomaNode()
 {
     SkeletonNode* somaNode = new SkeletonNode();
     somaNode->index = _nodes.back()->index + 1;
+
     somaNode->isSoma = true;
     somaNode->insideSoma = true; // The somatic node is considered inside the soma in the processing
-    _nodes.push_back(somaNode);
 
+    // Initially, we set the soma node to some value that does not make any conflict
+    somaNode->radius = 0.1;
+    _nodes.push_back(somaNode);
     _somaNode = somaNode;
     return somaNode;
 }
@@ -84,12 +86,23 @@ void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
         auto& node0 = _nodes[i];
+
+        /// TODO: This is a magic value, it works now, but we need to find an optimum value based
+        // on some statistical analysis.
         if (node0->radius >= 2.0)
         {
             Mesh* sample = new IcoSphere(3);
             sample->scale(node0->radius, node0->radius, node0->radius);
             sample->translate(node0->point);
             sample->map(_shellPoints, false);
+
+            // std::stringstream stream;
+            // stream << "/data/microns-explorer-dataset/Meshes-Input-MICrONS/skeletonization-output/meshes";
+            // stream << i;
+            // sample->exportMesh(stream.str(), true);
+
+            // std::cout << i << " * " << node0->radius << "\n";
+
             _somaMesh->append(sample);
             sample->~Mesh();
 
@@ -930,7 +943,7 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
     auto components = graph->getComponents();
     std::cout << "Number Components " << components.size() << "\n";
 
-    exit(0);
+    // exit(0);
 
 
     // Find the shortest paths of all the terminals and get a list of the indices of the active edges
@@ -1141,6 +1154,9 @@ void NeuronSkeletonizer::constructGraph()
      // Reconstruct the sections, or the branches from the nodes
      _buildBranchesFromNodes(_nodes);
 
+     exportIndividualBranches("/data/microns-explorer-dataset/Meshes-Input-MICrONS/skeletonization-output/morphologies/debug");
+
+
     // Validate the branches, and remove the branches inside the soma
     _removeBranchesInsideSoma(somaNode);
 
@@ -1151,7 +1167,7 @@ void NeuronSkeletonizer::constructGraph()
 void NeuronSkeletonizer::segmentComponents()
 {
     // Build the branches from the nodes
-    _buildBranchesFromNodes(_nodes);
+    // _buildBranchesFromNodes(_nodes);
 
     // std::cout << "Branches: " << _branches.size() << "\n";
     // std::cout << "Nodes (Samples): " << _nodes.size() << "\n";
