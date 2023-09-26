@@ -41,8 +41,7 @@ Skeletonizer::Skeletonizer(Volume* volume, const Mesh *mesh)
     _boundsMesh = _pMaxMesh - _pMinMesh;
     _centerMesh = _pMinMesh + 0.5 * _boundsMesh;
 
-
-
+    // TODO: Verify the volume point cloud
     // Volume bounding box
     _pMinVolume = Vector3f(0.f);
     _pMaxVolume = Vector3f((volume->getWidth() - 1) * 1.f,
