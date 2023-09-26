@@ -109,7 +109,7 @@ void SkeletonBranch::setUnvisited()
      _flags->clearBit(VISITED_BIT_INDEX);
 }
 
-bool SkeletonBranch::visited()
+bool SkeletonBranch::visited() const
 {
     return _flags->bit(VISITED_BIT_INDEX);
 }
@@ -124,7 +124,7 @@ void SkeletonBranch::unsetTermainal()
     _flags->clearBit(TERMINAL_BIT_INDEX);
 }
 
-bool SkeletonBranch::isTerminal()
+bool SkeletonBranch::isTerminal() const
 {
     return _flags->bit(TERMINAL_BIT_INDEX);
 }
@@ -139,7 +139,7 @@ void SkeletonBranch::unsetRoot()
     _flags->clearBit(ROOT_BIT_INDEX);
 }
 
-bool SkeletonBranch::isRoot()
+bool SkeletonBranch::isRoot() const
 {
     return _flags->bit(ROOT_BIT_INDEX);
 }
@@ -154,9 +154,22 @@ void SkeletonBranch::unsetDuplicate()
     _flags->clearBit(DUPLICATE_BIT_INDEX);
 }
 
-bool SkeletonBranch::isDuplicate()
+bool SkeletonBranch::isDuplicate() const
 {
     return _flags->bit(DUPLICATE_BIT_INDEX);
+}
+
+float SkeletonBranch::computeLength() const
+{
+    float length = 0;
+    for (size_t i = 0; i < nodes.size() - 1; ++i)
+    {
+        auto p1 = nodes[i]->point;
+        auto p2 = nodes[i + 1]->point;
+        length += p1.distance(p2);
+    }
+
+    return length;
 }
 
 }

@@ -95,6 +95,8 @@ private:
 
     void _filterLoopsAtSingleBranchingPoint();
 
+    void _filterSynapses();
+
 
 
 

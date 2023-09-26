@@ -278,25 +278,17 @@ void NeuronSkeletonizer::collectSWCNodes(const SkeletonBranch* branch, SkeletonN
     {
         currentBranchNodes[i]->swcIndex = swcIndex;
 
-        if (i == 1)
-        {
-            currentBranchNodes[i]->prevSampleSWCIndex = branchingNodeSWCIndex;
-        }
-        else
-        {
-            currentBranchNodes[i]->prevSampleSWCIndex= swcIndex - 1;
-        }
+        if (i == 1) { currentBranchNodes[i]->prevSampleSWCIndex = branchingNodeSWCIndex;}
+        else { currentBranchNodes[i]->prevSampleSWCIndex= swcIndex - 1; }
 
         swcIndex++;
         swcNodes.push_back(currentBranchNodes[i]);
     }
 
     const int64_t branchingIndex = swcIndex - 1;
-
-    // TODO: filter the branches of the spines
     for (size_t i = 0; i < branch->children.size(); ++i)
     {
-        if (branch->isValid())
+        if (branch->children[i]->isValid())
         {
             collectSWCNodes(branch->children[i], swcNodes, swcIndex, branchingIndex);
         }
@@ -414,8 +406,6 @@ void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) con
 
     // Close the file
     stream.close();
-
-
 
     filePath = prefix + "-non-somatic-samples" + TXT_EXTENSION;
     stream.open(filePath, std::ios::out);
@@ -915,6 +905,21 @@ void NeuronSkeletonizer::_adjustSomaRadius()
     _somaNode->radius = somaRadius;
 }
 
+void NeuronSkeletonizer::_filterSynapses()
+{
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        if (_branches[i]->isTerminal())
+        {
+            auto length = _branches[i]->computeLength();
+            if (length < 6.0)
+            {
+                _branches[i]->setInvalid();
+            }
+        }
+    }
+}
+
 void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
 {
     // Initially, and before constructing the graph, remove the loops between two branching points
@@ -943,9 +948,6 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
     auto components = graph->getComponents();
     std::cout << "Number Components " << components.size() << "\n";
 
-    // exit(0);
-
-
     // Find the shortest paths of all the terminals and get a list of the indices of the active edges
     EdgesIndices edgeIndices = _findShortestPathsFromTerminalNodesToSoma(
                 weighteEdges, skeletonBranchingNodes, graphNodes, somaNodeIndex);
@@ -968,7 +970,12 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
 
     // Adkjust the soma radius
     _adjustSomaRadius();
+
+    // Filter the synapses
+    _filterSynapses();
 }
+
+
 
 
 void identifyTerminalConnections(SkeletonBranches& branches)
@@ -1154,7 +1161,7 @@ void NeuronSkeletonizer::constructGraph()
      // Reconstruct the sections, or the branches from the nodes
      _buildBranchesFromNodes(_nodes);
 
-     exportIndividualBranches("/data/microns-explorer-dataset/Meshes-Input-MICrONS/skeletonization-output/morphologies/debug");
+     // exportIndividualBranches("/data/microns-explorer-dataset/Meshes-Input-MICrONS/skeletonization-output/morphologies/debug");
 
 
     // Validate the branches, and remove the branches inside the soma
@@ -1171,23 +1178,6 @@ void NeuronSkeletonizer::segmentComponents()
 
     // std::cout << "Branches: " << _branches.size() << "\n";
     // std::cout << "Nodes (Samples): " << _nodes.size() << "\n";
-
-    std::fstream stream;
-    stream.open("branches.txt", std::ios::out);
-    for (size_t i = 0; i < _branches.size(); ++i)
-    {
-        stream << "start\n";
-
-        for (auto& node: _branches[i]->nodes)
-        {
-            stream << node->point.x() << " "
-                   << node->point.y() << " "
-                   << node->point.z() << " "
-                   << node->radius << "\n";
-        }
-        stream << "end\n";
-    }
-    stream.close();
 
     _processBranchesToYieldCyclicGraph();
 }

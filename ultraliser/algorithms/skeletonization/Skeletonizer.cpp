@@ -41,11 +41,13 @@ Skeletonizer::Skeletonizer(Volume* volume, const Mesh *mesh)
     _boundsMesh = _pMaxMesh - _pMinMesh;
     _centerMesh = _pMinMesh + 0.5 * _boundsMesh;
 
+
+
     // Volume bounding box
     _pMinVolume = Vector3f(0.f);
-    _pMaxVolume = Vector3f(volume->getWidth() * 1.f,
-                           volume->getHeight() * 1.f,
-                           volume->getDepth() * 1.f);
+    _pMaxVolume = Vector3f((volume->getWidth() - 1) * 1.f,
+                           (volume->getHeight() - 1) * 1.f,
+                           (volume->getDepth() - 1) * 1.f);
     _boundsVolume = _pMaxVolume;
     _centerVolume = 0.5 * _boundsVolume;
 
@@ -315,6 +317,7 @@ void Skeletonizer::_computeShellPoints()
     perSliceSurfaceShell.clear();
     perSliceSurfaceShell.shrink_to_fit();
 
+    // TODO: Adjust the voxel slight shift
     // Adjust the locations of the shell points taking into consideration the mesh coordinates
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < _shellPoints.size(); ++i)
@@ -481,6 +484,8 @@ void Skeletonizer::_inflateNodes()
     std::vector< float > nodesRadii;
     nodesRadii.resize(_nodes.size());
 
+
+
     PROGRESS_SET;
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < _nodes.size(); ++i)
@@ -499,8 +504,8 @@ void Skeletonizer::_inflateNodes()
         // TODO: Make some logic to detect the actual radius based on the voxel size
         if (minimumDistance > 0.01)
         {
-            _nodes[i]->radius = minimumDistance;
-            nodesRadii[i] = minimumDistance;
+            _nodes[i]->radius = minimumDistance * 1.2;
+            nodesRadii[i] = minimumDistance * 1.2;
         }
         else
         {

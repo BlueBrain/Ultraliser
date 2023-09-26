@@ -40,7 +40,8 @@ Volume* createVolumeGrid(Mesh *mesh, const AppOptions* options)
         resolution = static_cast< size_t >(options->voxelsPerMicron * largestDimension);
     else
         resolution = options->volumeResolution;
-    LOG_SUCCESS("Volume resolution [%d], Largest dimension [%f]", resolution, largestDimension);
+    LOG_SUCCESS("Volume resolution [%d], Largest dimension [%f], Voxel size [%.5f]",
+                resolution, largestDimension, largestDimension / resolution);
 
     // Construct the volume
     return new Volume(pMinInput, pMaxInput, resolution, options->edgeGap,
