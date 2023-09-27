@@ -347,21 +347,28 @@ void Skeletonizer::_computeShellPoints()
 
 std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsParallel()
 {
-    // Map to associate between the indices of the voxels and the nodes in the graph
-    std::map< size_t, size_t > indicesMapper;
+    LOG_STATUS("Mapping Voxels to Nodes * Parallel");
+    TIMER_SET;
 
-    std::vector< std::map< size_t, size_t > > perSliceIndicesMapper;
+    struct FilledVoxel
+    {
+        size_t i, j, k;
+        size_t voxelIndex;
 
-    std::vector< SkeletonNodes > perSliceNodes;
-    perSliceNodes.resize(_volume->getWidth());
+        FilledVoxel(size_t ii, size_t jj, size_t kk, size_t vIndex)
+        { i = ii; j = jj; k = kk; voxelIndex = vIndex; }
+    };
+
+    typedef std::vector< FilledVoxel* > FilledVoxels;
+
+
+    std::vector< FilledVoxels > allFilledVoxels;
+    allFilledVoxels.resize(_volume->getWidth());
 
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < _volume->getWidth(); ++i)
     {
-        size_t nodeIndex = 0;
-
-        SkeletonNodes& nodes = perSliceNodes[i];
-        std::map< size_t, size_t >& mapper = perSliceIndicesMapper[i];
+        auto& perSliceFilledVoxels = allFilledVoxels[i];
 
         for (size_t j = 0; j < _volume->getHeight(); ++j)
         {
@@ -370,31 +377,73 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsParallel()
                 // If the voxel is filled
                 if (_volume->isFilled(i, j, k))
                 {
-                    // Get the 1D index of the voxel
-                    size_t voxelIndex = _volume->mapTo1DIndexWithoutBoundCheck(i, j, k);
-
-                    // Get a point representing the center of the voxel (in the volume)
-                    Vector3f voxelPosition(i * 1.f, j * 1.f, k * 1.f);
-
-                    // Get a point in the same coordinate space of the mesh
-                    Vector3f nodePosition(voxelPosition);
-                    nodePosition -= _centerVolume;
-                    nodePosition.x() *= _scaleFactor.x();
-                    nodePosition.y() *= _scaleFactor.y();
-                    nodePosition.z() *= _scaleFactor.z();
-                    nodePosition += _centerMesh;
-
-                    // Add the node to the nodes list
-                    nodes.push_back(new SkeletonNode(voxelIndex, nodePosition, voxelPosition));
-
-                    // Mapper from voxel to node indices
-                    mapper.insert(std::pair< size_t, size_t >(voxelIndex, nodeIndex));
-
-                    nodeIndex++;
+                    perSliceFilledVoxels.push_back(new FilledVoxel(i, j, k, _volume->mapTo1DIndexWithoutBoundCheck(i, j, k)));
                 }
             }
         }
     }
+
+    FilledVoxels filledVoxels;
+    for (size_t i = 0; i < allFilledVoxels.size(); ++i)
+    {
+        if (allFilledVoxels[i].size() > 0)
+        {
+            filledVoxels.insert(filledVoxels.end(), allFilledVoxels[i].begin(), allFilledVoxels[i].end());
+            allFilledVoxels[i].clear();
+            allFilledVoxels[i].shrink_to_fit();
+        }
+    }
+    allFilledVoxels.clear();
+    allFilledVoxels.shrink_to_fit();
+
+    // Every constructed node must have an identifier, or index.
+    size_t nodeIndex = 0;
+
+    // Map to associate between the indices of the voxels and the nodes in the graph
+    std::map< size_t, size_t > indicesMapper;
+
+    for (size_t i = 0; i < filledVoxels.size(); ++i)
+    {
+        // Mapper from voxel to node indices
+        indicesMapper.insert(std::pair< size_t, size_t >(filledVoxels[i]->voxelIndex, i));
+    }
+
+
+    // Resize the nodes
+    _nodes.resize(filledVoxels.size());
+
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (size_t n = 0; n < filledVoxels.size(); ++n)
+    {
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, filledVoxels.size());
+        PROGRESS_UPDATE;
+
+        const size_t i = filledVoxels[n]->i;
+        const size_t j = filledVoxels[n]->j;
+        const size_t k = filledVoxels[n]->k;
+        const size_t voxelIndex = filledVoxels[n]->voxelIndex;
+
+        // Get a point representing the center of the voxel (in the volume)
+        Vector3f voxelPosition(i * 1.f, j * 1.f, k * 1.f);
+
+        // Get a point in the same coordinate space of the mesh
+        Vector3f nodePosition(voxelPosition);
+        nodePosition -= _centerVolume;
+        nodePosition.x() *= _scaleFactor.x();
+        nodePosition.y() *= _scaleFactor.y();
+        nodePosition.z() *= _scaleFactor.z();
+        nodePosition += _centerMesh;
+
+        // Add the node to the nodes list
+        _nodes[n] = new SkeletonNode(voxelIndex, nodePosition, voxelPosition);
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    filledVoxels.clear();
+    filledVoxels.shrink_to_fit();
 
     return indicesMapper;
 }
@@ -639,7 +688,7 @@ void Skeletonizer::_removeTriangleLoops()
 
 void Skeletonizer::constructGraph()
 {
-    std::map< size_t, size_t > indicesMapper = _extractNodesFromVoxels();
+    std::map< size_t, size_t > indicesMapper = _extractNodesFromVoxelsParallel();
 
     // Assign accurate radii to the nodes of the graph, i.e. inflate the nodes
     _inflateNodes();

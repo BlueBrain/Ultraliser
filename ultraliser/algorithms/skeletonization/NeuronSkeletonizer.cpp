@@ -1223,7 +1223,7 @@ void NeuronSkeletonizer::_connectBranches()
 
 void NeuronSkeletonizer::constructGraph()
 {
-    std::map< size_t, size_t > indicesMapper = _extractNodesFromVoxels();
+    std::map< size_t, size_t > indicesMapper = _extractNodesFromVoxelsParallel();
 
     // Assign accurate radii to the nodes of the graph, i.e. inflate the nodes
     _inflateNodes();
