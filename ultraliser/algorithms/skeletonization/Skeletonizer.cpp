@@ -332,6 +332,17 @@ void Skeletonizer::_computeShellPoints()
         // Translate to the center of the mesh
         _shellPoints[i] += _centerMesh;
     }
+
+    std::fstream stream;
+    std::string filePath = "/data/microns-explorer-dataset/Meshes-Input-MICrONS/skeletonization-spines/shell.txt";
+    stream.open(filePath, std::ios::out);
+    for (size_t i = 1; i < _shellPoints.size(); ++i)
+    {
+        stream << _shellPoints[i].x() << " "
+               << _shellPoints[i].y() << " "
+               << _shellPoints[i].z() << "\n";
+    }
+    stream.close();
 }
 
 std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsParallel()

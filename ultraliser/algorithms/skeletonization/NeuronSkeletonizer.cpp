@@ -630,47 +630,91 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
         const int64_t& somaNodeIndex)
 {
     TIMER_SET;
-    LOG_STATUS("Identifying Short Paths from Terminals");
+    LOG_STATUS("Identifying Short Paths from Terminals To Soma");
+
+    // Identify the terminal nodes to process the paths in parallel
+    SkeletonNodes terminalNodes;
+    for (size_t i = 0; i < skeletonBranchingNodes.size(); i++)
+    {
+        if (skeletonBranchingNodes[i]->terminal)
+            terminalNodes.push_back(skeletonBranchingNodes[i]);
+    }
+
+    std::vector< EdgesIndices > edgesIndicesList;
+    edgesIndicesList.resize(skeletonBranchingNodes.size());
+
+    // Search for all the terminal nodes
+    PROGRESS_SET;
+    LOOP_STARTS("Detecting Paths");
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < terminalNodes.size(); i++)
+    {
+        EdgesIndices& perTerminalEdgesIndices = edgesIndicesList[i];
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, terminalNodes.size());
+        PROGRESS_UPDATE;
+
+        // Construct the ShortestPathFinder solution
+        std::unique_ptr< ShortestPathFinder > pathFinder =
+                std::make_unique< ShortestPathFinder >(edges, skeletonBranchingNodes.size());
+
+        // Find the path between the terminal node and the soma node
+        auto terminalToSomaPath = pathFinder->findPath(terminalNodes[i]->graphIndex, somaNodeIndex);
+
+        // Reverse the terminal to soma path to have the correct order
+        std::reverse(terminalToSomaPath.begin(), terminalToSomaPath.end());
+
+        for (size_t j = 0; j < terminalToSomaPath.size() - 1; ++j)
+        {
+            auto currentNodeIndex = terminalToSomaPath[j];
+            auto nextNodeIndex = terminalToSomaPath[j + 1];
+
+            // Add the edge indices to the list
+            perTerminalEdgesIndices.push_back(EdgeIndex(currentNodeIndex, nextNodeIndex));
+
+            // If the next node index is not in the current node index, then add it
+            if (!graphNodes[currentNodeIndex]->isNodeInChildren(nextNodeIndex))
+            {
+                graphNodes[currentNodeIndex]->children.push_back(graphNodes[nextNodeIndex]);
+            }
+        }
+
+    }
+    LOOP_DONE;
+
+    // Initially, log the time for the loop
+    LOG_STATS(GET_TIME_SECONDS);
+
+
+    LOOP_STARTS("Composing Path Edges");
+    // Clear the terminal nodes list
+    terminalNodes.clear();
+    terminalNodes.shrink_to_fit();
 
     // The indices of all the edges that have been traversed
     EdgesIndices edgesIndices;
-
-    // Search for all the terminal nodes
-    for (size_t i = 0; i < skeletonBranchingNodes.size(); i++)
+    for (size_t i = 0; i < edgesIndicesList.size(); ++i)
     {
-        LOOP_PROGRESS(i, skeletonBranchingNodes.size());
-
-        // The node must be a terminal
-        if (skeletonBranchingNodes[i]->terminal)
+        // Get the terminal edge identified per terminal
+        auto perTerminalEdgesIndices = edgesIndicesList[i];
+        if (perTerminalEdgesIndices.size() > 0)
         {
-            // Construct the ShortestPathFinder solution
-            std::unique_ptr< ShortestPathFinder > pathFinder =
-                    std::make_unique< ShortestPathFinder >(edges, skeletonBranchingNodes.size());
+            // Append them to the edgeIndices list
+            edgesIndices.insert(edgesIndices.end(),
+                                perTerminalEdgesIndices.begin(), perTerminalEdgesIndices.end());
 
-            // Find the path between the terminal node and the soma node
-            auto terminalToSomaPath = pathFinder->findPath(
-                        skeletonBranchingNodes[i]->graphIndex, somaNodeIndex);
-
-            // Reverse the terminal to soma path to have the correct order
-            std::reverse(terminalToSomaPath.begin(), terminalToSomaPath.end());
-
-            for (size_t j = 0; j < terminalToSomaPath.size() - 1; ++j)
-            {
-                auto currentNodeIndex = terminalToSomaPath[j];
-                auto nextNodeIndex = terminalToSomaPath[j + 1];
-
-                // Add the edge indices to the list
-                edgesIndices.push_back(EdgeIndex(currentNodeIndex, nextNodeIndex));
-
-                // If the next node index is not in the current node index, then add it
-                if (!graphNodes[currentNodeIndex]->isNodeInChildren(nextNodeIndex))
-                {
-                    graphNodes[currentNodeIndex]->children.push_back(graphNodes[nextNodeIndex]);
-                }
-            }
+            // Clean the list per terminal
+            perTerminalEdgesIndices.clear();
+            perTerminalEdgesIndices.shrink_to_fit();
         }
     }
-    LOOP_DONE;
+
+    // Clean the list used to collect the edges in parallel
+    edgesIndicesList.clear();
+    edgesIndicesList.shrink_to_fit();
+
+    // Log the time for the whole process after the edge construction
     LOG_STATS(GET_TIME_SECONDS);
 
     // Return the EdgesIndices list
@@ -905,7 +949,49 @@ void NeuronSkeletonizer::_adjustSomaRadius()
     _somaNode->radius = somaRadius;
 }
 
-void NeuronSkeletonizer::_filterSynapses()
+void NeuronSkeletonizer::_updateParent(SkeletonBranch* branch)
+{
+    for(size_t j = 0; j < branch->children.size(); j++)
+    {
+        auto& child = branch->children[j];
+
+        // Clear old parents if any
+        child->parents.clear();
+        child->parents.shrink_to_fit();
+
+        // Add the new parent
+        child->parents.push_back(branch);
+
+        _updateParent(child);
+    }
+}
+
+void NeuronSkeletonizer::_updateParents()
+{
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        auto& branch = _branches[i];
+
+        if (branch->isValid() && branch->isRoot())
+        {
+            for(size_t j = 0; j < branch->children.size(); j++)
+            {
+                auto& child = branch->children[j];
+
+                // Clear old parents if any
+                child->parents.clear();
+                child->parents.shrink_to_fit();
+
+                // Add the new parent
+                child->parents.push_back(branch);
+
+                _updateParent(child);
+            }
+        }
+    }
+}
+
+void NeuronSkeletonizer::_filterSpines()
 {
     for (size_t i = 0; i < _branches.size(); ++i)
     {
@@ -964,15 +1050,17 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
     // merge branches with a single child
     _mergeBranchesWithSingleChild();
 
-
     // Invalidate the inactive branches
     _detectInactiveBranches(weighteEdges, edgeIndices);
 
     // Adkjust the soma radius
     _adjustSomaRadius();
 
+    // Update all the parents
+    _updateParents();
+
     // Filter the synapses
-    _filterSynapses();
+    _filterSpines();
 }
 
 
@@ -1160,9 +1248,6 @@ void NeuronSkeletonizer::constructGraph()
 
      // Reconstruct the sections, or the branches from the nodes
      _buildBranchesFromNodes(_nodes);
-
-     // exportIndividualBranches("/data/microns-explorer-dataset/Meshes-Input-MICrONS/skeletonization-output/morphologies/debug");
-
 
     // Validate the branches, and remove the branches inside the soma
     _removeBranchesInsideSoma(somaNode);

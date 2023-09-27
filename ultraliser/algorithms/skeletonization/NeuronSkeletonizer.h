@@ -95,7 +95,10 @@ private:
 
     void _filterLoopsAtSingleBranchingPoint();
 
-    void _filterSynapses();
+    void _filterSpines();
+
+    void _updateParent(SkeletonBranch* branch);
+    void _updateParents();
 
 
 
