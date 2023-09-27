@@ -3977,4 +3977,74 @@ Volume* Volume::getBrick(const size_t& x1, const size_t& x2,
     return brick;
 }
 
+VolumeSolidRanges Volume::getSolidRanges() const
+{
+    VolumeSolidRanges volumeSolidRanges;
+    volumeSolidRanges.resize(getWidth());
+
+    for (size_t i = 0; i < getWidth(); ++i)
+    {
+        auto& sliceSolidRange = volumeSolidRanges[i];
+        sliceSolidRange.resize(getHeight());
+
+        for (size_t j = 0; j < getHeight(); ++j)
+        {
+
+            bool alreadySolid = false;
+            size_t lowerLimit = 0, upperLimit = 0, lastSolidK = 0;
+
+            for (size_t k = 0; k < getDepth(); ++k)
+            {
+                // If this voxel if solid, i.e. is filled
+                if (isFilled(i, j, k))
+                {
+
+                    std::cout << i << "," << j << " " << k << "\n";
+
+                    lastSolidK = k;
+
+                    // If the setSolid flag is not set, this means that this is the first voxel
+                    if (!alreadySolid)
+                    {
+                        // Update the lower limit
+                        lowerLimit = k;
+
+                        // Set the setSolid flag
+                        alreadySolid = true;
+
+                        continue;
+                    }
+
+                    // If the flag is already set, do nothing
+                    else{ }
+                }
+
+                // If this voxel is not solid, i.e. empty
+                else
+                {
+                    // If the setSolid flag is set, then this is the last voxel
+                    if (alreadySolid)
+                    {
+                        // Update the upper limit
+                        upperLimit = k - 1;
+
+                        // Turn off the flag
+                        alreadySolid = false;
+
+                        // Add the range to the list
+                        sliceSolidRange[j].push_back(new SolidRange(lowerLimit, upperLimit));
+
+                        continue;
+                    }
+
+                    // Otherwise, do nothing
+                    else { }
+                }
+            }
+        }
+    }
+
+    return volumeSolidRanges;
+}
+
 }

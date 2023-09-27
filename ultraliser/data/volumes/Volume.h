@@ -35,6 +35,31 @@
 namespace Ultraliser
 {
 
+struct SolidRange
+{
+    SolidRange(size_t lower, size_t upper) { this->lower = lower; this->upper = upper; }
+    size_t lower;
+    size_t upper;
+};
+
+/**
+ * @brief SolidRanges
+ * A list of SolidRange's along a single dimension, for example Y line
+ */
+typedef std::vector< SolidRange* > SolidRanges;
+
+/**
+ * @brief SliceSolidRanges
+ * A list of SolidRange's for a single slice (plane), for example ZY slice
+ */
+typedef std::vector< SolidRanges > SliceSolidRanges;
+
+/**
+ * @brief VolumeSolidRanges
+ * A list of SolidRange's for the entire volume
+ */
+typedef std::vector < SliceSolidRanges > VolumeSolidRanges;
+
 /**
  * @brief Te Volume class
  * Builds a voxel grid for a mesh where 0 stands for empty cell and 1 stands
@@ -923,6 +948,9 @@ public:
 
     float getExpansionRatio() const { return _expansionRatio; }
 
+    VolumeSolidRanges getSolidRanges() const;
+
+
 private:
 
     /**
@@ -1117,6 +1145,9 @@ private:
      * projection is outside of the triangle.
      */
     int _triangleCubeSign(Mesh* mesh, int tIdx, const GridIndex& boundingBox);
+
+
+
 
 private:
 
