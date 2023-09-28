@@ -86,75 +86,6 @@ void run(int argc , const char** argv)
     solidVolume->solidVoxelization(options->voxelizationAxis);
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
 
-    auto solidRanges = solidVolume->getSolidRanges();
-
-//    for (size_t i = 0; i < solidRanges.size(); ++i)
-//    {
-//        for (size_t j = 0; j < solidRanges[i].size(); ++j)
-//        {
-//            if (solidRanges[i][j].size() > 0)
-//            std::cout << solidRanges[i][j].size() << ": ";
-
-//            for (size_t k = 0; k < solidRanges[i][j].size(); ++k)
-//            {
-//                std::cout << "[" << solidRanges[i][j][k]->lower
-//                          << ", " << solidRanges[i][j][k]->upper
-//                          << "], ";
-//            }
-//            if (solidRanges[i][j].size() > 0)
-//                std::cout << "\n";
-//        }
-//    }
-
-    size_t xx1 = 0, xx2 = 0;
-
-    std::stringstream stream;
-    for (size_t i =0; i < solidVolume->getWidth(); ++i)
-    {
-        for (size_t j = 0; j < solidVolume->getHeight(); ++j)
-        {
-
-            for (size_t k =0; k < solidVolume->getDepth(); ++k)
-            {
-                if (solidVolume->isFilled(i, j, k))
-                {
-                    xx1++;
-                    stream << i << ", " << j << ", " << k << "\n";
-                }
-            }
-        }
-    }
-
-    std::fstream fileStream;
-    std::string filePath = "/data/microns-skeletonization-meshes/skeletonization-output-spines/morphologies/normal.txt";
-    fileStream.open(filePath, std::ios::out);
-    fileStream << stream.str();
-    fileStream.close();
-
-    std::stringstream stream2;
-    for (size_t i = 0; i < solidRanges.size(); ++i)
-    {
-        for (size_t j = 0; j < solidRanges[i].size(); ++j)
-        {
-            for (size_t k = 0; k < solidRanges[i][j].size(); ++k)
-            {
-                // stream2 << i << ", " << j << "\n";
-                for (size_t w = solidRanges[i][j][k]->lower; w <= solidRanges[i][j][k]->upper; w++)
-                {
-                    xx2++;
-                   stream2 << i << ", " << j << ", " << w << "\n";
-                }
-            }
-        }
-    }
-
-    std::cout << xx1 << ", " << xx2 << "\n";
-    filePath = "/data/microns-skeletonization-meshes/skeletonization-output-spines/morphologies/solid.txt";
-    fileStream.open(filePath, std::ios::out);
-    fileStream << stream2.str();
-    fileStream.close();
-    exit(0);
-
 
     // Create a skeletonization object
     NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(solidVolume, inputMesh);
@@ -168,12 +99,12 @@ void run(int argc , const char** argv)
     // Build the graph
     skeletonizer->constructGraph();
 
-    skeletonizer->exportIndividualBranches(options->morphologyPrefix + "-1");
+    // skeletonizer->exportIndividualBranches(options->morphologyPrefix + "-1");
 
 
     skeletonizer->segmentComponents();
 
-    skeletonizer->exportIndividualBranches(options->morphologyPrefix + "-2");
+    // skeletonizer->exportIndividualBranches(options->morphologyPrefix + "-2");
 
 
     skeletonizer->exportSWCFile(options->morphologyPrefix);

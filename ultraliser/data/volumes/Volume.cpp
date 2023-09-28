@@ -3266,27 +3266,54 @@ size_t Volume::deleteCandidateVoxelsParallel(std::unique_ptr< Thinning6Iteration
     std::vector< CandidateVoxels > perSliceBorderVoxels;
     perSliceBorderVoxels.resize(getWidth());
 
-    // Collect the border voxels per slice in parallel
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < getWidth(); ++i)
-    {
-        for (size_t j = 0; j < getHeight(); ++j)
-        {
-            for (size_t k = 0; k < getDepth(); ++k)
-            {
-                if (isBorderVoxel(i, j, k))
-                {
-                    CandidateVoxel* voxel = new CandidateVoxel();
-                    voxel->x = i;
-                    voxel->y = j;
-                    voxel->z = k;
-                    voxel->deletable = false;
+//    // Collect the border voxels per slice in parallel
+//    OMP_PARALLEL_FOR
+//    for (size_t i = 0; i < getWidth(); ++i)
+//    {
+//        for (size_t j = 0; j < getHeight(); ++j)
+//        {
+//            for (size_t k = 0; k < getDepth(); ++k)
+//            {
+//                if (isBorderVoxel(i, j, k))
+//                {
+//                    CandidateVoxel* voxel = new CandidateVoxel();
+//                    voxel->x = i;
+//                    voxel->y = j;
+//                    voxel->z = k;
+//                    voxel->deletable = false;
 
-                    perSliceBorderVoxels[i].push_back(voxel);
+//                    perSliceBorderVoxels[i].push_back(voxel);
+//                }
+//            }
+//        }
+//    }
+
+        auto occupancyRanges = getOccupancyRanges();
+
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < occupancyRanges.size(); ++i)
+        {
+            for (size_t j = 0; j < occupancyRanges[i].size(); ++j)
+            {
+                for (size_t k = 0; k < occupancyRanges[i][j].size(); ++k)
+                {
+                    for (size_t w = occupancyRanges[i][j][k]->lower; w <= occupancyRanges[i][j][k]->upper; w++)
+                    {
+                        if (isBorderVoxel(i, j, w))
+                        {
+                            CandidateVoxel* voxel = new CandidateVoxel();
+                            voxel->x = i;
+                            voxel->y = j;
+                            voxel->z = w;
+                            voxel->deletable = false;
+
+                            perSliceBorderVoxels[i].push_back(voxel);
+                        }
+                    }
                 }
             }
         }
-    }
+
 
     for (size_t direction = 0; direction < 6; direction++)
     {
@@ -3977,74 +4004,107 @@ Volume* Volume::getBrick(const size_t& x1, const size_t& x2,
     return brick;
 }
 
-VolumeSolidRanges Volume::getSolidRanges() const
+void Volume::_buildOccupancyRanges()
 {
-    VolumeSolidRanges volumeSolidRanges;
-    volumeSolidRanges.resize(getWidth());
+    TIMER_SET;
+    _volumeOccupancyRanges.resize(getWidth());
 
+    PROGRESS_SET;
+    LOOP_STARTS("Building Occupancy Ranges");
+    OMP_PARALLEL_FOR
     for (size_t i = 0; i < getWidth(); ++i)
     {
-        auto& sliceSolidRange = volumeSolidRanges[i];
-        sliceSolidRange.resize(getHeight());
+        auto& sliceOccupancyRanges = _volumeOccupancyRanges[i];
+        sliceOccupancyRanges.resize(getHeight());
 
         for (size_t j = 0; j < getHeight(); ++j)
         {
-
-            bool alreadySolid = false;
-            size_t lowerLimit = 0, upperLimit = 0, lastSolidK = 0;
+            bool alreadyFilled = false;
+            size_t lowerLimit = 0, upperLimit = 0;
 
             for (size_t k = 0; k < getDepth(); ++k)
             {
                 // If this voxel if solid, i.e. is filled
                 if (isFilled(i, j, k))
                 {
-
-                    std::cout << i << "," << j << " " << k << "\n";
-
-                    lastSolidK = k;
-
-                    // If the setSolid flag is not set, this means that this is the first voxel
-                    if (!alreadySolid)
+                    // If the alreadyFilled flag is not set, this means that this is the first voxel
+                    if (!alreadyFilled)
                     {
                         // Update the lower limit
                         lowerLimit = k;
 
                         // Set the setSolid flag
-                        alreadySolid = true;
+                        alreadyFilled = true;
 
-                        continue;
+                        // If this is the last element, then add the range
+                        if (k == getDepth() - 1)
+                        {
+                            // Update the upper limit
+                            upperLimit = k;
+
+                            // Add the range to the list
+                            sliceOccupancyRanges[j].push_back(
+                                        new OccpuancyRange(lowerLimit, upperLimit));
+
+                            // Turn off the flag
+                            alreadyFilled = false;
+                        }
                     }
 
-                    // If the flag is already set, do nothing
-                    else{ }
+                    else
+                    {
+                        // If this is the last element, then add the range
+                        if (k == getDepth() - 1)
+                        {
+                            // Update the upper limit
+                            upperLimit = k;
+
+                            // Add the range to the list
+                            sliceOccupancyRanges[j].push_back(
+                                        new OccpuancyRange(lowerLimit, upperLimit));
+
+                            // Turn off the flag
+                            alreadyFilled = false;
+                        }
+                    }
                 }
 
                 // If this voxel is not solid, i.e. empty
                 else
                 {
-                    // If the setSolid flag is set, then this is the last voxel
-                    if (alreadySolid)
+                    // If the alreadyFilled flag is set, then this is the last voxel
+                    if (alreadyFilled)
                     {
                         // Update the upper limit
                         upperLimit = k - 1;
 
-                        // Turn off the flag
-                        alreadySolid = false;
-
                         // Add the range to the list
-                        sliceSolidRange[j].push_back(new SolidRange(lowerLimit, upperLimit));
+                        sliceOccupancyRanges[j].push_back(
+                                    new OccpuancyRange(lowerLimit, upperLimit));
 
-                        continue;
+                        // Turn off the flag
+                        alreadyFilled = false;
                     }
-
-                    // Otherwise, do nothing
-                    else { }
                 }
             }
         }
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, getWidth());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
+VolumeOccpuancyRanges Volume::getOccupancyRanges()
+{
+    if (_volumeOccupancyRanges.size() == 0)
+    {
+        _buildOccupancyRanges();
     }
 
-    return volumeSolidRanges;
+    return _volumeOccupancyRanges;
 }
 
 }

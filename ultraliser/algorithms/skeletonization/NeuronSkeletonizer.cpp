@@ -74,6 +74,8 @@ SkeletonNode* NeuronSkeletonizer::_addSomaNode()
 
 void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
 {
+    LOG_STATUS("Segmenting Soma");
+
     // The _somaMesh should be a complex geometry containing overlapping spheres that would define
     // its structure
     _somaMesh = new Mesh();
@@ -235,6 +237,8 @@ void NeuronSkeletonizer::exportSomaMesh(const std::string& filePrefix,
 
 void NeuronSkeletonizer::_segmentSomaVolume()
 {
+    LOG_STATUS("Segmenting Soma Volume");
+
     _volume->clear();
     _volume->surfaceVoxelization(_somaMesh, false, false);
     _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);

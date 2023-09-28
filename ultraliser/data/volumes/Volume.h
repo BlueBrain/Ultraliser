@@ -31,34 +31,10 @@
 #include <data/volumes/utilities/VolumeData.hh>
 #include <algorithms/skeletonization/thinning/Thinning6Iterations.h>
 #include <data/volumes/voxels/CandiateVoxel.h>
+#include <utilities/OccupancyRange.h>
 
 namespace Ultraliser
 {
-
-struct SolidRange
-{
-    SolidRange(size_t lower, size_t upper) { this->lower = lower; this->upper = upper; }
-    size_t lower;
-    size_t upper;
-};
-
-/**
- * @brief SolidRanges
- * A list of SolidRange's along a single dimension, for example Y line
- */
-typedef std::vector< SolidRange* > SolidRanges;
-
-/**
- * @brief SliceSolidRanges
- * A list of SolidRange's for a single slice (plane), for example ZY slice
- */
-typedef std::vector< SolidRanges > SliceSolidRanges;
-
-/**
- * @brief VolumeSolidRanges
- * A list of SolidRange's for the entire volume
- */
-typedef std::vector < SliceSolidRanges > VolumeSolidRanges;
 
 /**
  * @brief Te Volume class
@@ -948,10 +924,12 @@ public:
 
     float getExpansionRatio() const { return _expansionRatio; }
 
-    VolumeSolidRanges getSolidRanges() const;
+    VolumeOccpuancyRanges getOccupancyRanges();
 
 
 private:
+
+    void _buildOccupancyRanges();
 
     /**
      * @brief _allocateGrid
@@ -1146,9 +1124,6 @@ private:
      */
     int _triangleCubeSign(Mesh* mesh, int tIdx, const GridIndex& boundingBox);
 
-
-
-
 private:
 
     /**
@@ -1231,6 +1206,11 @@ private:
      * @brief _solidVoxelizationTime
      */
     double _addingVolumePassTime;
+
+    /**
+     * @brief _volumeOccupancyRanges
+     */
+    VolumeOccpuancyRanges _volumeOccupancyRanges;
 
 public:
 

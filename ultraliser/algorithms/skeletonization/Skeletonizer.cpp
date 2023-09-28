@@ -265,7 +265,6 @@ void Skeletonizer::thinVolumeBlockByBlock(const size_t& blockSize,
 
 void Skeletonizer::applyVolumeThinning()
 {
-    TIMER_SET;
     LOG_STATUS("Volume Thinning");
 
     // The thinning kernel that will be used to thin the volume
@@ -276,6 +275,10 @@ void Skeletonizer::applyVolumeThinning()
     size_t initialNumberVoxelsToBeDeleted = 0;
     size_t loopCounter = 0;
 
+    // Make sure that you build the occupancy ranges before
+    auto occupancyRanges = _volume->getOccupancyRanges();
+
+    TIMER_SET;
     LOOP_STARTS("Thinning Loop");
     LOOP_PROGRESS(0, 100);
     while(1)
@@ -292,7 +295,6 @@ void Skeletonizer::applyVolumeThinning()
 
        loopCounter++;
     }
-
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
 }
@@ -542,8 +544,6 @@ void Skeletonizer::_inflateNodes()
     // Compute the approximate radii of all the nodes in the graph, based on the minimum distance
     std::vector< float > nodesRadii;
     nodesRadii.resize(_nodes.size());
-
-
 
     PROGRESS_SET;
     OMP_PARALLEL_FOR

@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2033
+ * Copyright (c) 2016 - 2023
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -21,14 +21,57 @@
 
 #pragma once
 
-#include <utilities/Arrays.h>
-#include <utilities/Data.h>
-#include <utilities/Directory.h>
-#include <utilities/File.h>
-#include <utilities/Image.h>
-#include <utilities/OccupancyRange.h>
-#include <utilities/Parsers.h>
-#include <utilities/String.h>
-#include <utilities/Timer.h>
-#include <utilities/Range.h>
-#include <utilities/TypeConversion.h>
+#include <common/Headers.hh>
+
+namespace Ultraliser
+{
+
+/**
+ * @brief The OccpuanyRange class
+ */
+struct OccpuancyRange
+{
+public:
+
+    /**
+     * @brief OccpuanyRange
+     * @param lower
+     * @param upper
+     */
+    OccpuancyRange(size_t lower, size_t upper)
+    {
+        this->lower = lower;
+        this->upper = upper;
+    }
+
+    /**
+     * @brief lower
+     */
+    size_t lower;
+
+    /**
+     * @brief upper
+     */
+    size_t upper;
+};
+
+/**
+ * @brief OccpuancyRanges
+ * A list of OccpuanyRange's along a single dimension, for example Y line
+ */
+typedef std::vector< OccpuancyRange* > OccpuancyRanges;
+
+/**
+ * @brief SliceOccpuancyRanges
+ * A list of OccpuanyRange's for a single slice (plane), for example ZY slice
+ */
+typedef std::vector< OccpuancyRanges > SliceOccpuancyRanges;
+
+/**
+ * @brief VolumeOccpuancyRanges
+ * A list of OccpuanyRange's for the entire volume
+ */
+typedef std::vector < SliceOccpuancyRanges > VolumeOccpuancyRanges;
+
+}
+
