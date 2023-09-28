@@ -59,7 +59,7 @@ public:
  * @brief OccpuancyRanges
  * A list of OccpuanyRange's along a single dimension, for example Y line
  */
-typedef std::vector< OccpuancyRange* > OccpuancyRanges;
+typedef std::vector< OccpuancyRange > OccpuancyRanges;
 
 /**
  * @brief SliceOccpuancyRanges

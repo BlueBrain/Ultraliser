@@ -85,6 +85,8 @@ void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
     Vector3f estimatedSomaCenter(0.f);
     size_t numberSamples = 0;
 
+    TIMER_SET;
+    LOOP_STARTS("Detecting Soma Nodes");
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
         auto& node0 = _nodes[i];
@@ -98,20 +100,17 @@ void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
             sample->translate(node0->point);
             sample->map(_shellPoints, false);
 
-            // std::stringstream stream;
-            // stream << "/data/microns-explorer-dataset/Meshes-Input-MICrONS/skeletonization-output/meshes";
-            // stream << i;
-            // sample->exportMesh(stream.str(), true);
-
-            // std::cout << i << " * " << node0->radius << "\n";
-
             _somaMesh->append(sample);
             sample->~Mesh();
 
             estimatedSomaCenter += node0->point;
             numberSamples++;
         }
+
+        LOOP_PROGRESS(i, _nodes.size());
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     // Normalize
     estimatedSomaCenter /= numberSamples;
@@ -237,21 +236,57 @@ void NeuronSkeletonizer::exportSomaMesh(const std::string& filePrefix,
 
 void NeuronSkeletonizer::_segmentSomaVolume()
 {
+    TIMER_SET;
     LOG_STATUS("Segmenting Soma Volume");
 
     _volume->clear();
     _volume->surfaceVoxelization(_somaMesh, false, false);
     _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
 
-    // TODO: This could be parallelized
-    std::vector< size_t > somaVoxels;
-    for (size_t i = 0; i < _volume->getNumberVoxels(); ++i)
+    // Get a reference to the occupancy ranges in case it is not computed
+    auto occupancyRanges = _volume->getOccupancyRanges();
+
+    std::vector< std::vector< size_t > > perSliceSomaVoxels;
+    perSliceSomaVoxels.resize(_volume->getWidth());
+
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < occupancyRanges.size(); ++i)
     {
-        if (_volume->isFilled(i))
+        for (size_t j = 0; j < occupancyRanges[i].size(); ++j)
         {
-            somaVoxels.push_back(i);
+            for (size_t k = 0; k < occupancyRanges[i][j].size(); ++k)
+            {
+                for (size_t w = occupancyRanges[i][j][k].lower; w <= occupancyRanges[i][j][k].upper; w++)
+                {
+                    if (_volume->isFilled(i, j, w))
+                    {
+                        perSliceSomaVoxels[i].push_back(_volume->mapTo1DIndexWithoutBoundCheck(i, j, w));
+                    }
+                }
+            }
         }
     }
+
+
+    std::vector< size_t > somaVoxels;
+    for (size_t i = 0; i < perSliceSomaVoxels.size(); ++i)
+    {
+        somaVoxels.insert(somaVoxels.end(), perSliceSomaVoxels[i].begin(), perSliceSomaVoxels[i].end());
+        perSliceSomaVoxels[i].clear();
+        perSliceSomaVoxels[i].shrink_to_fit();
+    }
+
+    perSliceSomaVoxels.clear();
+    perSliceSomaVoxels.shrink_to_fit();
+
+ // TODO: This could be parallelized
+//    for (size_t i = 0; i < _volume->getNumberVoxels(); ++i)
+//    {
+//        if (_volume->isFilled(i))
+//        {
+//            somaVoxels.push_back(i);
+//        }
+//    }
 
     // Find out the nodes that are inside the soma
     OMP_PARALLEL_FOR
@@ -270,6 +305,8 @@ void NeuronSkeletonizer::_segmentSomaVolume()
     // The volume is safe to be deallocated
     _volume->~Volume();
     _volume = nullptr;
+
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void NeuronSkeletonizer::collectSWCNodes(const SkeletonBranch* branch, SkeletonNodes& swcNodes,
@@ -315,8 +352,13 @@ SkeletonNodes NeuronSkeletonizer::constructSWCTable()
     swcNodes.push_back(_somaNode);
 
     // Get all the root branches
-    for (size_t i = 0; i < _branches.size(); ++i)
+    TIMER_SET;
+    LOOP_STARTS("Constructing SWC Table");
+    const size_t numberBranches = _branches.size();
+    for (size_t i = 0; i < numberBranches ; ++i)
     {
+        LOOP_PROGRESS(i, numberBranches);
+
         auto& branch = _branches[i];
         if (branch->isRoot() && branch->isValid())
         {
@@ -324,6 +366,8 @@ SkeletonNodes NeuronSkeletonizer::constructSWCTable()
             collectSWCNodes(branch, swcNodes, swcIndex, 1);
         }
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     return swcNodes;
 }
@@ -351,8 +395,12 @@ void NeuronSkeletonizer::exportSWCFile(const std::string& prefix)
            << somaNode->radius << " "
            << "-1" << "\n";
 
-    for (size_t i = 1; i < swcNodes.size(); ++i)
+    LOOP_STARTS("Writing SWC Table");
+    const size_t numberSWCNodes = swcNodes.size();
+    for (size_t i = 1; i < numberSWCNodes; ++i)
     {
+        LOOP_PROGRESS(i, numberSWCNodes);
+
         auto swcNode = swcNodes[i];
         stream << swcNode->swcIndex << " "
                << "3" << " "
@@ -362,9 +410,12 @@ void NeuronSkeletonizer::exportSWCFile(const std::string& prefix)
                << swcNode->radius << " "
                << swcNode->prevSampleSWCIndex << "\n";
     }
+    LOOP_DONE;
 
     // Close the file
     stream.close();
+
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 

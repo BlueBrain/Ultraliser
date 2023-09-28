@@ -480,19 +480,19 @@ public:
      * @brief searchForBorderVoxels
      * @return
      */
-    std::vector< std::vector< Vec3ui_64> > searchForBorderVoxels() const;
+    std::vector< std::vector< Vec3ui_64> > searchForBorderVoxels() ;
 
     /**
      * @brief searchForCandidateVoxels
      * @return
      */
-    std::vector< CandidateVoxels > searchForCandidateVoxels() const;
+    std::vector< CandidateVoxels > searchForCandidateVoxels() ;
 
     /**
      * @brief searchForCandidateVoxelsOne
      * @return
      */
-    CandidateVoxels searchForCandidateVoxelsOne() const;
+    CandidateVoxels searchForCandidateVoxelsOne();
 
     /**
      * @brief deleteCandidateVoxels

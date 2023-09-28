@@ -2574,6 +2574,23 @@ void Volume::addByte(const size_t &index, const uint8_t byte)
 void Volume::clear(void)
 {
     _grid->clear();
+
+    if (_volumeOccupancyRanges.size() > 0)
+    {
+        for (size_t i = 0; i < _volumeOccupancyRanges.size(); ++i)
+        {
+            for (size_t j = 0; j < _volumeOccupancyRanges[i].size(); ++j)
+            {
+                _volumeOccupancyRanges[i][j].clear();
+                _volumeOccupancyRanges[i][j].shrink_to_fit();
+            }
+
+            _volumeOccupancyRanges[i].clear();
+            _volumeOccupancyRanges[i].shrink_to_fit();
+        }
+
+        _volumeOccupancyRanges.clear();
+    }
 }
 
 void Volume::fill(const int64_t &x,
@@ -3160,7 +3177,7 @@ bool Volume::isBorderVoxel(const int64_t& x, const int64_t& y,const int64_t& z) 
     return false;
 }
 
-std::vector< CandidateVoxels > Volume::searchForCandidateVoxels() const
+std::vector< CandidateVoxels > Volume::searchForCandidateVoxels()
 {
     // This list will collect the border voxels per slice (along the width)
     std::vector< CandidateVoxels > perSliceBorderVoxels;
@@ -3266,54 +3283,32 @@ size_t Volume::deleteCandidateVoxelsParallel(std::unique_ptr< Thinning6Iteration
     std::vector< CandidateVoxels > perSliceBorderVoxels;
     perSliceBorderVoxels.resize(getWidth());
 
-//    // Collect the border voxels per slice in parallel
-//    OMP_PARALLEL_FOR
-//    for (size_t i = 0; i < getWidth(); ++i)
-//    {
-//        for (size_t j = 0; j < getHeight(); ++j)
-//        {
-//            for (size_t k = 0; k < getDepth(); ++k)
-//            {
-//                if (isBorderVoxel(i, j, k))
-//                {
-//                    CandidateVoxel* voxel = new CandidateVoxel();
-//                    voxel->x = i;
-//                    voxel->y = j;
-//                    voxel->z = k;
-//                    voxel->deletable = false;
+    // Get a reference to the occupancy ranges in case it is not computed
+    auto occupancyRanges = getOccupancyRanges();
 
-//                    perSliceBorderVoxels[i].push_back(voxel);
-//                }
-//            }
-//        }
-//    }
-
-        auto occupancyRanges = getOccupancyRanges();
-
-        OMP_PARALLEL_FOR
-        for (size_t i = 0; i < occupancyRanges.size(); ++i)
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < occupancyRanges.size(); ++i)
+    {
+        for (size_t j = 0; j < occupancyRanges[i].size(); ++j)
         {
-            for (size_t j = 0; j < occupancyRanges[i].size(); ++j)
+            for (size_t k = 0; k < occupancyRanges[i][j].size(); ++k)
             {
-                for (size_t k = 0; k < occupancyRanges[i][j].size(); ++k)
+                for (size_t w = occupancyRanges[i][j][k].lower; w <= occupancyRanges[i][j][k].upper; w++)
                 {
-                    for (size_t w = occupancyRanges[i][j][k]->lower; w <= occupancyRanges[i][j][k]->upper; w++)
+                    if (isBorderVoxel(i, j, w))
                     {
-                        if (isBorderVoxel(i, j, w))
-                        {
-                            CandidateVoxel* voxel = new CandidateVoxel();
-                            voxel->x = i;
-                            voxel->y = j;
-                            voxel->z = w;
-                            voxel->deletable = false;
+                        CandidateVoxel* voxel = new CandidateVoxel();
+                        voxel->x = i;
+                        voxel->y = j;
+                        voxel->z = w;
+                        voxel->deletable = false;
 
-                            perSliceBorderVoxels[i].push_back(voxel);
-                        }
+                        perSliceBorderVoxels[i].push_back(voxel);
                     }
                 }
             }
         }
-
+    }
 
     for (size_t direction = 0; direction < 6; direction++)
     {
@@ -3373,7 +3368,7 @@ size_t Volume::deleteCandidateVoxelsParallel(std::unique_ptr< Thinning6Iteration
     return numberDeletedVoxels;
 }
 
-CandidateVoxels Volume::searchForCandidateVoxelsOne() const
+CandidateVoxels Volume::searchForCandidateVoxelsOne()
 {
     // This list will collect the border voxels per slice (along the width)
     std::vector< CandidateVoxels > perSliceBorderVoxels;
@@ -3423,27 +3418,59 @@ CandidateVoxels Volume::searchForCandidateVoxelsOne() const
     return candiateVoxels;
 }
 
-std::vector< std::vector< Vec3ui_64 > > Volume::searchForBorderVoxels() const
+std::vector< std::vector< Vec3ui_64 > > Volume::searchForBorderVoxels()
 {
+    TIMER_SET;
+
     // This list will collect the border voxels per slice (along the width)
     std::vector< std::vector< Vec3ui_64 > > perSliceBorderVoxels;
     perSliceBorderVoxels.resize(getWidth());
 
+//    LOOP_STARTS("Searching for Border Voxels");
+//    OMP_PARALLEL_FOR
+//    for (size_t i = 0; i < getWidth(); ++i)
+//    {
+//        for (size_t j = 0; j < getHeight(); ++j)
+//        {
+//            for (size_t k = 0; k < getDepth(); ++k)
+//            {
+//                if (isBorderVoxel(i, j, k))
+//                {
+//                    perSliceBorderVoxels[i].push_back(Vec3ui_64(i, j, k));
+//                }
+//            }
+//        }
+//    }
+//    LOOP_DONE;
+//    LOG_STATS(GET_TIME_SECONDS);
+
+
+    // Get a reference to the occupancy ranges in case it is not computed
+    auto occupancyRanges = getOccupancyRanges();
+
     // Collect the border voxels per slice in parallel
+
+    LOOP_STARTS("Searching for Border Voxels");
     OMP_PARALLEL_FOR
-    for (size_t i = 0; i < getWidth(); ++i)
+    for (size_t i = 0; i < occupancyRanges.size(); ++i)
     {
-        for (size_t j = 0; j < getHeight(); ++j)
+        for (size_t j = 0; j < occupancyRanges[i].size(); ++j)
         {
-            for (size_t k = 0; k < getDepth(); ++k)
+            for (size_t k = 0; k < occupancyRanges[i][j].size(); ++k)
             {
-                if (isBorderVoxel(i, j, k))
+                for (size_t w = occupancyRanges[i][j][k].lower;
+                     w <= occupancyRanges[i][j][k].upper; w++)
                 {
-                    perSliceBorderVoxels[i].push_back(Vec3ui_64(i, j, k));
+                    if (isBorderVoxel(i, j, w))
+                    {
+                        perSliceBorderVoxels[i].push_back(Vec3ui_64(i, j, w));
+                    }
                 }
             }
         }
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     return perSliceBorderVoxels;
 }
@@ -4044,7 +4071,7 @@ void Volume::_buildOccupancyRanges()
 
                             // Add the range to the list
                             sliceOccupancyRanges[j].push_back(
-                                        new OccpuancyRange(lowerLimit, upperLimit));
+                                         OccpuancyRange(lowerLimit, upperLimit));
 
                             // Turn off the flag
                             alreadyFilled = false;
@@ -4061,7 +4088,7 @@ void Volume::_buildOccupancyRanges()
 
                             // Add the range to the list
                             sliceOccupancyRanges[j].push_back(
-                                        new OccpuancyRange(lowerLimit, upperLimit));
+                                        OccpuancyRange(lowerLimit, upperLimit));
 
                             // Turn off the flag
                             alreadyFilled = false;
@@ -4080,7 +4107,7 @@ void Volume::_buildOccupancyRanges()
 
                         // Add the range to the list
                         sliceOccupancyRanges[j].push_back(
-                                    new OccpuancyRange(lowerLimit, upperLimit));
+                                    OccpuancyRange(lowerLimit, upperLimit));
 
                         // Turn off the flag
                         alreadyFilled = false;
