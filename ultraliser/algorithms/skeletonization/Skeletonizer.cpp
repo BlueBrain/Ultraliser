@@ -28,6 +28,7 @@
 #include <math/Vector.h>
 #include <data/meshes/simple/TriangleOperations.h>
 #include <utilities/Range.h>
+#include <utilities/OccupancyRange.h>
 
 namespace Ultraliser
 {
@@ -336,39 +337,47 @@ void Skeletonizer::_computeShellPoints()
     }
 }
 
+
+struct FilledVoxel
+{
+    size_t i, j, k;
+    size_t voxelIndex;
+
+    FilledVoxel(size_t ii, size_t jj, size_t kk, size_t vIndex)
+    { i = ii; j = jj; k = kk; voxelIndex = vIndex; }
+};
+
+typedef std::vector< FilledVoxel > FilledVoxels;
+
+
 std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsParallel()
 {
-    LOG_STATUS("Mapping Voxels to Nodes * Parallel");
+    LOG_STATUS("Mapping Voxels to Nodes");
     TIMER_SET;
-
-    struct FilledVoxel
-    {
-        size_t i, j, k;
-        size_t voxelIndex;
-
-        FilledVoxel(size_t ii, size_t jj, size_t kk, size_t vIndex)
-        { i = ii; j = jj; k = kk; voxelIndex = vIndex; }
-    };
-
-    typedef std::vector< FilledVoxel* > FilledVoxels;
-
 
     std::vector< FilledVoxels > allFilledVoxels;
     allFilledVoxels.resize(_volume->getWidth());
 
+    // Get a reference to the occupancy ranges in case it is not computed
+    auto occupancyRanges = _volume->getOccupancyRanges();
+
     OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _volume->getWidth(); ++i)
+    for (size_t i = 0; i < occupancyRanges.size(); ++i)
     {
         auto& perSliceFilledVoxels = allFilledVoxels[i];
 
-        for (size_t j = 0; j < _volume->getHeight(); ++j)
+        for (size_t j = 0; j < occupancyRanges[i].size(); ++j)
         {
-            for (size_t k = 0; k < _volume->getDepth(); ++k)
+            for (size_t k = 0; k < occupancyRanges[i][j].size(); ++k)
             {
-                // If the voxel is filled
-                if (_volume->isFilled(i, j, k))
+                for (size_t w = occupancyRanges[i][j][k].lower; w <= occupancyRanges[i][j][k].upper; w++)
                 {
-                    perSliceFilledVoxels.push_back(new FilledVoxel(i, j, k, _volume->mapTo1DIndexWithoutBoundCheck(i, j, k)));
+                    if (_volume->isFilled(i, j, w))
+                    {
+                        perSliceFilledVoxels.push_back(
+                                    FilledVoxel(i, j, w,
+                                                _volume->mapTo1DIndexWithoutBoundCheck(i, j, w)));
+                    }
                 }
             }
         }
@@ -396,9 +405,8 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsParallel()
     for (size_t i = 0; i < filledVoxels.size(); ++i)
     {
         // Mapper from voxel to node indices
-        indicesMapper.insert(std::pair< size_t, size_t >(filledVoxels[i]->voxelIndex, i));
+        indicesMapper.insert(std::pair< size_t, size_t >(filledVoxels[i].voxelIndex, i));
     }
-
 
     // Resize the nodes
     _nodes.resize(filledVoxels.size());
@@ -411,10 +419,10 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsParallel()
         LOOP_PROGRESS(PROGRESS, filledVoxels.size());
         PROGRESS_UPDATE;
 
-        const size_t i = filledVoxels[n]->i;
-        const size_t j = filledVoxels[n]->j;
-        const size_t k = filledVoxels[n]->k;
-        const size_t voxelIndex = filledVoxels[n]->voxelIndex;
+        const size_t i = filledVoxels[n].i;
+        const size_t j = filledVoxels[n].j;
+        const size_t k = filledVoxels[n].k;
+        const size_t voxelIndex = filledVoxels[n].voxelIndex;
 
         // Get a point representing the center of the voxel (in the volume)
         Vector3f voxelPosition(i * 1.f, j * 1.f, k * 1.f);
@@ -454,11 +462,8 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
     std::vector< Vec4ui_64 > indicesFilledVoxels;
 
     // Search the filled voxels in the volume
-    size_t progress = 0;
     for (size_t i = 0; i < _volume->getWidth(); ++i)
     {
-        LOOP_PROGRESS(progress, _volume->getWidth());
-
         for (size_t j = 0; j < _volume->getHeight(); ++j)
         {
             for (size_t k = 0; k < _volume->getDepth(); ++k)
@@ -481,7 +486,7 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
             }
         }
 
-        progress++;
+        LOOP_PROGRESS(i, _volume->getWidth());
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
