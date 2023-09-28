@@ -3298,11 +3298,8 @@ size_t Volume::deleteCandidateVoxelsParallel(std::unique_ptr< Thinning6Iteration
                     if (isBorderVoxel(i, j, w))
                     {
                         CandidateVoxel* voxel = new CandidateVoxel();
-                        voxel->x = i;
-                        voxel->y = j;
-                        voxel->z = w;
+                        voxel->x = i; voxel->y = j; voxel->z = w;
                         voxel->deletable = false;
-
                         perSliceBorderVoxels[i].push_back(voxel);
                     }
                 }

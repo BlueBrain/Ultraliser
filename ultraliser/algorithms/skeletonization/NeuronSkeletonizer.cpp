@@ -85,29 +85,51 @@ void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
     Vector3f estimatedSomaCenter(0.f);
     size_t numberSamples = 0;
 
-    TIMER_SET;
-    LOOP_STARTS("Detecting Soma Nodes");
+    // Collecting a subset of the samples, not all of them are needed
+    std::map <size_t, float> interSomaticNodes;
+
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
-        auto& node0 = _nodes[i];
+        auto& node = _nodes[i];
 
         /// TODO: This is a magic value, it works now, but we need to find an optimum value based
         // on some statistical analysis.
-        if (node0->radius >= 2.0)
+
+        if (node->radius >= 2.0)
         {
-            Mesh* sample = new IcoSphere(3);
-            sample->scale(node0->radius, node0->radius, node0->radius);
-            sample->translate(node0->point);
-            sample->map(_shellPoints, false);
-
-            _somaMesh->append(sample);
-            sample->~Mesh();
-
-            estimatedSomaCenter += node0->point;
-            numberSamples++;
+            interSomaticNodes.insert({node->index, node->radius});
         }
+    }
 
-        LOOP_PROGRESS(i, _nodes.size());
+    // Sort the nodes by radius
+    std::vector< std::pair< size_t , float > > pairsVector = sortIndexRadiusMap(interSomaticNodes);
+
+    // Reverse
+    std::reverse(pairsVector.begin(), pairsVector.end());
+
+    size_t numberSelectedNodes = 50;
+
+    TIMER_SET;
+    LOOP_STARTS("Detecting Soma Nodes");
+    for (size_t i = 0; i < numberSelectedNodes; ++i)
+    {
+        auto& node0 = _nodes[pairsVector[i].first - 1];
+
+        // std::cout << pairsVector[i].first << ", " << node0->index << ",,, " << pairsVector[i].second << ", " << node0->radius << "\n";
+
+
+        Mesh* sample = new IcoSphere(3);
+        sample->scale(node0->radius, node0->radius, node0->radius);
+        sample->translate(node0->point);
+        sample->map(_shellPoints, false);
+
+        _somaMesh->append(sample);
+        sample->~Mesh();
+
+        estimatedSomaCenter += node0->point;
+        numberSamples++;
+
+       LOOP_PROGRESS(i, numberSelectedNodes);
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
@@ -267,7 +289,6 @@ void NeuronSkeletonizer::_segmentSomaVolume()
         }
     }
 
-
     std::vector< size_t > somaVoxels;
     for (size_t i = 0; i < perSliceSomaVoxels.size(); ++i)
     {
@@ -417,7 +438,6 @@ void NeuronSkeletonizer::exportSWCFile(const std::string& prefix)
 
     LOG_STATS(GET_TIME_SECONDS);
 }
-
 
 void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) const
 {
