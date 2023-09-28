@@ -718,21 +718,19 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
     std::vector< EdgesIndices > edgesIndicesList;
     edgesIndicesList.resize(skeletonBranchingNodes.size());
 
+    // Generate the ShortestPathFinder only once for all the path retrival functions
+    std::unique_ptr< ShortestPathFinder > pathFinder =
+            std::make_unique< ShortestPathFinder >(edges, skeletonBranchingNodes.size());
+
     // Search for all the terminal nodes
     PROGRESS_SET;
+    size_t numberTerminalNodes = terminalNodes.size();
     LOOP_STARTS("Detecting Paths");
     OMP_PARALLEL_FOR
-    for (size_t i = 0; i < terminalNodes.size(); i++)
+    for (size_t i = 0; i < numberTerminalNodes; ++i)
     {
+        // Get a reference to the EdgesIndices list
         EdgesIndices& perTerminalEdgesIndices = edgesIndicesList[i];
-
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, terminalNodes.size());
-        PROGRESS_UPDATE;
-
-        // Construct the ShortestPathFinder solution
-        std::unique_ptr< ShortestPathFinder > pathFinder =
-                std::make_unique< ShortestPathFinder >(edges, skeletonBranchingNodes.size());
 
         // Find the path between the terminal node and the soma node
         auto terminalToSomaPath = pathFinder->findPath(terminalNodes[i]->graphIndex, somaNodeIndex);
@@ -740,6 +738,7 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
         // Reverse the terminal to soma path to have the correct order
         std::reverse(terminalToSomaPath.begin(), terminalToSomaPath.end());
 
+        // Find the edges
         for (size_t j = 0; j < terminalToSomaPath.size() - 1; ++j)
         {
             auto currentNodeIndex = terminalToSomaPath[j];
@@ -755,12 +754,13 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
             }
         }
 
+        LOOP_PROGRESS(PROGRESS, numberTerminalNodes);
+        PROGRESS_UPDATE;
     }
     LOOP_DONE;
 
     // Initially, log the time for the loop
     LOG_STATS(GET_TIME_SECONDS);
-
 
     LOOP_STARTS("Composing Path Edges");
     // Clear the terminal nodes list

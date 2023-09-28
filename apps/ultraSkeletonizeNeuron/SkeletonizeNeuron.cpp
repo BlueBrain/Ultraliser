@@ -93,7 +93,7 @@ void run(int argc , const char** argv)
     skeletonizer->skeletonizeVolume();
 
     // Project the volume
-    solidVolume->project(options->morphologyPrefix, true, true, true);
+    // solidVolume->project(options->morphologyPrefix, true, true, true);
 
 
     // Build the graph
