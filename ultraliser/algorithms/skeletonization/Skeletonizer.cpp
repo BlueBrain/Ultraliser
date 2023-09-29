@@ -337,7 +337,6 @@ void Skeletonizer::_computeShellPoints()
     }
 }
 
-
 struct FilledVoxel
 {
     size_t i, j, k;

@@ -115,9 +115,6 @@ void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
     {
         auto& node0 = _nodes[pairsVector[i].first - 1];
 
-        // std::cout << pairsVector[i].first << ", " << node0->index << ",,, " << pairsVector[i].second << ", " << node0->radius << "\n";
-
-
         Mesh* sample = new IcoSphere(3);
         sample->scale(node0->radius, node0->radius, node0->radius);
         sample->translate(node0->point);
@@ -140,6 +137,110 @@ void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
     // Update the location of the soma point, the radius will be updated after detecting root arbors
     somaNode->point = estimatedSomaCenter;
     somaNode->radius = 0.5; /// TODO: Fix me
+}
+
+
+void NeuronSkeletonizer::_segmentSomaVolume()
+{
+    TIMER_SET;
+    LOG_STATUS("Segmenting Soma Volume");
+
+    _volume->clear();
+    _volume->surfaceVoxelization(_somaMesh, false, false);
+
+    // Compute the soma mesh bounding box
+    Vector3f pMinSomaMesh, pMaxSomaMesh;
+    _somaMesh->computeBoundingBox(pMinSomaMesh, pMaxSomaMesh);
+
+    // Get the volume bounds of the soma
+    auto somaVolumeBounds = _volume->getROIBounds(pMinSomaMesh, pMaxSomaMesh);
+
+
+
+    std::cout << "Soma Bounds * : "
+              << somaVolumeBounds.x1 << "," << somaVolumeBounds.x2 << ","
+              << somaVolumeBounds.y1 << ", " << somaVolumeBounds.y2 << ", "
+              << somaVolumeBounds.z1 << ", " << somaVolumeBounds.z2 << "\n";
+
+    // Set new bounds for the soma to ensure capturing everhting
+    auto x1 = static_cast< size_t >(0.5 * somaVolumeBounds.x1);
+    auto x2 = static_cast< size_t >(2 * somaVolumeBounds.x2);
+    if (x2 >= _volume->getWidth()) x2 = _volume->getWidth() - 1;
+
+    auto y1 = static_cast< size_t >(0.5 * somaVolumeBounds.y1);
+    auto y2 = static_cast< size_t >(2 * somaVolumeBounds.y2);
+    if (y2 >= _volume->getHeight()) y2 = _volume->getHeight() - 1;
+
+    auto z1 = static_cast< size_t >(0.5 * somaVolumeBounds.z1);
+    auto z2 = static_cast< size_t >(2 * somaVolumeBounds.z2);
+    if (z2 >= _volume->getDepth()) z2 = _volume->getDepth() - 1;
+
+        // Apply the solid voxelization only to the selected region of interest to save time flood-filling large slices
+    _volume->solidVoxelizationROI(Volume::SOLID_VOXELIZATION_AXIS::X, x1, x2, y1, y2, z1, z2);
+
+    // Apply the solid voxelization only to the selected region of interest to save time flood-filling large slices
+    // _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+
+
+    // _volume->project("/data/microns-skeletonization-meshes/skeletonization-output-spines/morphologies/out", true, true, true);
+     LOG_STATS(GET_TIME_SECONDS);
+
+    // Get a reference to the occupancy ranges in case it is not computed
+    auto occupancyRanges = _volume->getOccupancyRanges();
+
+    std::vector< std::vector< size_t > > perSliceSomaVoxels;
+    perSliceSomaVoxels.resize(_volume->getWidth());
+
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < occupancyRanges.size(); ++i)
+    {
+        for (size_t j = 0; j < occupancyRanges[i].size(); ++j)
+        {
+            for (size_t k = 0; k < occupancyRanges[i][j].size(); ++k)
+            {
+                for (size_t w = occupancyRanges[i][j][k].lower;
+                     w <= occupancyRanges[i][j][k].upper; w++)
+                {
+                    if (_volume->isFilled(i, j, w))
+                    {
+                        perSliceSomaVoxels[i].push_back(
+                                    _volume->mapTo1DIndexWithoutBoundCheck(i, j, w));
+                    }
+                }
+            }
+        }
+    }
+
+    std::vector< size_t > somaVoxels;
+    for (size_t i = 0; i < perSliceSomaVoxels.size(); ++i)
+    {
+        somaVoxels.insert(somaVoxels.end(), perSliceSomaVoxels[i].begin(), perSliceSomaVoxels[i].end());
+        perSliceSomaVoxels[i].clear();
+        perSliceSomaVoxels[i].shrink_to_fit();
+    }
+
+    perSliceSomaVoxels.clear();
+    perSliceSomaVoxels.shrink_to_fit();
+
+    // Find out the nodes that are inside the soma
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _nodes.size(); ++i)
+    {
+        auto& node = _nodes[i];
+        size_t key = _volume->mapTo1DIndexWithoutBoundCheck(
+                    node->voxel.x(), node->voxel.y(), node->voxel.z());
+        if (std::find(somaVoxels.begin(), somaVoxels.end(), key) != somaVoxels.end())
+        {
+            // The soma is inside the soma
+            node->insideSoma = true;
+        }
+    }
+
+    // The volume is safe to be deallocated
+    _volume->~Volume();
+    _volume = nullptr;
+
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
@@ -254,80 +355,6 @@ void NeuronSkeletonizer::exportSomaMesh(const std::string& filePrefix,
 {
     const std::string somaMeshPrefix = filePrefix + "-soma";
     _somaMesh->exportMesh(somaMeshPrefix, formatOBJ, formatPLY, formatOFF, formatSTL);
-}
-
-void NeuronSkeletonizer::_segmentSomaVolume()
-{
-    TIMER_SET;
-    LOG_STATUS("Segmenting Soma Volume");
-
-    _volume->clear();
-    _volume->surfaceVoxelization(_somaMesh, false, false);
-    _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
-
-    // Get a reference to the occupancy ranges in case it is not computed
-    auto occupancyRanges = _volume->getOccupancyRanges();
-
-    std::vector< std::vector< size_t > > perSliceSomaVoxels;
-    perSliceSomaVoxels.resize(_volume->getWidth());
-
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < occupancyRanges.size(); ++i)
-    {
-        for (size_t j = 0; j < occupancyRanges[i].size(); ++j)
-        {
-            for (size_t k = 0; k < occupancyRanges[i][j].size(); ++k)
-            {
-                for (size_t w = occupancyRanges[i][j][k].lower; w <= occupancyRanges[i][j][k].upper; w++)
-                {
-                    if (_volume->isFilled(i, j, w))
-                    {
-                        perSliceSomaVoxels[i].push_back(_volume->mapTo1DIndexWithoutBoundCheck(i, j, w));
-                    }
-                }
-            }
-        }
-    }
-
-    std::vector< size_t > somaVoxels;
-    for (size_t i = 0; i < perSliceSomaVoxels.size(); ++i)
-    {
-        somaVoxels.insert(somaVoxels.end(), perSliceSomaVoxels[i].begin(), perSliceSomaVoxels[i].end());
-        perSliceSomaVoxels[i].clear();
-        perSliceSomaVoxels[i].shrink_to_fit();
-    }
-
-    perSliceSomaVoxels.clear();
-    perSliceSomaVoxels.shrink_to_fit();
-
- // TODO: This could be parallelized
-//    for (size_t i = 0; i < _volume->getNumberVoxels(); ++i)
-//    {
-//        if (_volume->isFilled(i))
-//        {
-//            somaVoxels.push_back(i);
-//        }
-//    }
-
-    // Find out the nodes that are inside the soma
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _nodes.size(); ++i)
-    {
-        auto& node = _nodes[i];
-        size_t key = _volume->mapTo1DIndexWithoutBoundCheck(
-                    node->voxel.x(), node->voxel.y(), node->voxel.z());
-        if (std::find(somaVoxels.begin(), somaVoxels.end(), key) != somaVoxels.end())
-        {
-            // The soma is inside the soma
-            node->insideSoma = true;
-        }
-    }
-
-    // The volume is safe to be deallocated
-    _volume->~Volume();
-    _volume = nullptr;
-
-    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void NeuronSkeletonizer::collectSWCNodes(const SkeletonBranch* branch, SkeletonNodes& swcNodes,

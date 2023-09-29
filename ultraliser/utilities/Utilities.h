@@ -22,6 +22,7 @@
 #pragma once
 
 #include <utilities/Arrays.h>
+#include <utilities/Bounds.hh>
 #include <utilities/Data.h>
 #include <utilities/Directory.h>
 #include <utilities/File.h>

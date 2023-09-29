@@ -113,6 +113,9 @@ static void inline progressUpdate(size_t& progressValue)
 // Set the progress to zero
 #define PROGRESS_SET size_t ULTRALISER_PROGRESS = 0
 
+// Set the progress at a specific starting value
+#define PROGRESS_SET_AT_VALUE( VALUE ) size_t ULTRALISER_PROGRESS = VALUE;
+
 // Reset the progress
 #define PROGRESS_RESET (ULTRALISER_PROGRESS = 0)
 

@@ -159,7 +159,6 @@ size_t VolumeGrid::computeNumberNonZeroVoxelsPerSlice(int64_t z) const
     return numberNonZeroVoxels;
 }
 
-
 void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
                                          const AXIS &axis,
                                          const size_t &padding)
@@ -316,6 +315,197 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
         for (int64_t i = 0; i < volumeWidth; ++i)
         {
             for (int64_t j = 0; j < volumeHeight; ++j)
+            {
+                bool outlier;
+                size_t index = mapToIndex(i, j, sliceIndex, outlier);
+                if (slice->getPixelColor(i , j) == BLACK && !outlier)
+                    clearVoxel(index);
+                else
+                    fillVoxel(index);
+            }
+        }
+    } break;
+
+    }
+
+    delete slice;
+}
+
+
+void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
+                                            const AXIS &axis,
+                                            const size_t& x1, const size_t x2,
+                                            const size_t& y1, const size_t y2,
+                                            const size_t& z1, const size_t z2,
+                                            const size_t &padding)
+{
+    // Slice dimensions
+    int64_t sliceWidth, sliceHeight, sliceSize;
+
+    // Volume dimensions along the slice
+    int64_t volumeWidth, volumeHeight;
+
+    switch (axis)
+    {
+    // YZ axis
+    case AXIS::X:
+    {
+        sliceWidth = (y2 - y1 + 1) + 2 * padding;
+        sliceHeight = (z2 - z1 + 1) + 2 * padding;
+        sliceSize = sliceWidth * sliceHeight;
+
+        volumeWidth = (y2 - y1 + 1);
+        volumeHeight = (z2 - z1 + 1);
+        break;
+    }
+
+        // XZ axis
+    case AXIS::Y:
+    {
+//        sliceWidth = getWidth() + 2 * padding;
+//        sliceHeight = getDepth() + 2 * padding;
+//        sliceSize = sliceWidth * sliceHeight;
+
+//        volumeWidth = getWidth();
+//        volumeHeight = getDepth();
+
+        sliceWidth = (x2 - x1 + 1) + 2 * padding;
+        sliceHeight = (z2 - z1 + 1) + 2 * padding;
+        sliceSize = sliceWidth * sliceHeight;
+
+        volumeWidth = (x2 - x1 + 1);
+        volumeHeight = (z2 - z1 + 1);
+        break;
+    }
+
+        // XY axis
+    case AXIS::Z:
+    {
+        // Dimensions
+//        sliceWidth = getWidth() + 2 * padding;
+//        sliceHeight = getHeight() + 2 * padding;
+//        sliceSize = sliceWidth * sliceHeight;
+
+//        volumeWidth = getWidth();
+//        volumeHeight = getHeight();
+
+        sliceWidth = (x2 - x1 + 1) + 2 * padding;
+        sliceHeight = (y2 - y1 + 1) + 2 * padding;
+        sliceSize = sliceWidth * sliceHeight;
+
+        volumeWidth = (x2 - x1 + 1);
+        volumeHeight = (y2 - y1 + 1);
+
+        break;
+    }
+    }
+
+    // Create an X-slice
+    Image* slice = new Image(sliceWidth, sliceHeight);
+
+    // Make it blank
+    slice->fill(WHITE);
+
+    switch (axis)
+    {
+    case AXIS::X:
+    {
+        // Fill the slice with the surface voxels (pixels in the image)
+        for (int64_t i = y1; i < volumeWidth; ++i)
+        {
+            for (int64_t j = z1; j < volumeHeight; ++j)
+            {
+                bool outlier;
+                size_t index = mapToIndex(sliceIndex, i, j, outlier);
+                if (isFilled(index) && !outlier)
+                    slice->setPixelColor(i + padding, j + padding, GRAY);
+                else
+                    slice->setPixelColor(i + padding, j + padding, WHITE);
+            }
+        }
+    } break;
+
+    case AXIS::Y:
+    {
+        // Fill the slice with the surface voxels (pixels in the image)
+        for (int64_t i = x1; i < volumeWidth; ++i)
+        {
+            for (int64_t j = z1; j < volumeHeight; ++j)
+            {
+                bool outlier;
+                size_t index = mapToIndex(i, sliceIndex, j, outlier);
+                if (isFilled(index) && !outlier)
+                    slice->setPixelColor(i + padding, j + padding, GRAY);
+                else
+                    slice->setPixelColor(i + padding, j + padding, WHITE);
+            }
+        }
+    } break;
+
+    case  AXIS::Z:
+    {
+        // Fill the slice with the surface voxels (pixels in the image)
+        for (int64_t i = x1; i < volumeWidth; ++i)
+        {
+            for (int64_t j = y1; j < volumeHeight; ++j)
+            {
+                bool outlier;
+                size_t index = mapToIndex(i, j, sliceIndex, outlier);
+                if (isFilled(index) && !outlier)
+                    slice->setPixelColor(i + padding, j + padding, GRAY);
+                else
+                    slice->setPixelColor(i + padding, j + padding, WHITE);
+            }
+        }
+    } break;
+
+    }
+
+    // Flood Filler
+    PIXEL_COLOR newColor = WHITE;
+    PIXEL_COLOR oldColor = BLACK;
+    FloodFiller::fill(slice, sliceWidth, sliceHeight, 0, 0, newColor, oldColor);
+
+    // Update the volume back
+    switch (axis)
+    {
+    case AXIS::X:
+    {
+        for (int64_t i = y1; i < volumeWidth; ++i)
+        {
+            for (int64_t j = z1; j < volumeHeight; ++j)
+            {
+                bool outlier;
+                size_t index = mapToIndex(sliceIndex, i, j, outlier);
+                if (slice->getPixelColor(i , j) == BLACK && !outlier)
+                    clearVoxel(index);
+                else
+                    fillVoxel(index);
+            }
+        }
+    } break;
+
+    case AXIS::Y:
+    {
+        for (int64_t i = x1; i < volumeWidth; ++i)
+        {
+            for (int64_t j = z1; j < volumeHeight; ++j)
+            {
+                bool outlier;
+                size_t index = mapToIndex(i, sliceIndex, j, outlier);
+                if (slice->getPixelColor(i , j) == BLACK && !outlier)
+                    clearVoxel(index);
+                else
+                    fillVoxel(index);
+            }
+        }
+    } break;
+
+    case  AXIS::Z:
+    {
+        for (int64_t i = x1; i < volumeWidth; ++i)
+        {
+            for (int64_t j = y1; j < volumeHeight; ++j)
             {
                 bool outlier;
                 size_t index = mapToIndex(i, j, sliceIndex, outlier);

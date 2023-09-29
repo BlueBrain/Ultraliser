@@ -264,10 +264,34 @@ public:
 
     /**
      * @brief solidVoxelization
-     * lood fill the exterior to figure out the interior.
-     * @param algorithm
+     * @param axis
+     * @param verbose
      */
-    void solidVoxelization(const SOLID_VOXELIZATION_AXIS& axis=X);
+    void solidVoxelization(const SOLID_VOXELIZATION_AXIS& axis=X, const bool &verbose = true);
+
+    /**
+     * @brief solidVoxelizationROI
+     * @param axis
+     * The voxelization axis.
+     * @param x1
+     * The lower bound along the X-axis.
+     * @param x2
+     * The upper bound along the X-axis.
+     * @param y1
+     * The lower bound along the Y-axis.
+     * @param y2
+     * The upper bound along the Y-axis.
+     * @param z1
+     * The lower bound along the Z-axis.
+     * @param z2
+     * The upper bound along the Z-axis.
+     * @param verbose
+     */
+    void solidVoxelizationROI(const SOLID_VOXELIZATION_AXIS& axis,
+                                      const size_t& x1, const size_t x2,
+                                      const size_t& y1, const size_t y2,
+                                      const size_t& z1, const size_t z2,
+                                      const bool& verbose = true);
 
     /**
      * @brief exportToMesh
@@ -926,6 +950,7 @@ public:
 
     VolumeOccpuancyRanges getOccupancyRanges();
 
+    Bounds3D_ui64 getROIBounds(const Vector3f& pMin, const Vector3f& pMax);
 
 private:
 
@@ -1046,23 +1071,68 @@ private:
     void _rasterizeParallel(Mesh* mesh, VolumeGrid* grid, const float &sideRatio = 1.0);
 
     /**
-     * @brief floodFill2D
+     * @brief _floodFill2D
      * Performs a 2D flood-filling operation.
+     * @param axis
+     * @param verbose
      */
-    void _floodFill2D(const SOLID_VOXELIZATION_AXIS& axis);
+    void _floodFill2D(const SOLID_VOXELIZATION_AXIS& axis, const bool &verbose = true);
+
+    /**
+     * @brief _floodFill2DROI
+     * @param axis
+     * @param x1
+     * @param x2
+     * @param y1
+     * @param y2
+     * @param z1
+     * @param z2
+     * @param verbose
+     */
+    void _floodFill2DROI(const SOLID_VOXELIZATION_AXIS& axis,
+                         const size_t& x1, const size_t x2,
+                         const size_t& y1, const size_t y2,
+                         const size_t& z1, const size_t z2,
+                         const bool &verbose = true);
 
     /**
      * @brief _floodFillAlongAxis
      * @param grid
      * @param axis
+     * @param verbose
      */
-    void _floodFillAlongAxis(VolumeGrid* grid, const SOLID_VOXELIZATION_AXIS &axis);
+    void _floodFillAlongAxis(VolumeGrid* grid, const SOLID_VOXELIZATION_AXIS &axis,
+                             const bool &verbose = true);
+
+    void _floodFillAlongAxisROI(VolumeGrid* grid, const SOLID_VOXELIZATION_AXIS &axis,
+                                const size_t& x1, const size_t x2,
+                                const size_t& y1, const size_t y2,
+                                const size_t& z1, const size_t z2,
+                                const bool &verbose);
 
     /**
      * @brief _floodFillAlongXYZ
      * @param grid
+     * @param verbose
      */
-    void _floodFillAlongXYZ(VolumeGrid *grid);
+    void _floodFillAlongXYZ(VolumeGrid *grid, const bool &verbose = true);
+
+    /**
+     * @brief _floodFillAlongXYZROI
+     * @param grid
+     * @param x1
+     * @param x2
+     * @param y1
+     * @param y2
+     * @param z1
+     * @param z2
+     * @param verbose
+     */
+    void _floodFillAlongXYZROI(VolumeGrid *grid,
+                               const size_t& x1, const size_t x2,
+                               const size_t& y1, const size_t y2,
+                               const size_t& z1, const size_t z2,
+                               const bool &verbose = true);
 
     /**
      * @brief floodFill3D

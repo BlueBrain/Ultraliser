@@ -428,6 +428,25 @@ public:
     void floodFillSliceAlongAxis(const int64_t &x, const AXIS &axis, const size_t &padding = 0);
 
     /**
+     * @brief floodFillSliceAlongAxisROI
+     * @param sliceIndex
+     * @param axis
+     * @param x1
+     * @param x2
+     * @param y1
+     * @param y2
+     * @param z1
+     * @param z2
+     * @param padding
+     */
+    void floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
+                                    const AXIS &axis,
+                                    const size_t& x1, const size_t x2,
+                                    const size_t& y1, const size_t y2,
+                                    const size_t& z1, const size_t z2,
+                                    const size_t &padding=2);
+
+    /**
      * @brief getByte
      * @param index
      * @return
