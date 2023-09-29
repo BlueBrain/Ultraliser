@@ -43,7 +43,6 @@ void NeuronSkeletonizer::skeletonizeVolume()
 
     applyVolumeThinning();
 
-
     LOG_STATUS_IMPORTANT("Skeletonization Stats.");
     LOG_STATS(GET_TIME_SECONDS);
 }
@@ -107,6 +106,7 @@ void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
     // Reverse
     std::reverse(pairsVector.begin(), pairsVector.end());
 
+    /// TODO: Fix me
     size_t numberSelectedNodes = 50;
 
     TIMER_SET;
@@ -154,8 +154,6 @@ void NeuronSkeletonizer::_segmentSomaVolume()
 
     // Get the volume bounds of the soma
     auto somaVolumeBounds = _volume->getROIBounds(pMinSomaMesh, pMaxSomaMesh);
-
-
 
     std::cout << "Soma Bounds * : "
               << somaVolumeBounds.x1 << "," << somaVolumeBounds.x2 << ","
@@ -340,20 +338,20 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
                 }
                 else
                 {
-                    LOG_WARNING("Undefined case for the branch identification!");
+                    LOG_WARNING("Undefined case for the branch identification! Possible Errors!");
                 }
             }
         }
     }
 }
 
-void NeuronSkeletonizer::exportSomaMesh(const std::string& filePrefix,
+void NeuronSkeletonizer::exportSomaMesh(const std::string& prefix,
                                         const bool& formatOBJ = false,
                                         const bool& formatPLY = false,
                                         const bool& formatOFF = false,
                                         const bool& formatSTL = false)
 {
-    const std::string somaMeshPrefix = filePrefix + "-soma";
+    const std::string somaMeshPrefix = prefix + "-soma";
     _somaMesh->exportMesh(somaMeshPrefix, formatOBJ, formatPLY, formatOFF, formatSTL);
 }
 
@@ -459,11 +457,10 @@ void NeuronSkeletonizer::exportSWCFile(const std::string& prefix)
                << swcNode->prevSampleSWCIndex << "\n";
     }
     LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     // Close the file
     stream.close();
-
-    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) const
@@ -508,39 +505,6 @@ void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) con
 
     // Close the file
     stream.close();
-
-    filePath = prefix + "-non-somatic-samples" + TXT_EXTENSION;
-    stream.open(filePath, std::ios::out);
-    for (size_t i = 0; i < _nodes.size(); ++i)
-    {
-        auto& node = _nodes[i];
-
-        if (!node->insideSoma)
-        {
-            stream << node->point.x() << " "
-                   << node->point.y() << " "
-                   << node->point.z() << " "
-                   << node->radius << "\n";
-        }
-    }
-     stream.close();
-
-
-    filePath = prefix + "-samples" + TXT_EXTENSION;
-    stream.open(filePath, std::ios::out);
-    for (size_t i = 0; i < _nodes.size(); ++i)
-    {
-        auto& node = _nodes[i];
-
-        if (node->insideSoma)
-        {
-            stream << node->point.x() << " "
-                   << node->point.y() << " "
-                   << node->point.z() << " "
-                   << node->radius << "\n";
-        }
-    }
-     stream.close();
 }
 
 void NeuronSkeletonizer::_filterLoopsBetweenTwoBranchingPoints()

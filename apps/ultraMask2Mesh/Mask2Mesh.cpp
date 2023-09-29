@@ -29,12 +29,12 @@ namespace Ultraliser
 AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
-    std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This tool reconstructs a watertight mesh from a .tiff mask "
-              "extracted from an EM stack. The .tiff mask is given as a series "
-              "of .tif images in a single directory. The reconstructed mesh "
-              "can be optimized to create a mesh with nicer topology and less "
-              "tessellation.");
+    std::unique_ptr< AppArguments > args = std::make_unique < AppArguments >(
+        argc, argv, COPYRIGHT
+        "This tool reconstructs a watertight mesh from a TIFF mask that is normally extracted from "
+        "an EM stack. The TIFF mask is given as a series of .tif or .tiff images in a single "
+        "directory. The reconstructed mesh can be optimized to create a mesh with nicer topology "
+        "and less tessellation.");
 
     args->addInputMaskDirectoryArguments();
     args->addMaskArguments();

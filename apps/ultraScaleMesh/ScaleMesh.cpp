@@ -29,9 +29,12 @@ namespace Ultraliser
 AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
-    std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This tool scales an input mesh in the X, Y and Z dimensions with given scale factors "
-              "to fit.");
+    std::unique_ptr< AppArguments > args = std::make_unique< AppArguments >(
+        argc, argv, COPYRIGHT
+        "This application scales an input mesh in the X, Y and Z dimensions based on a set of given "
+        "scale factors along each axis individually. The application is normally used as a "
+        "pre-processing tools to scale small or large scale meshes that are needed for remeshing "
+        "or skeletonization.");
 
     args->addInputMeshArguments();
     args->addOutputArguments();

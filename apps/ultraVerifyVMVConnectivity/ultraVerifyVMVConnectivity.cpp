@@ -31,9 +31,10 @@ namespace Ultraliser
 AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
-    std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This tools verifies the connecitivty of the VMV datasets and creates the "
-              "connectivity if it is missing.");
+    std::unique_ptr< AppArguments > args = std::make_unique< AppArguments >(
+        argc, argv, COPYRIGHT
+        "This tools verifies the connecitivty of the VMV datasets and creates the "
+        "connectivity if it is missing.");
 
     args->addInputMorphologyArguments();
     args->addOutputArguments();

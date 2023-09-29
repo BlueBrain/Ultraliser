@@ -29,13 +29,14 @@ namespace Ultraliser
 AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
-    std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This tool takes an input mesh that is relatively valid, i.e "
-              "with no crappy geometries, but might have holes, non advanced "
-              "edges and vertices or have self-intersections. The resulting "
-              "mesh will be watertight, and could be optimized too."
-              "This tool is better than using the voxelization-based remeshing "
-              "in ultraMesh2Mesh in terms of time and space complexity.");
+    std::unique_ptr< AppArguments > args = std::make_unique < AppArguments >(
+        argc, argv, COPYRIGHT
+        "This application takes an input mesh that is relatively valid, i.e with no crappy "
+        "geometries, but might have holes, non-manifold edges and vertices or have "
+        "self-intersections. The resulting mesh will be watertight, and could be optimized too."
+        "The application is better than using the voxelization-based remeshing "
+        "in ultraMesh2Mesh in terms of time and space complexity, but it is not guranteed to work "
+        "if the mesh is severely fragmented, for example if a triangle soupe is given.");
 
     args->addInputMeshArguments();
     args->addOutputArguments();

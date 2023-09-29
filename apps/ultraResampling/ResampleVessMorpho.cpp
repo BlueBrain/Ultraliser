@@ -29,8 +29,9 @@ namespace Ultraliser
 AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
-    std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This application resamples an input vascular morphology skeleton.");
+    std::unique_ptr< AppArguments > args = std::make_unique< AppArguments >(
+        argc, argv, COPYRIGHT
+        "This application resamples an input vascular morphology skeleton.");
 
     args->addInputMorphologyArguments();
     args->addOutputArguments();

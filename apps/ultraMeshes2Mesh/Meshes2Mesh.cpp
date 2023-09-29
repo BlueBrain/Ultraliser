@@ -29,13 +29,14 @@ namespace Ultraliser
 AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
-    std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This tool generates an output mesh from a group of different input meshes."
-              "The tool can naively append a group of meshes together into a single mesh object "
-              "with multuple partitions if you enable the flag [--use-simple-mesh-join], or use "
-              "volume reconstruction to reconstruct a mesh via volume reconstruction. The latter "
-              "approach creates a high quality mesh that is guaranteed to be watertight even if all "
-              "the input meshes are NOT watertights." );
+    std::unique_ptr< AppArguments > args = std::make_unique< AppArguments >(
+        argc, argv, COPYRIGHT
+        "This application generates an output mesh from a group of different input meshes."
+        "The tool can naively append a group of meshes together into a single mesh object "
+        "with multuple partitions if you enable the flag [--use-simple-mesh-join], or use "
+        "volume reconstruction to reconstruct a mesh via volume reconstruction. The latter "
+        "approach creates a high quality mesh that is guaranteed to be watertight even if all "
+        "the input meshes are NOT watertights." );
 
     args->addInputMeshesDirectoryArguments();
     args->addOutputArguments();

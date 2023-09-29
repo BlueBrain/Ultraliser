@@ -185,7 +185,7 @@ void ArgumentParser::showHelpIfNeeded()
     {
         // Show tha application help
         printf("\n\t* About %s \n\n %s \n\n",
-               _argv[0], String::formatStringToMultiLine(_applicationHelp, 60, true).c_str());
+               _argv[0], String::formatStringToMultiLine(_applicationHelp, 80, true).c_str());
 
         printf("\t* Arguments \n\n");
         for (const auto& argument: _arguments)

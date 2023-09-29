@@ -48,10 +48,18 @@ typedef std::pair< int64_t, int64_t > EdgeIndex;
  */
 typedef std::vector< EdgeIndex > EdgesIndices;
 
-
+/**
+ * @brief The ShortestPathFinder class
+ */
 class ShortestPathFinder
 {
 public:
+
+    /**
+     * @brief ShortestPathFinder
+     * @param edges
+     * @param numberNodes
+     */
     ShortestPathFinder(const SkeletonWeightedEdges &edges, const size_t& numberNodes);
     ~ShortestPathFinder();
 

@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2022
+ * Copyright (c) 2016 - 2023
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -28,11 +28,12 @@ namespace Ultraliser
 
 AppOptions* parseArguments(const int& argc , const char** argv)
 {
-    std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This tool reconstructs a watertight polygonal mesh from an input "
-              "non-watertight mesh. The generated mesh can be also optimized to "
-              "reduce the number of triangles while preserving the volume. "
-              "The output mesh is guaranteed in all cases to be two-manifold");
+    std::unique_ptr< AppArguments > args = std::make_unique < AppArguments >(
+        argc, argv, COPYRIGHT
+        "This application reconstructs a watertight polygonal mesh from an input "
+        "non-watertight mesh. The generated mesh can be also optimized to "
+        "reduce the number of triangles while preserving the volume. "
+        "The output mesh is guaranteed in all cases to be two-manifold.");
 
     args->addInputMeshArguments();
     args->addOutputArguments();

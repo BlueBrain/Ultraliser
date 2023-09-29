@@ -29,9 +29,11 @@ namespace Ultraliser
 AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
-    std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This application splits an input mesh with multiple partitions into multiple "
-              "meshes with single partitions.");
+    std::unique_ptr< AppArguments > args = std::make_unique< AppArguments >(
+        argc, argv, COPYRIGHT
+        "This application splits an input mesh with multiple partitions into multiple meshes each "
+        "contains a single partition. This application is normally used to clean fragmented meshes "
+        "in pre-processing steps of other applications.");
 
     args->addInputMeshArguments();
     args->addOutputArguments();

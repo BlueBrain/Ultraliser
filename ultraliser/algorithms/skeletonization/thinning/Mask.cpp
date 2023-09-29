@@ -24,8 +24,9 @@
 #include "Mask.h"
 #include "Neighbors.hh"
 #include "RotationMatrices.hh"
-
 #include <common/Headers.hh>
+
+#define NEIGHBOURING_VOXELS 26
 
 namespace Ultraliser
 {
@@ -33,13 +34,13 @@ namespace Ultraliser
 Mask::Mask()
 {
     // Allocate the masks
-    _mask0 = new int8_t[26];
-    _mask90 = new int8_t[26];
-    _mask180 = new int8_t[26];
-    _mask270 = new int8_t[26];
+    _mask0      = new int8_t[ NEIGHBOURING_VOXELS ];
+    _mask90     = new int8_t[ NEIGHBOURING_VOXELS ];
+    _mask180    = new int8_t[ NEIGHBOURING_VOXELS ];
+    _mask270    = new int8_t[ NEIGHBOURING_VOXELS ];
 
     // Initialize all the masks with -1
-    for (size_t i = 0; i < 26; ++i)
+    for (size_t i = 0; i < NEIGHBOURING_VOXELS; ++i)
     {
         _mask0[i] = _mask90[i] = _mask180[i] = _mask270[i] = -1;
     }
@@ -68,7 +69,6 @@ void Mask::updateDirection(DIRECTION newDirection)
     _direction = newDirection;
 }
 
-
 void Mask::printDirection()
 {
     printf("%c\n",direction);
@@ -82,18 +82,30 @@ void Mask::printDirection()
 void Mask::set_mask_from_u(int8_t umask[26])
 {
     if (direction == ' ') return;
+
     rotate(umask, _mask0,'x');
+
     if (direction == 'n') return;
+
     rotate(_mask0, _mask0,'x');
+
     if (direction == 'd') return;
+
     rotate(_mask0, _mask0,'x');
+
     if (direction == 's') return;
+
     rotate(_mask0, _mask0,'x');
+
     if (direction == 'u') return;
+
     rotate(_mask0, _mask0,'z');
+
     if (direction == 'w') return;
+
     rotate(_mask0, _mask0,'z');
     rotate(_mask0, _mask0,'z');
+
     if (direction == 'e') return;
 }
 
@@ -168,8 +180,8 @@ void Mask::rotate(int8_t input[26], int8_t *output,char axis)
     }
 
     // Update the output vector
-    // OMP_PARALLEL_FOR
-    for (size_t i =0; i < 26; ++i)
+    // TODO: OMP_PARALLEL_FOR
+    for (size_t i = 0; i < NEIGHBOURING_VOXELS; ++i)
         output[i] = aux[VDX[i] + 1][VDY[i] + 1][VDZ[i] + 1];
 }
 

@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2022
+ * Copyright (c) 2016 - 2023
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -28,8 +28,9 @@ namespace Ultraliser
 
 AppOptions* parseArguments(const int& argc , const char** argv)
 {
-    std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This tool reconstructs a volume from an input mesh.");
+    std::unique_ptr< AppArguments > args = std::make_unique < AppArguments >(
+        argc, argv, COPYRIGHT
+        "This tool reconstructs a volume from an input mesh, even if the mesh is not watertight.");
 
     args->addInputMeshArguments();
     args->addOutputArguments();

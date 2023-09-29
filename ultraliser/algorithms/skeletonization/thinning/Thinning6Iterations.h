@@ -36,18 +36,17 @@ namespace Ultraliser
  * depending on the given direction.
  * The indices of the faces are set as follows:
  *
- *     0  1  2
- *     3  4  5
- *     6  7  8
+ *     00  01  02
+ *     03  04  05
+ *     06  07  08
  *
- *     9 10 11
- *     12    13
- *     14 15 16
+ *     09  10  11
+ *     12      13
+ *     14  15  16
  *
- *     17 18 19
- *     20 21 22
- *     23 24 25
- *
+ *     17  18  19
+ *     20  21  22
+ *     23  24  25
  */
 class Thinning6Iterations
 {

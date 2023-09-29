@@ -30,10 +30,12 @@ namespace Ultraliser
 AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
-    std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This tools converts meshes stored in H5 format into regular mesh objects that can "
-              "be read with ordinary rendering applications like Blender or MeshLab! "
-              "Note that the input mesh must bet a .H5 file.");
+    std::unique_ptr< AppArguments > args = std::make_unique < AppArguments >(
+        argc, argv, COPYRIGHT
+        "This application converts meshes stored in H5 format (that are available from the "
+        "MICrONS Explorer) into regular mesh objects that can be read with ordinary rendering "
+        "applications like (c) Blender or (c) MeshLab! "
+        "Note that the input mesh must bet a .H5 file.");
 
     args->addInputMeshArguments();
     args->addOutputArguments();

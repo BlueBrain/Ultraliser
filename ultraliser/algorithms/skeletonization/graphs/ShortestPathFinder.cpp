@@ -26,7 +26,7 @@
 namespace Ultraliser
 {
 
-ShortestPathFinder::ShortestPathFinder(const SkeletonWeightedEdges &edges,
+ShortestPathFinder::ShortestPathFinder(const SkeletonWeightedEdges& edges,
                                        const size_t& numberNodes)
     : _numberNodes(numberNodes)
 {
@@ -80,7 +80,7 @@ PathsIndices ShortestPathFinder::_findShortestPathesWithDijkstra(int64_t sourceN
         }
     }
 
-    // COnstruct the paths in a reverse way
+    // Construct the paths in a reverse way
     PathsIndices paths;
     paths.resize(_numberNodes);
     for (int i = 0; i < _numberNodes; i++)
@@ -173,7 +173,6 @@ void ShortestPathFinder::_releaseGraph()
     }
     delete [] _graph;
 }
-
 
 ShortestPathFinder::~ShortestPathFinder()
 {

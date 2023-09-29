@@ -28,13 +28,10 @@ namespace Ultraliser
 AppOptions* parseArguments(const int& argc, const char** argv)
 {
     // Arguments
-    std::unique_ptr<AppArguments> args = std::make_unique<AppArguments>(
-        argc, argv,
-        "This tool reconstructs a watertight polygonal mesh from an input neuron morphology. "
-        "The generated mesh can be also optimized to reduce the number of triangles while "
-        "preserving the volume. "
-        "The output mesh is guaranteed in all cases to be two-manifold with no self-intersections"
-        "unless the --ignore-self-intersections flag is enabled.");
+    std::unique_ptr<AppArguments> args = std::make_unique< AppArguments >(
+        argc, argv, COPYRIGHT
+        "This application constructs a watertighth mesh of a given astrocytic morphology with "
+        "endfeet data.");
 
     // Adding the arguments
     args->addInputMorphologyArguments();

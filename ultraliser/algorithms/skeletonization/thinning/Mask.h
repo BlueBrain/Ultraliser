@@ -46,15 +46,36 @@ public:
      */
     enum DIRECTION { U, D, E, W, N, S, UNSPECIFIED };
 
+    /**
+     * @brief Mask
+     */
     Mask();
     ~Mask();
 
+    /**
+     * @brief printMask
+     */
     void printMask();
+
+    /**
+     * @brief printMasks
+     */
     void printMasks();
 
-    void generateRotations();					 // Generates  the rotated  masks
+    /**
+     * @brief generateRotations
+     */
+    void generateRotations();
+
+    /**
+     * @brief printDirection
+     */
     void printDirection();
 
+    /**
+     * @brief setDirection
+     * @param d
+     */
     void setDirection(char d);
 
     /**
@@ -65,21 +86,53 @@ public:
 
     // Tests if one of the four masks  (0, 90, 180 and 270) matchs with the neighborhood of the
     // voxel p  in the volume Vol
+
+    /**
+     * @brief matches
+     * @param subVolume
+     * @return
+     */
     bool matches(const int8_t *subVolume);
 
 
     // Generates the four masks from the mask "umask" in up direction
+
+    /**
+     * @brief set_mask_from_u
+     * @param umask
+     */
     void set_mask_from_u(int8_t umask[]);
 
 private:
 
+    /**
+     * @brief _mask0
+     */
     int8_t *_mask0;
+
+    /**
+     * @brief _mask90
+     */
     int8_t *_mask90;
+
+    /**
+     * @brief _mask180
+     */
     int8_t *_mask180;
+
+    /**
+     * @brief _mask270
+     */
     int8_t *_mask270;
 
+    /**
+     * @brief direction
+     */
     char direction;
 
+    /**
+     * @brief _direction
+     */
     DIRECTION _direction;
 
     // Static functions to match and rotate the vectors

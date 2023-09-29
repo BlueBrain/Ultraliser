@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2022
+ * Copyright (c) 2016 - 2023
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -22,20 +22,21 @@
 #include <Ultraliser.h>
 #include <AppCommon.h>
 #include <AppArguments.h>
-#include <data/meshes/simple/IcoSphere.h>
 #include <algorithms/skeletonization/NeuronSkeletonizer.h>
-#include <geometry/Sphere.h>
 
 namespace Ultraliser
 {
 
 AppOptions* parseArguments(const int& argc , const char** argv)
 {
-    std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "This tool reconstructs a watertight polygonal mesh from an input "
-              "non-watertight mesh. The generated mesh can be also optimized to "
-              "reduce the number of triangles while preserving the volume. "
-              "The output mesh is guaranteed in all cases to be two-manifold");
+    std::unique_ptr< AppArguments > args = std::make_unique< AppArguments >(
+        argc, argv, COPYRIGHT
+        "This application reconstructs a high quality neuronal morphology skeleton (directed "
+        "acyclic graph) from an input mesh model of the neuron. If this mesh contains spines, the "
+        "application is capable of segmenting those spines and reconstruct high quality skeletons "
+        "of the individual spines and providing some information on their types and locations. "
+        "The application requires a neuronal mesh to create a valid morphology skeleton. "
+        "The scale of the input mesh must be microns.");
 
     args->addInputMeshArguments();
     args->addOutputArguments();
@@ -85,7 +86,6 @@ void run(int argc , const char** argv)
     solidVolume->surfaceVoxelization(inputMesh, false, false, 1.0);
     solidVolume->solidVoxelization(options->voxelizationAxis);
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
-
 
     // Create a skeletonization object
     NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(solidVolume, inputMesh);

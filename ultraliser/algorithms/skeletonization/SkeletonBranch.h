@@ -36,8 +36,6 @@ enum BRANCH_CONNECTION_TYPE{
     ROOT_AND_TERMINAL,
 };
 
-
-
 /**
  * @brief The SkeletonBranch struct
  * A branch in the segmented skeleton.
@@ -221,9 +219,6 @@ public:
      * Connecting branches at termianl 2.
      */
     std::vector< SkeletonBranch* > t2Connections;
-
-
-
 
 private:
 

@@ -28,7 +28,6 @@
 namespace Ultraliser
 {
 
-
 /**
  * @brief The DirectionalMask class
  * Store M1, M2, M3, M4, M5 and M6 masks for a given direction.

@@ -29,11 +29,12 @@ namespace Ultraliser
 AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
-    std::unique_ptr< AppArguments > args = std::make_unique <AppArguments>(argc, argv,
-              "ultraVolume2Mesh reconstructs a watertight mesh from a given volume."
-              "The volume can be a .NRRD file, a RAW file in .HDR/.IMG or an Ulrraliser-specific "
-              "volume in .UVOL or .UVOLB. The reconstructed mesh is optimized to create clean "
-              "topology and less tessellation.");
+    std::unique_ptr< AppArguments > args = std::make_unique< AppArguments >(
+        argc, argv, COPYRIGHT
+        "This application reconstructs a watertight (two-manifold) mesh model from a given volume."
+        "The volume can be a .NRRD file, a RAW file in .HDR/.IMG or an Ulrraliser-specific "
+        "volume in .UVOL or .UVOLB. The reconstructed mesh is further optimized to create clean "
+        "topology and less tessellation.");
 
     args->addInputVolumeArguments();
     args->addInputVolumeParametersArguments();

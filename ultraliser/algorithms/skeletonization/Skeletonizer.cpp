@@ -800,9 +800,6 @@ void Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& nodes)
 
                             branch->index = branchIndex;
 
-                            // TODO: Remove
-                            // branch->setValid();
-
                             branchIndex++;
                             _branches.push_back(branch);
                         }

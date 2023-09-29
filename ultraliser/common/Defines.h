@@ -245,3 +245,7 @@
 
 // Application done
 #define ULTRALISER_DONE                         printf("\n"); return EXIT_SUCCESS;
+
+// Application copyright
+#define COPYRIGHT \
+"Copyright Blue Brain Project (BBP) / École polytechnique fédérale de Lausanne (EPFL). "

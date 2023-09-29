@@ -28,33 +28,52 @@
 namespace Ultraliser
 {
 
+/**
+ * @brief The GraphBranch class
+ */
 class GraphBranch
 {
-
-
 public:
-    GraphBranch(int64_t index)
+
+    /**
+     * @brief GraphBranch
+     * @param index
+     */
+    GraphBranch(const int64_t& index)
     {
         this->index = index;
     }
 
+    /**
+     * @brief printTree
+     * @param order
+     */
     void printTree(size_t order = 0)
     {
-        std::cout << std::string(order * 4, '-') << skeletonIndex << "\n";
+        std::cout << std::string(order * 2, '-') << skeletonIndex << std::endl;
         for (size_t i = 0; i < children.size(); ++i)
         {
             children[i]->printTree(order + 1);
         }
     }
 
+    /**
+     * @brief printStatus
+     */
     void printStatus()
     {
         if (this->isRoot)
         {
-            std::cout << "Branch " << this->skeletonIndex << " is Root \n";
+            std::cout << "Branch " << this->skeletonIndex << " is root" << std::endl;
         }
     }
 
+    /**
+     * @brief hasTerminalNodes
+     * @param node1Index
+     * @param node2Index
+     * @return
+     */
     bool hasTerminalNodes(const size_t& node1Index, const size_t& node2Index)
     {
         if (node1Index == firstNodeIndex && node2Index == lastNodeIndex)
@@ -70,23 +89,62 @@ public:
         return false;
     }
 
+public:
+
+    /**
+     * @brief firstNodeIndex
+     */
     size_t firstNodeIndex;
+
+    /**
+     * @brief lastNodeIndex
+     */
     size_t lastNodeIndex;
 
+    /**
+     * @brief firstNodeSkeletonIndex
+     */
     size_t firstNodeSkeletonIndex;
+
+    /**
+     * @brief lastNodeSkeletonIndex
+     */
     size_t lastNodeSkeletonIndex;
 
+    /**
+     * @brief index
+     */
     int64_t index;
+
+    /**
+     * @brief skeletonIndex
+     */
     size_t skeletonIndex;
 
+    /**
+     * @brief parent
+     */
     GraphBranch* parent;
+
+    /**
+     * @brief children
+     */
     std::vector< GraphBranch* > children;
 
+    /**
+     * @brief isRoot
+     */
     bool isRoot = false;
+
+    /**
+     * @brief active
+     */
     bool active = false;
 };
 
-
+/**
+ * @brief GraphBranches
+ */
 typedef std::vector< GraphBranch* > GraphBranches;
 
 }
