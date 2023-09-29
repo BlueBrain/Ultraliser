@@ -31,6 +31,7 @@
 #include <data/volumes/utilities/VolumeData.hh>
 #include <algorithms/skeletonization/thinning/Thinning6Iterations.h>
 #include <data/volumes/voxels/CandiateVoxel.h>
+#include <utilities/Occupancy.h>
 #include <utilities/OccupancyRange.h>
 
 namespace Ultraliser
@@ -950,11 +951,20 @@ public:
 
     VolumeOccpuancyRanges getOccupancyRanges();
 
+    VolumeOccpuancy getVolumeOccupancy();
+
     Bounds3D_ui64 getROIBounds(const Vector3f& pMin, const Vector3f& pMax);
+
+    void projectXY(const std::string& prefix, const bool &projectColorCoded = false);
+    void projectYZ(const std::string& prefix, const bool &projectColorCoded = false) const;
+    void projectXZ(const std::string& prefix, const bool &projectColorCoded = false) const;
+
 
 private:
 
     void _buildOccupancyRanges();
+
+    void _buildVolumeOccupancy();
 
     /**
      * @brief _allocateGrid
@@ -1281,6 +1291,11 @@ private:
      * @brief _volumeOccupancyRanges
      */
     VolumeOccpuancyRanges _volumeOccupancyRanges;
+
+    /**
+     * @brief _volumeOccupancy
+     */
+    VolumeOccpuancy _volumeOccupancy;
 
 public:
 

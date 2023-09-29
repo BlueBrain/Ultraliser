@@ -87,6 +87,7 @@ void run(int argc , const char** argv)
     solidVolume->solidVoxelization(options->voxelizationAxis);
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
 
+
     // Create a skeletonization object
     NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(solidVolume, inputMesh);
 

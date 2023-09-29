@@ -161,27 +161,29 @@ void NeuronSkeletonizer::_segmentSomaVolume()
               << somaVolumeBounds.z1 << ", " << somaVolumeBounds.z2 << "\n";
 
     // Set new bounds for the soma to ensure capturing everhting
-    auto x1 = static_cast< size_t >(0.5 * somaVolumeBounds.x1);
-    auto x2 = static_cast< size_t >(2 * somaVolumeBounds.x2);
+    auto x1 = static_cast< size_t >(somaVolumeBounds.x1);
+    auto x2 = static_cast< size_t >(somaVolumeBounds.x2);
     if (x2 >= _volume->getWidth()) x2 = _volume->getWidth() - 1;
 
-    auto y1 = static_cast< size_t >(0.5 * somaVolumeBounds.y1);
-    auto y2 = static_cast< size_t >(2 * somaVolumeBounds.y2);
+    auto y1 = static_cast< size_t >(somaVolumeBounds.y1);
+    auto y2 = static_cast< size_t >(somaVolumeBounds.y2);
     if (y2 >= _volume->getHeight()) y2 = _volume->getHeight() - 1;
 
-    auto z1 = static_cast< size_t >(0.5 * somaVolumeBounds.z1);
-    auto z2 = static_cast< size_t >(2 * somaVolumeBounds.z2);
+    auto z1 = static_cast< size_t >(somaVolumeBounds.z1);
+    auto z2 = static_cast< size_t >(somaVolumeBounds.z2);
     if (z2 >= _volume->getDepth()) z2 = _volume->getDepth() - 1;
 
         // Apply the solid voxelization only to the selected region of interest to save time flood-filling large slices
     _volume->solidVoxelizationROI(Volume::SOLID_VOXELIZATION_AXIS::X, x1, x2, y1, y2, z1, z2);
 
     // Apply the solid voxelization only to the selected region of interest to save time flood-filling large slices
-    // _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
-
+    // _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::X);
 
     // _volume->project("/data/microns-skeletonization-meshes/skeletonization-output-spines/morphologies/out", true, true, true);
-     LOG_STATS(GET_TIME_SECONDS);
+    // LOG_STATS(GET_TIME_SECONDS);
+
+    // exit(0);
+
 
     // Get a reference to the occupancy ranges in case it is not computed
     auto occupancyRanges = _volume->getOccupancyRanges();

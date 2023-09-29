@@ -342,63 +342,41 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
     // Slice dimensions
     int64_t sliceWidth, sliceHeight, sliceSize;
 
-    // Volume dimensions along the slice
-    int64_t volumeWidth, volumeHeight;
+    // The dimensions of the ROI within the volume itself
+    size_t widthROI, heightROI;
 
     switch (axis)
     {
     // YZ axis
     case AXIS::X:
     {
-        sliceWidth = (y2 - y1 + 1) + 2 * padding;
-        sliceHeight = (z2 - z1 + 1) + 2 * padding;
-        sliceSize = sliceWidth * sliceHeight;
+        // Set the dimensions of the ROI (slice) within the volume itself
+        widthROI = y2 - y1 + 1;
+        heightROI = z2 - z1 + 1;
+    } break;
 
-        volumeWidth = (y2 - y1 + 1);
-        volumeHeight = (z2 - z1 + 1);
-        break;
-    }
-
-        // XZ axis
+    // XZ axis
     case AXIS::Y:
     {
-//        sliceWidth = getWidth() + 2 * padding;
-//        sliceHeight = getDepth() + 2 * padding;
-//        sliceSize = sliceWidth * sliceHeight;
+        // Set the dimensions of the ROI (slice) within the volume itself
+        widthROI = (x2 - x1 + 1);
+        heightROI = (z2 - z1 + 1);
+    } break;
 
-//        volumeWidth = getWidth();
-//        volumeHeight = getDepth();
-
-        sliceWidth = (x2 - x1 + 1) + 2 * padding;
-        sliceHeight = (z2 - z1 + 1) + 2 * padding;
-        sliceSize = sliceWidth * sliceHeight;
-
-        volumeWidth = (x2 - x1 + 1);
-        volumeHeight = (z2 - z1 + 1);
-        break;
-    }
-
-        // XY axis
+    // XY axis
     case AXIS::Z:
     {
-        // Dimensions
-//        sliceWidth = getWidth() + 2 * padding;
-//        sliceHeight = getHeight() + 2 * padding;
-//        sliceSize = sliceWidth * sliceHeight;
+        // Set the dimensions of the ROI (slice) within the volume itself
 
-//        volumeWidth = getWidth();
-//        volumeHeight = getHeight();
-
-        sliceWidth = (x2 - x1 + 1) + 2 * padding;
-        sliceHeight = (y2 - y1 + 1) + 2 * padding;
-        sliceSize = sliceWidth * sliceHeight;
-
-        volumeWidth = (x2 - x1 + 1);
-        volumeHeight = (y2 - y1 + 1);
-
-        break;
+        widthROI = (x2 - x1 + 1);
+        heightROI = (y2 - y1 + 1);
+    } break;
     }
-    }
+
+    // Set the dimensions of the slice that will be used for the flood-filling, add the padding
+    sliceWidth = widthROI + (2 * padding);
+    sliceHeight = heightROI + (2 * padding);
+    sliceSize = sliceWidth * sliceHeight;
 
     // Create an X-slice
     Image* slice = new Image(sliceWidth, sliceHeight);
@@ -411,12 +389,12 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
     case AXIS::X:
     {
         // Fill the slice with the surface voxels (pixels in the image)
-        for (int64_t i = y1; i < volumeWidth; ++i)
+        for (int64_t i = 0; i < widthROI; ++i)
         {
-            for (int64_t j = z1; j < volumeHeight; ++j)
+            for (int64_t j = 0; j < heightROI; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(sliceIndex, i, j, outlier);
+                size_t index = mapToIndex(sliceIndex, i + y1, j + z1, outlier);
                 if (isFilled(index) && !outlier)
                     slice->setPixelColor(i + padding, j + padding, GRAY);
                 else
@@ -428,12 +406,12 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
     case AXIS::Y:
     {
         // Fill the slice with the surface voxels (pixels in the image)
-        for (int64_t i = x1; i < volumeWidth; ++i)
+        for (int64_t i = 0; i < widthROI; ++i)
         {
-            for (int64_t j = z1; j < volumeHeight; ++j)
+            for (int64_t j = 0; j < heightROI; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(i, sliceIndex, j, outlier);
+                size_t index = mapToIndex(i + x1, sliceIndex, j + z1, outlier);
                 if (isFilled(index) && !outlier)
                     slice->setPixelColor(i + padding, j + padding, GRAY);
                 else
@@ -445,12 +423,12 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
     case  AXIS::Z:
     {
         // Fill the slice with the surface voxels (pixels in the image)
-        for (int64_t i = x1; i < volumeWidth; ++i)
+        for (int64_t i = 0; i < widthROI; ++i)
         {
-            for (int64_t j = y1; j < volumeHeight; ++j)
+            for (int64_t j = 0; j < heightROI; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(i, j, sliceIndex, outlier);
+                size_t index = mapToIndex(i + x1, j + y1, sliceIndex, outlier);
                 if (isFilled(index) && !outlier)
                     slice->setPixelColor(i + padding, j + padding, GRAY);
                 else
@@ -471,12 +449,12 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
     {
     case AXIS::X:
     {
-        for (int64_t i = y1; i < volumeWidth; ++i)
+        for (int64_t i = 0; i < widthROI; ++i)
         {
-            for (int64_t j = z1; j < volumeHeight; ++j)
+            for (int64_t j = 0; j < heightROI; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(sliceIndex, i, j, outlier);
+                size_t index = mapToIndex(sliceIndex, i + y1, j + z1, outlier);
                 if (slice->getPixelColor(i , j) == BLACK && !outlier)
                     clearVoxel(index);
                 else
@@ -487,12 +465,12 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
 
     case AXIS::Y:
     {
-        for (int64_t i = x1; i < volumeWidth; ++i)
+        for (int64_t i = 0; i < widthROI; ++i)
         {
-            for (int64_t j = z1; j < volumeHeight; ++j)
+            for (int64_t j = 0; j < heightROI; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(i, sliceIndex, j, outlier);
+                size_t index = mapToIndex(i + x1, sliceIndex, j + z1, outlier);
                 if (slice->getPixelColor(i , j) == BLACK && !outlier)
                     clearVoxel(index);
                 else
@@ -503,12 +481,12 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
 
     case  AXIS::Z:
     {
-        for (int64_t i = x1; i < volumeWidth; ++i)
+        for (int64_t i = 0; i < widthROI; ++i)
         {
-            for (int64_t j = y1; j < volumeHeight; ++j)
+            for (int64_t j = 0; j < heightROI; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(i, j, sliceIndex, outlier);
+                size_t index = mapToIndex(i + x1, j + y1, sliceIndex, outlier);
                 if (slice->getPixelColor(i , j) == BLACK && !outlier)
                     clearVoxel(index);
                 else
@@ -516,7 +494,6 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
             }
         }
     } break;
-
     }
 
     delete slice;

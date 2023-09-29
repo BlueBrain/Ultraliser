@@ -553,24 +553,23 @@ void Volume::_createGrid(void)
 Bounds3D_ui64 Volume::getROIBounds(const Vector3f& pMin, const Vector3f& pMax)
 {
     // Distance from pMin to _pMin and pMax to _pMin
-    float dx1 = pMin.x() - _pMin.x();
-    float dx2 = pMax.x() - _pMin.x();
-    float dy1 = pMin.y() - _pMin.y();
-    float dy2 = pMax.y() - _pMin.y();
-    float dz1 = pMin.z() - _pMin.z();
-    float dz2 = pMax.z() - _pMin.z();
+    const float dx1 = pMin.x() - _pMin.x();
+    const float dx2 = pMax.x() - _pMin.x();
+    const float dy1 = pMin.y() - _pMin.y();
+    const float dy2 = pMax.y() - _pMin.y();
+    const float dz1 = pMin.z() - _pMin.z();
+    const float dz2 = pMax.z() - _pMin.z();
 
     // Compute the corresponding number of voxels, given that the voxel size is known
-    auto x1 = static_cast< uint64_t >(std::floor(dx1 / _voxelSize));
-    auto x2 = static_cast< uint64_t >(std::floor(dx2 / _voxelSize));
-    auto y1 = static_cast< uint64_t >(std::floor(dy1 / _voxelSize));
-    auto y2 = static_cast< uint64_t >(std::floor(dy2 / _voxelSize));
-    auto z1 = static_cast< uint64_t >(std::floor(dz1 / _voxelSize));
-    auto z2 = static_cast< uint64_t >(std::floor(dz2 / _voxelSize));
+    const auto x1 = static_cast< uint64_t >((dx1 / _voxelSize));
+    const auto x2 = static_cast< uint64_t >((dx2 / _voxelSize));
+    const auto y1 = static_cast< uint64_t >((dy1 / _voxelSize));
+    const auto y2 = static_cast< uint64_t >((dy2 / _voxelSize));
+    const auto z1 = static_cast< uint64_t >((dz1 / _voxelSize));
+    const auto z2 = static_cast< uint64_t >((dz2 / _voxelSize));
 
-    // Construct and return the ROI bounds
-    Bounds3D boundsROI(x1, x2, y1, y2, z1, z2);
-    return boundsROI;
+    // Construct and return the bounds of the ROI
+    return Bounds3D(x1, x2, y1, y2, z1, z2);
 }
 
 void Volume::surfaceVoxelization(Mesh* mesh,
@@ -1543,7 +1542,6 @@ void Volume::_floodFillAlongAxisROI(VolumeGrid* grid,
     setbuf(stdout, nullptr);
 
     // The dimension with which the flood filling will happen
-    int64_t largestSliceIndex;
     size_t lower, upper;
 
     // Flood-filling string
@@ -1559,13 +1557,6 @@ void Volume::_floodFillAlongAxisROI(VolumeGrid* grid,
         // Set the boundaries
         lower = x1; upper = x2;
 
-        // Set the largest slice index
-        largestSliceIndex = upper - lower + 1;
-
-        // Ensure that we are still within the boundary of the volume
-        if (largestSliceIndex > getWidth())
-            largestSliceIndex = getWidth();
-
         floodFillingAxis = AXIS::X;
         floodFillingString = "2D Slice Flood-filling (X-axis)";
     } break;
@@ -1575,13 +1566,6 @@ void Volume::_floodFillAlongAxisROI(VolumeGrid* grid,
         // Set the boundaries
         lower = y1; upper = y2;
 
-        // Set the largest slice index
-        largestSliceIndex = upper - lower;
-
-        // Ensure that we are still within the boundary of the volume
-        if (largestSliceIndex > getHeight())
-            largestSliceIndex = getHeight();
-
         floodFillingAxis = AXIS::Y;
         floodFillingString = "2D Slice Flood-filling (Y-axis)";
     } break;
@@ -1590,13 +1574,6 @@ void Volume::_floodFillAlongAxisROI(VolumeGrid* grid,
     {
         // Set the boundaries
         lower = z1; upper = z2;
-
-        // Set the largest slice index
-        largestSliceIndex = upper - lower;
-
-        // Ensure that we are still within the boundary of the volume
-        if (largestSliceIndex > getDepth())
-            largestSliceIndex = getDepth();
 
         floodFillingAxis = AXIS::Z;
         floodFillingString = "2D Slice Flood-filling (Z-axis)";
@@ -1612,12 +1589,12 @@ void Volume::_floodFillAlongAxisROI(VolumeGrid* grid,
         LOOP_STARTS(floodFillingString.c_str());
         PROGRESS_SET_AT_VALUE(lower);
         OMP_PARALLEL_FOR
-        for (int64_t i = lower ; i < largestSliceIndex; ++i)
+        for (int64_t i = lower ; i < upper + 1; ++i)
         {
             grid->floodFillSliceAlongAxisROI(i, floodFillingAxis, x1, x2, y1, y2, z1, z2);
 
             // Update the progress bar
-            LOOP_PROGRESS(PROGRESS, largestSliceIndex);
+            LOOP_PROGRESS(PROGRESS, upper + 1);
             PROGRESS_UPDATE;
         }
         LOOP_DONE;
@@ -1626,7 +1603,7 @@ void Volume::_floodFillAlongAxisROI(VolumeGrid* grid,
     else
     {
         OMP_PARALLEL_FOR
-        for (int64_t i = lower ; i < largestSliceIndex; ++i)
+        for (int64_t i = lower ; i < upper + 1; ++i)
         {
             grid->floodFillSliceAlongAxisROI(i, floodFillingAxis, x1, x2, y1, y2, z1, z2);
         }
@@ -2218,6 +2195,129 @@ void Volume::project(const std::string prefix,
 {
     _grid->projectVolume(prefix, xy, xz, zy, projectColorCoded);
 }
+
+
+
+
+void Volume::projectXY(const std::string& prefix, const bool &projectColorCoded)
+{
+    // Get a reference to the occupancy ranges in case it is not computed
+    auto occupancyRanges = getOccupancyRanges();
+
+    // Starts the timer
+    TIMER_SET;
+
+    // Projection prefix
+    std::string filePrefix = prefix + PROJECTION_SUFFIX + XY_SUFFIX;
+
+    const auto width = getWidth();
+    const auto height = getHeight();
+    const auto depth = getDepth();
+
+    const auto projectionSize = width * height;
+
+    // Create a projection array (float)
+    std::vector< double > projectionImage(projectionSize);
+
+    // Create normalized projection array (0 - 255)
+    std::vector< uint16_t > normalizedProjectionImage(projectionSize);
+
+    // Initialize the projections to zero to avoid garbage
+
+    OMP_PARALLEL_FOR
+    for (int64_t index = 0; index < projectionSize; ++index)
+    {
+        projectionImage[index] = 0.0;
+        normalizedProjectionImage[index] = 0;
+    }
+
+
+
+    LOOP_STARTS("XY Projection * ");
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < occupancyRanges.size(); ++i)
+    {
+        for (size_t j = 0; j < occupancyRanges[i].size(); ++j)
+        {
+            for (size_t k = 0; k < occupancyRanges[i][j].size(); ++k)
+            {
+                for (size_t w = occupancyRanges[i][j][k].lower; w <= occupancyRanges[i][j][k].upper; w++)
+                {
+                    projectionImage[i + width * j] += 1;
+                }
+            }
+        }
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, width);
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+
+
+//    LOOP_STARTS("XY Projection * ");
+//    PROGRESS_RESET;
+//    OMP_PARALLEL_FOR
+//    for (int64_t i = 0; i < width; i++)
+//    {
+//        for (int64_t j = 0; j < height; j++)
+//        {
+//            for (int64_t k = 0; k < depth; k++)
+//            {
+//                if (isFilledWithoutBoundCheck(i, j, k))
+//                {
+//                    projectionImage[i + width * j] += 1;
+//                }
+//            }
+//        }
+
+//        // Update the progress bar
+//        LOOP_PROGRESS(PROGRESS, width);
+//        PROGRESS_UPDATE;
+//    }
+//    LOOP_DONE;
+
+    // Get the maximum value
+    double maxValue = 0.0;
+    for (int64_t index = 0; index < getWidth() * getHeight(); ++index)
+    {
+        if (projectionImage[index] > maxValue)
+            maxValue = projectionImage[index];
+    }
+
+    // Construct the normalized projection
+    OMP_PARALLEL_FOR
+    for (int64_t index = 0; index < width * height; ++index)
+    {
+        // Compute float pixel value
+        double pixelValue = 255 * (projectionImage[index] / maxValue);
+
+        // Convert to uint8_t to be able to write it to the image
+        normalizedProjectionImage[index] = F2UI16(pixelValue);
+    }
+
+    // Save the projection into a PPM image
+    Utilities::savePPMLuminanceImage(filePrefix, normalizedProjectionImage.data(),
+                                     getWidth(), getHeight());
+
+    // Statistics
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
+void Volume::projectYZ(const std::string& prefix, const bool &projectColorCoded) const
+{
+
+}
+
+void Volume::projectXZ(const std::string& prefix, const bool &projectColorCoded) const
+{
+
+}
+
+
+
+
+
 
 void Volume::writeVolumes(const std::string &prefix,
                           const bool& bitFormat, const bool &unsignedFormat, const bool &floatFormat,
@@ -4284,7 +4384,7 @@ void Volume::_buildOccupancyRanges()
     _volumeOccupancyRanges.resize(getWidth());
 
     PROGRESS_SET;
-    LOOP_STARTS("Building Occupancy Ranges");
+    LOOP_STARTS("Building Volume Occupancy Ranges Structure");
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < getWidth(); ++i)
     {
@@ -4299,7 +4399,7 @@ void Volume::_buildOccupancyRanges()
             for (size_t k = 0; k < getDepth(); ++k)
             {
                 // If this voxel if solid, i.e. is filled
-                if (isFilled(i, j, k))
+                if (isFilledWithoutBoundCheck(i, j, k))
                 {
                     // If the alreadyFilled flag is not set, this means that this is the first voxel
                     if (!alreadyFilled)
@@ -4371,6 +4471,42 @@ void Volume::_buildOccupancyRanges()
     LOG_STATS(GET_TIME_SECONDS);
 }
 
+
+void Volume::_buildVolumeOccupancy()
+{
+    TIMER_SET;
+    _volumeOccupancy.resize(getWidth());
+
+    PROGRESS_SET;
+    LOOP_STARTS("Building Volume Occupancy Structure");
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < getWidth(); ++i)
+    {
+        auto& sliceOccupancy = _volumeOccupancy[i];
+        sliceOccupancy.resize(getHeight());
+
+        for (size_t j = 0; j < getHeight(); ++j)
+        {
+            for (size_t k = 0; k < getDepth(); ++k)
+            {
+                // If this voxel if solid, i.e. is filled
+                if (isFilledWithoutBoundCheck(i, j, k))
+                {
+                    // Add the range to the list
+                    sliceOccupancy[j].push_back(k);
+                }
+            }
+        }
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, getWidth());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
+
 VolumeOccpuancyRanges Volume::getOccupancyRanges()
 {
     if (_volumeOccupancyRanges.size() == 0)
@@ -4379,6 +4515,16 @@ VolumeOccpuancyRanges Volume::getOccupancyRanges()
     }
 
     return _volumeOccupancyRanges;
+}
+
+VolumeOccpuancy Volume::getVolumeOccupancy()
+{
+    if (_volumeOccupancy.size() == 0)
+    {
+        _buildVolumeOccupancy();
+    }
+
+    return _volumeOccupancy;
 }
 
 }
