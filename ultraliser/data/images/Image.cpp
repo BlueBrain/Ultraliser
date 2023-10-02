@@ -25,37 +25,36 @@
 namespace Ultraliser
 {
 
-Image::Image(const int64_t &width, const int64_t &height)
+Image::Image(const size_t &width, const size_t &height)
+    : _width(width)
+    , _height(height)
+    , _numberPixels(width * height)
 {
-    _width = width;
-    _height = height;
-    _numberPixels = _width * _height;
-
     // Allocate the memory of the image
     _allocateMemory();
 }
 
-void Image::_allocateMemory(void)
+void Image::_allocateMemory()
 {
-    // Allocate the BIT ARRAY
-    _data = new uint8_t[_numberPixels];
-
-    // Fill black for the moment
-    for (size_t i = 0; i < _numberPixels; ++i)
-        _data[i] = BLACK;
+    // Allocate the array that should contain the data, and initialize all the elements to Zero
+    _data = new uint8_t[_numberPixels]();
 }
 
-void Image::_freeMemory(void)
+void Image::_freeMemory()
 {
     delete [] _data;
 }
 
-int64_t Image::dimension(const int& i) const
+size_t Image::dimension(const size_t& i) const
 {
     if (i == 0)
+    {
         return _width;
+    }
     else if (i == 1)
+    {
         return _height;
+    }
     else
     {
         LOG_WARNING("Image::dimension accepts ONLY 0 or 1!");

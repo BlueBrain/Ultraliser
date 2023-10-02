@@ -1191,7 +1191,7 @@ private:
      * @return
      */
     bool _testTriangleGridIntersection(AdvancedTriangle triangle, const GridIndex& voxel);
-
+_volumeOccupancy
     /**
      * @brief _triangleCubeSign
      * @param mesh

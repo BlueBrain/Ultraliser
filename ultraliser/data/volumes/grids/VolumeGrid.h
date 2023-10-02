@@ -25,6 +25,7 @@
 #include <data/common/BitArray.h>
 #include <data/images/Image.h>
 #include <data/volumes/utilities/VolumeType.hh>
+#include <utilities/Occupancy.h>
 
 namespace Ultraliser
 {
@@ -446,6 +447,9 @@ public:
                                     const size_t& z1, const size_t z2,
                                     const size_t &padding=2);
 
+
+    VolumeOccpuancy getVolumeOccupancy();
+
     /**
      * @brief getByte
      * @param index
@@ -527,6 +531,16 @@ public:
 
 protected:
 
+    void _buildVolumeOccupancy();
+
+
+
+    void _floodFillAlongX(const int64_t &sliceIndex,
+                          const size_t &padding = 2);
+
+
+protected:
+
     /**
      * @brief _width
      * Volume width
@@ -550,6 +564,12 @@ protected:
      * Total number of voxels in the grid.
      */
     size_t _numberVoxels;
+
+
+    /**
+     * @brief _volumeOccupancy
+     */
+    VolumeOccpuancy _volumeOccupancy;
 };
 
 }

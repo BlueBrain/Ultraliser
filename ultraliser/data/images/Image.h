@@ -44,21 +44,28 @@ public:
 
     /**
      * @brief Image
+     * Constructor
      * @param width
+     * The width of the image in pixels.
      * @param height
+     * The height of the image in pixels.
      */
-    Image(const int64_t &width, const int64_t &height);
+    Image(const size_t& width, const size_t& height);
     ~Image();
 
     /**
      * @brief getWidth
+     * Returns the width of the image in pixels.
      * @return
+     * The width of the image in pixels.
      */
     size_t getWidth() const { return _width; }
 
     /**
      * @brief getHeight
+     * Returns the height of the image in pixels.
      * @return
+     * The height of the image in pixels.
      */
     size_t getHeight() const { return _height; }
 
@@ -69,27 +76,49 @@ public:
     size_t getNumberPixels() const { return _numberPixels; }
 
     /**
-     * @brief mapToIndex
+     * @brief mapTo1DIndex
+     * Maps the XY index of a given pixel into its corresponding 1D index.
      * @param x
+     * The X-index of the pixel. Note that this value cannot be negative.
      * @param y
+     * The Y-index of the pixel. Note that this value cannot be negative.
      * @return
+     * The corresponding 1D index of the pixel in the array.
      */
-    size_t mapToIndex(const int64_t &x, const int64_t &y) const
+    size_t mapTo1DIndex(const size_t &x, const size_t &y) const
     {
-
-        if(x >= getWidth()  || x < 0 || y >= getHeight() || y < 0)
+        if (x >= getWidth())
             LOG_ERROR("Index [%d, %d] is out of bound", x, y);
-        return I2UI64((x + (_width * y)));
+        if (y >= getHeight())
+            LOG_ERROR("Index [%d, %d] is out of bound", x, y);
+        return (x + (_width * y));
+    }
+
+    /**
+     * @brief mapTo1DIndexWOBC
+     * Maps the XY index of a given pixel into its corresponding 1D index. This function is
+     * similar to @mapTo1DIndex, but it is faster becuase it does not have to verify the bounds.
+     * The X-index of the pixel. Note that this value cannot be negative.
+     * @param y
+     * The Y-index of the pixel. Note that this value cannot be negative.
+     * @return
+     * The corresponding 1D index of the pixel in the array.
+     */
+    size_t mapTo1DIndexWOBC(const size_t &x, const size_t &y) const
+    {
+        return (x + (_width * y));
     }
 
     /**
      * @brief fill
+     * Fills the entire image with a specific color.
      * @param color
+     * The color with which the image will be filled.
      */
-    void fill(PIXEL_COLOR color)
+    void fill(const PIXEL_COLOR& color)
     {
-        for(int64_t i = 0; i < getWidth(); i++)
-            for(int64_t j = 0; j < this->getHeight(); j++)
+        for(size_t i = 0; i < _width; ++i)
+            for(int64_t j = 0; j < _height; ++j)
                 setPixelColor(i, j, color);
     }
 
@@ -98,7 +127,7 @@ public:
      * @param i
      * @return
      */
-    int64_t dimension(const int& i) const;
+    size_t dimension(const size_t &i) const;
 
     /**
      * @brief setPixelColor
@@ -107,26 +136,31 @@ public:
      */
     void setPixelColor(const size_t &index, const PIXEL_COLOR& color)
     {
-        _data[ index ] = color;
+        _data[index] = color;
     }
 
     /**
      * @brief setPixelColor
+     * Sets the color of a specific pixel specified by its X and Y indices.
      * @param x
+     * The X-index of the pixel to be set.
      * @param y
+     * The Y-index of the pixel to be set.
      * @param color
+     * The color of the pixel.
      */
-    void setPixelColor(const int64_t &x,
-                       const int64_t &y,
-                       const PIXEL_COLOR& color)
+    void setPixelColor(const int64_t &x, const int64_t &y, const PIXEL_COLOR& color)
     {
-        setPixelColor(mapToIndex(x, y), color);
+        setPixelColor(mapTo1DIndex(x, y), color);
     }
 
     /**
      * @brief getPixelColor
+     * Gets the color of a pixel specified by 1D index.
      * @param index
+     * The 1D index of the pixel.
      * @return
+     * The color of the pixel.
      */
     PIXEL_COLOR getPixelColor(const size_t &index) const
     {
@@ -135,30 +169,41 @@ public:
 
     /**
      * @brief getPixelColor
+     * Gets the color of a pixel specified by its X and Y indices.
      * @param x
+     * The X-index of the pixel.
      * @param y
+     * The Y-index of the pixel.
      * @return
+     * The color of the pixel.
      */
-    PIXEL_COLOR getPixelColor(const int64_t &x, const int64_t &y)
+    PIXEL_COLOR getPixelColor(const size_t &x, const size_t &y)
     {
-        return getPixelColor(mapToIndex(x, y));
+        return getPixelColor(mapTo1DIndex(x, y));
     }
 
     /**
      * @brief isFilled
+     * Checks if a specific pixel is filled or not.
      * @param x
+     * The X-index of the pixel.
      * @param y
+     * The Y-index of the pixel.
      * @return
+     * True if the pixel if filled, and false otherwise.
      */
     bool isFilled(const size_t& x, const size_t& y)
     {
-        // If the indicies are out-bounds, return 0
-        if(x >= getWidth()  || x < 0 || y >= getHeight() || y < 0)
-            return 0;
+        // If the given index is not within the extent of the pixel, return zero
+        if(x >= getWidth())
+            return false;
+        if (y >= getHeight())
+            return false;
 
-        if (_data[(x + (_width * y))] > 0)
+        // Return true if the data is set, otherwise false
+        if (_data[(x + (_width * y))])
             return true;
-        return 0;
+        return false;
     }
 
     /**
@@ -178,52 +223,39 @@ private:
     /**
      * @brief _allocateMemory
      */
-    void _allocateMemory(void);
+    void _allocateMemory();
 
     /**
      * @brief _freeMemory
      */
-    void _freeMemory(void);
+    void _freeMemory();
 
 private:
 
     /**
      * @brief _width
+     * The width of the image in pixels.
      */
     size_t _width;
 
     /**
      * @brief height
+     * The height of the image in pixels.
      */
     size_t _height;
 
     /**
      * @brief _numberPixels
+     * The total number of pixels in the image.
      */
     size_t _numberPixels;
 
     /**
      * @brief _data
+     * The array the contains the data of the image. The image is represented by an 8-bit unsigned
+     * data to save space. It allows the image to have gray scale data only.
      */
     uint8_t* _data;
 };
-
-
-
-struct Kernel1
-{
-    bool k0 = 0;
-    bool k1 = 1;
-    bool k2 = 0;
-
-    bool k3 = 1;
-    bool k4 = 1;
-    bool k5 = 1;
-
-    bool k6 = 0;
-    bool k7 = 1;
-    bool k8 = 0;
-};
-
 
 }
