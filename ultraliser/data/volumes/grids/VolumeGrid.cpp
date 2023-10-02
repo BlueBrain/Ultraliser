@@ -25,102 +25,40 @@
 
 namespace Ultraliser
 {
-VolumeGrid::VolumeGrid(const size_t &width, const size_t &height, const size_t &depth)
-{
-    // Dimensions
-    _width = width;
-    _height = height;
-    _depth = depth;
 
-    // Number of voxels
-    _numberVoxels = width * height * depth;
+VolumeGrid::VolumeGrid(const size_t &width, const size_t &height, const size_t &depth)
+    :_width(width)
+    , _height(height)
+    , _depth(depth)
+    , _numberVoxels(width * height * depth)
+{
+    /// EMPTY CONSTRUCTOR
 }
 
 VolumeGrid::VolumeGrid(Ultraliser::VolumeGrid *grid)
 {
-    // Dimensions
+    // Copy the dimensions
     grid->getDimensions(_width, _height, _depth);
 
-    // Number of voxels
+    // Compute the number of voxels
     _numberVoxels = _width * _height * _depth;
+
+    /// TODO: Copy the data of the grid
 }
 
-void VolumeGrid::getDimensions(size_t& width, size_t& height, size_t& depth)
+void VolumeGrid::getDimensions(size_t& width, size_t& height, size_t& depth) const
 {
     width = _width;
     height = _height;
     depth = _depth;
 }
 
-size_t VolumeGrid::getWidth() const
+size_t VolumeGrid::mapTo1DIndexWOBC(const size_t &x, const size_t &y, const size_t &z) const
 {
-    return _width;
+    return (x + (_width * y) + (_width * _height * z));
 }
 
-size_t VolumeGrid::getHeight() const
-{
-    return _height;
-}
-
-size_t VolumeGrid::getDepth() const
-{
-    return _depth;
-}
-
-size_t VolumeGrid::getNumberVoxels() const
-{
-    return _numberVoxels;
-}
-
-
-VolumeOccpuancy VolumeGrid::getVolumeOccupancy()
-{
-    if (_volumeOccupancy.size() == 0)
-        _buildVolumeOccupancy();
-
-    return _volumeOccupancy;
-}
-
-
-void VolumeGrid::_buildVolumeOccupancy()
-{
-    TIMER_SET;
-    _volumeOccupancy.resize(getWidth());
-
-    PROGRESS_SET;
-    LOOP_STARTS("Building Volume Occupancy Acceleration Structure");
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < getWidth(); ++i)
-    {
-        auto& sliceOccupancy = _volumeOccupancy[i];
-        sliceOccupancy.resize(getHeight());
-
-        for (size_t j = 0; j < getHeight(); ++j)
-        {
-            for (size_t k = 0; k < getDepth(); ++k)
-            {
-                // If this voxel if solid, i.e. is filled
-                if (isFilled(i, j, k))
-                {
-                    // Add the range to the list
-                    sliceOccupancy[j].push_back(k);
-                }
-            }
-        }
-
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, getWidth());
-        PROGRESS_UPDATE;
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-}
-
-
-
-
-
-size_t VolumeGrid::mapToIndex(const size_t &x, const size_t &y, const size_t &z,
+size_t VolumeGrid::mapTo1DIndex(const size_t &x, const size_t &y, const size_t &z,
                               bool &outlier) const
 {
     if(x >= getWidth()  || x < 0 || y >= getHeight() || y < 0 || z >= getDepth()  || z < 0)
@@ -138,7 +76,7 @@ size_t VolumeGrid::mapToIndex(const size_t &x, const size_t &y, const size_t &z,
 void VolumeGrid::fillVoxel(const int64_t &x, const int64_t &y, const int64_t &z)
 {
     bool outlier;
-    size_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapTo1DIndex(x, y, z, outlier);
     if (outlier)
         return;
     else
@@ -148,7 +86,7 @@ void VolumeGrid::fillVoxel(const int64_t &x, const int64_t &y, const int64_t &z)
 void VolumeGrid::clearVoxel(const int64_t &x, const int64_t &y, const int64_t &z)
 {
     bool outlier;
-    size_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapTo1DIndex(x, y, z, outlier);
     if (outlier)
         return;
     else
@@ -158,7 +96,7 @@ void VolumeGrid::clearVoxel(const int64_t &x, const int64_t &y, const int64_t &z
 bool VolumeGrid::isFilled(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    size_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapTo1DIndex(x, y, z, outlier);
     if (outlier)
         return false;
     else
@@ -168,7 +106,7 @@ bool VolumeGrid::isFilled(const int64_t &x, const int64_t &y, const int64_t &z) 
 bool VolumeGrid::isEmpty(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    size_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapTo1DIndex(x, y, z, outlier);
     if (outlier)
         return true;
     else
@@ -195,7 +133,7 @@ size_t VolumeGrid::computeNumberNonZeroVoxelsPerSlice(int64_t z) const
         for (int64_t j = 0; j < getHeight(); ++j)
         {
             bool outlier;
-            size_t index = mapToIndex(i, j, z, outlier);
+            size_t index = mapTo1DIndex(i, j, z, outlier);
             bool filled = isFilled(index);
             if (filled && !outlier)
             {
@@ -207,58 +145,343 @@ size_t VolumeGrid::computeNumberNonZeroVoxelsPerSlice(int64_t z) const
     return numberNonZeroVoxels;
 }
 
-
-
-void VolumeGrid::_floodFillAlongX(const int64_t &sliceIndex,
-                                  const size_t &padding)
+void VolumeGrid::floodFillSlice_X(const int64_t &sliceIndex, const size_t &padding)
 {
-    size_t sliceWidth = getHeight() + 2 * padding;
-    size_t sliceHeight = getDepth() + 2 * padding;
-    size_t sliceSize = sliceWidth * sliceHeight;
+    /// Select an YZ slice from the volume, based on the given @sliceIndex and flood-fill it
+    // Compute the dimensions of the slice after taking the zero-padding into consideration
+    const size_t sliceWidth = getHeight() + 2 * padding;
+    const size_t sliceHeight = getDepth() + 2 * padding;
 
-    size_t volumeWidth = getHeight();
-    size_t volumeHeight = getDepth();
+    // The dimensions of the original slice must be preserved, without the zero-padded pixels
+    const size_t sliceWidthWithinVolume = getHeight();
+    const size_t sliceHeightWithinVolume = getDepth();
 
-    // Create an X-slice
-    Image* slice = new Image(sliceWidth, sliceHeight);
-
-    // Make it blank
-    slice->fill(WHITE);
+    // Create a slice and set its initial colors by default to WHITE
+    Image slice(sliceWidth, sliceHeight, WHITE);
 
     // Fill the slice with the surface voxels (pixels in the image)
-    for (int64_t i = 0; i < volumeWidth; ++i)
+    for (int64_t i = 0; i < sliceWidthWithinVolume; ++i)
     {
-        for (int64_t j = 0; j < volumeHeight; ++j)
+        for (int64_t j = 0; j < sliceHeightWithinVolume; ++j)
         {
+#ifdef ULTRALISER_DEBUG
             bool outlier;
-            size_t index = mapToIndex(sliceIndex, i, j, outlier);
+            size_t index = mapTo1DIndex(sliceIndex, i, j, outlier);
             if (isFilled(index) && !outlier)
-                slice->setPixelColor(i + padding, j + padding, GRAY);
-            else
-                slice->setPixelColor(i + padding, j + padding, WHITE);
+                slice.setPixelColor(i + padding, j + padding, GRAY);
+#else
+            if (isFilled(mapTo1DIndexWOBC(sliceIndex, i, j)))
+                slice.setPixelColor(i + padding, j + padding, GRAY);
+#endif
         }
     }
 
-    // Flood Filler
+    // Apply the flood-filling operation
     PIXEL_COLOR newColor = WHITE;
     PIXEL_COLOR oldColor = BLACK;
-    FloodFiller::fill(slice, sliceWidth, sliceHeight, 0, 0, newColor, oldColor);
+    FloodFiller::fill(&slice, sliceWidth, sliceHeight, 0, 0, newColor, oldColor);
 
-    for (int64_t i = 0; i < volumeWidth; ++i)
+    // Copy the content of the slice back to the volume after the flood-filling operation
+    for (int64_t i = 0; i < sliceWidthWithinVolume; ++i)
     {
-        for (int64_t j = 0; j < volumeHeight; ++j)
+        for (int64_t j = 0; j < sliceHeightWithinVolume; ++j)
         {
+#ifdef ULTRALISER_DEBUG
             bool outlier;
-            size_t index = mapToIndex(sliceIndex, i, j, outlier);
-            if (slice->getPixelColor(i , j) == BLACK && !outlier)
+            size_t index = mapTo1DIndex(sliceIndex, i, j, outlier);
+            if (slice.getPixelColor(i , j) == BLACK && !outlier)
                 clearVoxel(index);
             else
                 fillVoxel(index);
+#else
+            // Construct the 1D index of the voxel
+            size_t index = mapTo1DIndexWOBC(sliceIndex, i, j);
+
+            // If the slice is BLACK at this pixel, clear the corresponding voxel, otherwise set it
+            if (slice.getPixelColor(i , j) == BLACK)
+                clearVoxel(index);
+            else
+                fillVoxel(index);
+#endif
+        }
+    }
+}
+
+void VolumeGrid::floodFillSliceUsingFilledVoxels_X(const int64_t &sliceIndex,
+                                                   const size_t &padding)
+{
+    /// Select an YZ slice from the volume, based on the given @sliceIndex and flood-fill it
+    // Compute the dimensions of the slice after taking the zero-padding into consideration
+    const size_t sliceWidth = getHeight() + 2 * padding;
+    const size_t sliceHeight = getDepth() + 2 * padding;
+
+    // The dimensions of the original slice must be preserved, without the zero-padded pixels
+    const size_t sliceWidthWithinVolume = getHeight();
+    const size_t sliceHeightWithinVolume = getDepth();
+
+    // Create a slice and set its initial colors by default to WHITE
+    Image slice(sliceWidth, sliceHeight, WHITE);
+
+    // Use the filled voxels acceleration structure to label the shaded voxels from the previous
+    // surface voxelization operation
+    for (int64_t i = 0; i < _filledVoxels.size(); ++i)
+    {
+        if (_filledVoxels[i].x == sliceIndex)
+        {
+            slice.setPixelColor(_filledVoxels[i].y + padding, _filledVoxels[i].z + padding, GRAY);
         }
     }
 
-    delete slice;
+    // Apply the flood-filling operation
+    PIXEL_COLOR newColor = WHITE;
+    PIXEL_COLOR oldColor = BLACK;
+    FloodFiller::fill(&slice, sliceWidth, sliceHeight, 0, 0, newColor, oldColor);
+
+    // Copy the content of the slice back to the volume after the flood-filling operation
+    for (int64_t i = 0; i < sliceWidthWithinVolume; ++i)
+    {
+        for (int64_t j = 0; j < sliceHeightWithinVolume; ++j)
+        {
+#ifdef ULTRALISER_DEBUG
+            bool outlier;
+            size_t index = mapTo1DIndex(sliceIndex, i, j, outlier);
+            if (slice.getPixelColor(i , j) == BLACK && !outlier)
+                clearVoxel(index);
+            else
+                fillVoxel(index);
+#else
+            // If the slice is BLACK at this pixel, clear the corresponding voxel, otherwise set it
+            if (slice.getPixelColor(i , j) == BLACK)
+                clearVoxel(mapTo1DIndexWOBC(sliceIndex, i, j));
+            else
+                fillVoxel(mapTo1DIndexWOBC(sliceIndex, i, j));
+#endif
+        }
+    }
 }
+
+void VolumeGrid::floodFillSlice_Y(const int64_t &sliceIndex, const size_t &padding)
+{
+    /// Select an XZ slice from the volume, based on the given @sliceIndex and flood-fill it
+    // Compute the dimensions of the slice after taking the zero-padding into consideration
+    const size_t sliceWidth = getWidth() + 2 * padding;
+    const size_t sliceHeight = getDepth() + 2 * padding;
+
+    // The dimensions of the original slice must be preserved, without the zero-padded pixels
+    const size_t sliceWidthWithinVolume = getWidth();
+    const size_t sliceHeightWithinVolume = getDepth();
+
+    // Create a slice and set its initial colors by default to WHITE
+    Image slice(sliceWidth, sliceHeight, WHITE);
+
+    // Fill the slice with the surface voxels (pixels in the image)
+    for (int64_t i = 0; i < sliceWidthWithinVolume; ++i)
+    {
+        for (int64_t j = 0; j < sliceHeightWithinVolume; ++j)
+        {
+#ifdef ULTRALISER_DEBUG
+            bool outlier;
+            const size_t index = mapTo1DIndex(i, sliceIndex, j, outlier);
+            if (isFilled(index) && !outlier)
+                slice.setPixelColor(i + padding, j + padding, GRAY);
+#else
+            if (isFilled(mapTo1DIndexWOBC(i, sliceIndex, j)))
+                slice.setPixelColor(i + padding, j + padding, GRAY);
+#endif
+        }
+    }
+
+    // Apply the flood-filling operation
+    PIXEL_COLOR newColor = WHITE;
+    PIXEL_COLOR oldColor = BLACK;
+    FloodFiller::fill(&slice, sliceWidth, sliceHeight, 0, 0, newColor, oldColor);
+
+    // Copy the content of the slice back to the volume after the flood-filling operation
+    for (int64_t i = 0; i < sliceWidthWithinVolume; ++i)
+    {
+        for (int64_t j = 0; j < sliceHeightWithinVolume; ++j)
+        {
+#ifdef ULTRALISER_DEBUG
+            bool outlier;
+            const size_t index = mapTo1DIndex(i, sliceIndex, j, outlier);
+            if (slice.getPixelColor(i , j) == BLACK && !outlier)
+                clearVoxel(index);
+            else
+                fillVoxel(index);
+#else
+            // If the slice is BLACK at this pixel, clear the corresponding voxel, otherwise set it
+            if (slice.getPixelColor(i , j) == BLACK)
+                clearVoxel(mapTo1DIndexWOBC(i, sliceIndex, j));
+            else
+                fillVoxel(mapTo1DIndexWOBC(i, sliceIndex, j));
+#endif
+        }
+    }
+}
+
+void VolumeGrid::floodFillSliceUsingFilledVoxels_Y(const int64_t &sliceIndex, const size_t &padding)
+{
+    /// Select an XZ slice from the volume, based on the given @sliceIndex and flood-fill it
+    // Compute the dimensions of the slice after taking the zero-padding into consideration
+    const size_t sliceWidth = getWidth() + 2 * padding;
+    const size_t sliceHeight = getDepth() + 2 * padding;
+
+    // The dimensions of the original slice must be preserved, without the zero-padded pixels
+    const size_t sliceWidthWithinVolume = getWidth();
+    const size_t sliceHeightWithinVolume = getDepth();
+
+    // Create a slice and set its initial colors by default to WHITE
+    Image slice(sliceWidth, sliceHeight, WHITE);
+
+    // Use the filled voxels acceleration structure to label the shaded voxels from the previous
+    // surface voxelization operation
+    for (int64_t i = 0; i < _filledVoxels.size(); ++i)
+    {
+        if (_filledVoxels[i].y == sliceIndex)
+        {
+            slice.setPixelColor(_filledVoxels[i].x + padding, _filledVoxels[i].z + padding, GRAY);
+        }
+    }
+
+    // Apply the flood-filling operation
+    PIXEL_COLOR newColor = WHITE;
+    PIXEL_COLOR oldColor = BLACK;
+    FloodFiller::fill(&slice, sliceWidth, sliceHeight, 0, 0, newColor, oldColor);
+
+    // Copy the content of the slice back to the volume after the flood-filling operation
+    for (int64_t i = 0; i < sliceWidthWithinVolume; ++i)
+    {
+        for (int64_t j = 0; j < sliceHeightWithinVolume; ++j)
+        {
+#ifdef ULTRALISER_DEBUG
+            bool outlier;
+            const size_t index = mapTo1DIndex(i, sliceIndex, j, outlier);
+            if (slice.getPixelColor(i , j) == BLACK && !outlier)
+                clearVoxel(index);
+            else
+                fillVoxel(index);
+#else
+            // If the slice is BLACK at this pixel, clear the corresponding voxel, otherwise set it
+            if (slice.getPixelColor(i , j) == BLACK)
+                clearVoxel(mapTo1DIndexWOBC(i, sliceIndex, j));
+            else
+                fillVoxel(mapTo1DIndexWOBC(i, sliceIndex, j));
+#endif
+        }
+    }
+}
+
+void VolumeGrid::floodFillSlice_Z(const int64_t &sliceIndex,
+                                  const size_t &padding)
+{
+    /// Select an XY slice from the volume, based on the given @sliceIndex and flood-fill it
+    // Compute the dimensions of the slice after taking the zero-padding into consideration
+    const size_t sliceWidth = getWidth() + 2 * padding;
+    const size_t sliceHeight = getHeight() + 2 * padding;
+
+    // The dimensions of the original slice must be preserved, without the zero-padded pixels
+    const size_t sliceWidthWithinVolume = getWidth();
+    const size_t sliceHeightWithinVolume = getHeight();
+
+    // Create a slice and set its initial colors by default to WHITE
+    Image slice(sliceWidth, sliceHeight, WHITE);
+
+    // Fill the slice with the surface voxels (pixels in the image)
+    for (int64_t i = 0; i < sliceWidthWithinVolume; ++i)
+    {
+        for (int64_t j = 0; j < sliceHeightWithinVolume; ++j)
+        {
+#ifdef ULTRALISER_DEBUG
+            bool outlier;
+            size_t index = mapTo1DIndex(i, j, sliceIndex, outlier);
+            if (isFilled(index) && !outlier)
+                slice.setPixelColor(i + padding, j + padding, GRAY);
+#else
+            if (isFilled(mapTo1DIndexWOBC(i, j, sliceIndex)))
+                slice.setPixelColor(i + padding, j + padding, GRAY);
+#endif
+        }
+    }
+
+    // Apply the flood-filling operation
+    PIXEL_COLOR newColor = WHITE;
+    PIXEL_COLOR oldColor = BLACK;
+    FloodFiller::fill(&slice, sliceWidth, sliceHeight, 0, 0, newColor, oldColor);
+
+    // Copy the content of the slice back to the volume after the flood-filling operation
+    for (int64_t i = 0; i < sliceWidthWithinVolume; ++i)
+    {
+        for (int64_t j = 0; j < sliceHeightWithinVolume; ++j)
+        {
+#ifdef ULTRALISER_DEBUG
+            bool outlier;
+            size_t index = mapTo1DIndex(i, j, sliceIndex, outlier);
+            if (slice.getPixelColor(i , j) == BLACK && !outlier)
+                clearVoxel(index);
+            else
+                fillVoxel(index);
+#else
+            if (slice.getPixelColor(i , j) == BLACK)
+                clearVoxel(mapTo1DIndexWOBC(i, j, sliceIndex));
+            else
+                fillVoxel(mapTo1DIndexWOBC(i, j, sliceIndex));
+#endif
+        }
+    }
+}
+
+void VolumeGrid::floodFillSliceUsingFilledVoxels_Z(const int64_t &sliceIndex,
+                                                   const size_t &padding)
+{
+    /// Select an XY slice from the volume, based on the given @sliceIndex and flood-fill it
+    // Compute the dimensions of the slice after taking the zero-padding into consideration
+    const size_t sliceWidth = getWidth() + 2 * padding;
+    const size_t sliceHeight = getHeight() + 2 * padding;
+
+    // The dimensions of the original slice must be preserved, without the zero-padded pixels
+    const size_t sliceWidthWithinVolume = getWidth();
+    const size_t sliceHeightWithinVolume = getHeight();
+
+    // Create a slice and set its initial colors by default to WHITE
+    Image slice(sliceWidth, sliceHeight, WHITE);
+
+    // Use the filled voxels acceleration structure to label the shaded voxels from the previous
+    // surface voxelization operation
+    for (int64_t i = 0; i < _filledVoxels.size(); ++i)
+    {
+        if (_filledVoxels[i].x == sliceIndex)
+        {
+            slice.setPixelColor(_filledVoxels[i].x + padding, _filledVoxels[i].y + padding, GRAY);
+        }
+    }
+
+    // Apply the flood-filling operation
+    PIXEL_COLOR newColor = WHITE;
+    PIXEL_COLOR oldColor = BLACK;
+    FloodFiller::fill(&slice, sliceWidth, sliceHeight, 0, 0, newColor, oldColor);
+
+    // Copy the content of the slice back to the volume after the flood-filling operation
+    for (int64_t i = 0; i < sliceWidthWithinVolume; ++i)
+    {
+        for (int64_t j = 0; j < sliceHeightWithinVolume; ++j)
+        {
+#ifdef ULTRALISER_DEBUG
+            bool outlier;
+            size_t index = mapTo1DIndex(i, j, sliceIndex, outlier);
+            if (slice.getPixelColor(i , j) == BLACK && !outlier)
+                clearVoxel(index);
+            else
+                fillVoxel(index);
+#else
+            if (slice.getPixelColor(i , j) == BLACK)
+                clearVoxel(mapTo1DIndexWOBC(i, j, sliceIndex));
+            else
+                fillVoxel(mapTo1DIndexWOBC(i, j, sliceIndex));
+#endif
+        }
+    }
+}
+
 
 void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
                                          const AXIS &axis,
@@ -311,10 +534,27 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
     }
 
     // Create an X-slice
-    Image* slice = new Image(sliceWidth, sliceHeight);
+    Image slice(sliceWidth, sliceHeight);
 
     // Make it blank
-    slice->fill(WHITE);
+    slice.fill(WHITE);
+
+
+
+
+    // Assuming that there is a point cloud
+
+
+//    std::vector< Vec3ui_16 > a;
+//    for (size_t n = 0; n < a.size(); ++n)
+//    {
+//        // X
+//        if (a[n].x() == sliceIndex)
+//        {
+//            slice.setPixelColor(a[n].x() + padding, a[n].y() + padding, GRAY);
+//        }
+//    }
+
 
     switch (axis)
     {
@@ -326,11 +566,11 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
             for (int64_t j = 0; j < volumeHeight; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(sliceIndex, i, j, outlier);
+                size_t index = mapTo1DIndex(sliceIndex, i, j, outlier);
                 if (isFilled(index) && !outlier)
-                    slice->setPixelColor(i + padding, j + padding, GRAY);
+                    slice.setPixelColor(i + padding, j + padding, GRAY);
                 else
-                    slice->setPixelColor(i + padding, j + padding, WHITE);
+                    slice.setPixelColor(i + padding, j + padding, WHITE);
             }
         }
     } break;
@@ -343,11 +583,11 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
             for (int64_t j = 0; j < volumeHeight; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(i, sliceIndex, j, outlier);
+                size_t index = mapTo1DIndex(i, sliceIndex, j, outlier);
                 if (isFilled(index) && !outlier)
-                    slice->setPixelColor(i + padding, j + padding, GRAY);
+                    slice.setPixelColor(i + padding, j + padding, GRAY);
                 else
-                    slice->setPixelColor(i + padding, j + padding, WHITE);
+                    slice.setPixelColor(i + padding, j + padding, WHITE);
             }
         }
     } break;
@@ -360,11 +600,11 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
             for (int64_t j = 0; j < volumeHeight; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(i, j, sliceIndex, outlier);
+                size_t index = mapTo1DIndex(i, j, sliceIndex, outlier);
                 if (isFilled(index) && !outlier)
-                    slice->setPixelColor(i + padding, j + padding, GRAY);
+                    slice.setPixelColor(i + padding, j + padding, GRAY);
                 else
-                    slice->setPixelColor(i + padding, j + padding, WHITE);
+                    slice.setPixelColor(i + padding, j + padding, WHITE);
             }
         }
     } break;
@@ -374,7 +614,7 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
     // Flood Filler
     PIXEL_COLOR newColor = WHITE;
     PIXEL_COLOR oldColor = BLACK;
-    FloodFiller::fill(slice, sliceWidth, sliceHeight, 0, 0, newColor, oldColor);
+    FloodFiller::fill(&slice, sliceWidth, sliceHeight, 0, 0, newColor, oldColor);
 
     // Update the volume back
     switch (axis)
@@ -386,8 +626,8 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
             for (int64_t j = 0; j < volumeHeight; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(sliceIndex, i, j, outlier);
-                if (slice->getPixelColor(i , j) == BLACK && !outlier)
+                size_t index = mapTo1DIndex(sliceIndex, i, j, outlier);
+                if (slice.getPixelColor(i , j) == BLACK && !outlier)
                     clearVoxel(index);
                 else
                     fillVoxel(index);
@@ -402,8 +642,8 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
             for (int64_t j = 0; j < volumeHeight; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(i, sliceIndex, j, outlier);
-                if (slice->getPixelColor(i , j) == BLACK && !outlier)
+                size_t index = mapTo1DIndex(i, sliceIndex, j, outlier);
+                if (slice.getPixelColor(i , j) == BLACK && !outlier)
                     clearVoxel(index);
                 else
                     fillVoxel(index);
@@ -418,8 +658,8 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
             for (int64_t j = 0; j < volumeHeight; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(i, j, sliceIndex, outlier);
-                if (slice->getPixelColor(i , j) == BLACK && !outlier)
+                size_t index = mapTo1DIndex(i, j, sliceIndex, outlier);
+                if (slice.getPixelColor(i , j) == BLACK && !outlier)
                     clearVoxel(index);
                 else
                     fillVoxel(index);
@@ -428,8 +668,6 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
     } break;
 
     }
-
-    delete slice;
 }
 
 
@@ -495,7 +733,7 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
             for (int64_t j = 0; j < heightROI; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(sliceIndex, i + y1, j + z1, outlier);
+                size_t index = mapTo1DIndex(sliceIndex, i + y1, j + z1, outlier);
                 if (isFilled(index) && !outlier)
                     slice->setPixelColor(i + padding, j + padding, GRAY);
                 else
@@ -512,7 +750,7 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
             for (int64_t j = 0; j < heightROI; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(i + x1, sliceIndex, j + z1, outlier);
+                size_t index = mapTo1DIndex(i + x1, sliceIndex, j + z1, outlier);
                 if (isFilled(index) && !outlier)
                     slice->setPixelColor(i + padding, j + padding, GRAY);
                 else
@@ -529,7 +767,7 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
             for (int64_t j = 0; j < heightROI; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(i + x1, j + y1, sliceIndex, outlier);
+                size_t index = mapTo1DIndex(i + x1, j + y1, sliceIndex, outlier);
                 if (isFilled(index) && !outlier)
                     slice->setPixelColor(i + padding, j + padding, GRAY);
                 else
@@ -555,7 +793,7 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
             for (int64_t j = 0; j < heightROI; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(sliceIndex, i + y1, j + z1, outlier);
+                size_t index = mapTo1DIndex(sliceIndex, i + y1, j + z1, outlier);
                 if (slice->getPixelColor(i , j) == BLACK && !outlier)
                     clearVoxel(index);
                 else
@@ -571,7 +809,7 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
             for (int64_t j = 0; j < heightROI; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(i + x1, sliceIndex, j + z1, outlier);
+                size_t index = mapTo1DIndex(i + x1, sliceIndex, j + z1, outlier);
                 if (slice->getPixelColor(i , j) == BLACK && !outlier)
                     clearVoxel(index);
                 else
@@ -587,7 +825,7 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
             for (int64_t j = 0; j < heightROI; ++j)
             {
                 bool outlier;
-                size_t index = mapToIndex(i + x1, j + y1, sliceIndex, outlier);
+                size_t index = mapTo1DIndex(i + x1, j + y1, sliceIndex, outlier);
                 if (slice->getPixelColor(i , j) == BLACK && !outlier)
                     clearVoxel(index);
                 else
@@ -841,9 +1079,97 @@ size_t VolumeGrid::computeNumberNonZeroVoxels() const
     return numberNonZeroVoxels;
 }
 
-VolumeGrid::~VolumeGrid()
+void VolumeGrid::_buildVolumeOccupancy()
 {
-    /// EMPTY
+    TIMER_SET;
+    _volumeOccupancy.resize(getWidth());
+
+    PROGRESS_SET;
+    LOOP_STARTS("Building Volume Occupancy Acceleration Structure");
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < getWidth(); ++i)
+    {
+        auto& sliceOccupancy = _volumeOccupancy[i];
+        sliceOccupancy.resize(getHeight());
+
+        for (size_t j = 0; j < getHeight(); ++j)
+        {
+            for (size_t k = 0; k < getDepth(); ++k)
+            {
+                // If this voxel if solid, i.e. is filled
+                if (isFilled(i, j, k))
+                {
+                    // Add the range to the list
+                    sliceOccupancy[j].push_back(k);
+                }
+            }
+        }
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, getWidth());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
+VolumeOccpuancy VolumeGrid::getVolumeOccupancy()
+{
+    if (_volumeOccupancy.size() == 0)
+        _buildVolumeOccupancy();
+
+    return _volumeOccupancy;
+}
+
+void VolumeGrid::_queryFilledVoxels()
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Process the volume in parallel
+    std::vector< VoxelsXYZUI16 > filledVoxelsPerSlice;
+    filledVoxelsPerSlice.resize(getWidth());
+
+    PROGRESS_SET;
+    LOOP_STARTS("Querying Filled Voxels");
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < getWidth(); ++i)
+    {
+        for(size_t j = 0; j < getHeight(); ++j)
+        {
+            for (size_t k = 0; k < getDepth(); ++k)
+            {
+                if (isFilled(i, j, k))
+                {
+                    filledVoxelsPerSlice[i].push_back(VoxelXYZUI16(i, j, k));
+                }
+            }
+        }
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, getWidth());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+
+    _filledVoxels.clear();
+    for (size_t i = 0; i < filledVoxelsPerSlice.size(); ++i)
+    {
+        _filledVoxels.insert(_filledVoxels.end(),
+                             filledVoxelsPerSlice[i].begin(), filledVoxelsPerSlice[i].end());
+
+        filledVoxelsPerSlice[i].clear();
+        filledVoxelsPerSlice[i].shrink_to_fit();
+    }
+
+    // Report the performance
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
+VoxelsXYZUI16 VolumeGrid::getFilledVoxels()
+{
+    if (_filledVoxels.size() == 0)
+        _queryFilledVoxels();
+    return _filledVoxels;
 }
 
 VOLUME_TYPE VolumeGrid::getType(const std::string &typeString)
@@ -933,7 +1259,7 @@ std::string VolumeGrid::getTypeString(const VOLUME_TYPE& type)
 uint8_t VolumeGrid::getValueUI8(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    size_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapTo1DIndex(x, y, z, outlier);
     if (outlier)
         return 0;
     else
@@ -943,7 +1269,7 @@ uint8_t VolumeGrid::getValueUI8(const int64_t &x, const int64_t &y, const int64_
 uint16_t VolumeGrid::getValueUI16(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    size_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapTo1DIndex(x, y, z, outlier);
     if (outlier)
         return 0;
     else
@@ -953,7 +1279,7 @@ uint16_t VolumeGrid::getValueUI16(const int64_t &x, const int64_t &y, const int6
 uint32_t VolumeGrid::getValueUI32(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    size_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapTo1DIndex(x, y, z, outlier);
     if (outlier)
         return 0;
     else
@@ -963,7 +1289,7 @@ uint32_t VolumeGrid::getValueUI32(const int64_t &x, const int64_t &y, const int6
 uint64_t VolumeGrid::getValueUI64(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    size_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapTo1DIndex(x, y, z, outlier);
     if (outlier)
         return 0;
     else
@@ -973,7 +1299,7 @@ uint64_t VolumeGrid::getValueUI64(const int64_t &x, const int64_t &y, const int6
 float VolumeGrid::getValueF32(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    size_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapTo1DIndex(x, y, z, outlier);
     if (outlier)
         return 0;
     else
@@ -983,11 +1309,16 @@ float VolumeGrid::getValueF32(const int64_t &x, const int64_t &y, const int64_t 
 double VolumeGrid::getValueF64(const int64_t &x, const int64_t &y, const int64_t &z) const
 {
     bool outlier;
-    size_t index = mapToIndex(x, y, z, outlier);
+    size_t index = mapTo1DIndex(x, y, z, outlier);
     if (outlier)
         return 0;
     else
         return getValueF64(index);
+}
+
+VolumeGrid::~VolumeGrid()
+{
+    /// EMPTY DESTRUCTOR
 }
 
 }

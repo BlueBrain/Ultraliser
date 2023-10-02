@@ -26,6 +26,8 @@
 #include <data/images/Image.h>
 #include <data/volumes/utilities/VolumeType.hh>
 #include <utilities/Occupancy.h>
+#include <data/volumes/voxels/VoxelXYZ.h>
+
 
 namespace Ultraliser
 {
@@ -103,7 +105,7 @@ public:
 
 public:
 
-    void getDimensions(size_t& width, size_t& height, size_t& depth);
+    void getDimensions(size_t& width, size_t& height, size_t& depth) const;
 
     /**
      * @brief getDimension
@@ -116,7 +118,7 @@ public:
     size_t getDimension(const size_t &i) const;
 
     /**
-     * @brief mapToIndex
+     * @brief mapTo1DIndex
      * Maps a given voxel 3D index into a 1D index.
      * @param x
      * X-axis index.
@@ -127,7 +129,16 @@ public:
      * @return
      * The one-dimensional index of the data from a three-dimensional voxels.
      */
-    size_t mapToIndex(const size_t &x, const size_t &y, const size_t &z, bool &outlier) const;
+    size_t mapTo1DIndex(const size_t &x, const size_t &y, const size_t &z, bool &outlier) const;
+
+    /**
+     * @brief mapTo1DIndexWOBC
+     * @param x
+     * @param y
+     * @param z
+     * @return
+     */
+    size_t mapTo1DIndexWOBC(const size_t &x, const size_t &y, const size_t &z) const;
 
     /**
      * @brief getWidth
@@ -135,7 +146,7 @@ public:
      * @return
      * The width of the volume.
      */
-    size_t getWidth() const;
+    size_t getWidth() const { return _width; }
 
     /**
      * @brief getHeight
@@ -143,7 +154,7 @@ public:
      * @return
      * The height of the volume.
      */
-    size_t getHeight() const;
+    size_t getHeight() const { return _height; }
 
     /**
      * @brief getDepth
@@ -151,7 +162,7 @@ public:
      * @return
      * The depth of the volume.
      */
-    size_t getDepth() const;
+    size_t getDepth() const { return _depth; }
 
     /**
      * @brief getNumberVoxels
@@ -159,7 +170,7 @@ public:
      * @return
      * The number of voxels in the volume.
      */
-    size_t getNumberVoxels() const;
+    size_t getNumberVoxels() const { return _numberVoxels; }
 
     /**
      * @brief getNumberBytes
@@ -450,6 +461,20 @@ public:
 
     VolumeOccpuancy getVolumeOccupancy();
 
+
+
+
+    void floodFillSlice_X(const int64_t &sliceIndex, const size_t &padding = 2);
+    void floodFillSliceUsingFilledVoxels_X(const int64_t &sliceIndex, const size_t &padding = 2);
+    void floodFillSlice_Y(const int64_t &sliceIndex, const size_t &padding = 2);
+    void floodFillSliceUsingFilledVoxels_Y(const int64_t &sliceIndex, const size_t &padding = 2);
+    void floodFillSlice_Z(const int64_t &sliceIndex, const size_t &padding = 2);
+    void floodFillSliceUsingFilledVoxels_Z(const int64_t &sliceIndex, const size_t &padding = 2);
+
+
+
+    VoxelsXYZUI16 getFilledVoxels();
+
     /**
      * @brief getByte
      * @param index
@@ -535,8 +560,7 @@ protected:
 
 
 
-    void _floodFillAlongX(const int64_t &sliceIndex,
-                          const size_t &padding = 2);
+    void _queryFilledVoxels();
 
 
 protected:
@@ -570,6 +594,11 @@ protected:
      * @brief _volumeOccupancy
      */
     VolumeOccpuancy _volumeOccupancy;
+
+    /**
+     * @brief _filledVoxels
+     */
+    VoxelsXYZUI16 _filledVoxels;
 };
 
 }

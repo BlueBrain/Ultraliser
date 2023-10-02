@@ -404,8 +404,8 @@ void DualMarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &tria
                     // Create a DMCVoxel if there is one
                     if (entering || exiting)
                     {
-                        sliceDMCVoxels.push_back(
-                                    new DMCVoxel(x, y, z, entering, exiting, DMC_EDGE_SIDE::X));
+                        sliceDMCVoxels.push_back(new DMCVoxel(x, y, z, entering, exiting,
+                                                 DMCVoxel::DMC_EDGE_SIDE::X));
                     }
                 }
 
@@ -420,8 +420,8 @@ void DualMarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &tria
 
                     if (entering || exiting)
                     {
-                        sliceDMCVoxels.push_back(
-                                    new DMCVoxel(x, y, z, entering, exiting, DMC_EDGE_SIDE::Y));
+                        sliceDMCVoxels.push_back(new DMCVoxel(x, y, z, entering, exiting, 
+                                                 DMCVoxel::DMC_EDGE_SIDE::Y));
                     }
                 }
 
@@ -436,8 +436,8 @@ void DualMarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &tria
 
                     if (entering || exiting)
                     {
-                        sliceDMCVoxels.push_back(
-                                    new DMCVoxel(x, y, z, entering, exiting, DMC_EDGE_SIDE::Z));
+                        sliceDMCVoxels.push_back(new DMCVoxel(x, y, z, entering, exiting,
+                                                              DMCVoxel::DMC_EDGE_SIDE::Z));
                     }
                 }
             }
@@ -463,7 +463,7 @@ void DualMarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &tria
             DMCVoxel* dmcVoxel = volumeDMCVoxels[i][j];
 
             // X-aligned edge
-            if (dmcVoxel->side == DMC_EDGE_SIDE::X)
+            if (dmcVoxel->side == DMCVoxel::DMC_EDGE_SIDE::X)
             {
                 // Generate quad
                 i0 = _getSharedDualPointIndex(dmcVoxel->x, dmcVoxel->y, dmcVoxel->z,
@@ -494,7 +494,7 @@ void DualMarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &tria
             }
 
             // Y-aligned edge
-            else if (dmcVoxel->side == DMC_EDGE_SIDE::Y)
+            else if (dmcVoxel->side == DMCVoxel::DMC_EDGE_SIDE::Y)
             {
                 // Generate quad
                 i0 = _getSharedDualPointIndex(dmcVoxel->x, dmcVoxel->y, dmcVoxel->z,
@@ -524,7 +524,7 @@ void DualMarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &tria
             }
 
             // Z-aligned edge
-            else if (dmcVoxel->side == DMC_EDGE_SIDE::Z)
+            else if (dmcVoxel->side == DMCVoxel::DMC_EDGE_SIDE::Z)
             {
                 // Generate quad
                 i0 = _getSharedDualPointIndex(dmcVoxel->x, dmcVoxel->y, dmcVoxel->z,

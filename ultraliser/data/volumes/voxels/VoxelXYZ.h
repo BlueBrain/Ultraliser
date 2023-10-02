@@ -27,36 +27,94 @@ namespace Ultraliser
 {
 
 /**
- * @brief The CandidateVoxel class
+ * @brief The VoxelXYZ struct
  */
-struct CandidateVoxel
+template <class T>
+struct VoxelXYZ
 {
+public:
+
+    /**
+     * @brief VoxelXYZ
+     */
+    VoxelXYZ(const T& i, const T& j, const T& k) { x = i; y = j; z = k; }
+
 public:
 
     /**
      * @brief x
      */
-    int64_t x;
+    T x;
 
     /**
      * @brief y
      */
-    int64_t y;
+    T y;
 
     /**
      * @brief z
      */
-    int64_t z;
-
-    /**
-     * @brief deletable
-     */
-    bool deletable = false;
+    T z;
 };
 
 /**
- * @brief CandidateVoxels
+ * @brief VoxelXYZUI8
  */
-typedef std::vector< CandidateVoxel* > CandidateVoxels;
+typedef VoxelXYZ< uint8_t > VoxelXYZUI8;
+
+/**
+ * @brief VoxelXYZUI16
+ */
+typedef VoxelXYZ< uint16_t > VoxelXYZUI16;
+
+/**
+ * @brief VoxelXYZUI32
+ */
+typedef VoxelXYZ< uint32_t > VoxelXYZUI32;
+
+/**
+ * @brief VoxelXYZUI64
+ */
+typedef VoxelXYZ< uint64_t > VoxelXYZUI64;
+
+/**
+ * @brief VoxelXYZF32
+ */
+typedef VoxelXYZ< float > VoxelXYZF32;
+
+/**
+ * @brief VoxelXYZF64
+ */
+typedef VoxelXYZ< double > VoxelXYZF64;
+
+/**
+ * @brief VoxelsXYZUI8
+ */
+typedef std::vector< VoxelXYZUI8 > VoxelsXYZUI8;
+
+/**
+ * @brief VoxelsXYZUI16
+ */
+typedef std::vector< VoxelXYZUI16 > VoxelsXYZUI16;
+
+/**
+ * @brief VoxelXYZUI32
+ */
+typedef std::vector< VoxelXYZUI32 > VoxelsXYZUI32;
+
+/**
+ * @brief VoxelsXYZUI64
+ */
+typedef std::vector< VoxelXYZUI64 > VoxelsXYZUI64;
+
+/**
+ * @brief VoxelXYZF32
+ */
+typedef std::vector< VoxelXYZF32 > VoxelsXYZF32;
+
+/**
+ * @brief VoxelsXYZF64
+ */
+typedef std::vector< VoxelXYZF64 > VoxelsXYZF64;
 
 }

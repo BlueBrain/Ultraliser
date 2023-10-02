@@ -268,7 +268,9 @@ public:
      * @param axis
      * @param verbose
      */
-    void solidVoxelization(const SOLID_VOXELIZATION_AXIS& axis=X, const bool &verbose = true);
+    void solidVoxelization(const SOLID_VOXELIZATION_AXIS& axis = X,
+                           const bool &useAcceleratedStructure = false,
+                           const bool &verbose = true);
 
     /**
      * @brief solidVoxelizationROI
@@ -754,6 +756,8 @@ public:
 
 public:
 
+    VoxelsXYZUI16 getFilledVoxels() { return _grid->getFilledVoxels(); }
+
     /**
      * @brief getLargestDimension
      * @param dimensions
@@ -1086,7 +1090,9 @@ private:
      * @param axis
      * @param verbose
      */
-    void _floodFill2D(const SOLID_VOXELIZATION_AXIS& axis, const bool &verbose = true);
+    void _floodFill2D(const SOLID_VOXELIZATION_AXIS& axis,
+                      const bool& useAcceleratedStructure = false,
+                      const bool &verbose = true);
 
     /**
      * @brief _floodFill2DROI
@@ -1125,7 +1131,8 @@ private:
      * @param grid
      * @param verbose
      */
-    void _floodFillAlongXYZ(VolumeGrid *grid, const bool &verbose = true);
+    void _floodFillXYZ(VolumeGrid *grid, const bool &useAcceleratedStructure = false,
+                       const bool &verbose = true);
 
     /**
      * @brief _floodFillAlongXYZROI
@@ -1143,6 +1150,12 @@ private:
                                const size_t& y1, const size_t y2,
                                const size_t& z1, const size_t z2,
                                const bool &verbose = true);
+
+
+    void _floodFillX(VolumeGrid* grid, const bool& useAcceleratedStructure, const bool &verbose);
+    void _floodFillY(VolumeGrid* grid, const bool& useAcceleratedStructure, const bool &verbose);
+    void _floodFillZ(VolumeGrid* grid, const bool& useAcceleratedStructure, const bool &verbose);
+
 
     /**
      * @brief floodFill3D
@@ -1191,7 +1204,7 @@ private:
      * @return
      */
     bool _testTriangleGridIntersection(AdvancedTriangle triangle, const GridIndex& voxel);
-_volumeOccupancy
+
     /**
      * @brief _triangleCubeSign
      * @param mesh

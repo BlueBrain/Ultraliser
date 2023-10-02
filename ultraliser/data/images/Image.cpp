@@ -34,10 +34,25 @@ Image::Image(const size_t &width, const size_t &height)
     _allocateMemory();
 }
 
-void Image::_allocateMemory()
+Image::Image(const size_t &width, const size_t &height, const PIXEL_COLOR& color)
+    : _width(width)
+    , _height(height)
+    , _numberPixels(width * height)
+{
+    // Allocate the memory of the image, and do not waste time setting the pixels black
+    _allocateMemory(false);
+
+    // Set the color as given by the user directly
+    fill_n(color);
+}
+
+void Image::_allocateMemory(const bool& setBlack)
 {
     // Allocate the array that should contain the data, and initialize all the elements to Zero
-    _data = new uint8_t[_numberPixels]();
+    if (setBlack)
+        _data = new uint8_t[_numberPixels]();
+    else
+        _data = new uint8_t[_numberPixels];
 }
 
 void Image::_freeMemory()
@@ -47,14 +62,8 @@ void Image::_freeMemory()
 
 size_t Image::dimension(const size_t& i) const
 {
-    if (i == 0)
-    {
-        return _width;
-    }
-    else if (i == 1)
-    {
-        return _height;
-    }
+    if (i == 0) { return _width; }
+    else if (i == 1) { return _height; }
     else
     {
         LOG_WARNING("Image::dimension accepts ONLY 0 or 1!");
@@ -65,21 +74,22 @@ size_t Image::dimension(const size_t& i) const
 void Image::writePPM(const std::string &prefix) const
 {
     std::stringstream stream;
-    stream << prefix << ".ppm";
+    stream << prefix << PPM_EXTENSION;
     FILE *image = fopen(stream.str().c_str(), "wb");
-    fprintf(image, "P6\n%ld %ld\n255\n", getWidth(), getHeight());
+    fprintf(image, "P6\n%ld %ld\n255\n", _width, _height);
 
     size_t index = 0;
+    const size_t imageSize = _width * _height;
     for (size_t i = 0; i < _width; ++i)
     {
         for (size_t j = 0; j < _height; ++j)
         {
-            size_t index1D = (getWidth() * getHeight()) - index;
+            size_t index1D = (imageSize) - index;
             uint8_t value;
 
             if (PIXEL_COLOR(_data[index1D]) == WHITE)
                 value = 255;
-            else if (PIXEL_COLOR(_data[ index1D ]) == GRAY)
+            else if (PIXEL_COLOR(_data[index1D]) == GRAY)
                 value = 128;
             else
                 value = 0;

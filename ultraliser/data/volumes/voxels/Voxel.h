@@ -23,6 +23,9 @@
 
 #include <common/Common.h>
 
+namespace Ultraliser
+{
+
 /**
  * @brief The Voxel struct
  */
@@ -77,3 +80,5 @@ typedef std::vector< Voxel< float > > VoxelsF32;
  * @brief VoxelsF64
  */
 typedef std::vector< Voxel< double > > VoxelsF64;
+
+}

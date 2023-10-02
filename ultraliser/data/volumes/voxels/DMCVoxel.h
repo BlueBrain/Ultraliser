@@ -23,22 +23,25 @@
 
 #include <common/Common.h>
 
-/**
- * @brief The DMC_EDGE_SIDE enum
- */
-enum DMC_EDGE_SIDE
+namespace Ultraliser
 {
-    X,
-    Y,
-    Z,
-    UNKNOWN
-};
 
 /**
  * @brief The DMCVoxel struct
  */
 struct DMCVoxel
 {
+    /**
+     * @brief The DMC_EDGE_SIDE enum
+     */
+    enum DMC_EDGE_SIDE
+    {
+        X,
+        Y,
+        Z,
+        UNKNOWN
+    };
+
 public:
 
     /**
@@ -114,3 +117,5 @@ typedef std::vector< DMCVoxel* > DMCVoxels;
  * A list (std::vector) of lists (std::vector's) of DMCVoxel's.
  */
 typedef std::vector< DMCVoxels > DMCVoxelsList;
+
+}

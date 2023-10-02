@@ -26,6 +26,9 @@
 namespace Ultraliser
 {
 
+/**
+ * @brief The MCVoxel class
+ */
 struct MCVoxel
 {
     /**

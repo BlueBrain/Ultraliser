@@ -1372,17 +1372,6 @@ void Volume::_rasterize(AdvancedMesh* mesh, VolumeGrid* grid)
     LOOP_DONE;
 }
 
-void Volume::solidVoxelization(const SOLID_VOXELIZATION_AXIS& axis, const bool& verbose)
-{
-    if (verbose) LOG_TITLE("Solid Voxelization");
-
-    // The 2D flood filling is only supported for the solid voxelization
-    if (verbose) LOG_STATUS("Flood-filling Volume");
-    _floodFill2D(axis, verbose);
-
-    if (verbose) LOG_STATUS_IMPORTANT("Solid Voxelization Stats.");
-    LOG_STATS(_solidVoxelizationTime);
-}
 
 void Volume::solidVoxelizationROI(const SOLID_VOXELIZATION_AXIS& axis,
                                   const size_t& x1, const size_t x2,
@@ -1400,23 +1389,31 @@ void Volume::solidVoxelizationROI(const SOLID_VOXELIZATION_AXIS& axis,
     LOG_STATS(_solidVoxelizationTime);
 }
 
-void Volume::_floodFill2D(const SOLID_VOXELIZATION_AXIS &axis, const bool &verbose)
+
+
+
+void Volume::_floodFill2D(const SOLID_VOXELIZATION_AXIS &axis,
+                          const bool &useAcceleratedStructure,
+                          const bool &verbose)
 {
     // Start the timer
     TIMER_SET;
 
+    if (useAcceleratedStructure)
+        auto acc = getFilledVoxels();
+
     switch (axis)
     {
-    case X: _floodFillAlongAxis(_grid, SOLID_VOXELIZATION_AXIS::X, verbose);
+    case X: _floodFillX(_grid, useAcceleratedStructure, verbose);
         break;
 
-    case Y: _floodFillAlongAxis(_grid, SOLID_VOXELIZATION_AXIS::Y, verbose);
+    case Y: _floodFillY(_grid, useAcceleratedStructure, verbose);
         break;
 
-    case Z: _floodFillAlongAxis(_grid, SOLID_VOXELIZATION_AXIS::Z, verbose);
+    case Z: _floodFillZ(_grid, useAcceleratedStructure, verbose);
         break;
 
-    case XYZ:_floodFillAlongXYZ(_grid, verbose);
+    case XYZ:_floodFillXYZ(_grid, useAcceleratedStructure, verbose);
         break;
     }
 
@@ -1454,6 +1451,7 @@ void Volume::_floodFill2DROI(const SOLID_VOXELIZATION_AXIS &axis,
     // Save the solid voxelization time
     _solidVoxelizationTime = GET_TIME_SECONDS;
 }
+
 
 
 void Volume::_floodFillAlongAxis(VolumeGrid* grid, const SOLID_VOXELIZATION_AXIS &axis,
@@ -1610,7 +1608,9 @@ void Volume::_floodFillAlongAxisROI(VolumeGrid* grid,
     }
 }
 
-void Volume::_floodFillAlongXYZ(VolumeGrid *grid, const bool &verbose)
+void Volume::_floodFillXYZ(VolumeGrid *grid,
+                           const bool &useAcceleratedStructure,
+                           const bool &verbose)
 {
     // Volume grids per axis
     VolumeGrid *xGrid, *yGrid, *zGrid;
@@ -1674,9 +1674,9 @@ void Volume::_floodFillAlongXYZ(VolumeGrid *grid, const bool &verbose)
     }
 
     // Flood fill along the three axes
-    _floodFillAlongAxis(xGrid, SOLID_VOXELIZATION_AXIS::X, verbose);
-    _floodFillAlongAxis(yGrid, SOLID_VOXELIZATION_AXIS::Y, verbose);
-    _floodFillAlongAxis(zGrid, SOLID_VOXELIZATION_AXIS::Z, verbose);
+    _floodFillX(xGrid, useAcceleratedStructure, verbose);
+    _floodFillY(yGrid, useAcceleratedStructure, verbose);
+    _floodFillZ(zGrid, useAcceleratedStructure, verbose);
 
     // Blend the three grids using AND operation and store the final result in the xGrid
     xGrid->andWithAnotherGrid(yGrid);

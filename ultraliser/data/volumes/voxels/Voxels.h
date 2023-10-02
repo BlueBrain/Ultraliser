@@ -25,3 +25,4 @@
 #include <data/volumes/voxels/DMCVoxel.h>
 #include <data/volumes/voxels/MCVoxel.h>
 #include <data/volumes/voxels/CandiateVoxel.h>
+#include <data/volumes/voxels/VoxelXYZ.h>

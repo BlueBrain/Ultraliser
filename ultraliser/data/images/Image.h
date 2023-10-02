@@ -51,6 +51,17 @@ public:
      * The height of the image in pixels.
      */
     Image(const size_t& width, const size_t& height);
+
+    /**
+     * @brief Image
+     * Constructor
+     * The width of the image in pixels.
+     * @param height
+     * The height of the image in pixels.
+     * @param color
+     * Initial color of all the pixels.
+     */
+    Image(const size_t& width, const size_t& height, const PIXEL_COLOR& color);
     ~Image();
 
     /**
@@ -118,8 +129,23 @@ public:
     void fill(const PIXEL_COLOR& color)
     {
         for(size_t i = 0; i < _width; ++i)
+        {
             for(int64_t j = 0; j < _height; ++j)
-                setPixelColor(i, j, color);
+            {
+                // Since we are doing this to the entire image, we do NOT have to worry about limits
+                setPixelColorWOBC(i, j, color);
+            }
+        }
+    }
+
+    /**
+     * @brief fill_n
+     * Using the std::fill_n algorithm to set the color of all the pixels in the image.
+     * @param color
+     */
+    void fill_n(const PIXEL_COLOR& color)
+    {
+        std::fill_n(_data, _numberPixels, color);
     }
 
     /**
@@ -152,6 +178,22 @@ public:
     void setPixelColor(const int64_t &x, const int64_t &y, const PIXEL_COLOR& color)
     {
         setPixelColor(mapTo1DIndex(x, y), color);
+    }
+
+    /**
+     * @brief setPixelColorWOBC
+     * Sets the color of a specific pixel specified by its X and Y indices, without checking
+     * the bounds.
+     * @param x
+     * The X-index of the pixel to be set.
+     * @param y
+     * The Y-index of the pixel to be set.
+     * @param color
+     * The color of the pixel.
+     */
+    void setPixelColorWOBC(const int64_t &x, const int64_t &y, const PIXEL_COLOR& color)
+    {
+        setPixelColor(mapTo1DIndexWOBC(x, y), color);
     }
 
     /**
@@ -222,11 +264,15 @@ private:
 
     /**
      * @brief _allocateMemory
+     * Allocates the memory of the image.
+     * @param setBlack
+     * If this flag is set to true, all the pixels of the image will be set to black.
      */
-    void _allocateMemory();
+    void _allocateMemory(const bool& setBlack = true);
 
     /**
      * @brief _freeMemory
+     * Frees the memory of the image.
      */
     void _freeMemory();
 

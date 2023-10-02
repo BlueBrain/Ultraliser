@@ -26,12 +26,12 @@
 namespace Ultraliser
 {
 
-bool FloodFiller::isSameColor(const PIXEL_COLOR c1, const PIXEL_COLOR c2)
+inline bool FloodFiller::isSameColor(const PIXEL_COLOR c1, const PIXEL_COLOR c2)
 {
     return (c1 == c2);
 }
 
-bool FloodFiller::isSameColor(const bool c1, const bool c2)
+inline bool FloodFiller::isSameColor(const bool c1, const bool c2)
 {
     return (c1 == c2);
 }
