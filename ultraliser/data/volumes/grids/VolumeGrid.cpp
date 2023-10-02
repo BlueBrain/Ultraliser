@@ -1113,6 +1113,150 @@ void VolumeGrid::_buildVolumeOccupancy()
     LOG_STATS(GET_TIME_SECONDS);
 }
 
+
+
+
+void VolumeGrid::_projectViewXY(const std::string &prefix,
+                                const bool &useAcceleratedStructures,
+                                const bool &verbose)
+{
+    // Starts the timer
+    TIMER_SET;
+
+    // Dimensions
+    const size_t& projectionWidth = getWidth();
+    const size_t& projectionHeight = getHeight();
+    const size_t& projectionSize = projectionWidth * projectionHeight;
+
+    // Create a projection array (float)
+    std::vector< double > projectionImage(projectionSize);
+
+    // Create normalized projection array (0 - 255)
+    std::vector< uint16_t > normalizedProjectionImage(projectionSize);
+
+    // Initialize the projections to zero to avoid garbage
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (int64_t index = 0; index < projectionSize; ++index)
+    {
+        projectionImage[index] = 0.0;
+        normalizedProjectionImage[index] = 0;
+    }
+
+    if (verbose)
+    {
+
+        PROGRESS_RESET;
+        if (useAcceleratedStructures)
+        {
+            auto xx = getFilledVoxels();
+
+            OMP_PARALLEL_FOR
+            for(size_t i = 0; i < getWidth(); ++i)
+            {
+                for (size_t n = 0; n < xx.size(); n++)
+                {
+                    if (xx[n].x == i)
+                    {
+                        projectionImage[xx[n].x + getWidth() * xx[n].y] += getValueF64(xx[n].x, xx[n].y, xx[n].z);
+                    }
+
+                }
+            }
+
+
+
+        }
+        else
+        {
+            LOOP_STARTS("XY Projection");
+            OMP_PARALLEL_FOR
+            for (size_t i = 0; i < getWidth(); ++i)
+            {
+                for (size_t j = 0; j < getHeight(); ++j)
+                {
+                    for (size_t k = 0; k < getDepth(); ++k)
+                    {
+                        if (isFilled(i, j, k))
+                        {
+                            projectionImage[i + getWidth() * j] += getValueF64(i, j, k);
+                        }
+                    }
+                }
+
+                // Update the progress bar
+                LOOP_PROGRESS(PROGRESS, getWidth());
+                PROGRESS_UPDATE;
+            }
+        }
+        LOOP_DONE;
+    }
+    else
+    {
+        if (useAcceleratedStructures)
+        {
+
+        }
+        else
+        {
+            OMP_PARALLEL_FOR
+            for (size_t i = 0; i < getWidth(); ++i)
+            {
+                for (size_t j = 0; j < getHeight(); ++j)
+                {
+                    for (size_t k = 0; k < getDepth(); ++k)
+                    {
+                        if (isFilled(i, j, k))
+                        {
+                            projectionImage[i + getWidth() * j] += getValueF64(i, j, k);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Get the maximum value
+    double maxValue = 0.0;
+    for (int64_t index = 0; index < projectionSize; ++index)
+    {
+        if (projectionImage[index] > maxValue)
+            maxValue = projectionImage[index];
+    }
+
+    // Construct the normalized projection
+    OMP_PARALLEL_FOR
+    for (int64_t index = 0; index < projectionSize; ++index)
+    {
+        // Compute float pixel value
+        double pixelValue = 255 * (projectionImage[index] / maxValue);
+
+        // Convert to uint8_t to be able to write it to the image
+        normalizedProjectionImage[index] = F2UI16(pixelValue);
+    }
+
+    // Construct the file prefix
+    std::string filePrefix = prefix + PROJECTION_SUFFIX + XY_SUFFIX;
+
+    // Save the projection into a PPM image
+    Utilities::savePPMLuminanceImage(filePrefix, normalizedProjectionImage.data(),
+                                     projectionWidth, projectionHeight);
+
+    // Statistics
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Save color coded projections with all possible color-maps
+//    if (projectColorCoded)
+//    {
+//        saveColorMappedProjectionWithAllColorMaps(filePrefix, projectionImage.data(),
+//                                                  projectionWidth, projectionHeight, 0, maxValue);
+//    }
+}
+
+
+
+
+
 VolumeOccpuancy VolumeGrid::getVolumeOccupancy()
 {
     if (_volumeOccupancy.size() == 0)

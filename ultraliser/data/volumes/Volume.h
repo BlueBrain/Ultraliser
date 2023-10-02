@@ -403,7 +403,7 @@ public:
                  const bool xy = false,
                  const bool xz = false,
                  const bool zy = false,
-                 const bool &projectColorCoded = false) const;
+                 const bool &projectColorCoded = false);
 
     /**
      * @brief getWidth

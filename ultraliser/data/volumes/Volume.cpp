@@ -2191,9 +2191,12 @@ void Volume::mapToXYZ(const size_t index, size_t& x, size_t& y, size_t& z) const
 
 void Volume::project(const std::string prefix,
                      const bool xy, const bool xz, const bool zy,
-                     const bool &projectColorCoded) const
+                     const bool &projectColorCoded)
 {
-    _grid->projectVolume(prefix, xy, xz, zy, projectColorCoded);
+    // _grid->projectVolume(prefix, xy, xz, zy, projectColorCoded);
+
+    _grid->_projectViewXY(prefix, false, true);
+
 }
 
 

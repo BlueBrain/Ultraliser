@@ -421,6 +421,10 @@ public:
                        const bool &projectZY = false,
                        const bool &projectColorCoded = false) const;
 
+    void _projectViewXY(const std::string &prefix,
+                        const bool &useAcceleratedStructures = false,
+                        const bool &verbose = true);
+
     /**
      * @brief writeProjection
      * @param prefix
@@ -594,6 +598,8 @@ protected:
      * @brief _volumeOccupancy
      */
     VolumeOccpuancy _volumeOccupancy;
+
+
 
     /**
      * @brief _filledVoxels

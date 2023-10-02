@@ -84,12 +84,13 @@ void run(int argc , const char** argv)
 
     // Surface voxelization
     solidVolume->surfaceVoxelization(inputMesh, false, false, 1.0);
-    solidVolume->solidVoxelization(options->voxelizationAxis, true);
+    solidVolume->solidVoxelization(options->voxelizationAxis, false);
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
 
 
     solidVolume->project(options->morphologyPrefix, true, true, true);
 
+    exit(0);
 
     // Create a skeletonization object
     NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(solidVolume, inputMesh);

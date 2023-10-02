@@ -168,7 +168,7 @@ void generateReconstructedMeshArtifacts(Mesh* mesh, const AppOptions* options);
  * @param volume
  * @param options
  */
-void generateVolumeArtifacts(const Volume* volume, const AppOptions* options);
+void generateVolumeArtifacts(Volume* volume, const AppOptions* options);
 
 /**
  * @brief reconstructVolumeFromMesh

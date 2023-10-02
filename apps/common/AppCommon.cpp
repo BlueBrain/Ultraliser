@@ -585,7 +585,7 @@ void generateReconstructedMeshArtifacts(Mesh* mesh, const AppOptions* options)
     createWatertightMesh(mesh, options);
 }
 
-void generateVolumeArtifacts(const Volume* volume, const AppOptions* options)
+void generateVolumeArtifacts(Volume* volume, const AppOptions* options)
 {
     // Projecting the volume to validate its content
     if (options->projectXY || options->projectXZ || options->projectZY)
