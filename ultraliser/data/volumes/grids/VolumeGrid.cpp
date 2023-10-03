@@ -20,7 +20,6 @@
  **************************************************************************************************/
 
 #include "VolumeGrid.h"
-#include "Projection.h"
 #include <algorithms/Algorithms.h>
 
 namespace Ultraliser
