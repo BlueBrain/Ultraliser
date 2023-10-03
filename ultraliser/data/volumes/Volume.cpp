@@ -2190,137 +2190,15 @@ void Volume::mapToXYZ(const size_t index, size_t& x, size_t& y, size_t& z) const
 }
 
 void Volume::project(const std::string prefix,
-                     const bool xy, const bool xz, const bool zy,
-                     const bool &projectColorCoded)
+                     const bool &xy, const bool &xz, const bool &zy,
+                     const bool &projectColorCoded,
+                     const bool &verbose)
 {
-    // _grid->projectVolume(prefix, xy, xz, zy, projectColorCoded);
+    // TODO: Verify which function to use based on the needs in the code later
+    // _grid->composeProjections(prefix, true, true, true, false, true);
 
-    _grid->_projectViewXY(prefix, false, true);
-
+    _grid->composeProjectionsFromFilledVoxels(prefix, xy, zy, xz, projectColorCoded, true);
 }
-
-
-
-
-void Volume::projectXY(const std::string& prefix, const bool &projectColorCoded)
-{
-    // Get a reference to the occupancy ranges in case it is not computed
-    auto occupancyRanges = getOccupancyRanges();
-
-    // Starts the timer
-    TIMER_SET;
-
-    // Projection prefix
-    std::string filePrefix = prefix + PROJECTION_SUFFIX + XY_SUFFIX;
-
-    const auto width = getWidth();
-    const auto height = getHeight();
-    const auto depth = getDepth();
-
-    const auto projectionSize = width * height;
-
-    // Create a projection array (float)
-    std::vector< double > projectionImage(projectionSize);
-
-    // Create normalized projection array (0 - 255)
-    std::vector< uint16_t > normalizedProjectionImage(projectionSize);
-
-    // Initialize the projections to zero to avoid garbage
-
-    OMP_PARALLEL_FOR
-    for (int64_t index = 0; index < projectionSize; ++index)
-    {
-        projectionImage[index] = 0.0;
-        normalizedProjectionImage[index] = 0;
-    }
-
-
-
-    LOOP_STARTS("XY Projection * ");
-    PROGRESS_SET;
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < occupancyRanges.size(); ++i)
-    {
-        for (size_t j = 0; j < occupancyRanges[i].size(); ++j)
-        {
-            for (size_t k = 0; k < occupancyRanges[i][j].size(); ++k)
-            {
-                for (size_t w = occupancyRanges[i][j][k].lower; w <= occupancyRanges[i][j][k].upper; w++)
-                {
-                    projectionImage[i + width * j] += 1;
-                }
-            }
-        }
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, width);
-        PROGRESS_UPDATE;
-    }
-    LOOP_DONE;
-
-
-//    LOOP_STARTS("XY Projection * ");
-//    PROGRESS_RESET;
-//    OMP_PARALLEL_FOR
-//    for (int64_t i = 0; i < width; i++)
-//    {
-//        for (int64_t j = 0; j < height; j++)
-//        {
-//            for (int64_t k = 0; k < depth; k++)
-//            {
-//                if (isFilledWithoutBoundCheck(i, j, k))
-//                {
-//                    projectionImage[i + width * j] += 1;
-//                }
-//            }
-//        }
-
-//        // Update the progress bar
-//        LOOP_PROGRESS(PROGRESS, width);
-//        PROGRESS_UPDATE;
-//    }
-//    LOOP_DONE;
-
-    // Get the maximum value
-    double maxValue = 0.0;
-    for (int64_t index = 0; index < getWidth() * getHeight(); ++index)
-    {
-        if (projectionImage[index] > maxValue)
-            maxValue = projectionImage[index];
-    }
-
-    // Construct the normalized projection
-    OMP_PARALLEL_FOR
-    for (int64_t index = 0; index < width * height; ++index)
-    {
-        // Compute float pixel value
-        double pixelValue = 255 * (projectionImage[index] / maxValue);
-
-        // Convert to uint8_t to be able to write it to the image
-        normalizedProjectionImage[index] = F2UI16(pixelValue);
-    }
-
-    // Save the projection into a PPM image
-    Utilities::savePPMLuminanceImage(filePrefix, normalizedProjectionImage.data(),
-                                     getWidth(), getHeight());
-
-    // Statistics
-    LOG_STATS(GET_TIME_SECONDS);
-}
-
-void Volume::projectYZ(const std::string& prefix, const bool &projectColorCoded) const
-{
-
-}
-
-void Volume::projectXZ(const std::string& prefix, const bool &projectColorCoded) const
-{
-
-}
-
-
-
-
-
 
 void Volume::writeVolumes(const std::string &prefix,
                           const bool& bitFormat, const bool &unsignedFormat, const bool &floatFormat,

@@ -838,204 +838,26 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
     delete slice;
 }
 
-void VolumeGrid::writeProjection(const std::string &prefix,
-                                 const PROJECTION &projection,
-                                 const bool &projectColorCoded) const
-{
-    // Starts the timer
-    TIMER_SET;
-
-    // Projection dimensions
-    int64_t projectionWidth, projectionHeight, projectionSize;
-
-    // Projection prefix
-    std::stringstream prefixStream;
-
-    // Projection string
-    std::string projectionString;
-
-    switch (projection)
-    {
-    case PROJECTION::XY_PROJECTION:
-    {
-        // Dimensions
-        projectionWidth = getWidth();
-        projectionHeight = getHeight();
-        projectionSize = projectionWidth * projectionHeight;
-
-        // Prefix
-        prefixStream << prefix << PROJECTION_SUFFIX << XY_SUFFIX;
-
-        // String
-        projectionString = "XY Projection";
-        break;
-    }
-    case PROJECTION::XZ_PROJECTION:
-    {
-        projectionWidth = getWidth();
-        projectionHeight = getDepth();
-        projectionSize = projectionWidth * projectionHeight;
-
-
-        // Prefix
-        prefixStream << prefix << PROJECTION_SUFFIX << XZ_SUFFIX;
-
-        // String
-        projectionString = "XZ Projection";
-        break;
-    }
-    case PROJECTION::ZY_PROJECTION:
-    {
-        projectionWidth = getDepth();
-        projectionHeight = getHeight();
-        projectionSize = projectionWidth * projectionHeight;
-
-        // Prefix
-        prefixStream << prefix << PROJECTION_SUFFIX << YZ_SUFFIX;
-
-        // String
-        projectionString = "ZY Projection";
-        break;
-    }
-    }
-
-    // Create a projection array (float)
-    std::vector< double > projectionImage(projectionSize);
-
-    // Create normalized projection array (0 - 255)
-    std::vector< uint16_t > normalizedProjectionImage(projectionSize);
-
-    // Initialize the projections to zero to avoid garbage
-    PROGRESS_SET;
-    OMP_PARALLEL_FOR
-    for (int64_t index = 0; index < projectionSize; ++index)
-    {
-        projectionImage[index] = 0.0;
-        normalizedProjectionImage[index] = 0;
-    }
-
-    LOOP_STARTS(projectionString.c_str());
-    PROGRESS_RESET;
-    OMP_PARALLEL_FOR
-    for (int64_t i = 0; i < getWidth(); i++)
-    {
-        switch (projection)
-        {
-        case PROJECTION::XY_PROJECTION:
-        {
-            for (int64_t j = 0; j < getHeight(); j++)
-            {
-                for (int64_t k = 0; k < getDepth(); k++)
-                {
-                    if (isFilled(i, j, k))
-                    {
-                        projectionImage[i + getWidth() * j] += getValueF64(i, j, k);
-                    }
-                }
-            }
-        } break;
-
-        case PROJECTION::XZ_PROJECTION:
-        {
-            for (int64_t j = 0; j < getHeight(); j++)
-            {
-                for (int64_t k = 0; k < getDepth(); k++)
-                {
-                    if (isFilled(i, j, k))
-                    {
-                        projectionImage[i + getWidth() * k] += getValueF64(i, j, k);
-                    }
-                }
-            }
-        } break;
-
-        case PROJECTION::ZY_PROJECTION:
-        {
-            for (int64_t j = 0; j < getHeight(); j++)
-            {
-                for (int64_t k = 0; k < getDepth(); k++)
-                {
-                    if (isFilled(i, j, k))
-                    {
-                        projectionImage[k + getDepth() * j] += getValueF64(i, j, k);
-                    }
-                }
-            }
-        } break;
-
-        }
-
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, getWidth());
-        PROGRESS_UPDATE;
-    }
-    LOOP_DONE;
-
-    // Get the maximum value
-    double maxValue = 0.0;
-    for (int64_t index = 0; index < projectionSize; ++index)
-    {
-        if (projectionImage[index] > maxValue)
-            maxValue = projectionImage[index];
-    }
-
-    // Construct the normalized projection
-    OMP_PARALLEL_FOR
-    for (int64_t index = 0; index < projectionSize; ++index)
-    {
-        // Compute float pixel value
-        double pixelValue = 255 * (projectionImage[index] / maxValue);
-
-        // Convert to uint8_t to be able to write it to the image
-        normalizedProjectionImage[index] = F2UI16(pixelValue);
-    }
-
-    // Save the projection into a PPM image
-    Utilities::savePPMLuminanceImage(prefixStream.str(), normalizedProjectionImage.data(),
-                                     projectionWidth, projectionHeight);
-
-    // Statistics
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Save color coded projections with all possible color-maps
-    if (projectColorCoded)
-    {
-        saveColorMappedProjectionWithAllColorMaps(prefixStream.str(), projectionImage.data(),
-                                                  projectionWidth, projectionHeight, 0, maxValue);
-    }
-}
 void VolumeGrid::projectVolume(const std::string &prefix,
                                const bool &xyProjection,
                                const bool &xzProjection,
                                const bool &zyProjection,
-                               const bool &colorCodedProjection) const
+                               const bool &colorCodedProjection)
 {
-    if (xyProjection || xzProjection || zyProjection)
+    size_t numberProjections = 0;
+    if (xyProjection ) numberProjections++;
+    if (xzProjection) numberProjections++;
+    if (zyProjection) numberProjections++;
+
+    if (numberProjections > 1)
     {
-        TIMER_SET;
-
-        LOG_TITLE("Projecting Volume");
-        LOG_STATUS("Compositing Projection(s)");
-
-        if (xyProjection)
-        {
-            writeProjection(prefix, PROJECTION::XY_PROJECTION, colorCodedProjection);
-        }
-
-        if (xzProjection)
-        {
-            writeProjection(prefix, PROJECTION::XZ_PROJECTION, colorCodedProjection);
-        }
-
-        if (zyProjection)
-        {
-            writeProjection(prefix, PROJECTION::ZY_PROJECTION, colorCodedProjection);
-        }
-
-        // Statistics
-        LOG_STATUS_IMPORTANT("Volume Projection Stats.");
-        LOG_STATS(GET_TIME_SECONDS);
+        composeProjectionsFromFilledVoxels(prefix, xyProjection, zyProjection, xzProjection, colorCodedProjection, true);
     }
+    else
+    {
+        composeProjections(prefix, xyProjection, zyProjection, xzProjection, colorCodedProjection, true);
+    }
+
 }
 
 size_t VolumeGrid::computeNumberNonZeroVoxels() const
@@ -1113,150 +935,6 @@ void VolumeGrid::_buildVolumeOccupancy()
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-
-
-
-void VolumeGrid::_projectViewXY(const std::string &prefix,
-                                const bool &useAcceleratedStructures,
-                                const bool &verbose)
-{
-    // Starts the timer
-    TIMER_SET;
-
-    // Dimensions
-    const size_t& projectionWidth = getWidth();
-    const size_t& projectionHeight = getHeight();
-    const size_t& projectionSize = projectionWidth * projectionHeight;
-
-    // Create a projection array (float)
-    std::vector< double > projectionImage(projectionSize);
-
-    // Create normalized projection array (0 - 255)
-    std::vector< uint16_t > normalizedProjectionImage(projectionSize);
-
-    // Initialize the projections to zero to avoid garbage
-    PROGRESS_SET;
-    OMP_PARALLEL_FOR
-    for (int64_t index = 0; index < projectionSize; ++index)
-    {
-        projectionImage[index] = 0.0;
-        normalizedProjectionImage[index] = 0;
-    }
-
-    if (verbose)
-    {
-
-        PROGRESS_RESET;
-        if (useAcceleratedStructures)
-        {
-            auto xx = getFilledVoxels();
-
-            OMP_PARALLEL_FOR
-            for(size_t i = 0; i < getWidth(); ++i)
-            {
-                for (size_t n = 0; n < xx.size(); n++)
-                {
-                    if (xx[n].x == i)
-                    {
-                        projectionImage[xx[n].x + getWidth() * xx[n].y] += getValueF64(xx[n].x, xx[n].y, xx[n].z);
-                    }
-
-                }
-            }
-
-
-
-        }
-        else
-        {
-            LOOP_STARTS("XY Projection");
-            OMP_PARALLEL_FOR
-            for (size_t i = 0; i < getWidth(); ++i)
-            {
-                for (size_t j = 0; j < getHeight(); ++j)
-                {
-                    for (size_t k = 0; k < getDepth(); ++k)
-                    {
-                        if (isFilled(i, j, k))
-                        {
-                            projectionImage[i + getWidth() * j] += getValueF64(i, j, k);
-                        }
-                    }
-                }
-
-                // Update the progress bar
-                LOOP_PROGRESS(PROGRESS, getWidth());
-                PROGRESS_UPDATE;
-            }
-        }
-        LOOP_DONE;
-    }
-    else
-    {
-        if (useAcceleratedStructures)
-        {
-
-        }
-        else
-        {
-            OMP_PARALLEL_FOR
-            for (size_t i = 0; i < getWidth(); ++i)
-            {
-                for (size_t j = 0; j < getHeight(); ++j)
-                {
-                    for (size_t k = 0; k < getDepth(); ++k)
-                    {
-                        if (isFilled(i, j, k))
-                        {
-                            projectionImage[i + getWidth() * j] += getValueF64(i, j, k);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Get the maximum value
-    double maxValue = 0.0;
-    for (int64_t index = 0; index < projectionSize; ++index)
-    {
-        if (projectionImage[index] > maxValue)
-            maxValue = projectionImage[index];
-    }
-
-    // Construct the normalized projection
-    OMP_PARALLEL_FOR
-    for (int64_t index = 0; index < projectionSize; ++index)
-    {
-        // Compute float pixel value
-        double pixelValue = 255 * (projectionImage[index] / maxValue);
-
-        // Convert to uint8_t to be able to write it to the image
-        normalizedProjectionImage[index] = F2UI16(pixelValue);
-    }
-
-    // Construct the file prefix
-    std::string filePrefix = prefix + PROJECTION_SUFFIX + XY_SUFFIX;
-
-    // Save the projection into a PPM image
-    Utilities::savePPMLuminanceImage(filePrefix, normalizedProjectionImage.data(),
-                                     projectionWidth, projectionHeight);
-
-    // Statistics
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Save color coded projections with all possible color-maps
-//    if (projectColorCoded)
-//    {
-//        saveColorMappedProjectionWithAllColorMaps(filePrefix, projectionImage.data(),
-//                                                  projectionWidth, projectionHeight, 0, maxValue);
-//    }
-}
-
-
-
-
-
 VolumeOccpuancy VolumeGrid::getVolumeOccupancy()
 {
     if (_volumeOccupancy.size() == 0)
@@ -1265,37 +943,62 @@ VolumeOccpuancy VolumeGrid::getVolumeOccupancy()
     return _volumeOccupancy;
 }
 
-void VolumeGrid::_queryFilledVoxels()
+void VolumeGrid::_queryFilledVoxels(const bool& verbose)
 {
     // Start the timer
     TIMER_SET;
 
     // Process the volume in parallel
+    // TODO: Make the query based on the dimension with the largest side
     std::vector< VoxelsXYZUI16 > filledVoxelsPerSlice;
     filledVoxelsPerSlice.resize(getWidth());
 
-    PROGRESS_SET;
-    LOOP_STARTS("Querying Filled Voxels");
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < getWidth(); ++i)
+    if (verbose)
     {
-        for(size_t j = 0; j < getHeight(); ++j)
+        PROGRESS_SET;
+        LOOP_STARTS("Querying Filled Voxels");
+        OMP_PARALLEL_FOR
+                for (size_t i = 0; i < getWidth(); ++i)
         {
-            for (size_t k = 0; k < getDepth(); ++k)
+            for(size_t j = 0; j < getHeight(); ++j)
             {
-                if (isFilled(i, j, k))
+                for (size_t k = 0; k < getDepth(); ++k)
                 {
-                    filledVoxelsPerSlice[i].push_back(VoxelXYZUI16(i, j, k));
+                    if (isFilled(i, j, k))
+                    {
+                        filledVoxelsPerSlice[i].push_back(VoxelXYZUI16(i, j, k));
+                    }
+                }
+            }
+
+            LOOP_PROGRESS(PROGRESS, getWidth());
+            PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+    }
+    else
+    {
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < getWidth(); ++i)
+        {
+            for(size_t j = 0; j < getHeight(); ++j)
+            {
+                for (size_t k = 0; k < getDepth(); ++k)
+                {
+                    if (isFilled(i, j, k))
+                    {
+                        filledVoxelsPerSlice[i].push_back(VoxelXYZUI16(i, j, k));
+                    }
                 }
             }
         }
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, getWidth());
-        PROGRESS_UPDATE;
+        LOOP_DONE;
     }
-    LOOP_DONE;
 
+    // Clear the list
     _filledVoxels.clear();
+    _filledVoxels.shrink_to_fit();
     for (size_t i = 0; i < filledVoxelsPerSlice.size(); ++i)
     {
         _filledVoxels.insert(_filledVoxels.end(),
@@ -1304,15 +1007,12 @@ void VolumeGrid::_queryFilledVoxels()
         filledVoxelsPerSlice[i].clear();
         filledVoxelsPerSlice[i].shrink_to_fit();
     }
-
-    // Report the performance
-    LOG_STATS(GET_TIME_SECONDS);
 }
 
-VoxelsXYZUI16 VolumeGrid::getFilledVoxels()
+VoxelsXYZUI16 VolumeGrid::getFilledVoxels(const bool& verbose)
 {
     if (_filledVoxels.size() == 0)
-        _queryFilledVoxels();
+        _queryFilledVoxels(verbose);
     return _filledVoxels;
 }
 

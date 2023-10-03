@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2023
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -60,6 +60,22 @@ void saveColorMappedProjectionWithAllColorMaps(const std::string &prefix,
                                                const size_t &projectionHeight,
                                                const double &minValue,
                                                const double &maxValue);
+
+/**
+ * @brief writeProjections
+ * @param prefix
+ * @param projectionImage
+ * @param projectionWidth
+ * @param projectionHeight
+ * @param colorCodedProjections
+ * @param verbose
+ */
+void writeProjections(const std::string &prefix,
+                      const double* projectionImage,
+                      const size_t &projectionWidth,
+                      const size_t &projectionHeight,
+                      const bool& colorCodedProjections,
+                      const bool &verbose = true);
 
 }
 

@@ -397,13 +397,17 @@ public:
      * @brief project
      * @param prefix
      * @param xy
+     * @param xz
      * @param zy
+     * @param projectColorCoded
+     * @param verbose
      */
     void project(const std::string prefix,
-                 const bool xy = false,
-                 const bool xz = false,
-                 const bool zy = false,
-                 const bool &projectColorCoded = false);
+                 const bool &xy = false,
+                 const bool &xz = false,
+                 const bool &zy = false,
+                 const bool &projectColorCoded = false,
+                 const bool &verbose = true);
 
     /**
      * @brief getWidth

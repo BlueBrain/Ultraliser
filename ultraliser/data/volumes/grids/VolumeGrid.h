@@ -409,31 +409,69 @@ public:
      */
     double getValueF64(const int64_t &x, const int64_t &y, const int64_t &z) const;
 
-    /**
-     * @brief projectVolume
-     * @param prefix
-     * @param projectXYView
-     * @param projectZYView
-     */
+
     void projectVolume(const std::string &prefix,
                        const bool &projectXY = false,
                        const bool &projectXZ = false,
                        const bool &projectZY = false,
-                       const bool &projectColorCoded = false) const;
+                       const bool &projectColorCoded = false);
 
-    void _projectViewXY(const std::string &prefix,
-                        const bool &useAcceleratedStructures = false,
-                        const bool &verbose = true);
+
+
+
+
+
+
 
     /**
-     * @brief writeProjection
+     * @brief composeProjections
      * @param prefix
-     * @param projection
-     * @param projectColorCoded
+     * @param projectXY
+     * @param projectYZ
+     * @param projectZX
+     * @param colorCodedProjections
      */
-    void writeProjection(const std::string &prefix,
-                         const PROJECTION &projection,
-                         const bool &projectColorCoded) const;
+    void composeProjections(const std::string &prefix,
+                            const bool &projectXY = false,
+                            const bool &projectYZ = false,
+                            const bool &projectZX = false,
+                            const bool &colorCodedProjections = false,
+                            const bool &verbose = true);
+
+
+
+    /**
+     * @brief composeProjectionsFromFilledVoxels
+     * Composes projections of the volume along the X, Y, and Z axes using the filled voxels
+     * structure.
+     * @param prefix
+     * File prefix.
+     * @param projectXY
+     * If this flag is set, an XY projection will be composed.
+     * @param projectYZ
+     * If this flag is set, a YZ projection will be composed.
+     * @param projectZX
+     * If this flag is set, a ZX projection will be composed.
+     * @param colorCodedProjections
+     */
+    void composeProjectionsFromFilledVoxels(const std::string &prefix,
+                                            const bool &projectXY = false,
+                                            const bool &projectYZ = false,
+                                            const bool &projectZX = false,
+                                            const bool &colorCodedProjections = false,
+                                            const bool &verbose = true);
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * @brief floodFillSliceAlongAxis
@@ -477,7 +515,7 @@ public:
 
 
 
-    VoxelsXYZUI16 getFilledVoxels();
+    VoxelsXYZUI16 getFilledVoxels(const bool &verbose = true);
 
     /**
      * @brief getByte
@@ -560,11 +598,95 @@ public:
 
 protected:
 
+    /**
+     * @brief _composeProjectionXY
+     * Compose volume projection along the XY plane, or the Z-axis.
+     * @param prefix
+     * File prefix.
+     * @param verbose
+     * If this flag is set, the progress bar will be shown
+     * @param colorCodedProjections
+     * If this flag is set, the color coded projections will be written.
+     */
+    void _composeProjectionXY(const std::string &prefix,
+                              const bool &colorCodedProjections = false,
+                              const bool &verbose = true);
+
+    /**
+     * @brief _composeProjectionYZ
+     * Compose volume projection along the YZ plane, or the X-axis.
+     * @param prefix
+     * File prefix.
+     * @param verbose
+     * If this flag is set, the progress bar will be shown.
+     * @param colorCodedProjections
+     * If this flag is set, the color coded projections will be written.
+     */
+    void _composeProjectionYZ(const std::string &prefix,
+                              const bool &colorCodedProjections = false,
+                              const bool &verbose = true);
+
+    /**
+     * @brief _composeProjectionZX
+     * Compose volume projection along the ZX plane, or the Y-axis.
+     * @param prefix
+     * File prefix.
+     * @param verbose
+     * If this flag is set, the progress bar will be shown.
+     * @param colorCodedProjections
+     * If this flag is set, the color coded projections will be written.
+     */
+    void _composeProjectionXZ(const std::string &prefix,
+                              const bool &colorCodedProjections = false,
+                              const bool &verbose = true);
+
+    /**
+     * @brief _composeProjectionFromFilledVoxelsXY
+     * Use the filled voxels structure to compose the XY projection of the volume.
+     * @param prefix
+     * File prefix.
+     * @param verbose
+     * If this flag is set, the progress bar will be shown.
+     * @param colorCodedProjections
+     * If this flag is set, the color coded projections will be written.
+     */
+    void _composeProjectionFromFilledVoxelsXY(const std::string &prefix,
+                                              const bool &colorCodedProjections = false,
+                                              const bool &verbose = true);
+
+    /**
+     * @brief _composeProjectionFromnFilledVoxelsYZ
+     * Use the filled voxels structure to compose the YZ projection of the volume.
+     * @param prefix
+     * File prefix.
+     * @param verbose
+     * If this flag is set, the progress bar will be shown.
+     * @param colorCodedProjections
+     * If this flag is set, the color coded projections will be written.
+     */
+    void _composeProjectionFromFilledVoxelsYZ(const std::string &prefix,
+                                              const bool &colorCodedProjections = false,
+                                              const bool &verbose = true);
+
+    /**
+     * @brief _composeProjectionFromFilledVoxelsXZ
+     * Use the filled voxels structure to compose the ZX projection of the volume.
+     * @param prefix
+     * File prefix.
+     * @param verbose
+     * If this flag is set, the progress bar will be shown.
+     * @param colorCodedProjections
+     * If this flag is set, the color coded projections will be written.
+     */
+    void _composeProjectionFromFilledVoxelsXZ(const std::string &prefix,
+                                              const bool &colorCodedProjections = false,
+                                              const bool &verbose = true);
+
     void _buildVolumeOccupancy();
 
 
 
-    void _queryFilledVoxels();
+    void _queryFilledVoxels(const bool &verbose = true);
 
 
 protected:
