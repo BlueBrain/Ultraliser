@@ -26,7 +26,7 @@ namespace Ultraliser
 {
 
 VolumeGrid::VolumeGrid(const size_t &width, const size_t &height, const size_t &depth)
-    :_width(width)
+    : _width(width)
     , _height(height)
     , _depth(depth)
     , _numberVoxels(width * height * depth)

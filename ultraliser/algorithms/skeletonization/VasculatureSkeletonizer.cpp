@@ -3,8 +3,8 @@
 namespace Ultraliser
 {
 
-VasculatureSkeletonizer::VasculatureSkeletonizer(Volume* volume, const Mesh *mesh)
-    : Skeletonizer(volume, mesh)
+VasculatureSkeletonizer::VasculatureSkeletonizer(Volume* volume)
+    : Skeletonizer(volume)
 
 {
     /// EMPTY CONSTRUCTOR

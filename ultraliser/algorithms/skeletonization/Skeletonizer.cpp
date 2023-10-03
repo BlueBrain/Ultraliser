@@ -32,9 +32,8 @@
 
 namespace Ultraliser
 {
-Skeletonizer::Skeletonizer(Volume* volume, const Mesh *mesh)
+Skeletonizer::Skeletonizer(Volume* volume)
     : _volume(volume)
-    , _mesh(mesh)
 {
     // Mesh bounding box
     _pMinMesh = volume->getPMin();

@@ -22,7 +22,6 @@
 #include "Mesh.h"
 #include "MeshOperations.h"
 #include "MeshStatistics.h"
-#include "TriangleOperations.h"
 #include <utilities/Utilities.h>
 #include <math/Math.h>
 #include <algorithms/geometry/Geometry.h>

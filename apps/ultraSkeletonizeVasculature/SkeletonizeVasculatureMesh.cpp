@@ -84,7 +84,7 @@ void run(int argc , const char** argv)
     volume->solidVoxelization(options->voxelizationAxis);
 
     // Create a skeletonization object
-    VasculatureSkeletonizer* vasculatureSkeletonizer = new VasculatureSkeletonizer(volume, inputMesh);
+    VasculatureSkeletonizer* vasculatureSkeletonizer = new VasculatureSkeletonizer(volume);
 
     // Skeletonize the volume
     vasculatureSkeletonizer->skeletonizeVolume();

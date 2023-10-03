@@ -40,12 +40,7 @@ class Skeletonizer
 {
 public:
 
-    /**
-     * @brief Skeletonizer
-     * @param volume
-     * @param mesh
-     */
-    Skeletonizer(Volume *volume, const Mesh *mesh);
+    Skeletonizer(Volume *volume);
 
     virtual void skeletonizeVolume() = 0;
 
@@ -111,14 +106,6 @@ protected:
      * Input volume that will be used to extract the skeleton.
      */
     Volume* _volume;
-
-    /**
-     * @brief _mesh
-     * Optional input mesh that will be used to compute the actual coordinates of the resulting
-     * skeleton. If this input mesh is empty, i.e. a nullptr, the dimensions will be computed based
-     * on the dimensions of the volume.
-     */
-    const Mesh* _mesh;
 
     /// Mesh bounding box
     Vector3f _pMinMesh, _pMaxMesh, _centerMesh, _boundsMesh;

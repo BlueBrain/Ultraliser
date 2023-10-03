@@ -37,12 +37,9 @@ public:
 
     /**
      * @brief VasculatureSkeletonizer
-     * Constructor
-     * @param mesh
-     * Input mesh
      * @param volume
      */
-    VasculatureSkeletonizer(Volume *volume, const Mesh *mesh);
+    VasculatureSkeletonizer(Volume *volume);
     ~VasculatureSkeletonizer();
 
     /**

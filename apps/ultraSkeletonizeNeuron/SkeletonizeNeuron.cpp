@@ -93,7 +93,7 @@ void run(int argc , const char** argv)
     exit(0);
 
     // Create a skeletonization object
-    NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(solidVolume, inputMesh);
+    NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(solidVolume);
 
     skeletonizer->skeletonizeVolume();
 

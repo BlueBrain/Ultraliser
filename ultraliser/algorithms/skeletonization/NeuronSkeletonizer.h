@@ -44,7 +44,7 @@ public:
      * @param volume
      * @param mesh
      */
-    NeuronSkeletonizer(Volume *volume, const Mesh* mesh);
+    NeuronSkeletonizer(Volume *volume);
     ~NeuronSkeletonizer();
 
     void constructGraph() override;
