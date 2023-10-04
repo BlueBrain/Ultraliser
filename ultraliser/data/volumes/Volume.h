@@ -31,8 +31,6 @@
 #include <data/volumes/utilities/VolumeData.hh>
 #include <algorithms/skeletonization/thinning/Thinning6Iterations.h>
 #include <data/volumes/voxels/CandiateVoxel.h>
-#include <utilities/Occupancy.h>
-#include <utilities/OccupancyRange.h>
 
 namespace Ultraliser
 {
@@ -519,6 +517,7 @@ public:
      */
     CandidateVoxels searchForCandidateVoxelsOne();
 
+
     /**
      * @brief deleteCandidateVoxels
      * @param thinning
@@ -528,6 +527,10 @@ public:
                                  const bool& displayProgress = true);
 
     size_t deleteCandidateVoxelsParallel(std::unique_ptr< Thinning6Iterations > &thinning);
+
+    size_t deleteCandidateVoxelsWithThinningVoxels(
+            std::unique_ptr< Thinning6Iterations > &thinning,
+            ThinningVoxelsUI16& thinningVoxels);
 
     /**
      * @brief searchForDeletableVoxels
@@ -949,16 +952,16 @@ public:
 
     float getExpansionRatio() const { return _expansionRatio; }
 
-    VolumeOccpuancyRanges getOccupancyRanges();
-
-    VolumeOccpuancy getVolumeOccupancy();
-
     Bounds3D_ui64 getROIBounds(const Vector3f& pMin, const Vector3f& pMax);
 
     void projectXY(const std::string& prefix, const bool &projectColorCoded = false);
     void projectYZ(const std::string& prefix, const bool &projectColorCoded = false) const;
     void projectXZ(const std::string& prefix, const bool &projectColorCoded = false) const;
 
+    ThinningVoxelsUI16 getThinningVoxelsList(const bool rebuildList = false)
+    {
+        return _grid->getThinningVoxelsList(rebuildList);
+    }
 
 private:
 
@@ -1191,7 +1194,7 @@ private:
      * @return
      */
     bool _testTriangleGridIntersection(AdvancedTriangle triangle, const GridIndex& voxel);
-_volumeOccupancy
+
     /**
      * @brief _triangleCubeSign
      * @param mesh
@@ -1286,16 +1289,6 @@ private:
      * @brief _solidVoxelizationTime
      */
     double _addingVolumePassTime;
-
-    /**
-     * @brief _volumeOccupancyRanges
-     */
-    VolumeOccpuancyRanges _volumeOccupancyRanges;
-
-    /**
-     * @brief _volumeOccupancy
-     */
-    VolumeOccpuancy _volumeOccupancy;
 
 public:
 

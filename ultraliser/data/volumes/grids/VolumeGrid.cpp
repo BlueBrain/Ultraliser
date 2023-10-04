@@ -72,38 +72,28 @@ size_t VolumeGrid::getNumberVoxels() const
     return _numberVoxels;
 }
 
-
-VolumeOccpuancy VolumeGrid::getVolumeOccupancy()
-{
-    if (_volumeOccupancy.size() == 0)
-        _buildVolumeOccupancy();
-
-    return _volumeOccupancy;
-}
-
-
-void VolumeGrid::_buildVolumeOccupancy()
+void VolumeGrid::_buildThinningVoxelsList()
 {
     TIMER_SET;
-    _volumeOccupancy.resize(getWidth());
+
+    if (_thinningVoxels.size() > 0)
+        _thinningVoxels.clear();
+
+    std::vector< ThinningVoxelsUI16 > perSlice;
+    perSlice.resize(getWidth());
 
     PROGRESS_SET;
-    LOOP_STARTS("Building Volume Occupancy Acceleration Structure");
+    LOOP_STARTS("Building Thinning Voxels List");
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < getWidth(); ++i)
     {
-        auto& sliceOccupancy = _volumeOccupancy[i];
-        sliceOccupancy.resize(getHeight());
-
         for (size_t j = 0; j < getHeight(); ++j)
         {
             for (size_t k = 0; k < getDepth(); ++k)
             {
-                // If this voxel if solid, i.e. is filled
                 if (isFilled(i, j, k))
                 {
-                    // Add the range to the list
-                    sliceOccupancy[j].push_back(k);
+                    perSlice[i].push_back(ThinningVoxelUI16(i, j, k));
                 }
             }
         }
@@ -114,11 +104,26 @@ void VolumeGrid::_buildVolumeOccupancy()
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
+
+    for (size_t i = 0; i < perSlice.size(); ++i)
+    {
+        _thinningVoxels.insert(_thinningVoxels.end(), perSlice[i].begin(), perSlice[i].end());
+
+        perSlice[i].clear();
+        perSlice.shrink_to_fit();
+    }
+
+    perSlice.clear();
+    perSlice.shrink_to_fit();
 }
 
+ThinningVoxelsUI16 VolumeGrid::getThinningVoxelsList(const bool& rebuildList)
+{
+    if (_thinningVoxels.size() == 0 || rebuildList)
+        _buildThinningVoxelsList();
 
-
-
+    return _thinningVoxels;
+}
 
 size_t VolumeGrid::mapToIndex(const size_t &x, const size_t &y, const size_t &z,
                               bool &outlier) const

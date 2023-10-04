@@ -54,11 +54,17 @@ public:
                                        const size_t& numberZeroVoxels = 5) = 0;
 
 
-
+    /**
+     * @brief initialize
+     * Initialize the skeletonizer.
+     */
+    void initialize();
 
     std::vector< Vector3f > getShellPoints();
 
     void applyVolumeThinning();
+    void applyVolumeThinningUsingThinningVoxels();
+
 
     virtual void constructGraph();
 
@@ -82,6 +88,8 @@ protected:
 
 
     void _computeShellPoints();
+    void _computeShellPointsWithThinningVoxels(ThinningVoxelsUI16 &thinningVoxels);
+
 
     void _voxelizeMesh();
 
@@ -147,6 +155,8 @@ protected:
      */
     SkeletonBranches _branches;
 
+
+    bool _useThinningVoxels;
 
 };
 }

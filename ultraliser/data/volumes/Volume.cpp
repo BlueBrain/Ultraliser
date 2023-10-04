@@ -2201,9 +2201,6 @@ void Volume::project(const std::string prefix,
 
 void Volume::projectXY(const std::string& prefix, const bool &projectColorCoded)
 {
-    // Get a reference to the occupancy ranges in case it is not computed
-    auto occupancyRanges = getOccupancyRanges();
-
     // Starts the timer
     TIMER_SET;
 
@@ -2231,51 +2228,27 @@ void Volume::projectXY(const std::string& prefix, const bool &projectColorCoded)
         normalizedProjectionImage[index] = 0;
     }
 
-
-
     LOOP_STARTS("XY Projection * ");
     PROGRESS_SET;
     OMP_PARALLEL_FOR
-    for (size_t i = 0; i < occupancyRanges.size(); ++i)
+    for (int64_t i = 0; i < width; i++)
     {
-        for (size_t j = 0; j < occupancyRanges[i].size(); ++j)
+        for (int64_t j = 0; j < height; j++)
         {
-            for (size_t k = 0; k < occupancyRanges[i][j].size(); ++k)
+            for (int64_t k = 0; k < depth; k++)
             {
-                for (size_t w = occupancyRanges[i][j][k].lower; w <= occupancyRanges[i][j][k].upper; w++)
+                if (isFilledWithoutBoundCheck(i, j, k))
                 {
                     projectionImage[i + width * j] += 1;
                 }
             }
         }
+
         // Update the progress bar
         LOOP_PROGRESS(PROGRESS, width);
         PROGRESS_UPDATE;
     }
     LOOP_DONE;
-
-
-//    LOOP_STARTS("XY Projection * ");
-//    PROGRESS_RESET;
-//    OMP_PARALLEL_FOR
-//    for (int64_t i = 0; i < width; i++)
-//    {
-//        for (int64_t j = 0; j < height; j++)
-//        {
-//            for (int64_t k = 0; k < depth; k++)
-//            {
-//                if (isFilledWithoutBoundCheck(i, j, k))
-//                {
-//                    projectionImage[i + width * j] += 1;
-//                }
-//            }
-//        }
-
-//        // Update the progress bar
-//        LOOP_PROGRESS(PROGRESS, width);
-//        PROGRESS_UPDATE;
-//    }
-//    LOOP_DONE;
 
     // Get the maximum value
     double maxValue = 0.0;
@@ -2944,23 +2917,6 @@ void Volume::addByte(const size_t &index, const uint8_t byte)
 void Volume::clear(void)
 {
     _grid->clear();
-
-    if (_volumeOccupancyRanges.size() > 0)
-    {
-        for (size_t i = 0; i < _volumeOccupancyRanges.size(); ++i)
-        {
-            for (size_t j = 0; j < _volumeOccupancyRanges[i].size(); ++j)
-            {
-                _volumeOccupancyRanges[i][j].clear();
-                _volumeOccupancyRanges[i][j].shrink_to_fit();
-            }
-
-            _volumeOccupancyRanges[i].clear();
-            _volumeOccupancyRanges[i].shrink_to_fit();
-        }
-
-        _volumeOccupancyRanges.clear();
-    }
 }
 
 void Volume::fill(const int64_t &x,
@@ -3644,6 +3600,68 @@ size_t Volume::deleteCandidateVoxels(std::unique_ptr< Thinning6Iterations > &thi
     return numberDeletedVoxels;
 }
 
+size_t Volume::deleteCandidateVoxelsWithThinningVoxels(
+        std::unique_ptr< Thinning6Iterations > &thinning,
+        ThinningVoxelsUI16& thinningVoxels)
+{
+    size_t numberDeletedVoxels = 0;
+
+    // CHeck if the thinning voxel is a border one or not
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < thinningVoxels.size(); ++i)
+    {
+        auto& voxel = thinningVoxels[i];
+        if (isBorderVoxel(voxel.x, voxel.y, voxel.z))
+        {
+            voxel.border = true;
+        }
+    }
+
+    // Set the deletable voxels
+    for (size_t direction = 0; direction < 6; direction++)
+    {
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < thinningVoxels.size(); ++i)
+        {
+            auto& voxel = thinningVoxels[i];
+
+            if (voxel.border)
+            {
+                // A block of the volume that is scanned every iteration
+                int8_t volumeBlock[26];
+
+                for (size_t k = 0; k < 26; k++)
+                {
+                    size_t idx, idy, idz;
+                    idx = voxel.x + VDX[k];
+                    idy = voxel.y + VDY[k];
+                    idz = voxel.z + VDZ[k];
+                    volumeBlock[k] = isFilledWithoutBoundCheck(idx, idy, idz) ? 1 : 0;
+                }
+
+                if (thinning->matches(direction, volumeBlock))
+                {
+                    voxel.deletable = true;
+                }
+            }
+        }
+
+        for (size_t i = 0; i < thinningVoxels.size(); ++i)
+        {
+            auto& voxel = thinningVoxels[i];
+            if (voxel.deletable && voxel.border)
+            {
+                numberDeletedVoxels++;
+                clear(voxel.x, voxel.y, voxel.z);
+                voxel.deletable = false;
+                voxel.border = false;
+            }
+        }
+    }
+
+    return numberDeletedVoxels;
+}
+
 size_t Volume::deleteCandidateVoxelsParallel(std::unique_ptr< Thinning6Iterations > &thinning)
 {
     size_t numberDeletedVoxels = 0;
@@ -3652,25 +3670,23 @@ size_t Volume::deleteCandidateVoxelsParallel(std::unique_ptr< Thinning6Iteration
     std::vector< CandidateVoxels > perSliceBorderVoxels;
     perSliceBorderVoxels.resize(getWidth());
 
-    // Get a reference to the occupancy ranges in case it is not computed
-    auto occupancyRanges = getOccupancyRanges();
-
+    // Collect the border voxels per slice in parallel
     OMP_PARALLEL_FOR
-    for (size_t i = 0; i < occupancyRanges.size(); ++i)
+    for (size_t i = 0; i < getWidth(); ++i)
     {
-        for (size_t j = 0; j < occupancyRanges[i].size(); ++j)
+        for (size_t j = 0; j < getHeight(); ++j)
         {
-            for (size_t k = 0; k < occupancyRanges[i][j].size(); ++k)
+            for (size_t k = 0; k < getDepth(); ++k)
             {
-                for (size_t w = occupancyRanges[i][j][k].lower; w <= occupancyRanges[i][j][k].upper; w++)
+                if (isBorderVoxel(i, j, k))
                 {
-                    if (isBorderVoxel(i, j, w))
-                    {
-                        CandidateVoxel* voxel = new CandidateVoxel();
-                        voxel->x = i; voxel->y = j; voxel->z = w;
-                        voxel->deletable = false;
-                        perSliceBorderVoxels[i].push_back(voxel);
-                    }
+                    CandidateVoxel* voxel = new CandidateVoxel();
+                    voxel->x = i;
+                    voxel->y = j;
+                    voxel->z = k;
+                    voxel->deletable = false;
+
+                    perSliceBorderVoxels[i].push_back(voxel);
                 }
             }
         }
@@ -3786,38 +3802,25 @@ CandidateVoxels Volume::searchForCandidateVoxelsOne()
 
 std::vector< std::vector< Vec3ui_64 > > Volume::searchForBorderVoxels()
 {
-    TIMER_SET;
-
     // This list will collect the border voxels per slice (along the width)
     std::vector< std::vector< Vec3ui_64 > > perSliceBorderVoxels;
     perSliceBorderVoxels.resize(getWidth());
 
-    // Get a reference to the occupancy ranges in case it is not computed
-    auto occupancyRanges = getOccupancyRanges();
-
     // Collect the border voxels per slice in parallel
-
-    LOOP_STARTS("Searching for Border Voxels");
     OMP_PARALLEL_FOR
-    for (size_t i = 0; i < occupancyRanges.size(); ++i)
+    for (size_t i = 0; i < getWidth(); ++i)
     {
-        for (size_t j = 0; j < occupancyRanges[i].size(); ++j)
+        for (size_t j = 0; j < getHeight(); ++j)
         {
-            for (size_t k = 0; k < occupancyRanges[i][j].size(); ++k)
+            for (size_t k = 0; k < getDepth(); ++k)
             {
-                for (size_t w = occupancyRanges[i][j][k].lower;
-                     w <= occupancyRanges[i][j][k].upper; w++)
+                if (isBorderVoxel(i, j, k))
                 {
-                    if (isBorderVoxel(i, j, w))
-                    {
-                        perSliceBorderVoxels[i].push_back(Vec3ui_64(i, j, w));
-                    }
+                    perSliceBorderVoxels[i].push_back(Vec3ui_64(i, j, k));
                 }
             }
         }
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
 
     return perSliceBorderVoxels;
 }
@@ -4376,155 +4379,6 @@ Volume* Volume::getBrick(const size_t& x1, const size_t& x2,
 
     // Return the created volume brick
     return brick;
-}
-
-void Volume::_buildOccupancyRanges()
-{
-    TIMER_SET;
-    _volumeOccupancyRanges.resize(getWidth());
-
-    PROGRESS_SET;
-    LOOP_STARTS("Building Volume Occupancy Ranges Structure");
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < getWidth(); ++i)
-    {
-        auto& sliceOccupancyRanges = _volumeOccupancyRanges[i];
-        sliceOccupancyRanges.resize(getHeight());
-
-        for (size_t j = 0; j < getHeight(); ++j)
-        {
-            bool alreadyFilled = false;
-            size_t lowerLimit = 0, upperLimit = 0;
-
-            for (size_t k = 0; k < getDepth(); ++k)
-            {
-                // If this voxel if solid, i.e. is filled
-                if (isFilledWithoutBoundCheck(i, j, k))
-                {
-                    // If the alreadyFilled flag is not set, this means that this is the first voxel
-                    if (!alreadyFilled)
-                    {
-                        // Update the lower limit
-                        lowerLimit = k;
-
-                        // Set the setSolid flag
-                        alreadyFilled = true;
-
-                        // If this is the last element, then add the range
-                        if (k == getDepth() - 1)
-                        {
-                            // Update the upper limit
-                            upperLimit = k;
-
-                            // Add the range to the list
-                            sliceOccupancyRanges[j].push_back(
-                                         OccpuancyRange(lowerLimit, upperLimit));
-
-                            // Turn off the flag
-                            alreadyFilled = false;
-                        }
-                    }
-
-                    else
-                    {
-                        // If this is the last element, then add the range
-                        if (k == getDepth() - 1)
-                        {
-                            // Update the upper limit
-                            upperLimit = k;
-
-                            // Add the range to the list
-                            sliceOccupancyRanges[j].push_back(
-                                        OccpuancyRange(lowerLimit, upperLimit));
-
-                            // Turn off the flag
-                            alreadyFilled = false;
-                        }
-                    }
-                }
-
-                // If this voxel is not solid, i.e. empty
-                else
-                {
-                    // If the alreadyFilled flag is set, then this is the last voxel
-                    if (alreadyFilled)
-                    {
-                        // Update the upper limit
-                        upperLimit = k - 1;
-
-                        // Add the range to the list
-                        sliceOccupancyRanges[j].push_back(
-                                    OccpuancyRange(lowerLimit, upperLimit));
-
-                        // Turn off the flag
-                        alreadyFilled = false;
-                    }
-                }
-            }
-        }
-
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, getWidth());
-        PROGRESS_UPDATE;
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-}
-
-
-void Volume::_buildVolumeOccupancy()
-{
-    TIMER_SET;
-    _volumeOccupancy.resize(getWidth());
-
-    PROGRESS_SET;
-    LOOP_STARTS("Building Volume Occupancy Structure");
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < getWidth(); ++i)
-    {
-        auto& sliceOccupancy = _volumeOccupancy[i];
-        sliceOccupancy.resize(getHeight());
-
-        for (size_t j = 0; j < getHeight(); ++j)
-        {
-            for (size_t k = 0; k < getDepth(); ++k)
-            {
-                // If this voxel if solid, i.e. is filled
-                if (isFilledWithoutBoundCheck(i, j, k))
-                {
-                    // Add the range to the list
-                    sliceOccupancy[j].push_back(k);
-                }
-            }
-        }
-
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, getWidth());
-        PROGRESS_UPDATE;
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-}
-
-
-VolumeOccpuancyRanges Volume::getOccupancyRanges()
-{
-    if (_volumeOccupancyRanges.size() == 0)
-    {
-        _buildOccupancyRanges();
-    }
-
-    return _volumeOccupancyRanges;
-}
-
-VolumeOccpuancy Volume::getVolumeOccupancy()
-{
-    if (_volumeOccupancy.size() == 0)
-    {
-        _buildVolumeOccupancy();
-    }
-
-    return _volumeOccupancy;
 }
 
 }

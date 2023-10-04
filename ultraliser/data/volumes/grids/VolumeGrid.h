@@ -25,7 +25,7 @@
 #include <data/common/BitArray.h>
 #include <data/images/Image.h>
 #include <data/volumes/utilities/VolumeType.hh>
-#include <utilities/Occupancy.h>
+#include <data/volumes/voxels/ThinningVoxel.h>
 
 namespace Ultraliser
 {
@@ -448,8 +448,6 @@ public:
                                     const size_t &padding=2);
 
 
-    VolumeOccpuancy getVolumeOccupancy();
-
     /**
      * @brief getByte
      * @param index
@@ -529,9 +527,11 @@ public:
      */
     virtual void writeRAWVolume(const std::string &prefix) const = 0;
 
+    ThinningVoxelsUI16 getThinningVoxelsList(const bool& rebuildList = false);
+
 protected:
 
-    void _buildVolumeOccupancy();
+    void _buildThinningVoxelsList();
 
 
 
@@ -565,11 +565,7 @@ protected:
      */
     size_t _numberVoxels;
 
-
-    /**
-     * @brief _volumeOccupancy
-     */
-    VolumeOccpuancy _volumeOccupancy;
+    ThinningVoxelsUI16 _thinningVoxels;
 };
 
 }

@@ -41,7 +41,19 @@ void NeuronSkeletonizer::skeletonizeVolume()
     // Start the timer
     TIMER_SET;
 
-    applyVolumeThinning();
+    if (_useThinningVoxels )
+    {
+        applyVolumeThinningUsingThinningVoxels();
+    }
+    else
+    {
+         applyVolumeThinning();
+    }
+
+
+    //
+
+
 
     LOG_STATUS_IMPORTANT("Skeletonization Stats.");
     LOG_STATS(GET_TIME_SECONDS);
@@ -174,53 +186,25 @@ void NeuronSkeletonizer::_segmentSomaVolume()
     if (z2 >= _volume->getDepth()) z2 = _volume->getDepth() - 1;
 
         // Apply the solid voxelization only to the selected region of interest to save time flood-filling large slices
-    _volume->solidVoxelizationROI(Volume::SOLID_VOXELIZATION_AXIS::X, x1, x2, y1, y2, z1, z2);
+    //_volume->solidVoxelizationROI(Volume::SOLID_VOXELIZATION_AXIS::X, x1, x2, y1, y2, z1, z2);
 
     // Apply the solid voxelization only to the selected region of interest to save time flood-filling large slices
-    // _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::X);
+    _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
 
-    // _volume->project("/data/microns-skeletonization-meshes/skeletonization-output-spines/morphologies/out", true, true, true);
+    _volume->project("/data/microns-skeletonization-meshes/skeletonization-output-spines/morphologies/out", true, true, true);
     // LOG_STATS(GET_TIME_SECONDS);
 
-    // exit(0);
+    exit(0);
 
-
-    // Get a reference to the occupancy ranges in case it is not computed
-    auto occupancyRanges = _volume->getOccupancyRanges();
-
-    std::vector< std::vector< size_t > > perSliceSomaVoxels;
-    perSliceSomaVoxels.resize(_volume->getWidth());
-
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < occupancyRanges.size(); ++i)
+    // TODO: This could be parallelized
+    std::vector< size_t > somaVoxels;
+    for (size_t i = 0; i < _volume->getNumberVoxels(); ++i)
     {
-        for (size_t j = 0; j < occupancyRanges[i].size(); ++j)
+        if (_volume->isFilled(i))
         {
-            for (size_t k = 0; k < occupancyRanges[i][j].size(); ++k)
-            {
-                for (size_t w = occupancyRanges[i][j][k].lower;
-                     w <= occupancyRanges[i][j][k].upper; w++)
-                {
-                    if (_volume->isFilled(i, j, w))
-                    {
-                        perSliceSomaVoxels[i].push_back(
-                                    _volume->mapTo1DIndexWithoutBoundCheck(i, j, w));
-                    }
-                }
-            }
+            somaVoxels.push_back(i);
         }
     }
-
-    std::vector< size_t > somaVoxels;
-    for (size_t i = 0; i < perSliceSomaVoxels.size(); ++i)
-    {
-        somaVoxels.insert(somaVoxels.end(), perSliceSomaVoxels[i].begin(), perSliceSomaVoxels[i].end());
-        perSliceSomaVoxels[i].clear();
-        perSliceSomaVoxels[i].shrink_to_fit();
-    }
-
-    perSliceSomaVoxels.clear();
-    perSliceSomaVoxels.shrink_to_fit();
 
     // Find out the nodes that are inside the soma
     OMP_PARALLEL_FOR
