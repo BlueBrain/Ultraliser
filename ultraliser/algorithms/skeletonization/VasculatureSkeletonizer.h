@@ -37,18 +37,15 @@ public:
 
     /**
      * @brief VasculatureSkeletonizer
-     * Constructor
-     * @param mesh
-     * Input mesh
      * @param volume
      */
-    VasculatureSkeletonizer(Volume *volume, const Mesh *mesh);
+    VasculatureSkeletonizer(Volume *volume, const bool &useAcceleration = true);
     ~VasculatureSkeletonizer();
 
     /**
      * @brief skeletonizeVolume
      */
-    void skeletonizeVolume() override;
+    void skeletonizeVolumeToCenterLines() override;
 
     /**
      * @brief skeletonizeVolumeBlockByBlock

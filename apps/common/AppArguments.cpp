@@ -496,6 +496,17 @@ void AppArguments::addVolumeArguments()
     addVolumeExportArguments();
 }
 
+void AppArguments::addSkeletonizationAccelerationArgument()
+{
+    Argument useAccelerationStructures(
+                "--use-acceleration",
+                ARGUMENT_TYPE::BOOL,
+                "Use acceleration data structures to improve the performance of the "
+                "skeletonization operation. Note that this option requires more memory.");
+    _args->addArgument(&useAccelerationStructures);
+    _options->useAccelerationStructures = _args->getBoolValue(&useAccelerationStructures);
+}
+
 void AppArguments::addMeshJoiningArguments()
 {
     Argument simpleMeshJoin(

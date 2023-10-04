@@ -3600,7 +3600,7 @@ size_t Volume::deleteCandidateVoxels(std::unique_ptr< Thinning6Iterations > &thi
     return numberDeletedVoxels;
 }
 
-size_t Volume::deleteCandidateVoxelsWithThinningVoxels(
+size_t Volume::deleteBorderVoxelsUsingThinningVoxels(
         std::unique_ptr< Thinning6Iterations > &thinning,
         ThinningVoxelsUI16& thinningVoxels)
 {
@@ -3610,11 +3610,11 @@ size_t Volume::deleteCandidateVoxelsWithThinningVoxels(
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < thinningVoxels.size(); ++i)
     {
+        // Get a reference to the voxel
         auto& voxel = thinningVoxels[i];
-        if (isBorderVoxel(voxel.x, voxel.y, voxel.z))
-        {
-            voxel.border = true;
-        }
+
+        // If the voxel is a border voxel, update its status
+        if (isBorderVoxel(voxel.x, voxel.y, voxel.z)) { voxel.border = true; }
     }
 
     // Set the deletable voxels
@@ -3623,20 +3623,18 @@ size_t Volume::deleteCandidateVoxelsWithThinningVoxels(
         OMP_PARALLEL_FOR
         for (size_t i = 0; i < thinningVoxels.size(); ++i)
         {
+            // Get a reference to the voxel
             auto& voxel = thinningVoxels[i];
 
+            // If the voxel is a border voxel, check if it should be deleted or not
             if (voxel.border)
             {
                 // A block of the volume that is scanned every iteration
                 int8_t volumeBlock[26];
-
-                for (size_t k = 0; k < 26; k++)
+                for (size_t k = 0; k < 26; ++k)
                 {
-                    size_t idx, idy, idz;
-                    idx = voxel.x + VDX[k];
-                    idy = voxel.y + VDY[k];
-                    idz = voxel.z + VDZ[k];
-                    volumeBlock[k] = isFilledWithoutBoundCheck(idx, idy, idz) ? 1 : 0;
+                    volumeBlock[k] = isFilledWithoutBoundCheck(
+                                voxel.x + VDX[k], voxel.y + VDY[k], voxel.z + VDZ[k]) ? 1 : 0;
                 }
 
                 if (thinning->matches(direction, volumeBlock))

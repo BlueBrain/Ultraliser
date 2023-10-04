@@ -42,17 +42,16 @@ public:
     /**
      * @brief NeuronSkeletonizer
      * @param volume
-     * @param mesh
      */
-    NeuronSkeletonizer(Volume *volume, const Mesh* mesh);
+    NeuronSkeletonizer(Volume *volume, const bool &useAcceleration = true);
     ~NeuronSkeletonizer();
 
     void constructGraph() override;
 
     /**
-     * @brief skeletonizeVolume
+     * @brief skeletonizeVolumeToCenterLines
      */
-    void skeletonizeVolume() override;
+    void skeletonizeVolumeToCenterLines() override;
 
     /**
      * @brief segmentComponents

@@ -392,6 +392,12 @@ public:
     bool useSolidVoxelization = false;
 
     /**
+     * @brief useAccelerationStructures
+     * Use acceleration structures to improve the performance of the skeletonization.
+     */
+    bool useAccelerationStructures = false;
+
+    /**
      * @brief packingAlgorithm
      * The packing algorithm used to create the proxy mesh.
      */

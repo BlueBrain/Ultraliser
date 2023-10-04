@@ -45,6 +45,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     args->addSuppressionArguments();
     args->addDataArguments();
     args->addProcessingArguments();
+    args->addSkeletonizationAccelerationArgument();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -84,10 +85,13 @@ void run(int argc , const char** argv)
     volume->solidVoxelization(options->voxelizationAxis);
 
     // Create a skeletonization object
-    VasculatureSkeletonizer* vasculatureSkeletonizer = new VasculatureSkeletonizer(volume, inputMesh);
+    VasculatureSkeletonizer* vasculatureSkeletonizer = new VasculatureSkeletonizer(volume);
+
+    // Initialization
+    vasculatureSkeletonizer->initialize();
 
     // Skeletonize the volume
-    vasculatureSkeletonizer->skeletonizeVolume();
+    vasculatureSkeletonizer->skeletonizeVolumeToCenterLines();
 
     // Generate the skeletonized volume artifacts
     generateVolumeArtifacts(volume, options);

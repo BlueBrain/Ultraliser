@@ -528,7 +528,7 @@ public:
 
     size_t deleteCandidateVoxelsParallel(std::unique_ptr< Thinning6Iterations > &thinning);
 
-    size_t deleteCandidateVoxelsWithThinningVoxels(
+    size_t deleteBorderVoxelsUsingThinningVoxels(
             std::unique_ptr< Thinning6Iterations > &thinning,
             ThinningVoxelsUI16& thinningVoxels);
 

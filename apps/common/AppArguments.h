@@ -132,6 +132,11 @@ public:
     void addVolumeArguments();
 
     /**
+     * @brief addSkeletonizationAccelerationArgument
+     */
+    void addSkeletonizationAccelerationArgument();
+
+    /**
      * @brief addMeshJoiningArguments
      */
     void addMeshJoiningArguments();

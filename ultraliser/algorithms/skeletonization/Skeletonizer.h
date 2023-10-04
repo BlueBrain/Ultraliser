@@ -43,16 +43,8 @@ public:
     /**
      * @brief Skeletonizer
      * @param volume
-     * @param mesh
      */
-    Skeletonizer(Volume *volume, const Mesh *mesh);
-
-    virtual void skeletonizeVolume() = 0;
-
-    virtual void skeletonizeVolumeBlockByBlock(const size_t& blockSize = 512,
-                                       const size_t& numberOverlappingVoxels = 25,
-                                       const size_t& numberZeroVoxels = 5) = 0;
-
+    Skeletonizer(Volume *volume, const bool &useAcceleration = true);
 
     /**
      * @brief initialize
@@ -60,10 +52,26 @@ public:
      */
     void initialize();
 
+    /**
+     * @brief skeletonizeVolumeToCenterLines
+     */
+    virtual void skeletonizeVolumeToCenterLines() = 0;
+
+    /**
+     * @brief skeletonizeVolumeBlockByBlock
+     * @param blockSize
+     * @param numberOverlappingVoxels
+     * @param numberZeroVoxels
+     */
+    virtual void skeletonizeVolumeBlockByBlock(const size_t& blockSize = 512,
+                                       const size_t& numberOverlappingVoxels = 25,
+                                       const size_t& numberZeroVoxels = 5) = 0;
+
+
+
     std::vector< Vector3f > getShellPoints();
 
-    void applyVolumeThinning();
-    void applyVolumeThinningUsingThinningVoxels();
+
 
 
     virtual void constructGraph();
@@ -81,17 +89,45 @@ public:
 
     void applyVolumeThinningToVolume(Volume* volume, const bool &displayProgress = true);
 
-private:
-
-
 protected:
 
-
+    /**
+     * @brief _computeShellPoints
+     * Computes the shell points of the volume, i.e. the points that are representing the surface
+     * shell of the volume, or those on its boundary and not internal.
+     */
     void _computeShellPoints();
-    void _computeShellPointsWithThinningVoxels(ThinningVoxelsUI16 &thinningVoxels);
 
+    /**
+     * @brief _computeShellPointsUsingAcceleration
+     * Computes the shell points of the volume, i.e. the points that are representing the surface
+     * shell of the volume, or those on its boundary and not internal. This method uses the
+     * acceleration data structures to improve the performance, but indeed requires more memory.
+     * @param thinningVoxels
+     * The ThinningVoxels list that contains all the filled voxels that will be used directly
+     * to skeletonize the volume.
+     */
+    void _computeShellPointsUsingAcceleration(ThinningVoxelsUI16 &thinningVoxels);
 
-    void _voxelizeMesh();
+    /**
+     * @brief _scaleShellPoints
+     * Scales the extracted shell points to ensure their mapping to the input mesh, if any.
+     */
+    void _scaleShellPoints();
+
+    /**
+     * @brief _applyVolumeThinning
+     * Apply the VolumeThinning kernels to extract the center-lines of the volume.
+     */
+    void _applyVolumeThinning();
+
+    /**
+     * @brief _applyVolumeThinningUsingAcceleration
+     * Apply the VolumeThinning kernels to extract the center-lines of the volume, using the
+     * acceleration data structures that were built during the initialization stage.
+     */
+    void _applyVolumeThinningUsingAcceleration();
+
 
 
 
@@ -121,27 +157,62 @@ protected:
     Volume* _volume;
 
     /**
-     * @brief _mesh
-     * Optional input mesh that will be used to compute the actual coordinates of the resulting
-     * skeleton. If this input mesh is empty, i.e. a nullptr, the dimensions will be computed based
-     * on the dimensions of the volume.
+     * @brief _useAcceleration
+     * Use acceleration data structure to improve the performance of the skeletonizer.
      */
-    const Mesh* _mesh;
-
-    /// Mesh bounding box
-    Vector3f _pMinMesh, _pMaxMesh, _centerMesh, _boundsMesh;
-
-    /// Volume bounding box, will be used if no input mesh is used.
-    Vector3f _pMinVolume, _pMaxVolume, _centerVolume, _boundsVolume;
-
-    /// Mesh to volume scale factor
-    Vector3f _scaleFactor;
+    const bool _useAcceleration;
 
     /**
      * @brief _shellPoints
      * A list of the poins (or voxels) that represent the shell of the given volume.
      */
     std::vector< Vector3f > _shellPoints;
+
+    /**
+     * @brief _pMinMesh
+     */
+    Vector3f _pMinMesh;
+
+    /**
+     * @brief _pMaxMesh
+     */
+    Vector3f _pMaxMesh;
+
+    /**
+     * @brief _centerMesh
+     */
+    Vector3f _centerMesh;
+
+    /**
+     * @brief _boundsMesh
+     */
+    Vector3f _boundsMesh;
+
+    /**
+     * @brief _pMinVolume
+     */
+    Vector3f _pMinVolume;
+
+    /**
+     * @brief _pMaxVolume
+     */
+    Vector3f _pMaxVolume;
+
+    /**
+     * @brief _centerVolume
+     */
+    Vector3f _centerVolume;
+
+    /**
+     * @brief _boundsVolume
+     */
+    Vector3f _boundsVolume;
+
+    /**
+     * @brief _scaleFactor
+     * Mesh to volume scale factor
+     */
+    Vector3f _scaleFactor;
 
     /**
      * @brief _nodes
@@ -154,10 +225,7 @@ protected:
      * The branches of the skeleton representing the reconstructed graph.
      */
     SkeletonBranches _branches;
-
-
-    bool _useThinningVoxels;
-
 };
+
 }
 

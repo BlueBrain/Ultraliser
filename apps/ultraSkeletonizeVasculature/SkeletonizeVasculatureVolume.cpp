@@ -45,6 +45,8 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     args->addSuppressionArguments();
     args->addDataArguments();
     args->addProcessingArguments();
+    args->addSkeletonizationAccelerationArgument();
+
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -96,9 +98,10 @@ void run(int argc , const char** argv)
 
 
 
-    VasculatureSkeletonizer* skeletonizer = new VasculatureSkeletonizer(solidVolume, inputMesh);
-    // skeletonizer->applyVolumeThinningWithDomainDecomposition();
-    skeletonizer->applyVolumeThinning();
+    VasculatureSkeletonizer* skeletonizer = new VasculatureSkeletonizer(solidVolume);
+    skeletonizer->initialize();
+
+    skeletonizer->skeletonizeVolumeToCenterLines();
 
     // solidVolume->project("/home/abdellah/Desktop/hbp-reports/single-pass", true);
 

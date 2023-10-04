@@ -31,9 +31,9 @@
 
 namespace Ultraliser
 {
-Skeletonizer::Skeletonizer(Volume* volume, const Mesh *mesh)
+Skeletonizer::Skeletonizer(Volume* volume, const bool &useAcceleration)
     : _volume(volume)
-    , _mesh(mesh)
+    , _useAcceleration(useAcceleration)
 {
     // Mesh bounding box
     _pMinMesh = volume->getPMin();
@@ -52,25 +52,199 @@ Skeletonizer::Skeletonizer(Volume* volume, const Mesh *mesh)
 
     // Mesh to volume scale factor
     _scaleFactor = _boundsMesh / _boundsVolume;
-
-    _useThinningVoxels = true;
-
-    if (_useThinningVoxels )
-    {
-        // Building the acceleration structures
-        auto thinningVoxels = _volume->getThinningVoxelsList(false);
-        _computeShellPointsWithThinningVoxels(thinningVoxels);
-    }
-    else
-    {
-        _computeShellPoints();
-    }
 }
 
 void Skeletonizer::initialize()
 {
+     LOG_TITLE("Neuron Skeletonization");
+     LOG_STATUS("Initialization - Building Structures");
 
+     // Start the timer
+     TIMER_SET;
+
+     // Compute the shell points either natively or by using the acceleration structures
+     if (_useAcceleration)
+     {
+         // Build the ThinningVoxels acceleration structure from the input solid volume
+         // NOTE: We do not rebuild the ThinningVoxels structure!
+         auto thinningVoxels = _volume->getThinningVoxelsList();
+
+         // Compute the surface shell from the pre-built ThinningVoxels structure
+         _computeShellPointsUsingAcceleration(thinningVoxels);
+     }
+     else
+     {
+         _computeShellPoints();
+     }
+
+     LOG_STATUS_IMPORTANT("Initialization Stats.");
+     LOG_STATS(GET_TIME_SECONDS);
 }
+
+void Skeletonizer::_scaleShellPoints()
+{
+    // Initialize the time
+    TIMER_SET;
+
+    // TODO: Adjust the voxel slight shift
+    // Adjust the locations of the shell points taking into consideration the mesh coordinates
+    PROGRESS_SET;
+    LOOP_STARTS("Re-scaling Shell Points");
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _shellPoints.size(); ++i)
+    {
+        // Center the shell points (of the volume) at the origin
+        _shellPoints[i] -= _centerVolume;
+
+        // Scale to match the dimensions of the mesh
+        _shellPoints[i].x() *= _scaleFactor.x();
+        _shellPoints[i].y() *= _scaleFactor.y();
+        _shellPoints[i].z() *= _scaleFactor.z();
+
+        // Translate to the center of the mesh
+        _shellPoints[i] += _centerMesh;
+
+        LOOP_PROGRESS(PROGRESS, _shellPoints.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
+void Skeletonizer::_computeShellPointsUsingAcceleration(ThinningVoxelsUI16 &thinningVoxels)
+{
+    // Initialize the time
+    TIMER_SET;
+
+    PROGRESS_SET;
+    LOOP_STARTS("Computing Shell Points *");
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < thinningVoxels.size(); ++i)
+    {
+        auto& voxel = thinningVoxels[i];
+        if (_volume->isBorderVoxel(voxel.x, voxel.y, voxel.z))
+        {
+            voxel.border = true;
+        }
+
+        LOOP_PROGRESS(PROGRESS, thinningVoxels.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Add all the obtained voxels in a single list
+    for (size_t i = 0; i < thinningVoxels.size(); ++i)
+    {
+        const auto& voxel = thinningVoxels[i];
+        if (voxel.border)
+        {
+            _shellPoints.push_back(Vector3f(voxel.x, voxel.y, voxel.z));
+        }
+    }
+
+    // Scale the shell points to match the extent of the input data
+    _scaleShellPoints();
+}
+
+void Skeletonizer::_computeShellPoints()
+{
+    // Initialize the time
+    TIMER_SET;
+
+    // Search for the border voxels (the shell voxels) of the volume
+    std::vector< std::vector< Vec3ui_64 > > perSliceSurfaceShell = _volume->searchForBorderVoxels();
+
+    // Concatinate the points in a single list
+    for (size_t i = 0; i < perSliceSurfaceShell.size(); ++i)
+    {
+        for (size_t j = 0; j < perSliceSurfaceShell[i].size(); ++j)
+        {
+            const auto voxel = perSliceSurfaceShell[i][j];
+            _shellPoints.push_back(Vector3f(voxel.x(), voxel.y(), voxel.z()));
+        }
+        perSliceSurfaceShell[i].clear();
+        perSliceSurfaceShell[i].shrink_to_fit();
+    }
+    perSliceSurfaceShell.clear();
+    perSliceSurfaceShell.shrink_to_fit();
+
+    // Scale the shell points to match the extent of the input data
+    _scaleShellPoints();
+}
+
+void Skeletonizer::_applyVolumeThinning()
+{
+    LOG_STATUS("Volume Thinning");
+
+    // The thinning kernel that will be used to thin the volume
+    std::unique_ptr< Thinning6Iterations > thinningKernel =
+            std::make_unique< Thinning6Iterations >();
+
+    // Parameters to calculate the loop progress
+    size_t initialNumberVoxelsToBeDeleted = 0;
+    size_t loopCounter = 0;
+
+    TIMER_SET;
+    LOOP_STARTS("Thinning Loop");
+    LOOP_PROGRESS(0, 100);
+    while(1)
+    {
+        size_t numberDeletedVoxels = _volume->deleteCandidateVoxelsParallel(thinningKernel);
+
+        // Updating the progess bar
+       if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
+       LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
+                     initialNumberVoxelsToBeDeleted);
+
+       if (numberDeletedVoxels == 0)
+           break;
+
+       loopCounter++;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
+void Skeletonizer::_applyVolumeThinningUsingAcceleration()
+{
+    LOG_STATUS("Volume Thinning *");
+
+    // The thinning kernel that will be used to thin the volume
+    std::unique_ptr< Thinning6Iterations > thinningKernel =
+            std::make_unique< Thinning6Iterations >();
+
+    // Parameters to calculate the loop progress
+    size_t initialNumberVoxelsToBeDeleted = 0;
+    size_t loopCounter = 0;
+
+    auto thinningVoxels = _volume->getThinningVoxelsList(false);
+
+    TIMER_SET;
+    LOOP_STARTS("Thinning Loop");
+    LOOP_PROGRESS(0, 100);
+    while(1)
+    {
+        // Delete the border voxels based on the ThinningVoxels acceleration structure
+        size_t numberDeletedVoxels = _volume->deleteBorderVoxelsUsingThinningVoxels(
+                    thinningKernel, thinningVoxels);
+
+        // Updating the progess bar
+       if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
+       LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
+                     initialNumberVoxelsToBeDeleted);
+
+       if (numberDeletedVoxels == 0)
+           break;
+
+       loopCounter++;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
+
+
 
 void Skeletonizer::applyVolumeThinningToVolume(Volume* volume, const bool& displayProgress)
 {
@@ -279,148 +453,7 @@ void Skeletonizer::thinVolumeBlockByBlock(const size_t& blockSize,
     referenceVolume->~Volume();
 }
 
-void Skeletonizer::applyVolumeThinningUsingThinningVoxels()
-{
-    LOG_STATUS("Volume Thinning");
 
-    // The thinning kernel that will be used to thin the volume
-    std::unique_ptr< Thinning6Iterations > thinningKernel =
-            std::make_unique< Thinning6Iterations >();
-
-    // Parameters to calculate the loop progress
-    size_t initialNumberVoxelsToBeDeleted = 0;
-    size_t loopCounter = 0;
-
-    auto thinningVoxels = _volume->getThinningVoxelsList(false);
-
-    TIMER_SET;
-    LOOP_STARTS("Thinning Loop");
-    LOOP_PROGRESS(0, 100);
-    while(1)
-    {
-        size_t numberDeletedVoxels = _volume->deleteCandidateVoxelsWithThinningVoxels(thinningKernel, thinningVoxels);
-
-        // Updating the progess bar
-       if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
-       LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
-                     initialNumberVoxelsToBeDeleted);
-
-       if (numberDeletedVoxels == 0)
-           break;
-
-       loopCounter++;
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-}
-
-void Skeletonizer::applyVolumeThinning()
-{
-    LOG_STATUS("Volume Thinning");
-
-    // The thinning kernel that will be used to thin the volume
-    std::unique_ptr< Thinning6Iterations > thinningKernel =
-            std::make_unique< Thinning6Iterations >();
-
-    // Parameters to calculate the loop progress
-    size_t initialNumberVoxelsToBeDeleted = 0;
-    size_t loopCounter = 0;
-
-    TIMER_SET;
-    LOOP_STARTS("Thinning Loop");
-    LOOP_PROGRESS(0, 100);
-    while(1)
-    {
-        size_t numberDeletedVoxels = _volume->deleteCandidateVoxelsParallel(thinningKernel);
-
-        // Updating the progess bar
-       if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
-       LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
-                     initialNumberVoxelsToBeDeleted);
-
-       if (numberDeletedVoxels == 0)
-           break;
-
-       loopCounter++;
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-}
-
-void Skeletonizer::_computeShellPointsWithThinningVoxels(ThinningVoxelsUI16& thinningVoxels)
-{
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < thinningVoxels.size(); ++i)
-    {
-        auto& voxel = thinningVoxels[i];
-        if (_volume->isBorderVoxel(voxel.x, voxel.y, voxel.z))
-        {
-            voxel.border = true;
-        }
-    }
-    for (size_t i = 0; i < thinningVoxels.size(); ++i)
-    {
-        const auto& voxel = thinningVoxels[i];
-        if (voxel.border)
-        {
-            _shellPoints.push_back(Vector3f(voxel.x, voxel.y, voxel.z));
-        }
-    }
-
-    // TODO: Adjust the voxel slight shift
-    // Adjust the locations of the shell points taking into consideration the mesh coordinates
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _shellPoints.size(); ++i)
-    {
-        // Center the shell points (of the volume) at the origin
-        _shellPoints[i] -= _centerVolume;
-
-        // Scale to match the dimensions of the mesh
-        _shellPoints[i].x() *= _scaleFactor.x();
-        _shellPoints[i].y() *= _scaleFactor.y();
-        _shellPoints[i].z() *= _scaleFactor.z();
-
-        // Translate to the center of the mesh
-        _shellPoints[i] += _centerMesh;
-    }
-}
-
-void Skeletonizer::_computeShellPoints()
-{
-    // Search for the border voxels (the shell voxels) of the volume
-    std::vector< std::vector< Vec3ui_64 > > perSliceSurfaceShell = _volume->searchForBorderVoxels();
-
-    // Concatinate the points in a single list
-    for (size_t i = 0; i < perSliceSurfaceShell.size(); ++i)
-    {
-        for (size_t j = 0; j < perSliceSurfaceShell[i].size(); ++j)
-        {
-            const auto voxel = perSliceSurfaceShell[i][j];
-            _shellPoints.push_back(Vector3f(voxel.x(), voxel.y(), voxel.z()));
-        }
-        perSliceSurfaceShell[i].clear();
-        perSliceSurfaceShell[i].shrink_to_fit();
-    }
-    perSliceSurfaceShell.clear();
-    perSliceSurfaceShell.shrink_to_fit();
-
-    // TODO: Adjust the voxel slight shift
-    // Adjust the locations of the shell points taking into consideration the mesh coordinates
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _shellPoints.size(); ++i)
-    {
-        // Center the shell points (of the volume) at the origin
-        _shellPoints[i] -= _centerVolume;
-
-        // Scale to match the dimensions of the mesh
-        _shellPoints[i].x() *= _scaleFactor.x();
-        _shellPoints[i].y() *= _scaleFactor.y();
-        _shellPoints[i].z() *= _scaleFactor.z();
-
-        // Translate to the center of the mesh
-        _shellPoints[i] += _centerMesh;
-    }
-}
 
 struct FilledVoxel
 {

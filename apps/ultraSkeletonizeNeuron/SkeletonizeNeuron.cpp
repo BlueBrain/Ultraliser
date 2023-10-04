@@ -46,6 +46,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     args->addSuppressionArguments();
     args->addDataArguments();
     args->addProcessingArguments();
+    args->addSkeletonizationAccelerationArgument();
 
     // Get all the options
     AppOptions* options = args->getOptions();
@@ -87,14 +88,18 @@ void run(int argc , const char** argv)
     solidVolume->solidVoxelization(options->voxelizationAxis);
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
 
-
     // Create a skeletonization object
-    NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(solidVolume, inputMesh);
+    NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(solidVolume,
+                                                              options->useAccelerationStructures);
 
-    skeletonizer->skeletonizeVolume();
+    // Initialize the skeltonizer
+    skeletonizer->initialize();
 
-    // Project the volume
-    // solidVolume->project(options->morphologyPrefix, true, true, true);
+    // Skeletonize the volume to obtain the centerlines
+    skeletonizer->skeletonizeVolumeToCenterLines();
+
+    // Project the centerlines
+    solidVolume->project(options->morphologyPrefix + "_skeleton", true, true, true);
 
 
     // Build the graph

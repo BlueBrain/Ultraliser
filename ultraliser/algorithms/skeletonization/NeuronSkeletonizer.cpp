@@ -28,35 +28,18 @@
 namespace Ultraliser
 {
 
-NeuronSkeletonizer::NeuronSkeletonizer(Volume* volume, const Mesh *mesh)
-    : Skeletonizer(volume, mesh)
+NeuronSkeletonizer::NeuronSkeletonizer(Volume* volume, const bool &useAcceleration)
+    : Skeletonizer(volume, useAcceleration)
 {
     /// EMPTY CONSTRUCTOR
 }
 
-void NeuronSkeletonizer::skeletonizeVolume()
+void NeuronSkeletonizer::skeletonizeVolumeToCenterLines()
 {
-    LOG_TITLE("Skeletonization");
-
-    // Start the timer
-    TIMER_SET;
-
-    if (_useThinningVoxels )
-    {
-        applyVolumeThinningUsingThinningVoxels();
-    }
+    if (_useAcceleration)
+        _applyVolumeThinningUsingAcceleration();
     else
-    {
-         applyVolumeThinning();
-    }
-
-
-    //
-
-
-
-    LOG_STATUS_IMPORTANT("Skeletonization Stats.");
-    LOG_STATS(GET_TIME_SECONDS);
+        _applyVolumeThinning();
 }
 
 void NeuronSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
@@ -193,8 +176,6 @@ void NeuronSkeletonizer::_segmentSomaVolume()
 
     _volume->project("/data/microns-skeletonization-meshes/skeletonization-output-spines/morphologies/out", true, true, true);
     // LOG_STATS(GET_TIME_SECONDS);
-
-    exit(0);
 
     // TODO: This could be parallelized
     std::vector< size_t > somaVoxels;
