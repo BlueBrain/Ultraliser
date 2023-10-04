@@ -89,8 +89,8 @@ void run(int argc , const char** argv)
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
 
     // Create a skeletonization object
-    NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(solidVolume,
-                                                              options->useAccelerationStructures);
+    NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(
+                solidVolume, options->useAccelerationStructures);
 
     // Initialize the skeltonizer
     skeletonizer->initialize();
@@ -98,11 +98,10 @@ void run(int argc , const char** argv)
     // Skeletonize the volume to obtain the centerlines
     skeletonizer->skeletonizeVolumeToCenterLines();
 
-    // Project the centerlines
+    // TODO: Project the centerlines
     solidVolume->project(options->morphologyPrefix + "_skeleton", true, true, true);
 
-
-    // Build the graph
+    // Construct the neuron graph
     skeletonizer->constructGraph();
 
     // skeletonizer->exportIndividualBranches(options->morphologyPrefix + "-1");

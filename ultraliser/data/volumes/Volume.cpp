@@ -3602,7 +3602,7 @@ size_t Volume::deleteCandidateVoxels(std::unique_ptr< Thinning6Iterations > &thi
 
 size_t Volume::deleteBorderVoxelsUsingThinningVoxels(
         std::unique_ptr< Thinning6Iterations > &thinning,
-        ThinningVoxelsUI16& thinningVoxels)
+        ThinningVoxelsUI16List &thinningVoxels)
 {
     size_t numberDeletedVoxels = 0;
 
@@ -3614,7 +3614,7 @@ size_t Volume::deleteBorderVoxelsUsingThinningVoxels(
         auto& voxel = thinningVoxels[i];
 
         // If the voxel is a border voxel, update its status
-        if (isBorderVoxel(voxel.x, voxel.y, voxel.z)) { voxel.border = true; }
+        if (isBorderVoxel(voxel->x, voxel->y, voxel->z)) { voxel->border = true; }
     }
 
     // Set the deletable voxels
@@ -3627,19 +3627,19 @@ size_t Volume::deleteBorderVoxelsUsingThinningVoxels(
             auto& voxel = thinningVoxels[i];
 
             // If the voxel is a border voxel, check if it should be deleted or not
-            if (voxel.border)
+            if (voxel->border)
             {
                 // A block of the volume that is scanned every iteration
                 int8_t volumeBlock[26];
                 for (size_t k = 0; k < 26; ++k)
                 {
                     volumeBlock[k] = isFilledWithoutBoundCheck(
-                                voxel.x + VDX[k], voxel.y + VDY[k], voxel.z + VDZ[k]) ? 1 : 0;
+                                voxel->x + VDX[k], voxel->y + VDY[k], voxel->z + VDZ[k]) ? 1 : 0;
                 }
 
                 if (thinning->matches(direction, volumeBlock))
                 {
-                    voxel.deletable = true;
+                    voxel->deletable = true;
                 }
             }
         }
@@ -3647,12 +3647,18 @@ size_t Volume::deleteBorderVoxelsUsingThinningVoxels(
         for (size_t i = 0; i < thinningVoxels.size(); ++i)
         {
             auto& voxel = thinningVoxels[i];
-            if (voxel.deletable && voxel.border)
+            if (voxel->deletable && voxel->border)
             {
                 numberDeletedVoxels++;
-                clear(voxel.x, voxel.y, voxel.z);
-                voxel.deletable = false;
-                voxel.border = false;
+
+                // Clear this voxel in the volume
+                clear(voxel->x, voxel->y, voxel->z);
+
+                // The voxel is no more a border voxel
+                voxel->border = false;
+
+                // Deactive the voxel after being deleted to be used later in the mapping
+                voxel->active = false;
             }
         }
     }
@@ -3800,11 +3806,16 @@ CandidateVoxels Volume::searchForCandidateVoxelsOne()
 
 std::vector< std::vector< Vec3ui_64 > > Volume::searchForBorderVoxels()
 {
+    // Start the timer
+    TIMER_SET;
+
     // This list will collect the border voxels per slice (along the width)
-    std::vector< std::vector< Vec3ui_64 > > perSliceBorderVoxels;
-    perSliceBorderVoxels.resize(getWidth());
+    std::vector< std::vector< Vec3ui_64 > > perSlice;
+    perSlice.resize(getWidth());
 
     // Collect the border voxels per slice in parallel
+    PROGRESS_SET;
+    LOOP_STARTS("Searching for Border Voxels");
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < getWidth(); ++i)
     {
@@ -3814,13 +3825,17 @@ std::vector< std::vector< Vec3ui_64 > > Volume::searchForBorderVoxels()
             {
                 if (isBorderVoxel(i, j, k))
                 {
-                    perSliceBorderVoxels[i].push_back(Vec3ui_64(i, j, k));
+                    perSlice[i].push_back(Vec3ui_64(i, j, k));
                 }
             }
         }
+        LOOP_PROGRESS(PROGRESS, getWidth());
+        PROGRESS_UPDATE;
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
-    return perSliceBorderVoxels;
+    return perSlice;
 }
 
 Volume* Volume:: extractBrickFromVolume(const size_t& xVolumeStart, const size_t& xVolumeEnd,

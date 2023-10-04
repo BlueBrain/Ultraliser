@@ -528,9 +528,8 @@ public:
 
     size_t deleteCandidateVoxelsParallel(std::unique_ptr< Thinning6Iterations > &thinning);
 
-    size_t deleteBorderVoxelsUsingThinningVoxels(
-            std::unique_ptr< Thinning6Iterations > &thinning,
-            ThinningVoxelsUI16& thinningVoxels);
+    size_t deleteBorderVoxelsUsingThinningVoxels(std::unique_ptr< Thinning6Iterations > &thinning,
+            ThinningVoxelsUI16List &thinningVoxels);
 
     /**
      * @brief searchForDeletableVoxels
@@ -958,9 +957,9 @@ public:
     void projectYZ(const std::string& prefix, const bool &projectColorCoded = false) const;
     void projectXZ(const std::string& prefix, const bool &projectColorCoded = false) const;
 
-    ThinningVoxelsUI16 getThinningVoxelsList(const bool rebuildList = false)
+    ThinningVoxelsUI16List& getThinningVoxelsList(const bool &rebuild = false)
     {
-        return _grid->getThinningVoxelsList(rebuildList);
+        return _grid->getThinningVoxelsList(rebuild);
     }
 
 private:

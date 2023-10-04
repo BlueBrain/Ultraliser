@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2021
+ * Copyright (c) 2016 - 2023
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -21,9 +21,79 @@
 
 #pragma once
 
-#include <data/volumes/voxels/Voxel.h>
-#include <data/volumes/voxels/DMCVoxel.h>
-#include <data/volumes/voxels/MCVoxel.h>
-#include <data/volumes/voxels/CandiateVoxel.h>
-#include <data/volumes/voxels/NodeVoxel.h>
+#include <common/Common.h>
 
+namespace Ultraliser
+{
+
+/**
+ * @brief The NodeVoxel struct
+ */
+template< class T >
+struct NodeVoxel
+{
+
+public:
+
+    /**
+     * @brief x
+     */
+    T x;
+
+    /**
+     * @brief y
+     */
+    T y;
+
+    /**
+     * @brief z
+     */
+    T z;
+
+    /**
+     * @brief index
+     */
+    size_t index;
+};
+
+/**
+ * @brief NodeVoxelUI8
+ */
+typedef NodeVoxel< uint8_t > NodeVoxelUI8;
+
+/**
+ * @brief NodeVoxelUI16
+ */
+typedef NodeVoxel< uint16_t > NodeVoxelUI16;
+
+/**
+ * @brief NodeVoxelUI32
+ */
+typedef NodeVoxel< uint32_t > NodeVoxelUI32;
+
+/**
+ * @brief NodeVoxelUI64
+ */
+typedef NodeVoxel< uint64_t > NodeVoxelUI64;
+
+/**
+ * @brief NodeVoxelsUI8
+ */
+typedef std::vector< NodeVoxelUI8 > NodeVoxelsUI8;
+
+/**
+ * @brief NodeVoxelsUI16
+ */
+typedef std::vector< NodeVoxelUI16 > NodeVoxelsUI16;
+
+/**
+ * @brief NodeVoxelsUI32
+ */
+typedef std::vector< NodeVoxelUI32 > NodeVoxelsUI32;
+
+/**
+ * @brief NodeVoxelsUI64
+ */
+typedef std::vector< NodeVoxelUI64 > NodeVoxelsUI64;
+
+}

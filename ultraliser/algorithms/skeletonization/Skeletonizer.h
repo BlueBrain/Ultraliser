@@ -45,6 +45,7 @@ public:
      * @param volume
      */
     Skeletonizer(Volume *volume, const bool &useAcceleration = true);
+    ~Skeletonizer() { }
 
     /**
      * @brief initialize
@@ -107,7 +108,7 @@ protected:
      * The ThinningVoxels list that contains all the filled voxels that will be used directly
      * to skeletonize the volume.
      */
-    void _computeShellPointsUsingAcceleration(ThinningVoxelsUI16 &thinningVoxels);
+    void _computeShellPointsUsingAcceleration(ThinningVoxelsUI16List &thinningVoxels);
 
     /**
      * @brief _scaleShellPoints
@@ -128,18 +129,40 @@ protected:
      */
     void _applyVolumeThinningUsingAcceleration();
 
+    /**
+     * @brief _extractNodesFromVoxels
+     * Extract the graph nodes from the centerline voxels remaining in the volume.
+     * @return
+     */
+    std::map< size_t, size_t > _extractNodesFromVoxels();
 
+    /**
+     * @brief _extractNodesFromVoxelsNaive
+     * Extract the graph nodes from the centerline voxels remaining in the volume using the
+     * naive loops. Note that this function is just keep for benchmarking.
+     * @return
+     */
+    std::map< size_t, size_t > _extractNodesFromVoxelsNaive();
 
+    /**
+     * @brief _extractNodesFromVoxelsUsingSlicing
+     * @return
+     */
+    std::map< size_t, size_t > _extractNodesFromVoxelsUsingSlicing();
 
+    /**
+     * @brief _extractNodesFromVoxelsUsingAcceleration
+     * @return
+     */
+    std::map< size_t, size_t > _extractNodesFromVoxelsUsingAcceleration();
 
     SkeletonBranch* _buildBranch(SkeletonNode* firstNode, SkeletonNode* edgeNode);
 
     void _buildAcyclicTree(SkeletonBranch* branch, SkeletonBranches &branches);
 
 
-    std::map< size_t, size_t > _extractNodesFromVoxels();
 
-    std::map< size_t, size_t > _extractNodesFromVoxelsParallel();
+
 
     void _inflateNodes();
 
@@ -167,6 +190,11 @@ protected:
      * A list of the poins (or voxels) that represent the shell of the given volume.
      */
     std::vector< Vector3f > _shellPoints;
+
+    /**
+     * @brief _thinningVoxels
+     */
+    ThinningVoxelsUI16List _thinningVoxels;
 
     /**
      * @brief _pMinMesh

@@ -42,13 +42,40 @@ void NeuronSkeletonizer::skeletonizeVolumeToCenterLines()
         _applyVolumeThinning();
 }
 
-void NeuronSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
-                                                       const size_t& numberOverlappingVoxels,
-                                                       const size_t& numberZeroVoxels)
+void NeuronSkeletonizer::constructGraph()
 {
-    thinVolumeBlockByBlock(blockSize, numberOverlappingVoxels, numberZeroVoxels);
-    constructGraph();
-    segmentComponents();
+    // Extract the graph nodes from the center-line voxels
+    auto indicesMapper = _extractNodesFromVoxels();
+
+    // Assign accurate radii to the nodes of the graph, i.e. inflate the nodes
+    _inflateNodes();
+
+    // Connect the nodes to construct the edges of the graph
+    _connectNodes(indicesMapper);
+
+    // Add a virtual soma node, until the soma is reconstructed later
+    auto somaNode = _addSomaNode();
+
+    // Re-index the samples, for simplicity
+    OMP_PARALLEL_FOR for (size_t i = 1; i <= _nodes.size(); ++i) { _nodes[i - 1]->index = i; }
+
+    // Segmentthe soma mesh from the branches
+    _segmentSomaMesh(somaNode);
+
+    // Segment soma volume
+     _segmentSomaVolume();
+
+     // Remove the triangular configurations, based on the edges
+     _removeTriangleLoops();
+
+     // Reconstruct the sections, or the branches from the nodes
+     _buildBranchesFromNodes(_nodes);
+
+    // Validate the branches, and remove the branches inside the soma
+    _removeBranchesInsideSoma(somaNode);
+
+    // The roots have been identified
+    _connectBranches();
 }
 
 SkeletonNode* NeuronSkeletonizer::_addSomaNode()
@@ -65,6 +92,8 @@ SkeletonNode* NeuronSkeletonizer::_addSomaNode()
     _somaNode = somaNode;
     return somaNode;
 }
+
+
 
 void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
 {
@@ -716,17 +745,15 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
         PROGRESS_UPDATE;
     }
     LOOP_DONE;
-
-    // Initially, log the time for the loop
     LOG_STATS(GET_TIME_SECONDS);
 
-    LOOP_STARTS("Composing Path Edges");
     // Clear the terminal nodes list
     terminalNodes.clear();
     terminalNodes.shrink_to_fit();
 
     // The indices of all the edges that have been traversed
     EdgesIndices edgesIndices;
+    LOOP_STARTS("Composing Path Edges");
     for (size_t i = 0; i < edgesIndicesList.size(); ++i)
     {
         // Get the terminal edge identified per terminal
@@ -742,13 +769,12 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
             perTerminalEdgesIndices.shrink_to_fit();
         }
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     // Clean the list used to collect the edges in parallel
     edgesIndicesList.clear();
     edgesIndicesList.shrink_to_fit();
-
-    // Log the time for the whole process after the edge construction
-    LOG_STATS(GET_TIME_SECONDS);
 
     // Return the EdgesIndices list
     return edgesIndices;
@@ -1254,40 +1280,6 @@ void NeuronSkeletonizer::_connectBranches()
     confirmTerminalsBranches(_branches);
 }
 
-void NeuronSkeletonizer::constructGraph()
-{
-    std::map< size_t, size_t > indicesMapper = _extractNodesFromVoxelsParallel();
-
-    // Assign accurate radii to the nodes of the graph, i.e. inflate the nodes
-    _inflateNodes();
-
-    // Connect the nodes to construct the edges of the graph
-    _connectNodes(indicesMapper);
-
-    // Add a virtual soma node, until the soma is reconstructed later
-    auto somaNode = _addSomaNode();
-
-    // Re-index the samples, for simplicity
-    OMP_PARALLEL_FOR for (size_t i = 1; i <= _nodes.size(); ++i) { _nodes[i - 1]->index = i; }
-
-    // Segmentthe soma mesh from the branches
-    _segmentSomaMesh(somaNode);
-
-    // Segment soma volume
-     _segmentSomaVolume();
-
-     // Remove the triangular configurations, based on the edges
-     _removeTriangleLoops();
-
-     // Reconstruct the sections, or the branches from the nodes
-     _buildBranchesFromNodes(_nodes);
-
-    // Validate the branches, and remove the branches inside the soma
-    _removeBranchesInsideSoma(somaNode);
-
-    // The roots have been identified
-    _connectBranches();
-}
 
 void NeuronSkeletonizer::segmentComponents()
 {
@@ -1299,4 +1291,14 @@ void NeuronSkeletonizer::segmentComponents()
 
     _processBranchesToYieldCyclicGraph();
 }
+
+void NeuronSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
+                                                       const size_t& numberOverlappingVoxels,
+                                                       const size_t& numberZeroVoxels)
+{
+    thinVolumeBlockByBlock(blockSize, numberOverlappingVoxels, numberZeroVoxels);
+    constructGraph();
+    segmentComponents();
+}
+
 }

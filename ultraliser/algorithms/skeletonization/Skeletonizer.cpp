@@ -28,6 +28,7 @@
 #include <math/Vector.h>
 #include <data/meshes/simple/TriangleOperations.h>
 #include <utilities/Range.h>
+#include <data/volumes/voxels/NodeVoxel.h>
 
 namespace Ultraliser
 {
@@ -67,7 +68,7 @@ void Skeletonizer::initialize()
      {
          // Build the ThinningVoxels acceleration structure from the input solid volume
          // NOTE: We do not rebuild the ThinningVoxels structure!
-         auto thinningVoxels = _volume->getThinningVoxelsList();
+         auto thinningVoxels = _volume->getThinningVoxelsList(false);
 
          // Compute the surface shell from the pre-built ThinningVoxels structure
          _computeShellPointsUsingAcceleration(thinningVoxels);
@@ -89,7 +90,7 @@ void Skeletonizer::_scaleShellPoints()
     // TODO: Adjust the voxel slight shift
     // Adjust the locations of the shell points taking into consideration the mesh coordinates
     PROGRESS_SET;
-    LOOP_STARTS("Re-scaling Shell Points");
+    LOOP_STARTS("Mapping Shell Points");
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < _shellPoints.size(); ++i)
     {
@@ -111,9 +112,9 @@ void Skeletonizer::_scaleShellPoints()
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Skeletonizer::_computeShellPointsUsingAcceleration(ThinningVoxelsUI16 &thinningVoxels)
+void Skeletonizer::_computeShellPointsUsingAcceleration(ThinningVoxelsUI16List &thinningVoxels)
 {
-    // Initialize the time
+    // Initialize the timer
     TIMER_SET;
 
     PROGRESS_SET;
@@ -122,9 +123,9 @@ void Skeletonizer::_computeShellPointsUsingAcceleration(ThinningVoxelsUI16 &thin
     for (size_t i = 0; i < thinningVoxels.size(); ++i)
     {
         auto& voxel = thinningVoxels[i];
-        if (_volume->isBorderVoxel(voxel.x, voxel.y, voxel.z))
+        if (_volume->isBorderVoxel(voxel->x, voxel->y, voxel->z))
         {
-            voxel.border = true;
+            voxel->border = true;
         }
 
         LOOP_PROGRESS(PROGRESS, thinningVoxels.size());
@@ -137,9 +138,9 @@ void Skeletonizer::_computeShellPointsUsingAcceleration(ThinningVoxelsUI16 &thin
     for (size_t i = 0; i < thinningVoxels.size(); ++i)
     {
         const auto& voxel = thinningVoxels[i];
-        if (voxel.border)
+        if (voxel->border)
         {
-            _shellPoints.push_back(Vector3f(voxel.x, voxel.y, voxel.z));
+            _shellPoints.push_back(Vector3f(voxel->x, voxel->y, voxel->z));
         }
     }
 
@@ -153,21 +154,21 @@ void Skeletonizer::_computeShellPoints()
     TIMER_SET;
 
     // Search for the border voxels (the shell voxels) of the volume
-    std::vector< std::vector< Vec3ui_64 > > perSliceSurfaceShell = _volume->searchForBorderVoxels();
+    std::vector< std::vector< Vec3ui_64 > > perSlice = _volume->searchForBorderVoxels();
 
     // Concatinate the points in a single list
-    for (size_t i = 0; i < perSliceSurfaceShell.size(); ++i)
+    for (size_t i = 0; i < perSlice.size(); ++i)
     {
-        for (size_t j = 0; j < perSliceSurfaceShell[i].size(); ++j)
+        for (size_t j = 0; j < perSlice[i].size(); ++j)
         {
-            const auto voxel = perSliceSurfaceShell[i][j];
+            const auto voxel = perSlice[i][j];
             _shellPoints.push_back(Vector3f(voxel.x(), voxel.y(), voxel.z()));
         }
-        perSliceSurfaceShell[i].clear();
-        perSliceSurfaceShell[i].shrink_to_fit();
+        perSlice[i].clear();
+        perSlice[i].shrink_to_fit();
     }
-    perSliceSurfaceShell.clear();
-    perSliceSurfaceShell.shrink_to_fit();
+    perSlice.clear();
+    perSlice.shrink_to_fit();
 
     // Scale the shell points to match the extent of the input data
     _scaleShellPoints();
@@ -243,333 +244,15 @@ void Skeletonizer::_applyVolumeThinningUsingAcceleration()
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-
-
-
-void Skeletonizer::applyVolumeThinningToVolume(Volume* volume, const bool& displayProgress)
-{
-    std::unique_ptr< Thinning6Iterations > thinningKernel = std::make_unique<Thinning6Iterations>();
-
-    if (displayProgress)
-    {
-        // Parameters to calculate the loop progress
-        size_t initialNumberVoxelsToBeDeleted = 0;
-        size_t loopCounter = 0;
-
-        TIMER_SET;
-        LOG_STATUS("Thinning Volume");
-        LOOP_STARTS("Thinning Loop");
-        LOOP_PROGRESS(0, 100);
-        while(1)
-        {
-            size_t numberDeletedVoxels = volume->deleteCandidateVoxelsParallel(thinningKernel);
-
-            // Updating the progess bar
-           if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
-           LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
-                         initialNumberVoxelsToBeDeleted);
-
-           if (numberDeletedVoxels == 0)
-               break;
-
-           loopCounter++;
-        }
-        LOOP_DONE;
-        LOG_STATS(GET_TIME_SECONDS);
-    }
-    else
-    {
-        // Parameters to calculate the loop progress
-        size_t initialNumberVoxelsToBeDeleted = 0;
-        size_t loopCounter = 0;
-        while(1)
-        {
-            size_t numberDeletedVoxels = volume->deleteCandidateVoxelsParallel(thinningKernel);
-           if (numberDeletedVoxels == 0)
-               break;
-        }
-    }
-}
-
-void Skeletonizer::applyVolumeThinningWithDomainDecomposition()
-{
-    // Start the timer
-    TIMER_SET;
-
-    // Copy the input volume into a reference volume
-    // The reference volume will be used to retrieve the new bricks, and the _volume will be
-    // used to write the skeletonization result
-    Volume* referenceVolume = new Volume(_volume->getWidth(),
-                                         _volume->getHeight(),
-                                         _volume->getDepth());
-
-    const size_t subdivisions = 4;
-    const size_t overlappingVoxels = 5;
-    const size_t numberZeroVoxels = 2;
-
-    Ranges xRanges = Range::decomposeToRanges(int64_t(0), _volume->getWidth() - 1, subdivisions);
-    Ranges yRanges = Range::decomposeToRanges(int64_t(0), _volume->getHeight() - 1, subdivisions);
-    Ranges zRanges = Range::decomposeToRanges(int64_t(0), _volume->getDepth() - 1, subdivisions);
-
-    // Add the overlaps
-    Ranges xRangesOverlapping = Range::addTwoSidedOverlaps(xRanges, overlappingVoxels);
-    Ranges yRangesOverlapping = Range::addTwoSidedOverlaps(yRanges, overlappingVoxels);
-    Ranges zRangesOverlapping = Range::addTwoSidedOverlaps(zRanges, overlappingVoxels);
-
-    LOG_STATUS("Skeletonizing Volume Bricks");
-    LOOP_STARTS("Skeletonization");
-    int64_t progress = 0;
-    for (size_t i = 0; i < xRanges.size(); ++i)
-    {
-        LOOP_PROGRESS(progress, xRanges.size());
-        for (size_t j = 0; j < yRanges.size(); ++j)
-        {
-            // OMP_PARALLEL_FOR
-            for (size_t k = 0; k < zRanges.size(); ++k)
-            {
-                // Extract the brick from the volume
-                auto brick = _volume->extractBoundedBrickFromVolume(
-                            xRangesOverlapping[i].i1, xRangesOverlapping[i].i2,
-                            yRangesOverlapping[j].i1, yRangesOverlapping[j].i2,
-                            zRangesOverlapping[k].i1, zRangesOverlapping[k].i2,
-                            numberZeroVoxels, false);
-
-                // Skeletonize the brick
-                applyVolumeThinningToVolume(brick, false);
-
-                size_t xOverlapping, yOverlapping, zOverlapping = 0;
-                if (i > 0) xOverlapping = overlappingVoxels; else xOverlapping = 0;
-                if (j > 0) yOverlapping = overlappingVoxels; else yOverlapping = 0;
-                if (k > 0) zOverlapping = overlappingVoxels; else zOverlapping = 0;
-
-                referenceVolume->insertOverlappingBoundedBrickToVolume(
-                            brick,
-                            xRanges[i].i1, xRanges[i].i2,
-                            yRanges[j].i1, yRanges[j].i2,
-                            zRanges[k].i1, zRanges[k].i2,
-                            xOverlapping, yOverlapping, zOverlapping, numberZeroVoxels,
-                            false);
-
-                brick->~Volume();
-            }
-        }
-
-        progress++;
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    _volume->insertBrickToVolume(referenceVolume,
-                                 0, referenceVolume->getWidth() - 1,
-                                 0, referenceVolume->getHeight() - 1,
-                                 0, referenceVolume->getDepth() - 1);
-    referenceVolume->~Volume();
-}
-
-void Skeletonizer::thinVolumeBlockByBlock(const size_t& blockSize,
-                                          const size_t& numberOverlappingVoxels,
-                                          const size_t& numberZeroVoxels)
-{
-    // Start the timer
-    TIMER_SET;
-
-    // Copy the input volume into a reference volume
-    // The reference volume will be used to retrieve the new bricks, and the _volume will be
-    // used to write the skeletonization result
-    Volume* referenceVolume = new Volume(_volume->getWidth(),
-                                         _volume->getHeight(),
-                                         _volume->getDepth());
-
-    // Initially, the range of the volume is identified
-    Range xRange(0, _volume->getWidth() - 1);
-    Range yRange(0, _volume->getHeight() - 1);
-    Range zRange(0, _volume->getDepth() - 1);
-
-    // Decompose the range into ranges, based on the blockSize
-    Ranges xRanges = xRange.decomposeToBlocks(blockSize);
-    Ranges yRanges = yRange.decomposeToBlocks(blockSize);
-    Ranges zRanges = zRange.decomposeToBlocks(blockSize);
-
-    for (const auto& range: xRanges)
-        range.printRange();
-    for (const auto& range: yRanges)
-        range.printRange();
-    for (const auto& range: zRanges)
-        range.printRange();
-
-
-    // Add the overlaps
-    Ranges xRangesOverlapping = Range::addTwoSidedOverlaps(xRanges, numberOverlappingVoxels);
-    Ranges yRangesOverlapping = Range::addTwoSidedOverlaps(yRanges, numberOverlappingVoxels);
-    Ranges zRangesOverlapping = Range::addTwoSidedOverlaps(zRanges, numberOverlappingVoxels);
-
-    LOG_STATUS("Skeletonizing Volume Bricks");
-    LOOP_STARTS("Skeletonization");
-    int64_t progress = 0;
-    for (size_t i = 0; i < xRanges.size(); ++i)
-    {
-        LOOP_PROGRESS(progress, xRanges.size());
-        for (size_t j = 0; j < yRanges.size(); ++j)
-        {
-            // OMP_PARALLEL_FOR
-            for (size_t k = 0; k < zRanges.size(); ++k)
-            {
-                // Extract the brick from the volume
-                auto brick = _volume->extractBoundedBrickFromVolume(
-                            xRangesOverlapping[i].i1, xRangesOverlapping[i].i2,
-                            yRangesOverlapping[j].i1, yRangesOverlapping[j].i2,
-                            zRangesOverlapping[k].i1, zRangesOverlapping[k].i2,
-                            numberZeroVoxels, false);
-
-                // Skeletonize the brick
-                applyVolumeThinningToVolume(brick, false);
-
-                size_t xOverlapping, yOverlapping, zOverlapping = 0;
-                if (i > 0) xOverlapping = numberZeroVoxels; else xOverlapping = 0;
-                if (j > 0) yOverlapping = numberZeroVoxels; else yOverlapping = 0;
-                if (k > 0) zOverlapping = numberZeroVoxels; else zOverlapping = 0;
-
-                referenceVolume->insertOverlappingBoundedBrickToVolume(
-                            brick,
-                            xRanges[i].i1, xRanges[i].i2,
-                            yRanges[j].i1, yRanges[j].i2,
-                            zRanges[k].i1, zRanges[k].i2,
-                            xOverlapping, yOverlapping, zOverlapping, numberZeroVoxels,
-                            false);
-
-                brick->~Volume();
-            }
-        }
-
-        progress++;
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    _volume->insertBrickToVolume(referenceVolume,
-                                 0, referenceVolume->getWidth() - 1,
-                                 0, referenceVolume->getHeight() - 1,
-                                 0, referenceVolume->getDepth() - 1);
-    referenceVolume->~Volume();
-}
-
-
-
-struct FilledVoxel
-{
-    size_t i, j, k;
-    size_t voxelIndex;
-
-    FilledVoxel(size_t ii, size_t jj, size_t kk, size_t vIndex)
-    { i = ii; j = jj; k = kk; voxelIndex = vIndex; }
-};
-
-typedef std::vector< FilledVoxel > FilledVoxels;
-
-
-std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsParallel()
-{
-    LOG_STATUS("Mapping Voxels to Nodes");
-    TIMER_SET;
-
-    struct FilledVoxelX
-    {
-        size_t i, j, k;
-        size_t voxelIndex;
-
-        FilledVoxelX(size_t ii, size_t jj, size_t kk, size_t vIndex)
-        { i = ii; j = jj; k = kk; voxelIndex = vIndex; }
-    };
-
-    typedef std::vector< FilledVoxelX* > FilledVoxelXs;
-
-
-    std::vector< FilledVoxelXs > allFilledVoxels;
-    allFilledVoxels.resize(_volume->getWidth());
-
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _volume->getWidth(); ++i)
-    {
-        auto& perSliceFilledVoxels = allFilledVoxels[i];
-
-        for (size_t j = 0; j < _volume->getHeight(); ++j)
-        {
-            for (size_t k = 0; k < _volume->getDepth(); ++k)
-            {
-                // If the voxel is filled
-                if (_volume->isFilled(i, j, k))
-                {
-                    perSliceFilledVoxels.push_back(new FilledVoxelX(i, j, k, _volume->mapTo1DIndexWithoutBoundCheck(i, j, k)));
-                }
-            }
-        }
-    }
-
-    FilledVoxelXs filledVoxels;
-    for (size_t i = 0; i < allFilledVoxels.size(); ++i)
-    {
-        if (allFilledVoxels[i].size() > 0)
-        {
-            filledVoxels.insert(filledVoxels.end(), allFilledVoxels[i].begin(), allFilledVoxels[i].end());
-            allFilledVoxels[i].clear();
-            allFilledVoxels[i].shrink_to_fit();
-        }
-    }
-    allFilledVoxels.clear();
-    allFilledVoxels.shrink_to_fit();
-
-    // Every constructed node must have an identifier, or index.
-    size_t nodeIndex = 0;
-
-    // Map to associate between the indices of the voxels and the nodes in the graph
-    std::map< size_t, size_t > indicesMapper;
-
-    for (size_t i = 0; i < filledVoxels.size(); ++i)
-    {
-        // Mapper from voxel to node indices
-        indicesMapper.insert(std::pair< size_t, size_t >(filledVoxels[i]->voxelIndex, i));
-    }
-
-    // Resize the nodes
-    _nodes.resize(filledVoxels.size());
-
-    PROGRESS_SET;
-    OMP_PARALLEL_FOR
-    for (size_t n = 0; n < filledVoxels.size(); ++n)
-    {
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, filledVoxels.size());
-        PROGRESS_UPDATE;
-
-        const size_t i = filledVoxels[n]->i;
-        const size_t j = filledVoxels[n]->j;
-        const size_t k = filledVoxels[n]->k;
-        const size_t voxelIndex = filledVoxels[n]->voxelIndex;
-
-        // Get a point representing the center of the voxel (in the volume)
-        Vector3f voxelPosition(i * 1.f, j * 1.f, k * 1.f);
-
-        // Get a point in the same coordinate space of the mesh
-        Vector3f nodePosition(voxelPosition);
-        nodePosition -= _centerVolume;
-        nodePosition.x() *= _scaleFactor.x();
-        nodePosition.y() *= _scaleFactor.y();
-        nodePosition.z() *= _scaleFactor.z();
-        nodePosition += _centerMesh;
-
-        // Add the node to the nodes list
-        _nodes[n] = new SkeletonNode(voxelIndex, nodePosition, voxelPosition);
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    filledVoxels.clear();
-    filledVoxels.shrink_to_fit();
-
-    return indicesMapper;
-}
-
 std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
+{
+    if (_useAcceleration)
+        return _extractNodesFromVoxelsUsingAcceleration();
+    else
+        return _extractNodesFromVoxelsUsingSlicing();
+}
+
+std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsNaive()
 {
     TIMER_SET;
     LOG_STATUS("Mapping Voxels to Nodes");
@@ -584,6 +267,8 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
     std::vector< Vec4ui_64 > indicesFilledVoxels;
 
     // Search the filled voxels in the volume
+    PROGRESS_SET;
+    LOOP_STARTS("Detecting Filled Voxels");
     for (size_t i = 0; i < _volume->getWidth(); ++i)
     {
         for (size_t j = 0; j < _volume->getHeight(); ++j)
@@ -607,7 +292,6 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
                 }
             }
         }
-
         LOOP_PROGRESS(i, _volume->getWidth());
     }
     LOOP_DONE;
@@ -616,14 +300,11 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
     // Resize the nodes
     _nodes.resize(indicesFilledVoxels.size());
 
-    PROGRESS_SET;
+    PROGRESS_RESET;
+    LOOP_STARTS("Building Graph Nodes");
     OMP_PARALLEL_FOR
     for (size_t n = 0; n < indicesFilledVoxels.size(); ++n)
     {
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, indicesFilledVoxels.size());
-        PROGRESS_UPDATE;
-
         const size_t i = indicesFilledVoxels[n].x();
         const size_t j = indicesFilledVoxels[n].y();
         const size_t k = indicesFilledVoxels[n].z();
@@ -642,12 +323,193 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
 
         // Add the node to the nodes list
         _nodes[n] = new SkeletonNode(voxelIndex, nodePosition, voxelPosition);
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, indicesFilledVoxels.size());
+        PROGRESS_UPDATE;
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
 
+    // Clear the auxiliary lists
     indicesFilledVoxels.clear();
     indicesFilledVoxels.shrink_to_fit();
+
+    return indicesMapper;
+}
+
+std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingSlicing()
+{
+    LOG_STATUS("Mapping Voxels to Nodes");
+    TIMER_SET;
+
+    struct FilledVoxel
+    {
+        size_t i, j, k, idx;
+
+        FilledVoxel(size_t ii, size_t jj, size_t kk, size_t index)
+        { i = ii; j = jj; k = kk; idx = index; }
+    };
+
+    typedef std::vector< FilledVoxel > FilledVoxels;
+
+    // Make a per-slice list
+    std::vector< FilledVoxels > allFilledVoxels;
+    allFilledVoxels.resize(_volume->getWidth());
+
+    LOOP_STARTS("Constructing Node Voxels");
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _volume->getWidth(); ++i)
+    {
+        // Get a reference to the per-slice list
+        auto& perSlice = allFilledVoxels[i];
+        for (size_t j = 0; j < _volume->getHeight(); ++j)
+        {
+            for (size_t k = 0; k < _volume->getDepth(); ++k)
+            {
+                if (_volume->isFilled(i, j, k))
+                {
+                    perSlice.push_back(
+                        FilledVoxel(i, j, k, _volume->mapTo1DIndexWithoutBoundCheck(i, j, k)));
+                }
+            }
+        }
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, _volume->getWidth());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Put them in a single list
+    FilledVoxels filledVoxels;
+    for (size_t i = 0; i < allFilledVoxels.size(); ++i)
+    {
+        if (allFilledVoxels[i].size() > 0)
+        {
+            filledVoxels.insert(filledVoxels.end(),
+                                allFilledVoxels[i].begin(), allFilledVoxels[i].end());
+            allFilledVoxels[i].clear();
+            allFilledVoxels[i].shrink_to_fit();
+        }
+    }
+    allFilledVoxels.clear();
+    allFilledVoxels.shrink_to_fit();
+
+    // Every constructed node must have an identifier, or index.
+    size_t nodeIndex = 0;
+
+    // Map to associate between the indices of the voxels and the nodes in the graph
+    std::map< size_t, size_t > indicesMapper;
+    for (size_t i = 0; i < filledVoxels.size(); ++i)
+    {
+        indicesMapper.insert(std::pair< size_t, size_t >(filledVoxels[i].idx, i));
+    }
+
+    // Resize the nodes
+    _nodes.resize(filledVoxels.size());
+
+    PROGRESS_RESET;
+    OMP_PARALLEL_FOR
+    for (size_t n = 0; n < filledVoxels.size(); ++n)
+    {
+        // Get a point representing the center of the voxel (in the volume)
+        Vector3f voxelPosition(filledVoxels[n].i * 1.f,
+                               filledVoxels[n].j * 1.f,
+                               filledVoxels[n].k * 1.f);
+
+        // Get a point in the same coordinate space of the mesh
+        Vector3f nodePosition(voxelPosition);
+        nodePosition -= _centerVolume;
+        nodePosition.x() *= _scaleFactor.x();
+        nodePosition.y() *= _scaleFactor.y();
+        nodePosition.z() *= _scaleFactor.z();
+        nodePosition += _centerMesh;
+
+        // Add the node to the nodes list
+        _nodes[n] = new SkeletonNode(filledVoxels[n].idx, nodePosition, voxelPosition);
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, filledVoxels.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    filledVoxels.clear();
+    filledVoxels.shrink_to_fit();
+
+    return indicesMapper;
+}
+
+std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleration()
+{
+    LOG_STATUS("Mapping Voxels to Nodes *");
+    TIMER_SET;
+
+    auto thinningVoxels = _volume->getThinningVoxelsList(false);
+
+    // Construct the NodeVoxels list
+    LOOP_STARTS("Constructing Node Voxels");
+    PROGRESS_SET;
+    NodeVoxelsUI16 nodeVoxels;
+    for (size_t i = 0; i < thinningVoxels.size(); ++i)
+    {
+        auto& voxel = thinningVoxels[i];
+        if (voxel->active) // The inactive voxels have been deactivated in during the thinning
+        {
+            NodeVoxelUI16 nodeVoxel;
+            nodeVoxel.x = voxel->x;
+            nodeVoxel.y = voxel->y;
+            nodeVoxel.z = voxel->z;
+            nodeVoxel.index = _volume->mapTo1DIndexWithoutBoundCheck(voxel->x, voxel->y, voxel->z);
+            nodeVoxels.push_back(nodeVoxel);
+        }
+    }
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Every constructed node must have an identifier, or index.
+    size_t nodeIndex = 0;
+
+    // Map to associate between the indices of the voxels and the nodes in the graph
+    std::map< size_t, size_t > indicesMapper;
+    for (size_t i = 0; i < nodeVoxels.size(); ++i)
+    {
+        indicesMapper.insert(std::pair< size_t, size_t >(nodeVoxels[i].index, i));
+    }
+
+    // Resize the nodes to the corresponding size of the NodeVoxels list
+    _nodes.resize(nodeVoxels.size());
+
+    PROGRESS_RESET;
+    LOOP_STARTS("Building Graph Nodes");
+    OMP_PARALLEL_FOR
+    for (size_t n = 0; n < nodeVoxels.size(); ++n)
+    {
+        // Get a point representing the center of the voxel (in the volume)
+        Vector3f voxelPosition(nodeVoxels[n].x * 1.f,
+                               nodeVoxels[n].y * 1.f,
+                               nodeVoxels[n].z * 1.f);
+
+        // Get a point in the same coordinate space of the mesh
+        Vector3f nodePosition(voxelPosition);
+        nodePosition -= _centerVolume;
+        nodePosition.x() *= _scaleFactor.x();
+        nodePosition.y() *= _scaleFactor.y();
+        nodePosition.z() *= _scaleFactor.z();
+        nodePosition += _centerMesh;
+
+        // Add the node to the nodes list
+        _nodes[n] = new SkeletonNode(nodeVoxels[n].index, nodePosition, voxelPosition);
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, nodeVoxels.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
     return indicesMapper;
 }
@@ -665,10 +527,6 @@ void Skeletonizer::_inflateNodes()
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, _nodes.size());
-        PROGRESS_UPDATE;
-
         float minimumDistance = std::numeric_limits< float >::max();
         for (size_t j = 0; j < _shellPoints.size(); ++j)
         {
@@ -687,6 +545,10 @@ void Skeletonizer::_inflateNodes()
             _nodes[i]->radius = 0.1;
             nodesRadii[i] = 0.1;
         }
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, _nodes.size());
+        PROGRESS_UPDATE;
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
@@ -804,7 +666,7 @@ void Skeletonizer::_removeTriangleLoops()
 
 void Skeletonizer::constructGraph()
 {
-    std::map< size_t, size_t > indicesMapper = _extractNodesFromVoxelsParallel();
+    std::map< size_t, size_t > indicesMapper = _extractNodesFromVoxels();
 
     // Assign accurate radii to the nodes of the graph, i.e. inflate the nodes
     _inflateNodes();

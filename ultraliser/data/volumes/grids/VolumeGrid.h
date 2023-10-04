@@ -527,7 +527,14 @@ public:
      */
     virtual void writeRAWVolume(const std::string &prefix) const = 0;
 
-    ThinningVoxelsUI16 getThinningVoxelsList(const bool& rebuildList = false);
+    ThinningVoxelsUI16List& getThinningVoxelsList(const bool& rebuild = false);
+
+private:
+
+    /**
+     * @brief _clearThinningVoxels
+     */
+    void _clearThinningVoxels();
 
 protected:
 
@@ -565,7 +572,10 @@ protected:
      */
     size_t _numberVoxels;
 
-    ThinningVoxelsUI16 _thinningVoxels;
+    /**
+     * @brief ThinningVoxelsUI16List
+     */
+    ThinningVoxelsUI16List _thinningVoxels;
 };
 
 }

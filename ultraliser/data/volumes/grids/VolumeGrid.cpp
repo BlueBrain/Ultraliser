@@ -79,7 +79,7 @@ void VolumeGrid::_buildThinningVoxelsList()
     if (_thinningVoxels.size() > 0)
         _thinningVoxels.clear();
 
-    std::vector< ThinningVoxelsUI16 > perSlice;
+    std::vector< ThinningVoxelsUI16List > perSlice;
     perSlice.resize(getWidth());
 
     PROGRESS_SET;
@@ -93,7 +93,7 @@ void VolumeGrid::_buildThinningVoxelsList()
             {
                 if (isFilled(i, j, k))
                 {
-                    perSlice[i].push_back(ThinningVoxelUI16(i, j, k));
+                    perSlice[i].push_back(new ThinningVoxelUI16(i, j, k));
                 }
             }
         }
@@ -117,9 +117,9 @@ void VolumeGrid::_buildThinningVoxelsList()
     perSlice.shrink_to_fit();
 }
 
-ThinningVoxelsUI16 VolumeGrid::getThinningVoxelsList(const bool& rebuildList)
+ThinningVoxelsUI16List& VolumeGrid::getThinningVoxelsList(const bool& rebuild)
 {
-    if (_thinningVoxels.size() == 0 || rebuildList)
+    if (_thinningVoxels.size() == 0 || rebuild)
         _buildThinningVoxelsList();
 
     return _thinningVoxels;
@@ -846,11 +846,6 @@ size_t VolumeGrid::computeNumberNonZeroVoxels() const
     return numberNonZeroVoxels;
 }
 
-VolumeGrid::~VolumeGrid()
-{
-    /// EMPTY
-}
-
 VOLUME_TYPE VolumeGrid::getType(const std::string &typeString)
 {
     if (typeString == "bit")
@@ -993,6 +988,24 @@ double VolumeGrid::getValueF64(const int64_t &x, const int64_t &y, const int64_t
         return 0;
     else
         return getValueF64(index);
+}
+
+void VolumeGrid::_clearThinningVoxels()
+{
+    if (_thinningVoxels.size() > 0)
+    {
+        for (size_t i = 0; i < _thinningVoxels.size(); ++i)
+        {
+            _thinningVoxels[i]->~ThinningVoxel();
+        }
+        _thinningVoxels.clear();
+        _thinningVoxels.shrink_to_fit();
+    }
+}
+
+VolumeGrid::~VolumeGrid()
+{
+    _clearThinningVoxels();
 }
 
 }

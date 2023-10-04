@@ -48,11 +48,14 @@ public:
      * @param deletable
      */
     ThinningVoxel(const T i, const T j, const T k,
-                  const bool& deletable = false, const bool& border = false)
+                  const bool& deletable = false,
+                  const bool& border = false,
+                  const bool& active = true)
     {
         this->x = i; this->y = j; this->z = k;
         this->deletable = deletable;
         this->border = border;
+        this->active = active;
     }
 
 public:
@@ -81,6 +84,11 @@ public:
      * @brief border
      */
     bool border = false;
+
+    /**
+     * @brief active
+     */
+    bool active = true;
 };
 
 /**
@@ -122,5 +130,25 @@ typedef std::vector< ThinningVoxelUI32 > ThinningVoxelsUI32;
  * @brief ThinningVoxelsUI64
  */
 typedef std::vector< ThinningVoxelUI64 > ThinningVoxelsUI64;
+
+/**
+ * @brief ThinningVoxelsUI8
+ */
+typedef std::vector< ThinningVoxelUI8* > ThinningVoxelUI8List;
+
+/**
+ * @brief ThinningVoxelsUI16
+ */
+typedef std::vector< ThinningVoxelUI16* > ThinningVoxelsUI16List;
+
+/**
+ * @brief ThinningVoxelsUI32
+ */
+typedef std::vector< ThinningVoxelUI32* > ThinningVoxelsUI32List;
+
+/**
+ * @brief ThinningVoxelsUI64
+ */
+typedef std::vector< ThinningVoxelUI64* > ThinningVoxelsUI64List;
 
 }
