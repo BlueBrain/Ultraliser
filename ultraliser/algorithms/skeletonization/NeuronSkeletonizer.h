@@ -133,30 +133,41 @@ public:
 
 private:
 
-     /**
+    /**
      * @brief _addSomaNode
      * Adds a dedicated node for the soma. This node is updated later after the soma is segmented
      * from the mesh and all the arbors are detected.
-     * @return
-     * A pointer the added soma node.
      */
-    SkeletonNode *_addSomaNode();
+    void _addSomaNode();
 
     /**
      * @brief _segmentSomaMesh
-     * Segment the soma from the
-     * @param somaNode
      */
-    void _segmentSomaMesh(SkeletonNode *somaNode);
+    void _segmentSomaMesh();
 
+    /**
+     * @brief _segmentSomaVolume
+     */
     void _segmentSomaVolume();
 
-    void _removeBranchesInsideSoma(SkeletonNode *somaNode);
+    /**
+     * @brief _removeBranchesInsideSoma
+     */
+    void _removeBranchesInsideSoma();
 
+    /**
+     * @brief _connectBranches
+     */
     void _connectBranches();
 
+    /**
+     * @brief _processBranchesToYieldCyclicGraph
+     */
     void _processBranchesToYieldCyclicGraph();
 
+    /**
+     * @brief _filterLoopsBetweenTwoBranchingPoints
+     */
     void _filterLoopsBetweenTwoBranchingPoints();
 
     /**
@@ -172,11 +183,16 @@ private:
      */
     void _filterSpines();
 
+    /**
+     * @brief _updateParent
+     * @param branch
+     */
     void _updateParent(SkeletonBranch* branch);
+
+    /**
+     * @brief _updateParents
+     */
     void _updateParents();
-
-
-
 
     /**
      * @brief _reduceSkeletonToWeightedEdges
@@ -220,9 +236,19 @@ private:
                                                            GraphNodes &graphNodes,
                                                            const int64_t& somaNodeIndex);
 
+    /**
+     * @brief _constructGraphBranchesFromGraphNodes
+     * @param graphNodes
+     * @param somaNodeIndex
+     * @return
+     */
     GraphBranches _constructGraphBranchesFromGraphNodes(
             GraphNodes &graphNodes, const int64_t& somaNodeIndex);
 
+    /**
+     * @brief _constructGraphHierarchy
+     * @param graphBranches
+     */
     void _constructGraphHierarchy(GraphBranches& graphBranches);
 
     /**
@@ -251,10 +277,10 @@ private:
     void _detectInactiveBranches(SkeletonWeightedEdges& graphEdges,
                                  EdgesIndices& visitedEdgesIndices);
 
+    /**
+     * @brief _adjustSomaRadius
+     */
     void _adjustSomaRadius();
-
-
-
 
 private:
 

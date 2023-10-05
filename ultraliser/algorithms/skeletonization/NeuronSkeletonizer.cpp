@@ -54,13 +54,13 @@ void NeuronSkeletonizer::constructGraph()
     _connectNodes(indicesMapper);
 
     // Add a virtual soma node, until the soma is reconstructed later
-    auto somaNode = _addSomaNode();
+    _addSomaNode();
 
     // Re-index the samples, for simplicity
     OMP_PARALLEL_FOR for (size_t i = 1; i <= _nodes.size(); ++i) { _nodes[i - 1]->index = i; }
 
     // Segmentthe soma mesh from the branches
-    _segmentSomaMesh(somaNode);
+    _segmentSomaMesh();
 
     // Segment soma volume
      _segmentSomaVolume();
@@ -72,30 +72,28 @@ void NeuronSkeletonizer::constructGraph()
      _buildBranchesFromNodes(_nodes);
 
     // Validate the branches, and remove the branches inside the soma
-    _removeBranchesInsideSoma(somaNode);
+    _removeBranchesInsideSoma();
 
     // The roots have been identified
     _connectBranches();
 }
 
-SkeletonNode* NeuronSkeletonizer::_addSomaNode()
+void NeuronSkeletonizer::_addSomaNode()
 {
-    SkeletonNode* somaNode = new SkeletonNode();
-    somaNode->index = _nodes.back()->index + 1;
+    _somaNode = new SkeletonNode();
+    _somaNode->index = _nodes.back()->index + 1;
 
-    somaNode->isSoma = true;
-    somaNode->insideSoma = true; // The somatic node is considered inside the soma in the processing
+    _somaNode->isSoma = true;
+    _somaNode->insideSoma = true; // The somatic node is considered inside the soma in the processing
 
     // Initially, we set the soma node to some value that does not make any conflict
-    somaNode->radius = 0.1;
-    _nodes.push_back(somaNode);
-    _somaNode = somaNode;
-    return somaNode;
+    _somaNode->radius = 0.1;
+    _nodes.push_back(_somaNode);
 }
 
 
 
-void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
+void NeuronSkeletonizer::_segmentSomaMesh()
 {
     LOG_STATUS("Segmenting Soma");
 
@@ -159,8 +157,8 @@ void NeuronSkeletonizer::_segmentSomaMesh(SkeletonNode* somaNode)
     estimatedSomaCenter /= numberSamples;
 
     // Update the location of the soma point, the radius will be updated after detecting root arbors
-    somaNode->point = estimatedSomaCenter;
-    somaNode->radius = 0.5; /// TODO: Fix me
+    _somaNode->point = estimatedSomaCenter;
+    _somaNode->radius = 0.5; /// TODO: Fix me
 }
 
 
@@ -171,6 +169,13 @@ void NeuronSkeletonizer::_segmentSomaVolume()
 
     _volume->clear();
     _volume->surfaceVoxelization(_somaMesh, false, false);
+
+    Bounds3D_ui64 activeRegionBounds = _volume->getActiveRegionBounds();
+
+    std::cout << "Active Bounds ** : "
+              << activeRegionBounds.x1 << ", " << activeRegionBounds.x2 << ","
+              << activeRegionBounds.y1 << ", " << activeRegionBounds.y2 << ", "
+              << activeRegionBounds.z1 << ", " << activeRegionBounds.z2 << "\n";
 
     // Compute the soma mesh bounding box
     Vector3f pMinSomaMesh, pMaxSomaMesh;
@@ -198,10 +203,10 @@ void NeuronSkeletonizer::_segmentSomaVolume()
     if (z2 >= _volume->getDepth()) z2 = _volume->getDepth() - 1;
 
         // Apply the solid voxelization only to the selected region of interest to save time flood-filling large slices
-    //_volume->solidVoxelizationROI(Volume::SOLID_VOXELIZATION_AXIS::X, x1, x2, y1, y2, z1, z2);
+    _volume->solidVoxelizationROI(Volume::SOLID_VOXELIZATION_AXIS::X, x1, x2, y1, y2, z1, z2);
 
     // Apply the solid voxelization only to the selected region of interest to save time flood-filling large slices
-    _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+     //_volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::X);
 
     _volume->project("/data/microns-skeletonization-meshes/skeletonization-output-spines/morphologies/out", true, true, true);
     // LOG_STATS(GET_TIME_SECONDS);
@@ -237,7 +242,7 @@ void NeuronSkeletonizer::_segmentSomaVolume()
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
+void NeuronSkeletonizer::_removeBranchesInsideSoma()
 {
     // OMP_PARALLEL_FOR
     for (size_t i = 0; i < _branches.size(); ++i)
@@ -286,7 +291,7 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
                 if (firstNode->insideSoma)
                 {
                     SkeletonNodes newNodes;
-                    newNodes.push_back(somaNode);
+                    newNodes.push_back(_somaNode);
                     for (size_t k = 0; k < branch->nodes.size(); ++k)
                     {
                         if (!branch->nodes[k]->insideSoma)
@@ -317,7 +322,7 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma(SkeletonNode* somaNode)
                             newNodes.push_back(branch->nodes[k]);
                         }
                     }
-                    newNodes.push_back(somaNode);
+                    newNodes.push_back(_somaNode);
 
                     branch->nodes.clear();
                     branch->nodes.shrink_to_fit();

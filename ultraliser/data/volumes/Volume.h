@@ -953,6 +953,9 @@ public:
 
     Bounds3D_ui64 getROIBounds(const Vector3f& pMin, const Vector3f& pMax);
 
+    Bounds3D_ui64 getActiveRegionBounds();
+
+
     void projectXY(const std::string& prefix, const bool &projectColorCoded = false);
     void projectYZ(const std::string& prefix, const bool &projectColorCoded = false) const;
     void projectXZ(const std::string& prefix, const bool &projectColorCoded = false) const;

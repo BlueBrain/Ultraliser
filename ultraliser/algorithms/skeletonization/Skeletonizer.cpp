@@ -357,8 +357,6 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingSlicing()
     std::vector< FilledVoxels > allFilledVoxels;
     allFilledVoxels.resize(_volume->getWidth());
 
-    LOOP_STARTS("Constructing Node Voxels");
-    PROGRESS_SET;
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < _volume->getWidth(); ++i)
     {
@@ -375,13 +373,7 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingSlicing()
                 }
             }
         }
-
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, _volume->getWidth());
-        PROGRESS_UPDATE;
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
 
     // Put them in a single list
     FilledVoxels filledVoxels;
@@ -411,7 +403,7 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingSlicing()
     // Resize the nodes
     _nodes.resize(filledVoxels.size());
 
-    PROGRESS_RESET;
+    PROGRESS_SET;
     OMP_PARALLEL_FOR
     for (size_t n = 0; n < filledVoxels.size(); ++n)
     {
@@ -565,11 +557,15 @@ void Skeletonizer::_inflateNodes()
 
 void Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indicesMapper)
 {
-    // Construct the graph and connect the nodes
+    TIMER_SET;
+    LOG_STATUS("Connecting Graph Nodes");
+
+    /// TODO: Makre sure that there are no race conditions in the code
+    LOOP_STARTS("Building & Linking Edges");
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
-        // LOOP_PROGRESS(loopProgress, _nodes.size());
-
         // Check if the node has been visited before
         SkeletonNode* node = _nodes[i];
 
@@ -604,7 +600,13 @@ void Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indicesMapper
 
         if (connectedEdges > 2)
             node->branching = true;
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, _nodes.size());
+        PROGRESS_UPDATE;
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void Skeletonizer::_removeTriangleLoops()

@@ -569,7 +569,7 @@ Bounds3D_ui64 Volume::getROIBounds(const Vector3f& pMin, const Vector3f& pMax)
     const auto z2 = static_cast< uint64_t >((dz2 / _voxelSize));
 
     // Construct and return the bounds of the ROI
-    return Bounds3D(x1, x2, y1, y2, z1, z2);
+    return Bounds3D_ui64(x1, x2, y1, y2, z1, z2);
 }
 
 void Volume::surfaceVoxelization(Mesh* mesh,
@@ -4392,6 +4392,37 @@ Volume* Volume::getBrick(const size_t& x1, const size_t& x2,
 
     // Return the created volume brick
     return brick;
+}
+
+Bounds3D_ui64 Volume::getActiveRegionBounds()
+{
+    size_t xMin = std::numeric_limits<size_t>::max();
+    size_t yMin = std::numeric_limits<size_t>::max();
+    size_t zMin = std::numeric_limits<size_t>::max();
+    size_t xMax = 0;
+    size_t yMax = 0;
+    size_t zMax = 0;
+
+    for (size_t i = 0; i < getWidth(); ++i)
+    {
+        for (size_t j =0; j < getHeight(); ++j)
+        {
+            for (size_t k = 0; k < getDepth(); ++k)
+            {
+                if (isFilled(i, j, k))
+                {
+                    if (i > xMax) xMax = i;
+                    if (i < xMin) xMin = i;
+                    if (j > yMax) yMax = j;
+                    if (j < yMin) yMin = j;
+                    if (k > zMax) zMax = k;
+                    if (k < zMin) zMin = k;
+                }
+            }
+        }
+    }
+
+    return Bounds3D_ui64(xMin, xMax, yMin, yMax, zMin, zMax);
 }
 
 }
