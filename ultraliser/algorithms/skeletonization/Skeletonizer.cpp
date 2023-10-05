@@ -506,6 +506,13 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleratio
     return indicesMapper;
 }
 
+void Skeletonizer::_inflateNodesUsingAcceleration()
+{
+    // TODO: Adrien to fill this code
+    // FOr the moment, use the old functoin until Adrien fills this section
+    _inflateNodes();
+}
+
 void Skeletonizer::_inflateNodes()
 {
     TIMER_SET;

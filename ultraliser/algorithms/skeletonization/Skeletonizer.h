@@ -161,10 +161,16 @@ protected:
     void _buildAcyclicTree(SkeletonBranch* branch, SkeletonBranches &branches);
 
 
-
-
-
+    /**
+     * @brief _inflateNodes
+     */
     void _inflateNodes();
+
+    /**
+     * @brief _inflateNodesUsingAcceleration
+     */
+    void _inflateNodesUsingAcceleration();
+
 
     void _connectNodes(const std::map<size_t, size_t> &indicesMapper);
     void _removeTriangleLoops();
