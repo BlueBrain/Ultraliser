@@ -25,6 +25,7 @@
 #include "Skeletonizer.h"
 #include "SkeletonizerUtils.h"
 #include <algorithms/skeletonization/thinning/Neighbors.hh>
+#include <algorithms/utilities/KdTree.h>
 #include <math/Vector.h>
 #include <data/meshes/simple/TriangleOperations.h>
 #include <utilities/Range.h>
@@ -508,19 +509,42 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleratio
 
 void Skeletonizer::_inflateNodesUsingAcceleration()
 {
-    // TODO: Adrien to fill this code
-    // FOr the moment, use the old functoin until Adrien fills this section
-    _inflateNodes();
+    TIMER_SET;
+    LOG_STATUS("Inflating Graph Nodes - Mapping to Surface");
+
+    auto kdtree = KdTree::from(_shellPoints);
+
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _nodes.size(); ++i)
+    {
+        auto &node = *_nodes[i];
+
+        auto nearestPoint = kdtree.findNearestPoint(node.point);
+        auto minimumDistance = nearestPoint.distance;
+
+        // TODO: Make some logic to detect the actual radius based on the voxel size
+        if (minimumDistance > 0.01)
+        {
+            node.radius = minimumDistance * 1.2;
+        }
+        else
+        {
+            node.radius = 0.1;
+        }
+
+        // Update the progress bar
+        LOOP_PROGRESS(PROGRESS, _nodes.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void Skeletonizer::_inflateNodes()
 {
     TIMER_SET;
     LOG_STATUS("Inflating Graph Nodes - Mapping to Surface");
-
-    // Compute the approximate radii of all the nodes in the graph, based on the minimum distance
-    std::vector< float > nodesRadii;
-    nodesRadii.resize(_nodes.size());
 
     PROGRESS_SET;
     OMP_PARALLEL_FOR
@@ -537,12 +561,10 @@ void Skeletonizer::_inflateNodes()
         if (minimumDistance > 0.01)
         {
             _nodes[i]->radius = minimumDistance * 1.2;
-            nodesRadii[i] = minimumDistance * 1.2;
         }
         else
         {
             _nodes[i]->radius = 0.1;
-            nodesRadii[i] = 0.1;
         }
 
         // Update the progress bar
@@ -551,15 +573,6 @@ void Skeletonizer::_inflateNodes()
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
-
-    // Obtain the node with the largest radius, candidate for soma
-    const auto iterator = std::max_element(std::begin(nodesRadii), std::end(nodesRadii));
-    const auto& index = std::distance(std::begin(nodesRadii), iterator);
-    const auto& largestNode = _nodes[index];
-
-    // Clear the auxiliary list
-    nodesRadii.clear();
-    nodesRadii.shrink_to_fit();
 }
 
 void Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indicesMapper)
