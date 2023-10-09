@@ -1055,7 +1055,14 @@ private:
     void _rasterize(Mesh* mesh, VolumeGrid* grid,
                     const float &sideRatio = 1.0, const bool& verbose = false);
 
-
+    /**
+     * @brief _rasterizeRegion
+     * @param mesh
+     * @param grid
+     * @param pMinRegion
+     * @param pMaxRegion
+     * @param verbose
+     */
     void _rasterizeRegion(Mesh* mesh, VolumeGrid* grid,
                           const Vector3f& pMinRegion,
                           const Vector3f& pMaxRegion,

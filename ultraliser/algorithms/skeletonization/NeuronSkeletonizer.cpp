@@ -181,7 +181,7 @@ void NeuronSkeletonizer::_identifySomaticNodes()
     // This is a list of 1D indices of all the voxels that are inside the soma
     std::vector< size_t > insideSomaVoxels;
 
-    if (_useAcceleration)
+    if (true)
     {
 #ifdef ULTRALISER_DEBUG
         // Compute the active region bounds for validation
@@ -210,9 +210,11 @@ void NeuronSkeletonizer::_identifySomaticNodes()
         auto x1 = static_cast< size_t >(somaVolumeBounds.x1);
         auto x2 = static_cast< size_t >(somaVolumeBounds.x2);
         if (x2 >= _volume->getWidth()) x2 = _volume->getWidth() - 1;
+
         auto y1 = static_cast< size_t >(somaVolumeBounds.y1);
         auto y2 = static_cast< size_t >(somaVolumeBounds.y2);
         if (y2 >= _volume->getHeight()) y2 = _volume->getHeight() - 1;
+
         auto z1 = static_cast< size_t >(somaVolumeBounds.z1);
         auto z2 = static_cast< size_t >(somaVolumeBounds.z2);
         if (z2 >= _volume->getDepth()) z2 = _volume->getDepth() - 1;
@@ -242,8 +244,9 @@ void NeuronSkeletonizer::_identifySomaticNodes()
             }
         }
         LOG_STATS(GET_TIME_SECONDS);
-
     }
+
+    // This branch is used for debugging just in case any optimizations fail
     else
     {
         // Apply solid voxelization on the entire slice
@@ -257,15 +260,10 @@ void NeuronSkeletonizer::_identifySomaticNodes()
         LOOP_STARTS("Finding Somatic Voxels");
         for (size_t i = 0; i < _volume->getNumberVoxels(); ++i)
         {
-            if (_volume->isFilled(i))
-            {
-                insideSomaVoxels.push_back(i);
-            }
+            if (_volume->isFilled(i)) { insideSomaVoxels.push_back(i); }
         }
         LOG_STATS(GET_TIME_SECONDS);
     }
-
-    // _volume->project("/data/microns-explorer-dataset/Meshes-Input-MICrONS/skeletonization-spines/morphologies/out", true);
 
     // Find out the nodes that are inside the soma
     TIMER_RESET;
@@ -284,7 +282,7 @@ void NeuronSkeletonizer::_identifySomaticNodes()
     }
     LOG_STATS(GET_TIME_SECONDS);
 
-    // The volume is safe to be deallocated
+    /// TODO: The volume is safe to be deallocated
     _volume->~Volume();
     _volume = nullptr;
 }
@@ -762,8 +760,8 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
             std::make_unique< ShortestPathFinder >(edges, skeletonBranchingNodes.size());
 
     // Search for all the terminal nodes
-    PROGRESS_SET;
     size_t numberTerminalNodes = terminalNodes.size();
+    PROGRESS_SET;
     LOOP_STARTS("Detecting Paths");
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < numberTerminalNodes; ++i)
@@ -771,12 +769,16 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
         // Get a reference to the EdgesIndices list
         EdgesIndices& perTerminalEdgesIndices = edgesIndicesList[i];
 
+#ifdef REVERSE
         // Find the path between the terminal node and the soma node
         auto terminalToSomaPath = pathFinder->findPath(terminalNodes[i]->graphIndex, somaNodeIndex);
 
         // Reverse the terminal to soma path to have the correct order
         std::reverse(terminalToSomaPath.begin(), terminalToSomaPath.end());
-
+#else
+        // Find the path between the terminal node and the soma node
+        auto terminalToSomaPath = pathFinder->findPath(somaNodeIndex, terminalNodes[i]->graphIndex);
+#endif
         // Find the edges
         for (size_t j = 0; j < terminalToSomaPath.size() - 1; ++j)
         {
@@ -805,6 +807,7 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
 
     // The indices of all the edges that have been traversed
     EdgesIndices edgesIndices;
+    PROGRESS_RESET;
     LOOP_STARTS("Composing Path Edges");
     for (size_t i = 0; i < edgesIndicesList.size(); ++i)
     {
@@ -1139,11 +1142,17 @@ void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
 
     /// After having the weighted edges and the nodes computed, compute the number of components in
     /// the graph, if the result is more than 1 then then re-connect them to be in a single graph
-
     auto graph = new Graph(weighteEdges, graphNodes);
-
     auto components = graph->getComponents();
-    std::cout << "Number Components " << components.size() << "\n";
+    if (components.size() == 1)
+    {
+        LOG_SUCCESS("The skeleton graph has 1 component! OK.");
+    }
+    else
+    {
+        LOG_WARNING("The skeleton graph has %d component", components.size());
+        LOG_ERROR("Unimplemented path! We will implement component connection soon.");
+    }
 
     // Find the shortest paths of all the terminals and get a list of the indices of the active edges
     EdgesIndices edgeIndices = _findShortestPathsFromTerminalNodesToSoma(

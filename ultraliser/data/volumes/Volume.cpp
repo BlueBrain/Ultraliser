@@ -1211,12 +1211,10 @@ void Volume::_rasterizeRegion(Mesh* mesh, VolumeGrid* grid,
         int64_t pMinTriangle[3], pMaxTriangle[3];
         _getBoundingBox(mesh, triangleIdx, pMinTriangle, pMaxTriangle);
 
-
         // Get the indices of the grid that correspond to the bounding box
         GridIndex vMin, vMax;
         _vec2grid(pMinRegion, vMin);
         _vec2grid(pMaxRegion, vMax);
-
 
         int64_t tMin[3];
         int64_t tMax[3];
