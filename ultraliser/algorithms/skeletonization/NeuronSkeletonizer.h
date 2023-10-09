@@ -46,22 +46,30 @@ public:
     NeuronSkeletonizer(Volume *volume, const bool &useAcceleration = true);
     ~NeuronSkeletonizer();
 
-    void constructGraph() override;
-
     /**
      * @brief skeletonizeVolumeToCenterLines
      */
     void skeletonizeVolumeToCenterLines() override;
 
     /**
+     * @brief constructGraph
+     */
+    void constructGraph() override;
+
+    /**
      * @brief segmentComponents
      */
     void segmentComponents() override;
 
+    /**
+     * @brief skeletonizeVolumeBlockByBlock
+     * @param blockSize
+     * @param numberOverlappingVoxels
+     * @param numberZeroVoxels
+     */
     void skeletonizeVolumeBlockByBlock(const size_t& blockSize = 512,
                                        const size_t& numberOverlappingVoxels = 25,
                                        const size_t& numberZeroVoxels = 5) override;
-
 
     /**
       * @brief exportIndividualBranches
@@ -159,11 +167,6 @@ private:
      * @brief _connectBranches
      */
     void _connectBranches();
-
-    /**
-     * @brief _processBranchesToYieldCyclicGraph
-     */
-    void _processBranchesToYieldCyclicGraph();
 
     /**
      * @brief _filterLoopsBetweenTwoBranchingPoints

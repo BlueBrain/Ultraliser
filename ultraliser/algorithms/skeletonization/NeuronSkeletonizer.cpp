@@ -86,15 +86,16 @@ void NeuronSkeletonizer::_addSomaNode()
     _somaNode = new SkeletonNode();
     _somaNode->index = _nodes.back()->index + 1;
 
+    // By default, the soma node is actually the soma
     _somaNode->isSoma = true;
-    _somaNode->insideSoma = true; // The somatic node is considered inside the soma in the processing
+
+    // The somatic node is considered inside the soma in the processing
+    _somaNode->insideSoma = true;
 
     // Initially, we set the soma node to some value that does not make any conflict
     _somaNode->radius = 0.1;
     _nodes.push_back(_somaNode);
 }
-
-
 
 void NeuronSkeletonizer::_segmentSomaMesh()
 {
@@ -163,7 +164,6 @@ void NeuronSkeletonizer::_segmentSomaMesh()
     _somaNode->point = estimatedSomaCenter;
     _somaNode->radius = 0.5; /// TODO: Fix me
 }
-
 
 void NeuronSkeletonizer::_identifySomaticNodes()
 {
@@ -389,168 +389,6 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma()
             }
         }
     }
-}
-
-void NeuronSkeletonizer::exportSomaMesh(const std::string& prefix,
-                                        const bool& formatOBJ = false,
-                                        const bool& formatPLY = false,
-                                        const bool& formatOFF = false,
-                                        const bool& formatSTL = false)
-{
-    const std::string somaMeshPrefix = prefix + "-soma";
-    _somaMesh->exportMesh(somaMeshPrefix, formatOBJ, formatPLY, formatOFF, formatSTL);
-}
-
-void NeuronSkeletonizer::collectSWCNodes(const SkeletonBranch* branch, SkeletonNodes& swcNodes,
-                                         int64_t& swcIndex, int64_t branchingNodeSWCIndex)
-{
-    // Get a reference to the nodes of the current branch
-    auto& currentBranchNodes = branch->nodes;
-
-    for (size_t i = 1; i < currentBranchNodes.size(); ++i)
-    {
-        currentBranchNodes[i]->swcIndex = swcIndex;
-
-        if (i == 1) { currentBranchNodes[i]->prevSampleSWCIndex = branchingNodeSWCIndex;}
-        else { currentBranchNodes[i]->prevSampleSWCIndex= swcIndex - 1; }
-
-        swcIndex++;
-        swcNodes.push_back(currentBranchNodes[i]);
-    }
-
-    const int64_t branchingIndex = swcIndex - 1;
-    for (size_t i = 0; i < branch->children.size(); ++i)
-    {
-        if (branch->children[i]->isValid())
-        {
-            collectSWCNodes(branch->children[i], swcNodes, swcIndex, branchingIndex);
-        }
-    }
-}
-
-SkeletonNodes NeuronSkeletonizer::constructSWCTable()
-{
-    // A table, or list that contains all the nodes in order
-    SkeletonNodes swcNodes;
-
-    // A global index that will be used to correctly index the nodes
-    int64_t swcIndex = 1;
-
-    // Append the somatic mode
-    _somaNode->swcIndex = swcIndex;
-    _somaNode->prevSampleSWCIndex = -1;
-
-    swcIndex++;
-    swcNodes.push_back(_somaNode);
-
-    // Get all the root branches
-    TIMER_SET;
-    LOOP_STARTS("Constructing SWC Table");
-    const size_t numberBranches = _branches.size();
-    for (size_t i = 0; i < numberBranches ; ++i)
-    {
-        LOOP_PROGRESS(i, numberBranches);
-
-        auto& branch = _branches[i];
-        if (branch->isRoot() && branch->isValid())
-        {
-            // The branching index is that of the soma
-            collectSWCNodes(branch, swcNodes, swcIndex, 1);
-        }
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    return swcNodes;
-}
-
-void NeuronSkeletonizer::exportSWCFile(const std::string& prefix)
-{
-    // Start the timer
-    TIMER_SET;
-
-    // Construct the file path
-    std::string filePath = prefix + SWC_EXTENSION;
-    LOG_STATUS("Exporting Neuron to SWC file: [ %s ]", filePath.c_str());
-
-    auto swcNodes = constructSWCTable();
-
-    std::fstream stream;
-    stream.open(filePath, std::ios::out);
-
-    auto somaNode = swcNodes[0];
-    stream << somaNode->swcIndex << " "
-           << "1" << " "
-           << somaNode->point.x() << " "
-           << somaNode->point.y() << " "
-           << somaNode->point.z() << " "
-           << somaNode->radius << " "
-           << "-1" << "\n";
-
-    LOOP_STARTS("Writing SWC Table");
-    const size_t numberSWCNodes = swcNodes.size();
-    for (size_t i = 1; i < numberSWCNodes; ++i)
-    {
-        LOOP_PROGRESS(i, numberSWCNodes);
-
-        auto swcNode = swcNodes[i];
-        stream << swcNode->swcIndex << " "
-               << "3" << " "
-               << swcNode->point.x() << " "
-               << swcNode->point.y() << " "
-               << swcNode->point.z() << " "
-               << swcNode->radius << " "
-               << swcNode->prevSampleSWCIndex << "\n";
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Close the file
-    stream.close();
-}
-
-void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) const
-{
-    // Start the timer
-    TIMER_SET;
-
-    // Construct the file path
-    std::string filePath = prefix + TXT_EXTENSION;
-    LOG_STATUS("Exporting Neuron Branches: [ %s ]", filePath.c_str());
-
-    std::fstream stream;
-    stream.open(filePath, std::ios::out);
-
-    LOOP_STARTS("Writing Branches");
-    size_t progress = 0;
-    for (size_t i = 0; i < _branches.size(); ++i)
-    {
-        // If the branch does not have any valid nodes, then don't write it
-        if (!_branches[i]->isValid() || _branches[i]->nodes.size() == 0) continue;
-        // if (!_branches[i]->root) continue;
-
-        LOOP_PROGRESS(progress, _branches.size());
-        ++progress;
-
-        // The @start marks a new branch in the file
-        stream << "start " << _branches[i]->index << "\n";
-
-        for (auto& node: _branches[i]->nodes)
-        {
-            stream << node->point.x() << " "
-                   << node->point.y() << " "
-                   << node->point.z() << " "
-                   << node->radius << "\n";
-        }
-
-        // The @end marks the terminal sample of a branch
-        stream << "end\n";
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Close the file
-    stream.close();
 }
 
 void NeuronSkeletonizer::_filterLoopsBetweenTwoBranchingPoints()
@@ -1120,72 +958,6 @@ void NeuronSkeletonizer::_filterSpines()
     }
 }
 
-void NeuronSkeletonizer::_processBranchesToYieldCyclicGraph()
-{
-    // Initially, and before constructing the graph, remove the loops between two branching points
-    _filterLoopsBetweenTwoBranchingPoints();
-
-    // Remove the loops at a single branching point, i.e. starting and ending at the same node.
-    _filterLoopsAtSingleBranchingPoint();
-
-    // Reduce the skeleton into a list of SkeletonWeightedEdge's
-    SkeletonWeightedEdges weighteEdges = _reduceSkeletonToWeightedEdges();
-
-    // Get a list of all the branching nodes within the skeleton from the SkeletonWeightedEdges list
-    SkeletonNodes skeletonBranchingNodes = _selectBranchingNodesFromWeightedEdges(weighteEdges);
-
-    // Get the soma node index within the weighted graph
-    int64_t somaNodeIndex = _getSomaIndexFromGraphNodes(skeletonBranchingNodes);
-
-    // Construct the graph nodes list
-    GraphNodes graphNodes = _constructGraphNodesFromSkeletonNodes(skeletonBranchingNodes);
-
-    /// After having the weighted edges and the nodes computed, compute the number of components in
-    /// the graph, if the result is more than 1 then then re-connect them to be in a single graph
-    auto graph = new Graph(weighteEdges, graphNodes);
-    auto components = graph->getComponents();
-    if (components.size() == 1)
-    {
-        LOG_SUCCESS("The skeleton graph has 1 component! OK.");
-    }
-    else
-    {
-        LOG_WARNING("The skeleton graph has %d component", components.size());
-        LOG_ERROR("Unimplemented path! We will implement component connection soon.");
-    }
-
-    // Find the shortest paths of all the terminals and get a list of the indices of the active edges
-    EdgesIndices edgeIndices = _findShortestPathsFromTerminalNodesToSoma(
-                weighteEdges, skeletonBranchingNodes, graphNodes, somaNodeIndex);
-
-    // Construct the GraphBranches from the GraphNodes
-    GraphBranches graphBranches = _constructGraphBranchesFromGraphNodes(graphNodes, somaNodeIndex);
-
-    // Construct the hierarchy of the graph
-    _constructGraphHierarchy(graphBranches);
-
-    // Construct the hierarchy of the skeleton
-    _constructSkeletonHierarchy(graphBranches);
-
-    // merge branches with a single child
-    _mergeBranchesWithSingleChild();
-
-    // Invalidate the inactive branches
-    _detectInactiveBranches(weighteEdges, edgeIndices);
-
-    // Adkjust the soma radius
-    _adjustSomaRadius();
-
-    // Update all the parents
-    _updateParents();
-
-    // Filter the synapses
-    _filterSpines();
-}
-
-
-
-
 void identifyTerminalConnections(SkeletonBranches& branches)
 {
     for (size_t i = 0; i < branches.size(); ++i)
@@ -1331,7 +1103,6 @@ SkeletonBranches _detectChildren(SkeletonBranch* currentBranch, SkeletonBranches
     return childrenBranches;
 }
 
-
 void NeuronSkeletonizer::_connectBranches()
 {
     // Identify the connections at the terminals of each branch
@@ -1344,13 +1115,65 @@ void NeuronSkeletonizer::_connectBranches()
 
 void NeuronSkeletonizer::segmentComponents()
 {
-    // Build the branches from the nodes
-    // _buildBranchesFromNodes(_nodes);
+    // Initially, and before constructing the graph, remove the loops between two branching points
+    _filterLoopsBetweenTwoBranchingPoints();
 
-    // std::cout << "Branches: " << _branches.size() << "\n";
-    // std::cout << "Nodes (Samples): " << _nodes.size() << "\n";
+    // Remove the loops at a single branching point, i.e. starting and ending at the same node.
+    _filterLoopsAtSingleBranchingPoint();
 
-    _processBranchesToYieldCyclicGraph();
+    // Reduce the skeleton into a list of SkeletonWeightedEdge's
+    SkeletonWeightedEdges weighteEdges = _reduceSkeletonToWeightedEdges();
+
+    // Get a list of all the branching nodes within the skeleton from the SkeletonWeightedEdges list
+    SkeletonNodes skeletonBranchingNodes = _selectBranchingNodesFromWeightedEdges(weighteEdges);
+
+    // Get the soma node index within the weighted graph
+    int64_t somaNodeIndex = _getSomaIndexFromGraphNodes(skeletonBranchingNodes);
+
+    // Construct the graph nodes list
+    GraphNodes graphNodes = _constructGraphNodesFromSkeletonNodes(skeletonBranchingNodes);
+
+    /// After having the weighted edges and the nodes computed, compute the number of components in
+    /// the graph, if the result is more than 1 then then re-connect them to be in a single graph
+    auto graph = new Graph(weighteEdges, graphNodes);
+    auto components = graph->getComponents();
+    if (components.size() == 1)
+    {
+        LOG_SUCCESS("The skeleton graph has 1 component! OK.");
+    }
+    else
+    {
+        LOG_WARNING("The skeleton graph has %d component", components.size());
+        LOG_ERROR("Unimplemented path! We will implement component connection soon.");
+    }
+
+    // Find the shortest paths of all the terminals and get a list of the indices of the active edges
+    EdgesIndices edgeIndices = _findShortestPathsFromTerminalNodesToSoma(
+                weighteEdges, skeletonBranchingNodes, graphNodes, somaNodeIndex);
+
+    // Construct the GraphBranches from the GraphNodes
+    GraphBranches graphBranches = _constructGraphBranchesFromGraphNodes(graphNodes, somaNodeIndex);
+
+    // Construct the hierarchy of the graph
+    _constructGraphHierarchy(graphBranches);
+
+    // Construct the hierarchy of the skeleton
+    _constructSkeletonHierarchy(graphBranches);
+
+    // merge branches with a single child
+    _mergeBranchesWithSingleChild();
+
+    // Invalidate the inactive branches
+    _detectInactiveBranches(weighteEdges, edgeIndices);
+
+    // Adkjust the soma radius
+    _adjustSomaRadius();
+
+    // Update all the parents
+    _updateParents();
+
+    // Filter the synapses
+    _filterSpines();
 }
 
 void NeuronSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
@@ -1360,6 +1183,168 @@ void NeuronSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
     thinVolumeBlockByBlock(blockSize, numberOverlappingVoxels, numberZeroVoxels);
     constructGraph();
     segmentComponents();
+}
+
+void NeuronSkeletonizer::exportSomaMesh(const std::string& prefix,
+                                        const bool& formatOBJ = false,
+                                        const bool& formatPLY = false,
+                                        const bool& formatOFF = false,
+                                        const bool& formatSTL = false)
+{
+    const std::string somaMeshPrefix = prefix + "-soma";
+    _somaMesh->exportMesh(somaMeshPrefix, formatOBJ, formatPLY, formatOFF, formatSTL);
+}
+
+void NeuronSkeletonizer::collectSWCNodes(const SkeletonBranch* branch, SkeletonNodes& swcNodes,
+                                         int64_t& swcIndex, int64_t branchingNodeSWCIndex)
+{
+    // Get a reference to the nodes of the current branch
+    auto& currentBranchNodes = branch->nodes;
+
+    for (size_t i = 1; i < currentBranchNodes.size(); ++i)
+    {
+        currentBranchNodes[i]->swcIndex = swcIndex;
+
+        if (i == 1) { currentBranchNodes[i]->prevSampleSWCIndex = branchingNodeSWCIndex;}
+        else { currentBranchNodes[i]->prevSampleSWCIndex= swcIndex - 1; }
+
+        swcIndex++;
+        swcNodes.push_back(currentBranchNodes[i]);
+    }
+
+    const int64_t branchingIndex = swcIndex - 1;
+    for (size_t i = 0; i < branch->children.size(); ++i)
+    {
+        if (branch->children[i]->isValid())
+        {
+            collectSWCNodes(branch->children[i], swcNodes, swcIndex, branchingIndex);
+        }
+    }
+}
+
+SkeletonNodes NeuronSkeletonizer::constructSWCTable()
+{
+    // A table, or list that contains all the nodes in order
+    SkeletonNodes swcNodes;
+
+    // A global index that will be used to correctly index the nodes
+    int64_t swcIndex = 1;
+
+    // Append the somatic mode
+    _somaNode->swcIndex = swcIndex;
+    _somaNode->prevSampleSWCIndex = -1;
+
+    swcIndex++;
+    swcNodes.push_back(_somaNode);
+
+    // Get all the root branches
+    TIMER_SET;
+    LOOP_STARTS("Constructing SWC Table");
+    const size_t numberBranches = _branches.size();
+    for (size_t i = 0; i < numberBranches ; ++i)
+    {
+        LOOP_PROGRESS(i, numberBranches);
+
+        auto& branch = _branches[i];
+        if (branch->isRoot() && branch->isValid())
+        {
+            // The branching index is that of the soma
+            collectSWCNodes(branch, swcNodes, swcIndex, 1);
+        }
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    return swcNodes;
+}
+
+void NeuronSkeletonizer::exportSWCFile(const std::string& prefix)
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Construct the file path
+    std::string filePath = prefix + SWC_EXTENSION;
+    LOG_STATUS("Exporting Neuron to SWC file: [ %s ]", filePath.c_str());
+
+    auto swcNodes = constructSWCTable();
+
+    std::fstream stream;
+    stream.open(filePath, std::ios::out);
+
+    auto somaNode = swcNodes[0];
+    stream << somaNode->swcIndex << " "
+           << "1" << " "
+           << somaNode->point.x() << " "
+           << somaNode->point.y() << " "
+           << somaNode->point.z() << " "
+           << somaNode->radius << " "
+           << "-1" << "\n";
+
+    LOOP_STARTS("Writing SWC Table");
+    const size_t numberSWCNodes = swcNodes.size();
+    for (size_t i = 1; i < numberSWCNodes; ++i)
+    {
+        LOOP_PROGRESS(i, numberSWCNodes);
+
+        auto swcNode = swcNodes[i];
+        stream << swcNode->swcIndex << " "
+               << "3" << " "
+               << swcNode->point.x() << " "
+               << swcNode->point.y() << " "
+               << swcNode->point.z() << " "
+               << swcNode->radius << " "
+               << swcNode->prevSampleSWCIndex << "\n";
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Close the file
+    stream.close();
+}
+
+void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) const
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Construct the file path
+    std::string filePath = prefix + TXT_EXTENSION;
+    LOG_STATUS("Exporting Neuron Branches: [ %s ]", filePath.c_str());
+
+    std::fstream stream;
+    stream.open(filePath, std::ios::out);
+
+    LOOP_STARTS("Writing Branches");
+    size_t progress = 0;
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        // If the branch does not have any valid nodes, then don't write it
+        if (!_branches[i]->isValid() || _branches[i]->nodes.size() == 0) continue;
+        // if (!_branches[i]->root) continue;
+
+        LOOP_PROGRESS(progress, _branches.size());
+        ++progress;
+
+        // The @start marks a new branch in the file
+        stream << "start " << _branches[i]->index << "\n";
+
+        for (auto& node: _branches[i]->nodes)
+        {
+            stream << node->point.x() << " "
+                   << node->point.y() << " "
+                   << node->point.z() << " "
+                   << node->radius << "\n";
+        }
+
+        // The @end marks the terminal sample of a branch
+        stream << "end\n";
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Close the file
+    stream.close();
 }
 
 }
