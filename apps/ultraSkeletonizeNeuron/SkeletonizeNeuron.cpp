@@ -99,7 +99,7 @@ void run(int argc , const char** argv)
     skeletonizer->skeletonizeVolumeToCenterLines();
 
     // TODO: Project the centerlines
-    solidVolume->project(options->morphologyPrefix + "_skeleton", true, true, true);
+    // solidVolume->project(options->morphologyPrefix + "_skeleton", true, true, true);
 
     // Construct the neuron graph
     skeletonizer->constructGraph();

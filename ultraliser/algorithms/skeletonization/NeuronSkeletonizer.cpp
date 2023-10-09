@@ -206,12 +206,12 @@ void NeuronSkeletonizer::_segmentSomaVolume()
     if (z2 >= _volume->getDepth()) z2 = _volume->getDepth() - 1;
 
         // Apply the solid voxelization only to the selected region of interest to save time flood-filling large slices
-    // _volume->solidVoxelizationROI(Volume::SOLID_VOXELIZATION_AXIS::X, x1, x2, y1, y2, z1, z2);
+    _volume->solidVoxelizationROI(Volume::SOLID_VOXELIZATION_AXIS::X, x1, x2, y1, y2, z1, z2);
 
     // Apply the solid voxelization only to the selected region of interest to save time flood-filling large slices
-    _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::X);
+    // _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::X);
 
-    _volume->project("/data/microns-explorer-dataset/Meshes-Input-MICrONS/skeletonization-spines/morphologies/out", true, true, true);
+    _volume->project("/data/microns-explorer-dataset/Meshes-Input-MICrONS/skeletonization-spines/morphologies/out", true);
     // LOG_STATS(GET_TIME_SECONDS);
 
     // TODO: This could be parallelized

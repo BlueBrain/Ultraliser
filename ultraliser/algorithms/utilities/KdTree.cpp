@@ -22,10 +22,7 @@
  **************************************************************************************************/
 
 #include "KdTree.h"
-
-#include <algorithm>
-#include <cmath>
-#include <stdexcept>
+#include <common/Common.h>
 
 namespace
 {
@@ -37,16 +34,16 @@ namespace
 
     struct SearchResult
     {
-        std::size_t index = none;
+        size_t index = none;
         float distance = 0.0f;
     };
 
-    std::size_t nextAxis(std::size_t axis)
+    size_t nextAxis(size_t axis)
     {
         return (axis + 1) % 3;
     }
 
-    std::size_t buildTree(std::vector<Node> &nodes, std::size_t first, std::size_t last, std::size_t axis)
+    size_t buildTree(std::vector< Node > &nodes, size_t first, size_t last, size_t axis)
     {
         if (last <= first)
         {
@@ -71,7 +68,7 @@ namespace
         return pivot;
     }
 
-    std::size_t buildTree(std::vector<Node> &nodes)
+    size_t buildTree(std::vector<Node> &nodes)
     {
         auto first = 0;
         auto last = nodes.size();
@@ -83,8 +80,8 @@ namespace
         const std::vector<Node> &nodes,
         const Vector3f &point,
         const SearchResult &best,
-        std::size_t index,
-        std::size_t axis)
+        size_t index,
+        size_t axis)
     {
         auto result = best;
 
@@ -137,26 +134,27 @@ namespace Ultraliser
         return KdTree(root, std::move(nodes));
     }
 
-    KdTree::KdTree(std::size_t root, std::vector<Node> nodes)
+    KdTree::KdTree(const size_t &root, std::vector<Node> nodes)
         : _root(root),
           _nodes(std::move(nodes))
     {
+        /// EMPTY
     }
 
     KdTree::NearestPoint KdTree::findNearestPoint(const Vector3f &point) const
     {
         if (_nodes.empty() || _root == none)
         {
-            throw std::runtime_error("Invalid tree");
+            LOG_ERROR("Invalid Tree");
         }
 
         auto result = search(_nodes, point, {}, _root, 0);
 
         if (result.index == none)
         {
-            throw std::runtime_error("Unexpected search failure");
+            LOG_ERROR("Unexpected Search Failure");
         }
 
-        return {_nodes[result.index].point, result.distance};
+        return { _nodes[result.index].point, result.distance };
     }
 }

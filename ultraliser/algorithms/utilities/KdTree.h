@@ -4,6 +4,7 @@
  *
  * Author(s)
  *      Adrien Fleury <adrien.fleury@epfl.ch >
+ *      Marwan Abdellah <marwan.abdellah@epfl.ch >
  *
  * This file is part of Ultraliser < https://github.com/BlueBrain/Ultraliser >
  *
@@ -23,47 +24,95 @@
 
 #pragma once
 
-#include <cstddef>
-#include <vector>
-#include <limits>
-
+#include <common/Headers.hh>
 #include <math/Vector3f.h>
 
 namespace Ultraliser
 {
-    class KdTree
+
+/**
+ * @brief The KdTree class
+ */
+class KdTree
+{
+public:
+    static constexpr auto none = std::numeric_limits<std::size_t>::max();
+
+    /**
+     * @brief The Node class
+     */
+    struct Node
     {
     public:
-        static constexpr auto none = std::numeric_limits<std::size_t>::max();
 
-        struct Node
-        {
-            Vector3f point = {0, 0, 0};
-            std::size_t left = none;
-            std::size_t right = none;
+        Node() = default;
+        explicit Node(const Vector3f &value) : point(value) { }
 
-            Node() = default;
+    public:
 
-            explicit Node(const Vector3f &value)
-                : point(value)
-            {
-            }
-        };
+        /**
+         * @brief point
+         */
+        Vector3f point = {0, 0, 0};
 
-        struct NearestPoint
-        {
-            Vector3f position = {0, 0, 0};
-            float distance = 0.0f;
-        };
+        /**
+         * @brief left
+         */
+        size_t left = none;
 
-        static KdTree from(const std::vector<Vector3f> &points);
-
-        explicit KdTree(std::size_t root, std::vector<Node> nodes);
-
-        NearestPoint findNearestPoint(const Vector3f &point) const;
-
-    private:
-        std::size_t _root = none;
-        std::vector<Node> _nodes;
+        /**
+         * @brief right
+         */
+        size_t right = none;
     };
+
+    struct NearestPoint
+    {
+    public:
+
+        /**
+         * @brief position
+         */
+        Vector3f position = {0, 0, 0};
+
+        /**
+         * @brief distance
+         */
+        float distance = 0.f;
+    };
+
+    /**
+     * @brief from
+     * @param points
+     * @return
+     */
+    static KdTree from(const std::vector<Vector3f> &points);
+
+    /**
+     * @brief KdTree
+     * @param root
+     * @param nodes
+     */
+    explicit KdTree(const size_t& root, std::vector<Node> nodes);
+
+    /**
+     * @brief findNearestPoint
+     * @param point
+     * @return
+     */
+    NearestPoint findNearestPoint(const Vector3f &point) const;
+
+private:
+
+    /**
+     * @brief _root
+     */
+    size_t _root = none;
+
+    /**
+     * @brief _nodes
+     */
+    std::vector<Node> _nodes;
+};
+
 }

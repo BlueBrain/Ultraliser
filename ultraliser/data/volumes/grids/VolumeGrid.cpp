@@ -457,16 +457,16 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
     case AXIS::X:
     {
         // Set the dimensions of the ROI (slice) within the volume itself
-        widthROI = y2 - y1 + 1;
-        heightROI = z2 - z1 + 1;
+        widthROI = y2 - y1;
+        heightROI = z2 - z1;
     } break;
 
     // XZ axis
     case AXIS::Y:
     {
         // Set the dimensions of the ROI (slice) within the volume itself
-        widthROI = (x2 - x1 + 1);
-        heightROI = (z2 - z1 + 1);
+        widthROI = (x2 - x1);
+        heightROI = (z2 - z1);
     } break;
 
     // XY axis
@@ -474,15 +474,14 @@ void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
     {
         // Set the dimensions of the ROI (slice) within the volume itself
 
-        widthROI = (x2 - x1 + 1);
-        heightROI = (y2 - y1 + 1);
+        widthROI = (x2 - x1);
+        heightROI = (y2 - y1);
     } break;
     }
 
     // Set the dimensions of the slice that will be used for the flood-filling, add the padding
     sliceWidth = widthROI + (2 * padding);
     sliceHeight = heightROI + (2 * padding);
-    sliceSize = sliceWidth * sliceHeight;
 
     // Create an X-slice
     Image* slice = new Image(sliceWidth, sliceHeight);
