@@ -146,9 +146,9 @@ private:
     void _segmentSomaMesh();
 
     /**
-     * @brief _segmentSomaVolume
+     * @brief _identifySomaticNodes
      */
-    void _segmentSomaVolume();
+    void _identifySomaticNodes();
 
     /**
      * @brief _removeBranchesInsideSoma

@@ -65,8 +65,8 @@ void NeuronSkeletonizer::constructGraph()
     // Segmentthe soma mesh from the branches
     _segmentSomaMesh();
 
-    // Segment soma volume
-     _segmentSomaVolume();
+    // Identify the somatic nodes
+    _identifySomaticNodes();
 
      // Remove the triangular configurations, based on the edges
      _removeTriangleLoops();
@@ -165,84 +165,128 @@ void NeuronSkeletonizer::_segmentSomaMesh()
 }
 
 
-void NeuronSkeletonizer::_segmentSomaVolume()
+void NeuronSkeletonizer::_identifySomaticNodes()
 {
     TIMER_SET;
-    LOG_STATUS("Segmenting Soma Volume");
+    LOG_STATUS("Identifying Somatic Nodes");
 
+    // Clear the volume to start using the same grid for filling the soma
     _volume->clear();
+
+    // Rasterize the soma mesh
+    LOOP_STARTS("Surface Voxelization");
     _volume->surfaceVoxelization(_somaMesh, false, false);
+    LOG_STATS(GET_TIME_SECONDS);
 
-    Bounds3D_ui64 activeRegionBounds = _volume->getActiveRegionBounds();
+    // This is a list of 1D indices of all the voxels that are inside the soma
+    std::vector< size_t > insideSomaVoxels;
 
-    std::cout << "Active Bounds ** : "
-              << activeRegionBounds.x1 << ", " << activeRegionBounds.x2 << ","
-              << activeRegionBounds.y1 << ", " << activeRegionBounds.y2 << ", "
-              << activeRegionBounds.z1 << ", " << activeRegionBounds.z2 << "\n";
-
-    // Compute the soma mesh bounding box
-    Vector3f pMinSomaMesh, pMaxSomaMesh;
-    _somaMesh->computeBoundingBox(pMinSomaMesh, pMaxSomaMesh);
-
-    // Get the volume bounds of the soma
-    auto somaVolumeBounds = _volume->getROIBounds(pMinSomaMesh, pMaxSomaMesh);
-
-    std::cout << "Soma Bounds * : "
-              << somaVolumeBounds.x1 << "," << somaVolumeBounds.x2 << ","
-              << somaVolumeBounds.y1 << ", " << somaVolumeBounds.y2 << ", "
-              << somaVolumeBounds.z1 << ", " << somaVolumeBounds.z2 << "\n";
-
-    // Set new bounds for the soma to ensure capturing everhting
-    auto x1 = static_cast< size_t >(somaVolumeBounds.x1);
-    auto x2 = static_cast< size_t >(somaVolumeBounds.x2);
-    if (x2 >= _volume->getWidth()) x2 = _volume->getWidth() - 1;
-
-    auto y1 = static_cast< size_t >(somaVolumeBounds.y1);
-    auto y2 = static_cast< size_t >(somaVolumeBounds.y2);
-    if (y2 >= _volume->getHeight()) y2 = _volume->getHeight() - 1;
-
-    auto z1 = static_cast< size_t >(somaVolumeBounds.z1);
-    auto z2 = static_cast< size_t >(somaVolumeBounds.z2);
-    if (z2 >= _volume->getDepth()) z2 = _volume->getDepth() - 1;
-
-        // Apply the solid voxelization only to the selected region of interest to save time flood-filling large slices
-    _volume->solidVoxelizationROI(Volume::SOLID_VOXELIZATION_AXIS::X, x1, x2, y1, y2, z1, z2);
-
-    // Apply the solid voxelization only to the selected region of interest to save time flood-filling large slices
-    // _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::X);
-
-    _volume->project("/data/microns-explorer-dataset/Meshes-Input-MICrONS/skeletonization-spines/morphologies/out", true);
-    // LOG_STATS(GET_TIME_SECONDS);
-
-    // TODO: This could be parallelized
-    std::vector< size_t > somaVoxels;
-    for (size_t i = 0; i < _volume->getNumberVoxels(); ++i)
+    if (_useAcceleration)
     {
-        if (_volume->isFilled(i))
+#ifdef ULTRALISER_DEBUG
+        // Compute the active region bounds for validation
+        Bounds3D_ui64 activeRegionBounds = _volume->getActiveRegionBounds();
+        std::cout << "Active Bounds : "
+                  << activeRegionBounds.x1 << ", " << activeRegionBounds.x2 << ","
+                  << activeRegionBounds.y1 << ", " << activeRegionBounds.y2 << ", "
+                  << activeRegionBounds.z1 << ", " << activeRegionBounds.z2 << "\n";
+#endif
+
+        // Compute the soma mesh bounding box (in coordinate space)
+        Vector3f pMinSomaMesh, pMaxSomaMesh;
+        _somaMesh->computeBoundingBox(pMinSomaMesh, pMaxSomaMesh);
+
+        // Compute the soma volume bounding box ()
+        auto somaVolumeBounds = _volume->getROIBounds(pMinSomaMesh, pMaxSomaMesh);
+
+#ifdef ULTRALISER_DEBUG
+        std::cout << "Soma Bounds * : "
+                  << somaVolumeBounds.x1 << "," << somaVolumeBounds.x2 << ","
+                  << somaVolumeBounds.y1 << ", " << somaVolumeBounds.y2 << ", "
+                  << somaVolumeBounds.z1 << ", " << somaVolumeBounds.z2 << "\n";
+#endif
+
+        // Verify the bounds
+        auto x1 = static_cast< size_t >(somaVolumeBounds.x1);
+        auto x2 = static_cast< size_t >(somaVolumeBounds.x2);
+        if (x2 >= _volume->getWidth()) x2 = _volume->getWidth() - 1;
+        auto y1 = static_cast< size_t >(somaVolumeBounds.y1);
+        auto y2 = static_cast< size_t >(somaVolumeBounds.y2);
+        if (y2 >= _volume->getHeight()) y2 = _volume->getHeight() - 1;
+        auto z1 = static_cast< size_t >(somaVolumeBounds.z1);
+        auto z2 = static_cast< size_t >(somaVolumeBounds.z2);
+        if (z2 >= _volume->getDepth()) z2 = _volume->getDepth() - 1;
+
+        // Apply the solid voxelization only to the selected ROI to avoid flood-filling large slices
+        TIMER_RESET;
+        LOOP_STARTS("Solid Voxelization ROI *");
+        _volume->solidVoxelizationROI(Volume::SOLID_VOXELIZATION_AXIS::X, x1, x2, y1, y2, z1, z2,
+                                      false);
+        LOG_STATS(GET_TIME_SECONDS);
+
+        // Compute the voxels that are inside the soma
+        TIMER_RESET;
+        LOOP_STARTS("Finding Somatic Voxels");
+        for (size_t i = x1; i <= x2; ++i)
         {
-            somaVoxels.push_back(i);
+            for (size_t j = y1; j <= y2; ++j)
+            {
+                for (size_t k = z1; k <= z2; ++k)
+                {
+                    const size_t& index = _volume->mapTo1DIndexWithoutBoundCheck(i, j, k);
+                    if (_volume->isFilled(index))
+                    {
+                        insideSomaVoxels.push_back(index);
+                    }
+                }
+            }
         }
+        LOG_STATS(GET_TIME_SECONDS);
+
+    }
+    else
+    {
+        // Apply solid voxelization on the entire slice
+        TIMER_RESET;
+        LOOP_STARTS("Solid Voxelization");
+        _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::X);
+        LOG_STATS(GET_TIME_SECONDS);
+
+        // Compute the voxels that are inside the soma
+        TIMER_RESET;
+        LOOP_STARTS("Finding Somatic Voxels");
+        for (size_t i = 0; i < _volume->getNumberVoxels(); ++i)
+        {
+            if (_volume->isFilled(i))
+            {
+                insideSomaVoxels.push_back(i);
+            }
+        }
+        LOG_STATS(GET_TIME_SECONDS);
     }
 
+    // _volume->project("/data/microns-explorer-dataset/Meshes-Input-MICrONS/skeletonization-spines/morphologies/out", true);
+
     // Find out the nodes that are inside the soma
+    TIMER_RESET;
+    LOOP_STARTS("Mapping Voxels to Nodes");
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
         auto& node = _nodes[i];
         size_t key = _volume->mapTo1DIndexWithoutBoundCheck(
                     node->voxel.x(), node->voxel.y(), node->voxel.z());
-        if (std::find(somaVoxels.begin(), somaVoxels.end(), key) != somaVoxels.end())
+        if (std::find(insideSomaVoxels.begin(), insideSomaVoxels.end(), key) != insideSomaVoxels.end())
         {
             // The soma is inside the soma
             node->insideSoma = true;
         }
     }
+    LOG_STATS(GET_TIME_SECONDS);
 
     // The volume is safe to be deallocated
     _volume->~Volume();
     _volume = nullptr;
-
-    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void NeuronSkeletonizer::_removeBranchesInsideSoma()

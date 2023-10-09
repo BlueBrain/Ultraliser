@@ -1396,8 +1396,11 @@ void Volume::solidVoxelizationROI(const SOLID_VOXELIZATION_AXIS& axis,
     if (verbose) LOG_STATUS("Flood-filling Volume");
     _floodFill2DROI(axis, x1, x2, y1, y2, z1, z2, verbose);
 
-    if (verbose) LOG_STATUS_IMPORTANT("Solid Voxelization Stats.");
-    LOG_STATS(_solidVoxelizationTime);
+    if (verbose)
+    {
+        LOG_STATUS_IMPORTANT("Solid Voxelization Stats.");
+        LOG_STATS(_solidVoxelizationTime);
+    }
 }
 
 void Volume::_floodFill2D(const SOLID_VOXELIZATION_AXIS &axis, const bool &verbose)
