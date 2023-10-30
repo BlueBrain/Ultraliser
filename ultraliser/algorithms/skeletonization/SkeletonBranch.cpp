@@ -26,6 +26,7 @@
 #define TERMINAL_BIT_INDEX      2
 #define ROOT_BIT_INDEX          3
 #define DUPLICATE_BIT_INDEX     4
+#define SPINE_BIT_INDEX         5
 
 
 #include "SkeletonBranch.h"
@@ -170,6 +171,16 @@ float SkeletonBranch::computeLength() const
     }
 
     return length;
+}
+
+void SkeletonBranch::setSpine()
+{
+    _flags->setBit(SPINE_BIT_INDEX);
+}
+
+bool SkeletonBranch::isSpine()
+{
+    return _flags->bit(SPINE_BIT_INDEX);
 }
 
 }

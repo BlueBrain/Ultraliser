@@ -895,7 +895,6 @@ void NeuronSkeletonizer::_adjustSomaRadius()
         }
     }
 
-
     // Normalize and update the soma node
     somaRadius /= numberValidRoots;
     _somaNode->radius = somaRadius;
@@ -947,12 +946,16 @@ void NeuronSkeletonizer::_filterSpines()
 {
     for (size_t i = 0; i < _branches.size(); ++i)
     {
-        if (_branches[i]->isTerminal())
+        if (_branches[i]->isTerminal() && _branches[i]->isValid())
         {
             auto length = _branches[i]->computeLength();
             if (length < 6.0)
             {
+                // Set the branch to invalid
                 _branches[i]->setInvalid();
+
+                // Set the branch to be a spine
+                _branches[i]->setSpine();
             }
         }
     }
@@ -1143,8 +1146,7 @@ void NeuronSkeletonizer::segmentComponents()
     }
     else
     {
-        LOG_WARNING("The skeleton graph has %d component", components.size());
-        LOG_ERROR("Unimplemented path! We will implement component connection soon.");
+        LOG_WARNING("The skeleton graph has [ %d ] components!", components.size());
     }
 
     // Find the shortest paths of all the terminals and get a list of the indices of the active edges

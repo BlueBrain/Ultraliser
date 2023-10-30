@@ -182,6 +182,10 @@ public:
      */
     float computeLength() const;
 
+    void setSpine();
+
+    bool isSpine();
+
 public:
 
     /**

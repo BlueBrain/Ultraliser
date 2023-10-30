@@ -282,7 +282,6 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
     {
         sliceWidth = getHeight() + 2 * padding;
         sliceHeight = getDepth() + 2 * padding;
-        sliceSize = sliceWidth * sliceHeight;
 
         volumeWidth = getHeight();
         volumeHeight = getDepth();
@@ -294,7 +293,6 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
     {
         sliceWidth = getWidth() + 2 * padding;
         sliceHeight = getDepth() + 2 * padding;
-        sliceSize = sliceWidth * sliceHeight;
 
         volumeWidth = getWidth();
         volumeHeight = getDepth();
@@ -307,7 +305,6 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
         // Dimensions
         sliceWidth = getWidth() + 2 * padding;
         sliceHeight = getHeight() + 2 * padding;
-        sliceSize = sliceWidth * sliceHeight;
 
         volumeWidth = getWidth();
         volumeHeight = getHeight();
