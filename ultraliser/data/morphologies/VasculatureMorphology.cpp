@@ -148,7 +148,7 @@ VasculatureMorphology* readVascularMorphology(std::string& morphologyPath)
     {
 #ifdef ULTRALISER_USE_H5
         // Read the file
-        auto reader = std::make_unique<VasculatureH5Reader>(morphologyPath);
+        auto reader = std::make_unique< VasculatureH5Reader >(morphologyPath);
 
         // Get a pointer to the morphology to start using it
         return reader->getMorphology();
@@ -161,14 +161,14 @@ VasculatureMorphology* readVascularMorphology(std::string& morphologyPath)
              String::subStringFound(morphologyPath, std::string(".VMV")))
     {
         // Read the file
-        auto reader = std::make_unique<VasculatureVMVReader>(morphologyPath);
+        auto reader = std::make_unique< VasculatureVMVReader >(morphologyPath);
 
         // Get a pointer to the morphology to start using it
         return reader->getMorphology();
     }
     else
     {
-        LOG_ERROR("Unrecognized morphology file format [ %s ]", morphologyPath.c_str());
+        LOG_ERROR("Unrecognized vascular morphology file format [ %s ]", morphologyPath.c_str());
     }
 
     // To avoid any warning issues.

@@ -113,6 +113,7 @@ void NeuronSkeletonizer::_segmentSomaMesh()
     // Collecting a subset of the samples, not all of them are needed
     std::map <size_t, float> interSomaticNodes;
 
+    size_t interSomaticNodesCount = 0;
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
         auto& node = _nodes[i];
@@ -123,6 +124,7 @@ void NeuronSkeletonizer::_segmentSomaMesh()
         if (node->radius >= 2.0)
         {
             interSomaticNodes.insert({node->index, node->radius});
+            interSomaticNodesCount++;
         }
     }
 
@@ -133,7 +135,7 @@ void NeuronSkeletonizer::_segmentSomaMesh()
     std::reverse(pairsVector.begin(), pairsVector.end());
 
     /// TODO: Fix me
-    size_t numberSelectedNodes = 50;
+    size_t numberSelectedNodes = interSomaticNodesCount;
 
     TIMER_SET;
     LOOP_STARTS("Detecting Soma Nodes");
@@ -599,24 +601,26 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
 
     // Search for all the terminal nodes
     size_t numberTerminalNodes = terminalNodes.size();
-    PROGRESS_SET;
     LOOP_STARTS("Detecting Paths");
+    PROGRESS_SET;
     OMP_PARALLEL_FOR
-    for (size_t i = 0; i < numberTerminalNodes; ++i)
+    for (size_t iNode = 0; iNode < numberTerminalNodes; ++iNode)
     {
         // Get a reference to the EdgesIndices list
-        EdgesIndices& perTerminalEdgesIndices = edgesIndicesList[i];
+        EdgesIndices& perTerminalEdgesIndices = edgesIndicesList[iNode];
 
-#ifdef REVERSE
-        // Find the path between the terminal node and the soma node
-        auto terminalToSomaPath = pathFinder->findPath(terminalNodes[i]->graphIndex, somaNodeIndex);
+//#ifdef REVERSE
+//        // Find the path between the terminal node and the soma node
+//        auto terminalToSomaPath = pathFinder->findPath(terminalNodes[iNode]->graphIndex,
+//                                                       somaNodeIndex);
 
-        // Reverse the terminal to soma path to have the correct order
-        std::reverse(terminalToSomaPath.begin(), terminalToSomaPath.end());
-#else
+//        // Reverse the terminal to soma path to have the correct order
+//        std::reverse(terminalToSomaPath.begin(), terminalToSomaPath.end());
+//#else
         // Find the path between the terminal node and the soma node
-        auto terminalToSomaPath = pathFinder->findPath(somaNodeIndex, terminalNodes[i]->graphIndex);
-#endif
+        auto terminalToSomaPath = pathFinder->findPath(somaNodeIndex,
+                                                       terminalNodes[iNode]->graphIndex);
+//#endif
         // Find the edges
         for (size_t j = 0; j < terminalToSomaPath.size() - 1; ++j)
         {
@@ -638,6 +642,10 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
+
+
+    std::cout << "Done \n";
+    exit(0);
 
     // Clear the terminal nodes list
     terminalNodes.clear();
@@ -1114,7 +1122,6 @@ void NeuronSkeletonizer::_connectBranches()
     // Roots, terminals and others
     confirmTerminalsBranches(_branches);
 }
-
 
 void NeuronSkeletonizer::segmentComponents()
 {

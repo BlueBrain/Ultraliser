@@ -72,6 +72,12 @@ void run(int argc , const char** argv)
     // Load the input mesh
     auto inputMesh = loadInputMesh(options);
 
+    // Scale the mesh
+    if (options->xScaleFactor > 0.0 || options->yScaleFactor > 0.0 || options->zScaleFactor > 0.0 )
+    {
+        inputMesh->scale(options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
+    }
+
     // Creates the volume grid to start processing the mesh
     /// NOTE: The input mesh is release within this operation
     auto volume = reconstructVolumeFromMesh(inputMesh, options);

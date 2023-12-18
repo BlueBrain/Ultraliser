@@ -76,7 +76,13 @@ void run(int argc , const char** argv)
 
     // Load the input mesh
     auto inputMesh = loadInputMesh(options);
-    // inputMesh->smoothSurface(10);
+
+    // Scale the mesh
+    if (options->xScaleFactor > 0.0 || options->yScaleFactor > 0.0 || options->zScaleFactor > 0.0 )
+    {
+        inputMesh->scale(options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
+    }
+
 
     auto prefix = options->projectionPrefix;
 
@@ -104,13 +110,11 @@ void run(int argc , const char** argv)
     // Construct the neuron graph
     skeletonizer->constructGraph();
 
-    // skeletonizer->exportIndividualBranches(options->morphologyPrefix + "-1");
-
+    skeletonizer->exportIndividualBranches(options->morphologyPrefix + "-branches");
 
     skeletonizer->segmentComponents();
 
     // skeletonizer->exportIndividualBranches(options->morphologyPrefix + "-2");
-
 
     skeletonizer->exportSWCFile(options->morphologyPrefix);
 

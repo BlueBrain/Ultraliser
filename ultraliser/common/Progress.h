@@ -42,8 +42,8 @@ static inline void printProgressBar(
     float starts = std::floor((percentage * barLength) / 100.f);
     float spaces = std::floor(barLength - starts);
     std::string bar = "* Progress │";
-    for(int i = 0; i < int(starts); i++) bar += "▒";
-    for(int i = 0; i < int(spaces); i++) bar += " "; bar+= "│";
+    for(int _i_ = 0; _i_ < int(starts); _i_++) bar += "▒";
+    for(int _i_ = 0; _i_ < int(spaces); _i_++) bar += " "; bar+= "│";
     printf("\r\t%s (%2.2f %%)", bar.c_str(), percentage);
     fflush(stdout);
 }
