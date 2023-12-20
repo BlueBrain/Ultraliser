@@ -69,7 +69,7 @@ public:
      * @param destinationNodeIndex
      * @return
      */
-    PathIndices findPath(const size_t& sourceNodeIndex, const size_t& destinationNodeIndex);
+    PathIndices findPath(const size_t& sourceNodeIndex, const size_t& destinationNodeIndex) const;
 
     /**
      * @brief printGraphAdjacencyMatrix
@@ -84,7 +84,7 @@ private:
      * @param sourceNodeIndex
      * @return
      */
-    PathsIndices _findShortestPathesWithDijkstra(int64_t sourceNodeIndex);
+    PathsIndices _findShortestPathesWithDijkstra(int64_t sourceNodeIndex) const;
 
     /**
      * @brief _constructPath
@@ -92,7 +92,7 @@ private:
      * @param i
      * @param path
      */
-    void _constructPath(int64_t* parent, int64_t i, PathIndices& path);
+    void _constructPath(int64_t* parent, int64_t i, PathIndices& path) const;
 
     /**
      * @brief _constructGraphAdjacencyMatrix
@@ -102,7 +102,7 @@ private:
      * @param numberNodes
      * The total number of nodes in the graph.
      */
-    void _constructGraphAdjacencyMatrix(const SkeletonWeightedEdges& edges);
+    void _constructGraphAdjacencyMatrix(const SkeletonWeightedEdges& edges) const;
 
     /**
      * @brief _computeMinimumDistanceIndex
@@ -110,7 +110,7 @@ private:
      * @param visited
      * @return
      */
-    size_t _computeMinimumDistanceIndex(int64_t* distances, const bool* visited);
+    size_t _computeMinimumDistanceIndex(int64_t* distances, const bool* visited) const;
 
     /**
      * @brief _allocateGraph

@@ -596,31 +596,30 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
     edgesIndicesList.resize(skeletonBranchingNodes.size());
 
     // Generate the ShortestPathFinder only once for all the path retrival functions
-    std::unique_ptr< ShortestPathFinder > pathFinder =
-            std::make_unique< ShortestPathFinder >(edges, skeletonBranchingNodes.size());
+    const ShortestPathFinder pathFinder(edges, skeletonBranchingNodes.size());
 
     // Search for all the terminal nodes
     size_t numberTerminalNodes = terminalNodes.size();
     LOOP_STARTS("Detecting Paths");
     PROGRESS_SET;
-    OMP_PARALLEL_FOR
+    // OMP_PARALLEL_FOR
     for (size_t iNode = 0; iNode < numberTerminalNodes; ++iNode)
     {
         // Get a reference to the EdgesIndices list
         EdgesIndices& perTerminalEdgesIndices = edgesIndicesList[iNode];
 
-//#ifdef REVERSE
-//        // Find the path between the terminal node and the soma node
-//        auto terminalToSomaPath = pathFinder->findPath(terminalNodes[iNode]->graphIndex,
-//                                                       somaNodeIndex);
-
-//        // Reverse the terminal to soma path to have the correct order
-//        std::reverse(terminalToSomaPath.begin(), terminalToSomaPath.end());
-//#else
+#ifdef REVERSE
         // Find the path between the terminal node and the soma node
-        auto terminalToSomaPath = pathFinder->findPath(somaNodeIndex,
+        auto terminalToSomaPath = pathFinder->findPath(terminalNodes[iNode]->graphIndex,
+                                                       somaNodeIndex);
+
+        // Reverse the terminal to soma path to have the correct order
+        std::reverse(terminalToSomaPath.begin(), terminalToSomaPath.end());
+#else
+        // Find the path between the terminal node and the soma node
+        auto terminalToSomaPath = pathFinder.findPath(somaNodeIndex,
                                                        terminalNodes[iNode]->graphIndex);
-//#endif
+#endif
         // Find the edges
         for (size_t j = 0; j < terminalToSomaPath.size() - 1; ++j)
         {
@@ -642,10 +641,6 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
-
-
-    std::cout << "Done \n";
-    exit(0);
 
     // Clear the terminal nodes list
     terminalNodes.clear();

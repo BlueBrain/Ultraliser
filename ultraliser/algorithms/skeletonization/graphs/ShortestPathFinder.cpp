@@ -38,7 +38,7 @@ ShortestPathFinder::ShortestPathFinder(const SkeletonWeightedEdges& edges,
 }
 
 PathIndices ShortestPathFinder::findPath(const size_t& sourceNodeIndex,
-                                         const size_t& destinationNodeIndex)
+                                         const size_t& destinationNodeIndex) const
 {
     // Find all the paths from the source node to all the other nodes in the graph
     PathsIndices paths = _findShortestPathesWithDijkstra(sourceNodeIndex);
@@ -47,7 +47,7 @@ PathIndices ShortestPathFinder::findPath(const size_t& sourceNodeIndex,
     return paths[destinationNodeIndex];
 }
 
-PathsIndices ShortestPathFinder::_findShortestPathesWithDijkstra(int64_t sourceNodeIndex)
+PathsIndices ShortestPathFinder::_findShortestPathesWithDijkstra(int64_t sourceNodeIndex) const
 {
     int64_t* distances = new int64_t[_numberNodes];
     bool* visited = new bool[_numberNodes];
@@ -98,7 +98,7 @@ PathsIndices ShortestPathFinder::_findShortestPathesWithDijkstra(int64_t sourceN
     return paths;
 }
 
-void ShortestPathFinder::_constructPath(int64_t* parent, int64_t i, PathIndices& path)
+void ShortestPathFinder::_constructPath(int64_t* parent, int64_t i, PathIndices& path) const
 {
     // We have reached the top, return
     if (parent[i] == -1) { return; }
@@ -126,7 +126,7 @@ void ShortestPathFinder::printGraphAdjacencyMatrix() const
     }
 }
 
-void ShortestPathFinder::_constructGraphAdjacencyMatrix(const SkeletonWeightedEdges &edges)
+void ShortestPathFinder::_constructGraphAdjacencyMatrix(const SkeletonWeightedEdges &edges) const
 {
     // Construct the graph adjacency matrix from the edges
     for (size_t i = 0; i < edges.size(); ++i)
@@ -136,7 +136,7 @@ void ShortestPathFinder::_constructGraphAdjacencyMatrix(const SkeletonWeightedEd
     }
 }
 
-size_t ShortestPathFinder::_computeMinimumDistanceIndex(int64_t* distances, const bool* visited)
+size_t ShortestPathFinder::_computeMinimumDistanceIndex(int64_t* distances, const bool* visited) const
 {
     int64_t minDistance = INT64_MAX;
     size_t minDistanceIndex = SIZE_MAX;
