@@ -55,17 +55,22 @@ class GraphNode
 {
 public:
 
-    GraphNode(int64_t index, size_t skeletonIndex = 0)
+    GraphNode(const int64_t index, const Vector3f& position,
+              const size_t skeletonIndex = 0, const size_t numberConnectedNodes = 0)
     {
         this->index = index;
+        this->position = position;
         this->skeletonIndex = skeletonIndex;
+        this->numberConnectedNodes = numberConnectedNodes;
     }
 
     int64_t index = -1;
     size_t skeletonIndex;
+    size_t numberConnectedNodes = 0;
+    Vector3f position;
 
-    std::vector<GraphNode*> parents;
-    std::vector<GraphNode*> children;
+    std::vector< GraphNode* > parents;
+    std::vector< GraphNode* > children;
 
     bool isNodeInChildren(int64_t childNodeIndex)
     {

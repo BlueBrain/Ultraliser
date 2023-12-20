@@ -53,7 +53,7 @@ Graph::~Graph()
 
 void Graph::_addEdges(SkeletonWeightedEdges& edges)
 {
-    for (size_t i =0; i < edges.size(); i++)
+    for (size_t i = 0; i < edges.size(); ++i)
     {
         auto n1 = edges[i]->node1;
         auto n2 = edges[i]->node2;
@@ -77,9 +77,7 @@ void Graph::_makeDSF(size_t nodeIndex, bool* visited, GraphComponent& component)
     // Add the node index to the component
     component.push_back(nodeIndex);
 
-    // Recur for all the vertices
-    // adjacent to this vertex
-
+    // Recur for all the vertices adjacent to this vertex
     // Apply the operation to all the nodes that are connected, i.e. adjacent to the current node
     std::list< size_t >::iterator i;
     for (i = _adjacencyLists[nodeIndex].begin(); i != _adjacencyLists[nodeIndex].end(); ++i)

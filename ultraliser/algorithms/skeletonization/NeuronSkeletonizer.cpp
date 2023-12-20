@@ -44,40 +44,45 @@ void NeuronSkeletonizer::skeletonizeVolumeToCenterLines()
 
 void NeuronSkeletonizer::constructGraph()
 {
-    // Extract the graph nodes from the center-line voxels
+    /// Extract the nodes of the skeleton from the center-line "thinned" voxels and return a
+    /// mapper that maps the indices of the voxels in the volume and the nodes in the skeleton
     auto indicesMapper = _extractNodesFromVoxels();
 
-    // Assign accurate radii to the nodes of the graph, i.e. inflate the nodes
+    /// Inflate the nodes, i.e. adjust their radii
     if (_useAcceleration)
         _inflateNodesUsingAcceleration();
     else
         _inflateNodes();
 
-    // Connect the nodes to construct the edges of the graph
+    /// Connect the nodes of the skeleton to construct its edges. This operation will not connect
+    /// any gaps, it will just connect the nodes extracted from the voxels.
     _connectNodes(indicesMapper);
 
-    // Add a virtual soma node, until the soma is reconstructed later
+    /// Add a virtual soma node, until the soma is reconstructed later
     _addSomaNode();
 
-    // Re-index the samples, for simplicity
+    /// Re-index the nodes, for simplicity, i.e. the index of the node represents its location in
+    /// the _nodes list
     OMP_PARALLEL_FOR for (size_t i = 1; i <= _nodes.size(); ++i) { _nodes[i - 1]->index = i; }
 
-    // Segmentthe soma mesh from the branches
+    /// Segmentthe soma mesh from the branches
     _segmentSomaMesh();
 
-    // Identify the somatic nodes
+    /// Identify the somatic nodes in the skeleton
     _identifySomaticNodes();
 
-     // Remove the triangular configurations, based on the edges
+     /// Remove the triangular configurations, based on the edges
      _removeTriangleLoops();
 
-     // Reconstruct the sections, or the branches from the nodes
+     /// Reconstruct the sections "or branches" from the nodes using the edges data
      _buildBranchesFromNodes(_nodes);
 
-    // Validate the branches, and remove the branches inside the soma
+    /// Validate the branches, and remove the branches inside the soma, i.e. consider them to
+    /// be invalid
     _removeBranchesInsideSoma();
 
-    // The roots have been identified
+    /// Connect all the skeleton branches since the roots have been identified after the
+    /// soma segmentation
     _connectBranches();
 }
 
@@ -119,7 +124,7 @@ void NeuronSkeletonizer::_segmentSomaMesh()
         auto& node = _nodes[i];
 
         /// TODO: This is a magic value, it works now, but we need to find an optimum value based
-        // on some statistical analysis.
+        /// on some statistical analysis.
 
         if (node->radius >= 2.0)
         {
@@ -399,8 +404,6 @@ void NeuronSkeletonizer::_filterLoopsBetweenTwoBranchingPoints()
     LOG_STATUS("Filtering Loops Between Two Branches");
     for (size_t i = 0; i < _branches.size(); ++i)
     {
-        LOOP_PROGRESS(i, _branches.size());
-
         // Reference to the iBranch
         auto& iBranch = _branches[i];
 
@@ -439,6 +442,7 @@ void NeuronSkeletonizer::_filterLoopsBetweenTwoBranchingPoints()
                 }
             }
         }
+        LOOP_PROGRESS(i, _branches.size());
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
@@ -463,29 +467,34 @@ void NeuronSkeletonizer::_filterLoopsAtSingleBranchingPoint()
 SkeletonWeightedEdges NeuronSkeletonizer::_reduceSkeletonToWeightedEdges()
 {
     TIMER_SET;
-    LOG_STATUS("Created Weighted Graph from Skeleton");
+    LOG_STATUS("Created Simplified Weighted Graph from Skeleton");
 
-    // A list that should have all the branches of the valid branches of the neuron represented
-    // by weighted edges
+    /// The "thinned" skeleton has a list of edges, but indeed we would like to simplify it to
+    /// avoid spending hours traversing it. Therefore, we created a "weighted skeleton", where
+    /// each edge in this skeleton is a connection between two branching/terminal nodes and the
+    /// weight represents the number of samples "or samples" between the two branching/terminal
+    /// nodes. The "weighted edges" must be constructed only for valid branches.
     SkeletonWeightedEdges edges;
     const auto branchesCount = _branches.size();
     for (size_t i = 0; i < _branches.size(); ++i)
     {
+        // Reference to the current branch
         auto& branch = _branches[i];
-
-        LOOP_PROGRESS(i, branchesCount);
 
         // The branch must be valid to be able to have a valid graph
         if (branch->isValid())
         {
-            // Reset the nodes of the branch
+            // Reset the traversal state of the "terminal" nodes of the branch
             branch->nodes.front()->visited = false;
             branch->nodes.back()->visited = false;
 
-            // Create a weighted edge and append it to the list
+            // Create a weighted edge and append it to the list, where the weight is indicated by
+            // the number of nodes "or samples" in the branch
             SkeletonWeightedEdge* edge = new SkeletonWeightedEdge(branch);
             edges.push_back(edge);
         }
+
+        LOOP_PROGRESS(i, branchesCount);
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
@@ -569,7 +578,10 @@ GraphNodes NeuronSkeletonizer::_constructGraphNodesFromSkeletonNodes(
     for (size_t i = 0; i < skeletonNodes.size(); ++i)
     {
         const auto& skeletonNode = skeletonNodes[i];
-        graphNodes[i] = (new GraphNode(skeletonNode->graphIndex, skeletonNode->index));
+        graphNodes[i] = (new GraphNode(skeletonNode->graphIndex,
+                                       skeletonNode->point,
+                                       skeletonNode->index,
+                                       skeletonNode->edgeNodes.size()));
     }
 
     // Return the graph nodes list
@@ -1120,19 +1132,20 @@ void NeuronSkeletonizer::_connectBranches()
 
 void NeuronSkeletonizer::segmentComponents()
 {
-    // Initially, and before constructing the graph, remove the loops between two branching points
+    /// Initially, and before constructing the graph, remove the loops between two branching points
     _filterLoopsBetweenTwoBranchingPoints();
 
-    // Remove the loops at a single branching point, i.e. starting and ending at the same node.
+    /// Remove the loops at a single branching point, i.e. starting and ending at the same node.
     _filterLoopsAtSingleBranchingPoint();
 
-    // Reduce the skeleton into a list of SkeletonWeightedEdge's
+    /// Reduce the skeleton into a list of SkeletonWeightedEdge's
     SkeletonWeightedEdges weighteEdges = _reduceSkeletonToWeightedEdges();
 
-    // Get a list of all the branching nodes within the skeleton from the SkeletonWeightedEdges list
+    /// Get a list of all the branching/terminal nodes within the skeleton from the
+    /// SkeletonWeightedEdges list
     SkeletonNodes skeletonBranchingNodes = _selectBranchingNodesFromWeightedEdges(weighteEdges);
 
-    // Get the soma node index within the weighted graph
+    /// Get the soma node index within the weighted graph
     int64_t somaNodeIndex = _getSomaIndexFromGraphNodes(skeletonBranchingNodes);
 
     // Construct the graph nodes list

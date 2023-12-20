@@ -45,6 +45,14 @@ public:
         this->edgeWeight = branch->nodes.size();
     }
 
+    SkeletonWeightedEdge(SkeletonNode* node1, SkeletonNode* node2)
+    {
+        this->branch = nullptr;
+        this->node1 = node1;
+        this->node2 = node2;
+        this->edgeWeight = 1;
+    }
+
     bool hasTerminalGraphNodes(const int64_t node1Index, const int64_t node2Index)
     {
         if (node1->graphIndex == node1Index && node2->graphIndex == node2Index)
