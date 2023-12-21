@@ -42,6 +42,107 @@ void NeuronSkeletonizer::skeletonizeVolumeToCenterLines()
         _applyVolumeThinning();
 }
 
+void NeuronSkeletonizer::_verifyGraphConnectivity(SkeletonEdges& edges)
+{
+    // Since we have all the nodes and the edges, we can verify if the graph is conected or not
+    LOG_INFO("Verifying connectivity");
+
+    auto graph = new Graph(edges, _nodes);
+
+    auto components = graph->getComponents();
+
+    if (components.size() == 1)
+    {
+        LOG_SUCCESS("The skeleton graph has 1 component! OK.");
+    }
+    else
+    {
+        LOG_WARNING("The skeleton graph has [ %d ] components!", components.size());
+
+
+        // Each component in the GraphComponents is simply a list of nodes
+        // Find the largest partition
+        size_t primaryPartitionIndex = 0;
+        size_t numberNodesPrimaryPartition = 0;
+        for (size_t i = 0; i < components.size(); ++i)
+        {
+            if (components[i].size() > numberNodesPrimaryPartition)
+            {
+                primaryPartitionIndex = i;
+                numberNodesPrimaryPartition = components[i].size();
+            }
+        }
+
+        // Get a reference to the primary partition
+        GraphComponent primaryPartition = components[primaryPartitionIndex];
+
+        // Construct a list of the secondary partitions
+        GraphComponents secondaryPartitions;
+        for (size_t i = 0; i < components.size(); ++i)
+        {
+            if (i == primaryPartitionIndex) continue;
+
+            secondaryPartitions.push_back(components[i]);
+        }
+
+
+        // Find the connections between each secondary partition and the parimary partition
+        for (size_t i = 0; i < secondaryPartitions.size(); ++i)
+        {
+            auto secondaryPartition = secondaryPartitions[i];
+
+            // Find the indices of the connecting nodes
+            size_t closestPrimaryNodeIndex;
+            size_t closesetSecondaryNodeIndex;
+            float shortestDistance = 1e32;
+
+            for (size_t j = 0; j < secondaryPartition.size(); ++j)
+            {
+                auto secondaryNodeIndex = secondaryPartition[j];
+                auto secondaryNode = _nodes[secondaryNodeIndex];
+
+                for (size_t k = 0; k < primaryPartition.size(); ++k)
+                {
+                    auto primaryNodeIndex = primaryPartition[k];
+                    auto primaryNode = _nodes[primaryNodeIndex];
+
+                    const auto distance = primaryNode->point.distance(secondaryNode->point);
+                    if (distance < shortestDistance)
+                    {
+                        shortestDistance = distance;
+                        closestPrimaryNodeIndex = primaryNodeIndex;
+                        closesetSecondaryNodeIndex = secondaryNodeIndex;
+                    }
+                }
+            }
+
+
+            // The primary and secondary nodes are connected
+            auto primaryNode = _nodes[closestPrimaryNodeIndex];
+            auto secondaryNode = _nodes[closesetSecondaryNodeIndex];
+
+            primaryNode->edgeNodes.push_back(secondaryNode);
+            secondaryNode->edgeNodes.push_back(primaryNode);
+
+            SkeletonEdge* edge = new SkeletonEdge(edges.size(), primaryNode, secondaryNode);
+            edges.push_back(edge);
+        }
+
+        auto newGraph = new Graph(edges, _nodes);
+
+        auto newComponents = newGraph->getComponents();
+
+        if (newComponents.size() == 1)
+        {
+            LOG_SUCCESS("The skeleton graph has now 1 component! OK.");
+        }
+        else
+        {
+            LOG_WARNING("The skeleton graph has still [ %d ] components!", newComponents.size());
+        }
+    }
+}
+
 void NeuronSkeletonizer::constructGraph()
 {
     /// Extract the nodes of the skeleton from the center-line "thinned" voxels and return a
@@ -56,7 +157,10 @@ void NeuronSkeletonizer::constructGraph()
 
     /// Connect the nodes of the skeleton to construct its edges. This operation will not connect
     /// any gaps, it will just connect the nodes extracted from the voxels.
-    _connectNodes(indicesMapper);
+    auto edges = _connectNodes(indicesMapper);
+
+    // Verify graph connectivity
+    _verifyGraphConnectivity(edges);
 
     /// Add a virtual soma node, until the soma is reconstructed later
     _addSomaNode();

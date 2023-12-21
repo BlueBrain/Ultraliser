@@ -25,6 +25,8 @@
 
 #include <common/Headers.hh>
 #include <algorithms/skeletonization/graphs/GraphNode.h>
+#include <algorithms/skeletonization/SkeletonNode.hh>
+#include <algorithms/skeletonization/SkeletonEdge.hh>
 
 namespace Ultraliser
 {
@@ -52,6 +54,13 @@ public:
      * @param numberNodes
      */
     Graph(const size_t& numberNodes);
+
+    /**
+     * @brief Graph
+     * @param skeletonEdges
+     * @param skeletonNodes
+     */
+    Graph(const SkeletonEdges& skeletonEdges, const SkeletonNodes& skeletonNodes);
 
     /**
      * @brief Graph
@@ -84,6 +93,12 @@ private:
      * @param edges
      */
     void _addEdges(SkeletonWeightedEdges& edges);
+
+    /**
+     * @brief _addEdges
+     * @param edges
+     */
+    void _addEdges(const SkeletonEdges &edges);
 
 private:
 

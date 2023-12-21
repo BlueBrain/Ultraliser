@@ -172,7 +172,7 @@ protected:
     void _inflateNodesUsingAcceleration();
 
 
-    void _connectNodes(const std::map<size_t, size_t> &indicesMapper);
+    SkeletonEdges _connectNodes(const std::map< size_t, size_t > &indicesMapper);
     void _removeTriangleLoops();
 
     void _buildBranchesFromNodes(const SkeletonNodes& nodes);

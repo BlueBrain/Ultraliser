@@ -46,6 +46,18 @@ Graph::Graph(SkeletonWeightedEdges& weighteEdges, GraphNodes& graphNodes)
     _addEdges(weighteEdges);
 }
 
+Graph::Graph(const SkeletonEdges& skeletonEdges, const SkeletonNodes& skeletonNodes)
+{
+    // Get the total number of nodes in the graph
+    _numberNodes = skeletonNodes.size();
+
+    // Allocate the adjacency list
+    _adjacencyLists = new std::list< size_t >[_numberNodes];
+
+    // Add the edges to the graph
+    _addEdges(skeletonEdges);
+}
+
 Graph::~Graph()
 {
     delete[] _adjacencyLists;
@@ -60,6 +72,18 @@ void Graph::_addEdges(SkeletonWeightedEdges& edges)
 
         _adjacencyLists[n1->graphIndex].push_back(n2->graphIndex);
         _adjacencyLists[n2->graphIndex].push_back(n1->graphIndex);
+    }
+}
+
+void Graph::_addEdges(const SkeletonEdges& edges)
+{
+    for (size_t i = 0; i < edges.size(); ++i)
+    {
+        auto n1 = edges[i]->node1;
+        auto n2 = edges[i]->node2;
+
+        _adjacencyLists[n1->index].push_back(n2->index);
+        _adjacencyLists[n2->index].push_back(n1->index);
     }
 }
 

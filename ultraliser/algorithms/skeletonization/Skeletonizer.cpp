@@ -575,15 +575,18 @@ void Skeletonizer::_inflateNodes()
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indicesMapper)
+SkeletonEdges Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indicesMapper)
 {
     TIMER_SET;
     LOG_STATUS("Connecting Graph Nodes");
 
+    SkeletonEdges edges;
+    size_t numberEdges;
+
     /// TODO: Makre sure that there are no race conditions in the code
     LOOP_STARTS("Building & Linking Edges");
     PROGRESS_SET;
-    OMP_PARALLEL_FOR
+    // OMP_PARALLEL_FOR
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
         // Check if the node has been visited before
@@ -601,7 +604,7 @@ void Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indicesMapper
 
             if (_volume->isFilled(idx, idy, idz))
             {
-                // Connected edges
+                // Increment the number of conected edges along this node
                 connectedEdges++;
 
                 // Find the index of the voxel
@@ -611,7 +614,17 @@ void Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indicesMapper
                 const auto& nIndex = indicesMapper.find(vIndex)->second;
 
                 // Add the node to the edgeNodes, only to be able to access it later
-                node->edgeNodes.push_back(_nodes[nIndex]);
+                SkeletonNode* edgeNode = _nodes[nIndex];
+                node->edgeNodes.push_back(edgeNode);
+
+                // Construct the edge
+                SkeletonEdge* edge = new SkeletonEdge(numberEdges, node, edgeNode);
+
+                // Add the constructed edge to the list
+                edges.push_back(edge);
+
+                // Increment the number of edges
+                numberEdges++;
             }
         }
 
@@ -627,6 +640,12 @@ void Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indicesMapper
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
+
+    /// Re-index the nodes, for simplicity, i.e. the index of the node represents its location in
+    /// the _nodes list
+    OMP_PARALLEL_FOR for (size_t i = 0; i < _nodes.size(); ++i) { _nodes[i]->index = i; }
+
+    return edges;
 }
 
 void Skeletonizer::_removeTriangleLoops()
@@ -694,7 +713,7 @@ void Skeletonizer::constructGraph()
     _inflateNodes();
 
     // Connect the nodes to construct the edges of the graph
-    _connectNodes(indicesMapper);
+    auto edges = _connectNodes(indicesMapper);
 
     // Remove the triangular configurations
     _removeTriangleLoops();

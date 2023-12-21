@@ -24,13 +24,14 @@
 #pragma once
 
 #include <common/Headers.hh>
+#include <algorithms/skeletonization/SkeletonNode.hh>
 
 namespace Ultraliser
 {
 
 /**
  * @brief The SkeletonEdge struct
- * An edge composed of two points (nodes or SkeletonNodes in the segmented skeleton.
+ * An edge composed of two nodes (SkeletonNodes in the segmented skeleton).
  */
 struct SkeletonEdge
 {
@@ -41,7 +42,8 @@ public:
      */
     SkeletonEdge()
     {
-        /// EMPTY CONSTRUCTOR
+        this->node1 = nullptr;
+        this->node2 = nullptr;
     }
 
     /**
@@ -50,32 +52,32 @@ public:
      * @param index0
      * @param index1
      */
-    SkeletonEdge(const size_t& index, const size_t& p0Index, const size_t& p1Index)
+    SkeletonEdge(const int64_t& index, SkeletonNode* node1, SkeletonNode* node2)
     {
         this->index = index;
-        this->p0Index = p0Index;
-        this->p1Index = p1Index;
+        this->node1 = node1;
+        this->node2 = node2;
     }
 
 public:
 
     /**
      * @brief index
-     * The index of the edge.
+     * The index of the edge. The index will be -1 to indicate that it is uninitialized.
      */
-    size_t index;
+    int64_t index = -1;
 
     /**
-     * @brief p0Index
-     * The index of the first point of the edge in the skeleton.
+     * @brief node1
+     * A pointer to the first node of the edge.
      */
-    size_t p0Index;
+    SkeletonNode* node1;
 
     /**
-     * @brief p1Index
-     * The index of the seconf point of the edge in the skeleton.
+     * @brief node2
+     * A pointer to the second node of the edge.
      */
-    size_t p1Index;
+    SkeletonNode* node2;
 };
 
 /**

@@ -285,6 +285,11 @@ private:
      */
     void _adjustSomaRadius();
 
+    /**
+     * @brief _verifyGraphConnectivity
+     */
+    void _verifyGraphConnectivity(SkeletonEdges &edges);
+
 private:
 
     /**
