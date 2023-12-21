@@ -45,8 +45,6 @@ void NeuronSkeletonizer::skeletonizeVolumeToCenterLines()
 void NeuronSkeletonizer::_verifyGraphConnectivity(SkeletonEdges& edges)
 {
     // Since we have all the nodes and the edges, we can verify if the graph is conected or not
-    LOG_INFO("Verifying connectivity");
-
     auto graph = new Graph(edges, _nodes);
 
     auto components = graph->getComponents();
@@ -130,7 +128,7 @@ void NeuronSkeletonizer::_verifyGraphConnectivity(SkeletonEdges& edges)
 
         // Updating the branching and terminal nodes
         PROGRESS_SET;
-        // OMP_PARALLEL_FOR
+        OMP_PARALLEL_FOR
         for (size_t i = 0; i < _nodes.size(); ++i)
         {
             // Check if the node has been visited before
@@ -146,15 +144,6 @@ void NeuronSkeletonizer::_verifyGraphConnectivity(SkeletonEdges& edges)
             else
                 node->branching = false;
         }
-
-
-
-
-
-
-
-
-
 
         auto newGraph = new Graph(edges, _nodes);
 
@@ -203,8 +192,9 @@ void NeuronSkeletonizer::constructGraph()
     /// Identify the somatic nodes in the skeleton
     _identifySomaticNodes();
 
-     /// Remove the triangular configurations, based on the edges
-     _removeTriangleLoops();
+     /// In the old approach, we needed to remove the triangle loops, but thanks to Foni's algorithm
+     /// these loops are removed automatically during the path construction phase
+     // _removeTriangleLoops();
 
      /// Reconstruct the sections "or branches" from the nodes using the edges data
      _buildBranchesFromNodes(_nodes);
@@ -1290,8 +1280,6 @@ void NeuronSkeletonizer::segmentComponents()
 
     /// Get the soma node index within the weighted graph
     int64_t somaNodeIndex = _getSomaIndexFromGraphNodes(skeletonBranchingNodes);
-
-    std::cout << "Soma Node Index: " << somaNodeIndex << "\n";
 
     // Construct the graph nodes list
     GraphNodes graphNodes = _constructGraphNodesFromSkeletonNodes(skeletonBranchingNodes);
