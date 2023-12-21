@@ -128,6 +128,34 @@ void NeuronSkeletonizer::_verifyGraphConnectivity(SkeletonEdges& edges)
             edges.push_back(edge);
         }
 
+        // Updating the branching and terminal nodes
+        PROGRESS_SET;
+        // OMP_PARALLEL_FOR
+        for (size_t i = 0; i < _nodes.size(); ++i)
+        {
+            // Check if the node has been visited before
+            SkeletonNode* node = _nodes[i];
+
+            if (node->edgeNodes.size() == 1)
+                node->terminal = true;
+            else
+                node->terminal = false;
+
+            if (node->edgeNodes.size() > 2)
+                node->branching = true;
+            else
+                node->branching = false;
+        }
+
+
+
+
+
+
+
+
+
+
         auto newGraph = new Graph(edges, _nodes);
 
         auto newComponents = newGraph->getComponents();
@@ -495,6 +523,9 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma()
                 }
                 else
                 {
+                    firstNode->point.print();
+                    lastNode->point.print();
+
                     LOG_WARNING("Undefined case for the branch identification! Possible Errors!");
                 }
             }
@@ -621,8 +652,6 @@ SkeletonNodes NeuronSkeletonizer::_selectBranchingNodesFromWeightedEdges(
     SkeletonNodes nodes;
     for (size_t i = 0; i < edges.size(); ++i)
     {
-        LOOP_PROGRESS(i, edges.size());
-
         // The node must be visited once to append it to the @skeletonBranchingNodes list
         auto& edge = edges[i];
         auto node1 = edge->node1;
@@ -645,6 +674,7 @@ SkeletonNodes NeuronSkeletonizer::_selectBranchingNodesFromWeightedEdges(
             branchingNodeIndex++;
             node2->visited = true;
         }
+        LOOP_PROGRESS(i, edges.size());
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
@@ -655,7 +685,8 @@ SkeletonNodes NeuronSkeletonizer::_selectBranchingNodesFromWeightedEdges(
 int64_t NeuronSkeletonizer::_getSomaIndexFromGraphNodes(const SkeletonNodes& nodes) const
 {
     int64_t somaNodeIndex = -1;
-    for (size_t i = 0; nodes.size(); ++i)
+    for (size_t i = 0; i < nodes.size(); ++i)
+
     {
         const auto& node = nodes[i];
         if (node->isSoma)
@@ -732,25 +763,33 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
         // Reverse the terminal to soma path to have the correct order
         std::reverse(terminalToSomaPath.begin(), terminalToSomaPath.end());
 #else
-        // Find the path between the terminal node and the soma node
-        auto terminalToSomaPath = pathFinder.findPath(somaNodeIndex,
-                                                       terminalNodes[iNode]->graphIndex);
-#endif
-        // Find the edges
-        for (size_t j = 0; j < terminalToSomaPath.size() - 1; ++j)
-        {
-            auto currentNodeIndex = terminalToSomaPath[j];
-            auto nextNodeIndex = terminalToSomaPath[j + 1];
+        try {
 
-            // Add the edge indices to the list
-            perTerminalEdgesIndices.push_back(EdgeIndex(currentNodeIndex, nextNodeIndex));
+            // Find the path between the terminal node and the soma node
+            auto terminalToSomaPath = pathFinder.findPath(somaNodeIndex,
+                                                           terminalNodes[iNode]->graphIndex);
 
-            // If the next node index is not in the current node index, then add it
-            if (!graphNodes[currentNodeIndex]->isNodeInChildren(nextNodeIndex))
+            // Find the edges
+            for (size_t j = 0; j < terminalToSomaPath.size() - 1; ++j)
             {
-                graphNodes[currentNodeIndex]->children.push_back(graphNodes[nextNodeIndex]);
+                auto currentNodeIndex = terminalToSomaPath[j];
+                auto nextNodeIndex = terminalToSomaPath[j + 1];
+
+                // Add the edge indices to the list
+                perTerminalEdgesIndices.push_back(EdgeIndex(currentNodeIndex, nextNodeIndex));
+
+                // If the next node index is not in the current node index, then add it
+                if (!graphNodes[currentNodeIndex]->isNodeInChildren(nextNodeIndex))
+                {
+                    graphNodes[currentNodeIndex]->children.push_back(graphNodes[nextNodeIndex]);
+                }
             }
+        } catch (...) {
+            LOG_WARNING("Cannot find the path");
         }
+
+#endif
+
 
         LOOP_PROGRESS(PROGRESS, numberTerminalNodes);
         PROGRESS_UPDATE;
@@ -1251,6 +1290,8 @@ void NeuronSkeletonizer::segmentComponents()
 
     /// Get the soma node index within the weighted graph
     int64_t somaNodeIndex = _getSomaIndexFromGraphNodes(skeletonBranchingNodes);
+
+    std::cout << "Soma Node Index: " << somaNodeIndex << "\n";
 
     // Construct the graph nodes list
     GraphNodes graphNodes = _constructGraphNodesFromSkeletonNodes(skeletonBranchingNodes);
