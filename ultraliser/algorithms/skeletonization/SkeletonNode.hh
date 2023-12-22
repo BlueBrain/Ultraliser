@@ -58,6 +58,15 @@ public:
         this->voxel = voxel;
     }
 
+    SkeletonNode(const size_t& index, const int64_t voxelIndex,
+                 const Vector3f& point, const Vector3f& voxel)
+    {
+        this->index = index;
+        this->voxelIndex = voxelIndex;
+        this->point = point;
+        this->voxel = voxel;
+    }
+
 public:
 
     /**
@@ -65,6 +74,12 @@ public:
      * The index of the node.
      */
     size_t index = 0;
+
+    /**
+     * @brief voxelIndex
+     * The 1D index of the corresponding voxel in the thinned volume.
+     */
+    int64_t voxelIndex = -1;
 
     /**
      * @brief orderIndex

@@ -28,6 +28,7 @@
 #include <algorithms/skeletonization/graphs/GraphNode.h>
 #include <algorithms/skeletonization/graphs/GraphBranch.h>
 #include <algorithms/skeletonization/graphs/ShortestPathFinder.h>
+#include <algorithms/skeletonization/graphs/Graph.h>
 
 namespace Ultraliser
 {
@@ -289,6 +290,21 @@ private:
      * @brief _verifyGraphConnectivity
      */
     void _verifyGraphConnectivity(SkeletonEdges &edges);
+
+    /**
+     * @brief _verifyGraphConnectivityToMainPartition
+     * @param components
+     */
+    void _verifyGraphConnectivityToMainPartition(GraphComponents &components, SkeletonEdges& edges);
+
+    void _verifyGraphConnectivityToClosestPartition(SkeletonEdges& edges);
+
+
+    void _findClosestNodesInTwoPartitions(GraphComponent& partition1, GraphComponent& partition2,
+                                          size_t* partition1NodeIndex, size_t* partition2NodeIndex,
+                                          float* distance);
+    void _connectPartition(GraphComponents& partitions, const size_t &partitionIndex,
+                           SkeletonEdges &edges);
 
 private:
 

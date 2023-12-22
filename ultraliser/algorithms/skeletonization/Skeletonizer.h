@@ -171,8 +171,13 @@ protected:
      */
     void _inflateNodesUsingAcceleration();
 
+    /**
+     * @brief _inflateNodesUsingAcceleration
+     */
+    void _inflateNodesNatively();
 
-    SkeletonEdges _connectNodes(const std::map< size_t, size_t > &indicesMapper);
+
+    void _connectNodesToBuildEdges(const std::map< size_t, size_t > &indicesMapper);
     void _removeTriangleLoops();
 
     void _buildBranchesFromNodes(const SkeletonNodes& nodes);
@@ -253,6 +258,11 @@ protected:
      * A list of all the nodes in the graph.
      */
     SkeletonNodes _nodes;
+
+    /**
+     * @brief _edges
+     */
+    SkeletonEdges _edges;
 
     /**
      * @brief _branches

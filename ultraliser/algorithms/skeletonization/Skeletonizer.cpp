@@ -442,6 +442,7 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleratio
     LOG_STATUS("Mapping Voxels to Nodes *");
     TIMER_SET;
 
+    // Get all the center-line voxels from the volume
     auto thinningVoxels = _volume->getThinningVoxelsList(false);
 
     // Construct the NodeVoxels list
@@ -450,14 +451,25 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleratio
     NodeVoxelsUI16 nodeVoxels;
     for (size_t i = 0; i < thinningVoxels.size(); ++i)
     {
+        // Reference to the voxel
         auto& voxel = thinningVoxels[i];
-        if (voxel->active) // The inactive voxels have been deactivated in during the thinning
+
+        // The inactive voxels have been deactivated during the thinning
+        if (voxel->active)
         {
+            // Create a corresponding node to the voxel
             NodeVoxelUI16 nodeVoxel;
+
+            // Get the location based on the voxel XYZ coordinates
             nodeVoxel.x = voxel->x;
             nodeVoxel.y = voxel->y;
             nodeVoxel.z = voxel->z;
-            nodeVoxel.index = _volume->mapTo1DIndexWithoutBoundCheck(voxel->x, voxel->y, voxel->z);
+
+            // Update the voxel index (used later to map the voxels to nodes)
+            nodeVoxel.voxelIndex = _volume->mapTo1DIndexWithoutBoundCheck(
+                        voxel->x, voxel->y, voxel->z);
+
+            // Add th node voxel to the list
             nodeVoxels.push_back(nodeVoxel);
         }
     }
@@ -470,7 +482,7 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleratio
     std::map< size_t, size_t > indicesMapper;
     for (size_t i = 0; i < nodeVoxels.size(); ++i)
     {
-        indicesMapper.insert(std::pair< size_t, size_t >(nodeVoxels[i].index, i));
+        indicesMapper.insert(std::pair< size_t, size_t >(nodeVoxels[i].voxelIndex, i));
     }
 
     // Resize the nodes to the corresponding size of the NodeVoxels list
@@ -487,7 +499,10 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleratio
                                nodeVoxels[n].z * 1.f);
 
         // Get a point in the same coordinate space of the mesh
+        /// TODO: Adjust the center of the node based on the actual center of the voxel
         Vector3f nodePosition(voxelPosition);
+
+        // Adjust the location based on the dimensions of the input data
         nodePosition -= _centerVolume;
         nodePosition.x() *= _scaleFactor.x();
         nodePosition.y() *= _scaleFactor.y();
@@ -495,7 +510,7 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleratio
         nodePosition += _centerMesh;
 
         // Add the node to the nodes list
-        _nodes[n] = new SkeletonNode(nodeVoxels[n].index, nodePosition, voxelPosition);
+        _nodes[n] = new SkeletonNode(n, nodeVoxels[n].voxelIndex, nodePosition, voxelPosition);
 
         // Update the progress bar
         LOOP_PROGRESS(PROGRESS, nodeVoxels.size());
@@ -505,6 +520,15 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleratio
     LOG_STATS(GET_TIME_SECONDS);
 
     return indicesMapper;
+}
+
+
+void Skeletonizer::_inflateNodes()
+{
+    if (_useAcceleration)
+        _inflateNodesUsingAcceleration();
+    else
+        _inflateNodesNatively();
 }
 
 void Skeletonizer::_inflateNodesUsingAcceleration()
@@ -541,7 +565,7 @@ void Skeletonizer::_inflateNodesUsingAcceleration()
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Skeletonizer::_inflateNodes()
+void Skeletonizer::_inflateNodesNatively()
 {
     TIMER_SET;
     LOG_STATUS("Inflating Graph Nodes - Mapping to Surface");
@@ -575,12 +599,11 @@ void Skeletonizer::_inflateNodes()
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-SkeletonEdges Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indicesMapper)
+void Skeletonizer::_connectNodesToBuildEdges(const std::map< size_t, size_t >& indicesMapper)
 {
     TIMER_SET;
     LOG_STATUS("Connecting Graph Nodes");
 
-    SkeletonEdges edges;
     size_t numberEdges;
 
     /// TODO: Makre sure that there are no race conditions in the code
@@ -621,7 +644,7 @@ SkeletonEdges Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indi
                 SkeletonEdge* edge = new SkeletonEdge(numberEdges, node, edgeNode);
 
                 // Add the constructed edge to the list
-                edges.push_back(edge);
+                _edges.push_back(edge);
 
                 // Increment the number of edges
                 numberEdges++;
@@ -643,9 +666,7 @@ SkeletonEdges Skeletonizer::_connectNodes(const std::map< size_t, size_t >& indi
 
     /// Re-index the nodes, for simplicity, i.e. the index of the node represents its location in
     /// the _nodes list
-    OMP_PARALLEL_FOR for (size_t i = 0; i < _nodes.size(); ++i) { _nodes[i]->index = i; }
-
-    return edges;
+    // OMP_PARALLEL_FOR for (size_t i = 0; i < _nodes.size(); ++i) { _nodes[i]->index = i; }
 }
 
 void Skeletonizer::_removeTriangleLoops()
@@ -713,7 +734,7 @@ void Skeletonizer::constructGraph()
     _inflateNodes();
 
     // Connect the nodes to construct the edges of the graph
-    auto edges = _connectNodes(indicesMapper);
+    _connectNodesToBuildEdges(indicesMapper);
 
     // Remove the triangular configurations
     _removeTriangleLoops();

@@ -32,7 +32,6 @@ namespace Ultraliser
 template< class T >
 struct NodeVoxel
 {
-
 public:
 
     /**
@@ -51,9 +50,9 @@ public:
     T z;
 
     /**
-     * @brief index
+     * @brief voxelIndex
      */
-    size_t index;
+    size_t voxelIndex;
 };
 
 /**

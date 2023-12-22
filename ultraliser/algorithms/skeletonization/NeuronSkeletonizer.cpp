@@ -42,6 +42,380 @@ void NeuronSkeletonizer::skeletonizeVolumeToCenterLines()
         _applyVolumeThinning();
 }
 
+
+void NeuronSkeletonizer::constructGraph()
+{
+    /// Extract the nodes of the skeleton from the center-line "thinned" voxels and return a
+    /// mapper that maps the indices of the voxels in the volume and the nodes in the skeleton
+    auto indicesMapper = _extractNodesFromVoxels();
+
+    /// Connect the nodes of the skeleton to construct its edges. This operation will not connect
+    /// any gaps, it will just connect the nodes extracted from the voxels.
+    _connectNodesToBuildEdges(indicesMapper);
+
+    /// Inflate the nodes, i.e. adjust their radii
+    _inflateNodes();
+
+    /// Add a virtual soma node, until the soma is reconstructed later
+    _addSomaNode();
+
+    /// Re-index the nodes, for simplicity, i.e. the index of the node represents its location in
+    /// the _nodes list
+    // OMP_PARALLEL_FOR for (size_t i = 1; i <= _nodes.size(); ++i) { _nodes[i - 1]->index = i; }
+
+    /// Segmentthe soma mesh from the branches
+    _segmentSomaMesh();
+
+    /// Identify the somatic nodes in the skeleton
+    _identifySomaticNodes();
+
+    // Verify graph connectivity
+    // _verifyGraphConnectivity(edges);
+    _verifyGraphConnectivityToClosestPartition(_edges);
+
+    /// In the old approach, we needed to remove the triangle loops, but thanks to Foni's algorithm
+    /// these loops are removed automatically during the path construction phase
+    // _removeTriangleLoops();
+
+    /// Reconstruct the sections "or branches" from the nodes using the edges data
+    _buildBranchesFromNodes(_nodes);
+
+    /// Validate the branches, and remove the branches inside the soma, i.e. consider them to
+    /// be invalid
+    _removeBranchesInsideSoma();
+
+    /// Connect all the skeleton branches since the roots have been identified after the
+    /// soma segmentation
+    _connectBranches();
+
+    // exportSomaMesh("/ssd2/skeletonization-project/skeletonization-output/morphologies/soma", true,false, false, false);
+
+}
+
+void NeuronSkeletonizer::segmentComponents()
+{
+    /// Initially, and before constructing the graph, remove the loops between two branching points
+    _filterLoopsBetweenTwoBranchingPoints();
+
+    /// Remove the loops at a single branching point, i.e. starting and ending at the same node.
+    _filterLoopsAtSingleBranchingPoint();
+
+    /// Reduce the skeleton into a list of SkeletonWeightedEdge's
+    SkeletonWeightedEdges weighteEdges = _reduceSkeletonToWeightedEdges();
+
+    /// Get a list of all the branching/terminal nodes within the skeleton from the
+    /// SkeletonWeightedEdges list
+    SkeletonNodes skeletonBranchingNodes = _selectBranchingNodesFromWeightedEdges(weighteEdges);
+
+    /// Get the soma node index within the weighted graph
+    int64_t somaNodeIndex = _getSomaIndexFromGraphNodes(skeletonBranchingNodes);
+
+    // Construct the graph nodes list
+    GraphNodes graphNodes = _constructGraphNodesFromSkeletonNodes(skeletonBranchingNodes);
+
+    /// After having the weighted edges and the nodes computed, compute the number of components in
+    /// the graph, if the result is more than 1 then then re-connect them to be in a single graph
+    auto graph = new Graph(weighteEdges, graphNodes);
+    auto components = graph->getComponents();
+    if (components.size() == 1)
+    {
+        LOG_SUCCESS("The skeleton graph has 1 component! OK.");
+    }
+    else
+    {
+        LOG_WARNING("The skeleton graph has [ %d ] components!", components.size());
+
+
+        std::ofstream nodestxt;
+        nodestxt.open ("/ssd2/skeletonization-project/skeletonization-output/morphologies/nodes.txt");
+        for(int i = 0; i < _nodes.size(); ++i)
+        {
+            auto p = _nodes[i]->point;
+            nodestxt << p.x() << " " << p.y() << " " << p.z() << "\n";
+
+        }
+        nodestxt.close();
+
+
+        std::ofstream x1;
+        x1.open ("/ssd2/skeletonization-project/skeletonization-output/morphologies/c1.txt");
+        for(int i = 0; i < components[0].size(); ++i)
+        {
+            auto nidx = components[0][i];
+            auto p = graphNodes[nidx]->position;
+            x1 << p.x() << " " << p.y() << " " << p.z() << "\n";
+
+        }
+        x1.close();
+
+        std::ofstream x2;
+        x2.open ("/ssd2/skeletonization-project/skeletonization-output/morphologies/c2.txt");
+        for(int i = 0; i < components[1].size(); ++i)
+        {
+            auto nidx = components[1][i];
+            auto p = graphNodes[nidx]->position;
+            x2 << p.x() << " " << p.y() << " " << p.z() << "\n";
+
+        }
+        x2.close();
+
+
+    }
+
+    // Find the shortest paths of all the terminals and get a list of the indices of the active edges
+    EdgesIndices edgeIndices = _findShortestPathsFromTerminalNodesToSoma(
+                weighteEdges, skeletonBranchingNodes, graphNodes, somaNodeIndex);
+
+    // Construct the GraphBranches from the GraphNodes
+    GraphBranches graphBranches = _constructGraphBranchesFromGraphNodes(graphNodes, somaNodeIndex);
+
+    // Construct the hierarchy of the graph
+    _constructGraphHierarchy(graphBranches);
+
+    // Construct the hierarchy of the skeleton
+    _constructSkeletonHierarchy(graphBranches);
+
+    // merge branches with a single child
+    _mergeBranchesWithSingleChild();
+
+    // Invalidate the inactive branches
+    _detectInactiveBranches(weighteEdges, edgeIndices);
+
+    // Adkjust the soma radius
+    _adjustSomaRadius();
+
+    // Update all the parents
+    _updateParents();
+
+    // Filter the synapses
+    _filterSpines();
+}
+
+void NeuronSkeletonizer::_findClosestNodesInTwoPartitions(GraphComponent& partition1,
+                                                          GraphComponent& partition2,
+                                                          size_t* partition1NodeIndex,
+                                                          size_t* partition2NodeIndex,
+                                                          float* distance)
+{
+    // A parameter to store the shotrest distances between the nodes
+    float shortestDistance = std::numeric_limits<float>::max();
+    size_t indexNode1, indexNode2;
+
+    // Iterate over the nodes of the first partition
+    for (size_t i = 0; i < partition1.size(); ++i)
+    {
+        // Reference to the first node
+        auto _node1 = _nodes[partition1[i]];
+
+        // Iterate over the nodes of the second partition
+        for (size_t j = 0; j < partition2.size(); ++j)
+        {
+            // Reference to the second node
+            auto _node2 = _nodes[partition2[j]];
+
+            // Calculate the distance
+            const auto distance = _node1->point.distance(_node2->point);
+
+            // If the calculated distance is less than the shortest distance, update
+            if (distance < shortestDistance)
+            {
+                shortestDistance = distance;
+                indexNode1 = i;
+                indexNode2 = j;
+            }
+        }
+    }
+
+    *distance = shortestDistance;
+    *partition1NodeIndex = indexNode1;
+    *partition2NodeIndex = indexNode2;
+}
+
+void NeuronSkeletonizer::_connectPartition(GraphComponents& partitions,
+                                           const size_t& partitionIndex,
+                                           SkeletonEdges &edges)
+{
+    // A reference to the primary partition
+    auto primaryPartition = partitions[partitionIndex];
+
+    size_t partition1NodeIndex;
+    size_t partition2NodeIndex;
+    float shortestDistance = std::numeric_limits<float>::max();
+    size_t secondaryPartitionIndex;
+
+    for (size_t i = 0; i < partitions.size(); ++i)
+    {
+        // Skip the same partition
+        if (i == partitionIndex) continue;
+
+        // A reference to the secondary partition
+        auto secondaryPartition = partitions[i];
+
+        size_t _node1Index, _node2Index;
+        float distance;
+
+        _findClosestNodesInTwoPartitions(primaryPartition, secondaryPartition,
+                                         &_node1Index, &_node2Index, &distance);
+
+        if (distance < shortestDistance)
+        {
+            shortestDistance = distance;
+            partition1NodeIndex = _node1Index;
+            partition2NodeIndex = _node2Index;
+            secondaryPartitionIndex = i;
+        }
+    }
+
+    // Add the missing connectivity information
+    auto primaryNode = _nodes[primaryPartition[partition1NodeIndex]];
+    auto secondaryNode = _nodes[partitions[secondaryPartitionIndex][partition2NodeIndex]];
+
+    primaryNode->edgeNodes.push_back(secondaryNode);
+    secondaryNode->edgeNodes.push_back(primaryNode);
+
+    SkeletonEdge* edge = new SkeletonEdge(edges.size(), primaryNode, secondaryNode);
+    edges.push_back(edge);
+}
+
+
+void NeuronSkeletonizer::_verifyGraphConnectivityToClosestPartition(SkeletonEdges &edges)
+{
+    while (true)
+    {
+        // Construct the graph
+        auto graph = new Graph(edges, _nodes);
+
+        // Get the number of partitions
+        auto components = graph->getComponents();
+
+        if (components.size() == 1)
+        {
+            LOG_SUCCESS("The skeleton graph has 1 component! OK.");
+            return;
+        }
+        else
+        {
+            LOG_WARNING("The skeleton graph has [ %d ] components! Running the Connectomics Algorithm",
+                        components.size());
+
+            // Add the partition
+            _connectPartition(components, 0, edges);
+
+            // Updating the branching and terminal nodes
+            PROGRESS_SET;
+            // OMP_PARALLEL_FOR
+            for (size_t i = 0; i < _nodes.size(); ++i)
+            {
+                // Check if the node has been visited before
+                SkeletonNode* node = _nodes[i];
+
+                if (node->edgeNodes.size() == 1)
+                    node->terminal = true;
+                else
+                    node->terminal = false;
+
+                if (node->edgeNodes.size() > 2)
+                    node->branching = true;
+                else
+                    node->branching = false;
+            }
+        }
+    }
+
+
+}
+
+void NeuronSkeletonizer::_verifyGraphConnectivityToMainPartition(GraphComponents &components,
+                                                                 SkeletonEdges &edges)
+{
+    // Each component in the GraphComponents is simply a list of nodes
+    // Find the largest partition
+    size_t primaryPartitionIndex = 0;
+    size_t numberNodesPrimaryPartition = 0;
+    for (size_t i = 0; i < components.size(); ++i)
+    {
+        if (components[i].size() > numberNodesPrimaryPartition)
+        {
+            primaryPartitionIndex = i;
+            numberNodesPrimaryPartition = components[i].size();
+        }
+    }
+
+    // Get a reference to the primary partition
+    GraphComponent primaryPartition = components[primaryPartitionIndex];
+
+    // Construct a list of the secondary partitions
+    GraphComponents secondaryPartitions;
+    for (size_t i = 0; i < components.size(); ++i)
+    {
+        if (i == primaryPartitionIndex) continue;
+
+        secondaryPartitions.push_back(components[i]);
+    }
+
+
+    // Find the connections between each secondary partition and the parimary partition
+    for (size_t i = 0; i < secondaryPartitions.size(); ++i)
+    {
+        auto secondaryPartition = secondaryPartitions[i];
+
+        // Find the indices of the connecting nodes
+        size_t closestPrimaryNodeIndex;
+        size_t closesetSecondaryNodeIndex;
+        float shortestDistance = 1e32;
+
+        for (size_t j = 0; j < secondaryPartition.size(); ++j)
+        {
+            auto secondaryNodeIndex = secondaryPartition[j];
+            auto secondaryNode = _nodes[secondaryNodeIndex];
+
+            for (size_t k = 0; k < primaryPartition.size(); ++k)
+            {
+                auto primaryNodeIndex = primaryPartition[k];
+                auto primaryNode = _nodes[primaryNodeIndex];
+
+                const auto distance = primaryNode->point.distance(secondaryNode->point);
+                if (distance < shortestDistance)
+                {
+                    shortestDistance = distance;
+                    closestPrimaryNodeIndex = primaryNodeIndex;
+                    closesetSecondaryNodeIndex = secondaryNodeIndex;
+                }
+            }
+        }
+
+
+        // The primary and secondary nodes are connected
+        auto primaryNode = _nodes[closestPrimaryNodeIndex];
+        auto secondaryNode = _nodes[closesetSecondaryNodeIndex];
+
+        primaryNode->edgeNodes.push_back(secondaryNode);
+        secondaryNode->edgeNodes.push_back(primaryNode);
+
+        SkeletonEdge* edge = new SkeletonEdge(edges.size(), primaryNode, secondaryNode);
+        edges.push_back(edge);
+    }
+
+    // Updating the branching and terminal nodes
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _nodes.size(); ++i)
+    {
+        // Check if the node has been visited before
+        SkeletonNode* node = _nodes[i];
+
+        if (node->edgeNodes.size() == 1)
+            node->terminal = true;
+        else
+            node->terminal = false;
+
+        if (node->edgeNodes.size() > 2)
+            node->branching = true;
+        else
+            node->branching = false;
+    }
+}
+
 void NeuronSkeletonizer::_verifyGraphConnectivity(SkeletonEdges& edges)
 {
     // Since we have all the nodes and the edges, we can verify if the graph is conected or not
@@ -57,93 +431,10 @@ void NeuronSkeletonizer::_verifyGraphConnectivity(SkeletonEdges& edges)
     {
         LOG_WARNING("The skeleton graph has [ %d ] components!", components.size());
 
-
-        // Each component in the GraphComponents is simply a list of nodes
-        // Find the largest partition
-        size_t primaryPartitionIndex = 0;
-        size_t numberNodesPrimaryPartition = 0;
-        for (size_t i = 0; i < components.size(); ++i)
-        {
-            if (components[i].size() > numberNodesPrimaryPartition)
-            {
-                primaryPartitionIndex = i;
-                numberNodesPrimaryPartition = components[i].size();
-            }
-        }
-
-        // Get a reference to the primary partition
-        GraphComponent primaryPartition = components[primaryPartitionIndex];
-
-        // Construct a list of the secondary partitions
-        GraphComponents secondaryPartitions;
-        for (size_t i = 0; i < components.size(); ++i)
-        {
-            if (i == primaryPartitionIndex) continue;
-
-            secondaryPartitions.push_back(components[i]);
-        }
+        // Verify the graph connectivity to the main partition
+        _verifyGraphConnectivityToMainPartition(components, edges);
 
 
-        // Find the connections between each secondary partition and the parimary partition
-        for (size_t i = 0; i < secondaryPartitions.size(); ++i)
-        {
-            auto secondaryPartition = secondaryPartitions[i];
-
-            // Find the indices of the connecting nodes
-            size_t closestPrimaryNodeIndex;
-            size_t closesetSecondaryNodeIndex;
-            float shortestDistance = 1e32;
-
-            for (size_t j = 0; j < secondaryPartition.size(); ++j)
-            {
-                auto secondaryNodeIndex = secondaryPartition[j];
-                auto secondaryNode = _nodes[secondaryNodeIndex];
-
-                for (size_t k = 0; k < primaryPartition.size(); ++k)
-                {
-                    auto primaryNodeIndex = primaryPartition[k];
-                    auto primaryNode = _nodes[primaryNodeIndex];
-
-                    const auto distance = primaryNode->point.distance(secondaryNode->point);
-                    if (distance < shortestDistance)
-                    {
-                        shortestDistance = distance;
-                        closestPrimaryNodeIndex = primaryNodeIndex;
-                        closesetSecondaryNodeIndex = secondaryNodeIndex;
-                    }
-                }
-            }
-
-
-            // The primary and secondary nodes are connected
-            auto primaryNode = _nodes[closestPrimaryNodeIndex];
-            auto secondaryNode = _nodes[closesetSecondaryNodeIndex];
-
-            primaryNode->edgeNodes.push_back(secondaryNode);
-            secondaryNode->edgeNodes.push_back(primaryNode);
-
-            SkeletonEdge* edge = new SkeletonEdge(edges.size(), primaryNode, secondaryNode);
-            edges.push_back(edge);
-        }
-
-        // Updating the branching and terminal nodes
-        PROGRESS_SET;
-        OMP_PARALLEL_FOR
-        for (size_t i = 0; i < _nodes.size(); ++i)
-        {
-            // Check if the node has been visited before
-            SkeletonNode* node = _nodes[i];
-
-            if (node->edgeNodes.size() == 1)
-                node->terminal = true;
-            else
-                node->terminal = false;
-
-            if (node->edgeNodes.size() > 2)
-                node->branching = true;
-            else
-                node->branching = false;
-        }
 
         auto newGraph = new Graph(edges, _nodes);
 
@@ -160,53 +451,6 @@ void NeuronSkeletonizer::_verifyGraphConnectivity(SkeletonEdges& edges)
     }
 }
 
-void NeuronSkeletonizer::constructGraph()
-{
-    /// Extract the nodes of the skeleton from the center-line "thinned" voxels and return a
-    /// mapper that maps the indices of the voxels in the volume and the nodes in the skeleton
-    auto indicesMapper = _extractNodesFromVoxels();
-
-    /// Inflate the nodes, i.e. adjust their radii
-    if (_useAcceleration)
-        _inflateNodesUsingAcceleration();
-    else
-        _inflateNodes();
-
-    /// Connect the nodes of the skeleton to construct its edges. This operation will not connect
-    /// any gaps, it will just connect the nodes extracted from the voxels.
-    auto edges = _connectNodes(indicesMapper);
-
-    // Verify graph connectivity
-    _verifyGraphConnectivity(edges);
-
-    /// Add a virtual soma node, until the soma is reconstructed later
-    _addSomaNode();
-
-    /// Re-index the nodes, for simplicity, i.e. the index of the node represents its location in
-    /// the _nodes list
-    OMP_PARALLEL_FOR for (size_t i = 1; i <= _nodes.size(); ++i) { _nodes[i - 1]->index = i; }
-
-    /// Segmentthe soma mesh from the branches
-    _segmentSomaMesh();
-
-    /// Identify the somatic nodes in the skeleton
-    _identifySomaticNodes();
-
-     /// In the old approach, we needed to remove the triangle loops, but thanks to Foni's algorithm
-     /// these loops are removed automatically during the path construction phase
-     // _removeTriangleLoops();
-
-     /// Reconstruct the sections "or branches" from the nodes using the edges data
-     _buildBranchesFromNodes(_nodes);
-
-    /// Validate the branches, and remove the branches inside the soma, i.e. consider them to
-    /// be invalid
-    _removeBranchesInsideSoma();
-
-    /// Connect all the skeleton branches since the roots have been identified after the
-    /// soma segmentation
-    _connectBranches();
-}
 
 void NeuronSkeletonizer::_addSomaNode()
 {
@@ -268,7 +512,7 @@ void NeuronSkeletonizer::_segmentSomaMesh()
     LOOP_STARTS("Detecting Soma Nodes");
     for (size_t i = 0; i < numberSelectedNodes; ++i)
     {
-        auto& node0 = _nodes[pairsVector[i].first - 1];
+        auto& node0 = _nodes[pairsVector[i].first];
 
         Mesh* sample = new IcoSphere(3);
         sample->scale(node0->radius, node0->radius, node0->radius);
@@ -401,11 +645,12 @@ void NeuronSkeletonizer::_identifySomaticNodes()
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
         auto& node = _nodes[i];
-        size_t key = _volume->mapTo1DIndexWithoutBoundCheck(
-                    node->voxel.x(), node->voxel.y(), node->voxel.z());
+        // size_t key = _volume->mapTo1DIndexWithoutBoundCheck(
+                    // node->voxel.x(), node->voxel.y(), node->voxel.z());
+        size_t key = node->voxelIndex;
         if (std::find(insideSomaVoxels.begin(), insideSomaVoxels.end(), key) != insideSomaVoxels.end())
         {
-            // The soma is inside the soma
+            // The node is inside the soma
             node->insideSoma = true;
         }
     }
@@ -447,7 +692,7 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma()
             // branch, but it is not a root branch
             if (countSamplesInsideSoma == 0)
             {
-                branch->unsetRoot();;
+                branch->unsetRoot();
                 branch->setValid();
             }
 
@@ -513,9 +758,6 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma()
                 }
                 else
                 {
-                    firstNode->point.print();
-                    lastNode->point.print();
-
                     LOG_WARNING("Undefined case for the branch identification! Possible Errors!");
                 }
             }
@@ -739,7 +981,7 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
     size_t numberTerminalNodes = terminalNodes.size();
     LOOP_STARTS("Detecting Paths");
     PROGRESS_SET;
-    // OMP_PARALLEL_FOR
+    OMP_PARALLEL_FOR
     for (size_t iNode = 0; iNode < numberTerminalNodes; ++iNode)
     {
         // Get a reference to the EdgesIndices list
@@ -753,31 +995,27 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
         // Reverse the terminal to soma path to have the correct order
         std::reverse(terminalToSomaPath.begin(), terminalToSomaPath.end());
 #else
-        try {
 
-            // Find the path between the terminal node and the soma node
-            auto terminalToSomaPath = pathFinder.findPath(somaNodeIndex,
-                                                           terminalNodes[iNode]->graphIndex);
 
-            // Find the edges
-            for (size_t j = 0; j < terminalToSomaPath.size() - 1; ++j)
+        // Find the path between the terminal node and the soma node
+        auto terminalToSomaPath = pathFinder.findPath(somaNodeIndex,
+                                                      terminalNodes[iNode]->graphIndex);
+
+        // Find the edges
+        for (size_t j = 0; j < terminalToSomaPath.size() - 1; ++j)
+        {
+            auto currentNodeIndex = terminalToSomaPath[j];
+            auto nextNodeIndex = terminalToSomaPath[j + 1];
+
+            // Add the edge indices to the list
+            perTerminalEdgesIndices.push_back(EdgeIndex(currentNodeIndex, nextNodeIndex));
+
+            // If the next node index is not in the current node index, then add it
+            if (!graphNodes[currentNodeIndex]->isNodeInChildren(nextNodeIndex))
             {
-                auto currentNodeIndex = terminalToSomaPath[j];
-                auto nextNodeIndex = terminalToSomaPath[j + 1];
-
-                // Add the edge indices to the list
-                perTerminalEdgesIndices.push_back(EdgeIndex(currentNodeIndex, nextNodeIndex));
-
-                // If the next node index is not in the current node index, then add it
-                if (!graphNodes[currentNodeIndex]->isNodeInChildren(nextNodeIndex))
-                {
-                    graphNodes[currentNodeIndex]->children.push_back(graphNodes[nextNodeIndex]);
-                }
+                graphNodes[currentNodeIndex]->children.push_back(graphNodes[nextNodeIndex]);
             }
-        } catch (...) {
-            LOG_WARNING("Cannot find the path");
         }
-
 #endif
 
 
@@ -1263,68 +1501,6 @@ void NeuronSkeletonizer::_connectBranches()
     confirmTerminalsBranches(_branches);
 }
 
-void NeuronSkeletonizer::segmentComponents()
-{
-    /// Initially, and before constructing the graph, remove the loops between two branching points
-    _filterLoopsBetweenTwoBranchingPoints();
-
-    /// Remove the loops at a single branching point, i.e. starting and ending at the same node.
-    _filterLoopsAtSingleBranchingPoint();
-
-    /// Reduce the skeleton into a list of SkeletonWeightedEdge's
-    SkeletonWeightedEdges weighteEdges = _reduceSkeletonToWeightedEdges();
-
-    /// Get a list of all the branching/terminal nodes within the skeleton from the
-    /// SkeletonWeightedEdges list
-    SkeletonNodes skeletonBranchingNodes = _selectBranchingNodesFromWeightedEdges(weighteEdges);
-
-    /// Get the soma node index within the weighted graph
-    int64_t somaNodeIndex = _getSomaIndexFromGraphNodes(skeletonBranchingNodes);
-
-    // Construct the graph nodes list
-    GraphNodes graphNodes = _constructGraphNodesFromSkeletonNodes(skeletonBranchingNodes);
-
-    /// After having the weighted edges and the nodes computed, compute the number of components in
-    /// the graph, if the result is more than 1 then then re-connect them to be in a single graph
-    auto graph = new Graph(weighteEdges, graphNodes);
-    auto components = graph->getComponents();
-    if (components.size() == 1)
-    {
-        LOG_SUCCESS("The skeleton graph has 1 component! OK.");
-    }
-    else
-    {
-        LOG_WARNING("The skeleton graph has [ %d ] components!", components.size());
-    }
-
-    // Find the shortest paths of all the terminals and get a list of the indices of the active edges
-    EdgesIndices edgeIndices = _findShortestPathsFromTerminalNodesToSoma(
-                weighteEdges, skeletonBranchingNodes, graphNodes, somaNodeIndex);
-
-    // Construct the GraphBranches from the GraphNodes
-    GraphBranches graphBranches = _constructGraphBranchesFromGraphNodes(graphNodes, somaNodeIndex);
-
-    // Construct the hierarchy of the graph
-    _constructGraphHierarchy(graphBranches);
-
-    // Construct the hierarchy of the skeleton
-    _constructSkeletonHierarchy(graphBranches);
-
-    // merge branches with a single child
-    _mergeBranchesWithSingleChild();
-
-    // Invalidate the inactive branches
-    _detectInactiveBranches(weighteEdges, edgeIndices);
-
-    // Adkjust the soma radius
-    _adjustSomaRadius();
-
-    // Update all the parents
-    _updateParents();
-
-    // Filter the synapses
-    _filterSpines();
-}
 
 void NeuronSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
                                                        const size_t& numberOverlappingVoxels,
