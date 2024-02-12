@@ -55,6 +55,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyInputMorphologyArgument();
     options->verifyOutputDirectoryArgument();
     options->verifyBoudsFileArgument();
+    options->verifyMeshExportArguments();
     options->verifyMorphologyPrefixArgument();
     options->verifyPackingAlgorithmArgument();
     options->verifyProcessingArguments();
