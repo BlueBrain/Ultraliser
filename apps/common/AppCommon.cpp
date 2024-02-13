@@ -556,6 +556,14 @@ Mesh* loadInputMesh(const AppOptions* options)
     // Load the mesh and construct the mesh object, and generate its artifacts if needed
     auto mesh = new Mesh(options->inputMeshPath);
 
+    // Scale the mesh, if required
+    if (options->xScaleFactor > 0.0 || options->yScaleFactor > 0.0 || options->zScaleFactor > 0.0 )
+    {
+        LOG_WARNING("Scaling the mesh [%f, %f, %f]",
+                    options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
+        mesh->scale(options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
+    }
+
     // Write the statistics of the input mesh
     if (options->writeStatistics)
         mesh->printStats(INPUT_STRING, &options->statisticsPrefix);

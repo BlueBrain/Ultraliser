@@ -27,9 +27,11 @@
 
 namespace Ultraliser
 {
-
-NeuronSkeletonizer::NeuronSkeletonizer(Volume* volume, const bool &useAcceleration)
-    : Skeletonizer(volume, useAcceleration)
+NeuronSkeletonizer::NeuronSkeletonizer(Volume* volume,
+                                       const bool &useAcceleration,
+                                       const bool &debugSkeleton,
+                                       const std::string debuggingPrefix)
+    : Skeletonizer(volume, useAcceleration, debugSkeleton, debuggingPrefix)
 {
     /// EMPTY CONSTRUCTOR
 }
@@ -42,12 +44,17 @@ void NeuronSkeletonizer::skeletonizeVolumeToCenterLines()
         _applyVolumeThinning();
 }
 
-
 void NeuronSkeletonizer::constructGraph()
 {
     /// Extract the nodes of the skeleton from the center-line "thinned" voxels and return a
     /// mapper that maps the indices of the voxels in the volume and the nodes in the skeleton
     auto indicesMapper = _extractNodesFromVoxels();
+
+    /// DEBUG: Export the nodes file
+    if (_debugSkeleton && _debuggingPrefix != NONE)
+    {
+        _exportGraphNodes(_debuggingPrefix);
+    }
 
     /// Connect the nodes of the skeleton to construct its edges. This operation will not connect
     /// any gaps, it will just connect the nodes extracted from the voxels.
@@ -303,7 +310,6 @@ void NeuronSkeletonizer::_verifyGraphConnectivityToClosestPartition(SkeletonEdge
 
             // Updating the branching and terminal nodes
             PROGRESS_SET;
-            // OMP_PARALLEL_FOR
             for (size_t i = 0; i < _nodes.size(); ++i)
             {
                 // Check if the node has been visited before
@@ -321,8 +327,6 @@ void NeuronSkeletonizer::_verifyGraphConnectivityToClosestPartition(SkeletonEdge
             }
         }
     }
-
-
 }
 
 void NeuronSkeletonizer::_verifyGraphConnectivityToMainPartition(GraphComponents &components,
@@ -384,7 +388,6 @@ void NeuronSkeletonizer::_verifyGraphConnectivityToMainPartition(GraphComponents
             }
         }
 
-
         // The primary and secondary nodes are connected
         auto primaryNode = _nodes[closestPrimaryNodeIndex];
         auto secondaryNode = _nodes[closesetSecondaryNodeIndex];
@@ -434,8 +437,6 @@ void NeuronSkeletonizer::_verifyGraphConnectivity(SkeletonEdges& edges)
         // Verify the graph connectivity to the main partition
         _verifyGraphConnectivityToMainPartition(components, edges);
 
-
-
         auto newGraph = new Graph(edges, _nodes);
 
         auto newComponents = newGraph->getComponents();
@@ -450,7 +451,6 @@ void NeuronSkeletonizer::_verifyGraphConnectivity(SkeletonEdges& edges)
         }
     }
 }
-
 
 void NeuronSkeletonizer::_addSomaNode()
 {

@@ -44,7 +44,10 @@ public:
      * @brief NeuronSkeletonizer
      * @param volume
      */
-    NeuronSkeletonizer(Volume *volume, const bool &useAcceleration = true);
+    NeuronSkeletonizer(Volume *volume,
+                       const bool &useAcceleration = true,
+                       const bool &debugSkeleton = false,
+                       const std::string debuggingPrefix = NONE);
     ~NeuronSkeletonizer();
 
     /**

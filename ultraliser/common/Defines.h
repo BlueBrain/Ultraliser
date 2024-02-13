@@ -53,6 +53,7 @@
 // Strings
 #define CHAR(C)                                 char(C)
 #define STRING(STR)                             std::string(STR)
+#define NONE                                    STRING("NONE")
 #define EMPTY                                   STRING("")
 #define NO_DEFAULT_VALUE                        STRING("NO_DEFAULT_VALUE")
 
@@ -85,6 +86,7 @@
 #define VMV5_EXTENSION                          STRING(".vmv5")
 #define H5_EXTENSION                            STRING(".h5")
 #define SWC_EXTENSION                           STRING(".swc")
+#define NODES_EXTENSION                         STRING(".nodes")
 
 // Volume formats
 #define FORMAT_BIT                              STRING("bit")
@@ -131,6 +133,8 @@
 #define XZ_SUFFIX                               STRING("-xz")
 #define YZ_SUFFIX                               STRING("-yz")
 #define XYZ_SUFFIX                              STRING("-xyz")
+#define SKELETON_SUFFIX                         STRING("-skeleton")
+#define NODES_SUFFIX                            STRING("-nodes")
 
 // Directories where the artifacts will be generated
 #define MORPHOLOGIES_DIRECTORY                  STRING("morphologies")

@@ -77,28 +77,24 @@ void run(int argc , const char** argv)
     // Load the input mesh
     auto inputMesh = loadInputMesh(options);
 
-    // Scale the mesh
-    if (options->xScaleFactor > 0.0 || options->yScaleFactor > 0.0 || options->zScaleFactor > 0.0 )
-    {
-        inputMesh->scale(options->xScaleFactor, options->yScaleFactor, options->zScaleFactor);
-    }
-
-
-    auto prefix = options->projectionPrefix;
-
     // Create the volume from the mesh
     auto solidVolume = createVolumeGrid(inputMesh, options);
 
-    // Surface voxelization
+    // Adaptive and conservative Voxelization
     solidVolume->surfaceVoxelization(inputMesh, false, false, 1.0);
     solidVolume->solidVoxelization(options->voxelizationAxis);
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
 
-    // solidVolume->project(options->morphologyPrefix, true, true, true);
+    // Project the volume created from the input mesh
+    if (options->projectXY || options->projectXZ || options->projectZY)
+    {
+        solidVolume->project(options->projectionPrefix,
+                             options->projectXY, options->projectXZ, options->projectZY);
+    }
 
     // Create a skeletonization object
     NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(
-                solidVolume, options->useAccelerationStructures);
+                solidVolume, options->useAccelerationStructures, true, options->morphologyPrefix);
 
     // Initialize the skeltonizer
     skeletonizer->initialize();
@@ -106,20 +102,28 @@ void run(int argc , const char** argv)
     // Skeletonize the volume to obtain the centerlines
     skeletonizer->skeletonizeVolumeToCenterLines();
 
-    // TODO: Project the centerlines
-    // solidVolume->project(options->morphologyPrefix + "_skeleton", true, true, true);
+    // Project the center lines of the skeleton
+    if (options->projectXY || options->projectXZ || options->projectZY)
+    {
+        const std::string prefix = options->projectionPrefix + SKELETON_SUFFIX;
+        solidVolume->project(prefix, options->projectXY, options->projectXZ, options->projectZY);
+    }
 
-    // Construct the neuron graph
+    // Construct the neuron graph from the volume
     skeletonizer->constructGraph();
 
+    //
     skeletonizer->exportIndividualBranches(options->morphologyPrefix + "-branches");
 
+    // Segment the different components of the graph
     skeletonizer->segmentComponents();
 
     // skeletonizer->exportIndividualBranches(options->morphologyPrefix + "-2");
 
+    // Export the SWC file of the neuron
     skeletonizer->exportSWCFile(options->morphologyPrefix);
 
+    // Export the somatic mesh
     skeletonizer->exportSomaMesh(options->meshPrefix,
                                  options->exportOBJ, options->exportPLY,
                                  options->exportOFF, options->exportSTL);
