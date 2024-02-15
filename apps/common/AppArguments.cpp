@@ -641,6 +641,14 @@ void AppArguments::addNeuronalMorphologyExportArguments()
                 "Exports the branches of the morphology to .TXT file.");
     _args->addArgument(&exportMorphologyBranches);
     _options->exportBranches = _args->getBoolValue(&exportMorphologyBranches);
+
+    Argument debugSkeletonization(
+                "--debug-skeletonization",
+                ARGUMENT_TYPE::BOOL,
+                "Debug the skeletonization by generating the artifacts at every stage of "
+                "the process.");
+    _args->addArgument(&debugSkeletonization);
+    _options->debugSkeletonization = _args->getBoolValue(&debugSkeletonization);
 }
 
 void AppArguments::addMeshExportArguments()

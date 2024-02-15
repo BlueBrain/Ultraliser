@@ -87,6 +87,7 @@
 #define H5_EXTENSION                            STRING(".h5")
 #define SWC_EXTENSION                           STRING(".swc")
 #define NODES_EXTENSION                         STRING(".nodes")
+#define BRANCHES_EXTENSION                      STRING(".branches")
 
 // Volume formats
 #define FORMAT_BIT                              STRING("bit")

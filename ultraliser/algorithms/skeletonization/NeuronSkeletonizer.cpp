@@ -24,6 +24,7 @@
 #include "NeuronSkeletonizer.h"
 #include <data/meshes/simple/IcoSphere.h>
 #include <algorithms/skeletonization/graphs/Graphs.h>
+#include <algorithms/mcs/DualMarchingCubes.h>
 
 namespace Ultraliser
 {
@@ -63,6 +64,12 @@ void NeuronSkeletonizer::constructGraph()
     /// Inflate the nodes, i.e. adjust their radii
     _inflateNodes();
 
+    /// DEBUG: Export the inflated nodes file
+    if (_debugSkeleton && _debuggingPrefix != NONE)
+    {
+        _exportGraphNodes(_debuggingPrefix + "-inflated");
+    }
+
     /// Add a virtual soma node, until the soma is reconstructed later
     _addSomaNode();
 
@@ -76,6 +83,10 @@ void NeuronSkeletonizer::constructGraph()
     /// Identify the somatic nodes in the skeleton
     _identifySomaticNodes();
 
+    /// DEBUG: Export the somatic nodes file
+    if (_debugSkeleton && _debuggingPrefix != NONE)
+    { _exportSomaticNodes(_debuggingPrefix + "-somatic"); }
+
     // Verify graph connectivity
     // _verifyGraphConnectivity(edges);
     _verifyGraphConnectivityToClosestPartition(_edges);
@@ -87,16 +98,21 @@ void NeuronSkeletonizer::constructGraph()
     /// Reconstruct the sections "or branches" from the nodes using the edges data
     _buildBranchesFromNodes(_nodes);
 
+    /// DEBUG: Export all the branches
+    if (_debugSkeleton && _debuggingPrefix != NONE)
+    { _exportBranches(_debuggingPrefix, SkeletonBranch::ALL); }
+
     /// Validate the branches, and remove the branches inside the soma, i.e. consider them to
     /// be invalid
     _removeBranchesInsideSoma();
 
+    /// DEBUG: Export the somatic branches
+    if (_debugSkeleton && _debuggingPrefix != NONE)
+    { _exportBranches(_debuggingPrefix, SkeletonBranch::SOMATIC); }
+
     /// Connect all the skeleton branches since the roots have been identified after the
     /// soma segmentation
     _connectBranches();
-
-    // exportSomaMesh("/ssd2/skeletonization-project/skeletonization-output/morphologies/soma", true,false, false, false);
-
 }
 
 void NeuronSkeletonizer::segmentComponents()
@@ -131,42 +147,6 @@ void NeuronSkeletonizer::segmentComponents()
     else
     {
         LOG_WARNING("The skeleton graph has [ %d ] components!", components.size());
-
-
-        std::ofstream nodestxt;
-        nodestxt.open ("/ssd2/skeletonization-project/skeletonization-output/morphologies/nodes.txt");
-        for(int i = 0; i < _nodes.size(); ++i)
-        {
-            auto p = _nodes[i]->point;
-            nodestxt << p.x() << " " << p.y() << " " << p.z() << "\n";
-
-        }
-        nodestxt.close();
-
-
-        std::ofstream x1;
-        x1.open ("/ssd2/skeletonization-project/skeletonization-output/morphologies/c1.txt");
-        for(int i = 0; i < components[0].size(); ++i)
-        {
-            auto nidx = components[0][i];
-            auto p = graphNodes[nidx]->position;
-            x1 << p.x() << " " << p.y() << " " << p.z() << "\n";
-
-        }
-        x1.close();
-
-        std::ofstream x2;
-        x2.open ("/ssd2/skeletonization-project/skeletonization-output/morphologies/c2.txt");
-        for(int i = 0; i < components[1].size(); ++i)
-        {
-            auto nidx = components[1][i];
-            auto p = graphNodes[nidx]->position;
-            x2 << p.x() << " " << p.y() << " " << p.z() << "\n";
-
-        }
-        x2.close();
-
-
     }
 
     // Find the shortest paths of all the terminals and get a list of the indices of the active edges
@@ -472,9 +452,9 @@ void NeuronSkeletonizer::_segmentSomaMesh()
 {
     LOG_STATUS("Segmenting Soma");
 
-    // The _somaMesh should be a complex geometry containing overlapping spheres that would define
+    // The _somaProxyMesh should be a complex geometry containing overlapping spheres that would define
     // its structure
-    _somaMesh = new Mesh();
+    _somaProxyMesh = new Mesh();
 
     // For every node in the skeleton, if the radius is greater than 2.0, then this is a candidate
     // for the soma sample
@@ -491,7 +471,6 @@ void NeuronSkeletonizer::_segmentSomaMesh()
 
         /// TODO: This is a magic value, it works now, but we need to find an optimum value based
         /// on some statistical analysis.
-
         if (node->radius >= 2.0)
         {
             interSomaticNodes.insert({node->index, node->radius});
@@ -519,7 +498,7 @@ void NeuronSkeletonizer::_segmentSomaMesh()
         sample->translate(node0->point);
         sample->map(_shellPoints, false);
 
-        _somaMesh->append(sample);
+        _somaProxyMesh->append(sample);
         sample->~Mesh();
 
         estimatedSomaCenter += node0->point;
@@ -548,7 +527,7 @@ void NeuronSkeletonizer::_identifySomaticNodes()
 
     // Rasterize the soma mesh
     LOOP_STARTS("Surface Voxelization");
-    _volume->surfaceVoxelization(_somaMesh, false, false);
+    _volume->surfaceVoxelization(_somaProxyMesh, false, false);
     LOG_STATS(GET_TIME_SECONDS);
 
     // This is a list of 1D indices of all the voxels that are inside the soma
@@ -567,7 +546,7 @@ void NeuronSkeletonizer::_identifySomaticNodes()
 
         // Compute the soma mesh bounding box (in coordinate space)
         Vector3f pMinSomaMesh, pMaxSomaMesh;
-        _somaMesh->computeBoundingBox(pMinSomaMesh, pMaxSomaMesh);
+        _somaProxyMesh->computeBoundingBox(pMinSomaMesh, pMaxSomaMesh);
 
         // Compute the soma volume bounding box ()
         auto somaVolumeBounds = _volume->getROIBounds(pMinSomaMesh, pMaxSomaMesh);
@@ -656,9 +635,36 @@ void NeuronSkeletonizer::_identifySomaticNodes()
     }
     LOG_STATS(GET_TIME_SECONDS);
 
+    // Before we delete the volume, use it to reconst a high quality soma mesh
+    _reconstructSomaMeshFromProxy();
+
     /// TODO: The volume is safe to be deallocated
     _volume->~Volume();
     _volume = nullptr;
+}
+
+void NeuronSkeletonizer::_reconstructSomaMeshFromProxy()
+{
+    // Get relaxed bounding box to build the volume
+    Vector3f pMinInput, pMaxInput;
+    _somaProxyMesh->computeBoundingBox(pMinInput, pMaxInput);
+    const auto& meshBoundingBox = pMaxInput - pMinInput;
+
+    // Construct the volume
+    Volume* somaVolume = new Volume(pMinInput, pMaxInput, 128, 0.1);
+
+    somaVolume->surfaceVoxelization(_somaProxyMesh, false, false, 1.0);
+    somaVolume->solidVoxelization();
+
+    _somaMesh = DualMarchingCubes::generateMeshFromVolume(somaVolume);
+
+    delete somaVolume;
+
+    // Smooth the soma mesh
+    _somaMesh->smoothSurface(15);
+
+    const std::string prefix = _debuggingPrefix + "-soma";
+     _somaMesh->exportMesh(prefix, true, false, false, false);
 }
 
 void NeuronSkeletonizer::_removeBranchesInsideSoma()
@@ -677,6 +683,7 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma()
         {
             // TODO: What could be other possible cases!
             branch->setInvalid();
+            branch->setInsideSoma();
             branch->unsetRoot();
         }
         else
@@ -700,7 +707,8 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma()
             else if (countSamplesInsideSoma == branch->nodes.size())
             {
                 branch->unsetRoot();
-                branch->setInvalid(); // branch->valid = false;
+                branch->setInsideSoma();
+                branch->setInvalid();
             }
 
             // Otherwise, it is a branch that is connected to the soma, partially in the soma
@@ -979,9 +987,34 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
 
     // Search for all the terminal nodes
     size_t numberTerminalNodes = terminalNodes.size();
-    LOOP_STARTS("Detecting Paths");
+    std::vector< PathIndices > terminalsToSomaPaths;
+    terminalsToSomaPaths.resize(numberTerminalNodes);
+
+    LOOP_STARTS("Searching Terminals-to-soma Paths *");
     PROGRESS_SET;
     OMP_PARALLEL_FOR
+    for (size_t iNode = 0; iNode < numberTerminalNodes; ++iNode)
+    {
+#ifdef REVERSE
+        // Find the path between the terminal node and the soma node
+        auto terminalToSomaPath = pathFinder->findPath(terminalNodes[iNode]->graphIndex,
+                                                       somaNodeIndex);
+
+        // Reverse the terminal to soma path to have the correct order
+        std::reverse(terminalToSomaPath.begin(), terminalToSomaPath.end());
+#else
+        // Find the path between the terminal node and the soma node
+        terminalsToSomaPaths[iNode] = pathFinder.findPath(
+                    somaNodeIndex, terminalNodes[iNode]->graphIndex);
+#endif
+        LOOP_PROGRESS(PROGRESS, numberTerminalNodes);
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    LOOP_STARTS("Updating Graph");
+    PROGRESS_RESET;
     for (size_t iNode = 0; iNode < numberTerminalNodes; ++iNode)
     {
         // Get a reference to the EdgesIndices list
@@ -995,11 +1028,8 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
         // Reverse the terminal to soma path to have the correct order
         std::reverse(terminalToSomaPath.begin(), terminalToSomaPath.end());
 #else
-
-
         // Find the path between the terminal node and the soma node
-        auto terminalToSomaPath = pathFinder.findPath(somaNodeIndex,
-                                                      terminalNodes[iNode]->graphIndex);
+        auto terminalToSomaPath = terminalsToSomaPaths[iNode];
 
         // Find the edges
         for (size_t j = 0; j < terminalToSomaPath.size() - 1; ++j)
@@ -1017,8 +1047,6 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
             }
         }
 #endif
-
-
         LOOP_PROGRESS(PROGRESS, numberTerminalNodes);
         PROGRESS_UPDATE;
     }
@@ -1028,6 +1056,10 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
     // Clear the terminal nodes list
     terminalNodes.clear();
     terminalNodes.shrink_to_fit();
+
+    // Clear the terminal nodes list
+    terminalsToSomaPaths.clear();
+    terminalsToSomaPaths.shrink_to_fit();
 
     // The indices of all the edges that have been traversed
     EdgesIndices edgesIndices;
@@ -1330,6 +1362,7 @@ void NeuronSkeletonizer::_updateParents()
 
 void NeuronSkeletonizer::_filterSpines()
 {
+    /// NOTE: Spine branches must be terminals and can have branching.
     for (size_t i = 0; i < _branches.size(); ++i)
     {
         if (_branches[i]->isTerminal() && _branches[i]->isValid())
@@ -1517,8 +1550,8 @@ void NeuronSkeletonizer::exportSomaMesh(const std::string& prefix,
                                         const bool& formatOFF = false,
                                         const bool& formatSTL = false)
 {
-    const std::string somaMeshPrefix = prefix + "-soma";
-    _somaMesh->exportMesh(somaMeshPrefix, formatOBJ, formatPLY, formatOFF, formatSTL);
+    const std::string somaMeshPrefix = prefix + "-proxy-soma";
+    _somaProxyMesh->exportMesh(somaMeshPrefix, formatOBJ, formatPLY, formatOFF, formatSTL);
 }
 
 void NeuronSkeletonizer::collectSWCNodes(const SkeletonBranch* branch, SkeletonNodes& swcNodes,
@@ -1629,6 +1662,148 @@ void NeuronSkeletonizer::exportSWCFile(const std::string& prefix)
     stream.close();
 }
 
+void NeuronSkeletonizer::_exportSomaticBranches(const std::string& prefix) const
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Construct the file path
+    std::string filePath = prefix + "-somatic" + BRANCHES_EXTENSION;
+    LOG_STATUS("Exporting Somatic Branches: [ %s ]", filePath.c_str());
+
+    std::fstream stream;
+    stream.open(filePath, std::ios::out);
+
+    LOOP_STARTS("Writing Somatic Branches");
+    size_t progress = 0;
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        if (_branches[i]->isInsideSoma())
+        {
+            // The @start marks a new branch in the file
+            stream << "start " << _branches[i]->index << "\n";
+
+            for (auto& node: _branches[i]->nodes)
+            {
+                stream << node->point.x() << " "
+                       << node->point.y() << " "
+                       << node->point.z() << " "
+                       << node->radius << "\n";
+            }
+
+            // The @end marks the terminal sample of a branch
+            stream << "end\n";
+        }
+
+        LOOP_PROGRESS(progress, _branches.size());
+        ++progress;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Close the file
+    stream.close();
+}
+
+void NeuronSkeletonizer::_exportBranches(const std::string& prefix,
+                                         const SkeletonBranch::BRANCH_STATE state)
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Construct the file path
+    std::string filePath = prefix;
+    if (state == SkeletonBranch::INVALID)
+    {
+        filePath += "-invalid";
+    }
+    else if (state == SkeletonBranch::SOMATIC)
+    {
+        filePath += "-somatic";
+    }
+    else if (state == SkeletonBranch::SPINE)
+    {
+        filePath += "-spines";
+    }
+    else
+    {
+        /// NOTHING
+    }
+
+    filePath += BRANCHES_EXTENSION;
+
+    LOG_STATUS("Exporting Neuron Branches: [ %s ]", filePath.c_str());
+
+    std::fstream stream;
+    stream.open(filePath, std::ios::out);
+
+    // A set of selected branches to write for debugging
+    SkeletonBranches toWrite;
+    if (state == SkeletonBranch::INVALID)
+    {
+        for (size_t i = 0; i < _branches.size(); ++i)
+        {
+            if (!_branches[i]->isValid())
+            {
+                toWrite.push_back(_branches[i]);
+            }
+        }
+    }
+    else if (state == SkeletonBranch::SOMATIC)
+    {
+        for (size_t i = 0; i < _branches.size(); ++i)
+        {
+            if (_branches[i]->isInsideSoma())
+            {
+                toWrite.push_back(_branches[i]);
+            }
+        }
+    }
+    else if (state == SkeletonBranch::SPINE)
+    {
+        for (size_t i = 0; i < _branches.size(); ++i)
+        {
+            if (_branches[i]->isSpine())
+            {
+                toWrite.push_back(_branches[i]);
+            }
+        }
+    }
+    else
+    {
+        for (size_t i = 0; i < _branches.size(); ++i)
+        {
+            toWrite.push_back(_branches[i]);
+        }
+    }
+
+    LOOP_STARTS("Writing Branches");
+    size_t progress = 0;
+    for (size_t i = 0; i < toWrite.size(); ++i)
+    {
+        // The @start marks a new branch in the file
+        stream << "start " << toWrite[i]->index << "\n";
+
+        for (auto& node: toWrite[i]->nodes)
+        {
+            stream << node->point.x() << " "
+                   << node->point.y() << " "
+                   << node->point.z() << " "
+                   << node->radius << "\n";
+        }
+        // The @end marks the terminal sample of a branch
+        stream << "end\n";
+
+        LOOP_PROGRESS(progress, toWrite.size());
+        ++progress;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Close the file
+    stream.close();
+}
+
 void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) const
 {
     // Start the timer
@@ -1665,6 +1840,38 @@ void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) con
 
         // The @end marks the terminal sample of a branch
         stream << "end\n";
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Close the file
+    stream.close();
+}
+
+void NeuronSkeletonizer::_exportSomaticNodes(const std::string prefix)
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Construct the file path
+    std::string filePath = prefix + NODES_EXTENSION;
+    LOG_STATUS("Exporting Nodes : [ %s ]", filePath.c_str());
+
+    std::fstream stream;
+    stream.open(filePath, std::ios::out);
+
+    LOOP_STARTS("Writing Somatic Nodes");
+    size_t progress = 0;
+    for (size_t i = 0; i < _nodes.size(); ++i)
+    {
+        auto& node = _nodes[i];
+        if (node->insideSoma)
+        {
+            stream << node->point.x() << " " << node->point.y() << " " << node->point.z() << " "
+                   << node->radius << "\n";
+        }
+        LOOP_PROGRESS(progress, _nodes.size());
+        ++progress;
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);

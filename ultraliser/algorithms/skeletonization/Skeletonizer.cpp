@@ -874,12 +874,11 @@ void Skeletonizer::_exportGraphNodes(const std::string prefix)
     TIMER_SET;
 
     // Construct the file path
-    std::string filePath = prefix + NODES_SUFFIX + NODES_EXTENSION;
+    std::string filePath = prefix + NODES_EXTENSION;
     LOG_STATUS("Exporting Nodes : [ %s ]", filePath.c_str());
 
     std::fstream stream;
     stream.open(filePath, std::ios::out);
-
 
     LOOP_STARTS("Writing Nodes");
     size_t progress = 0;

@@ -94,7 +94,8 @@ void run(int argc , const char** argv)
 
     // Create a skeletonization object
     NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(
-                solidVolume, options->useAccelerationStructures, true, options->morphologyPrefix);
+                solidVolume, options->useAccelerationStructures,
+                options->debugSkeletonization, options->morphologyPrefix);
 
     // Initialize the skeltonizer
     skeletonizer->initialize();

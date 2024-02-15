@@ -30,6 +30,7 @@ namespace Ultraliser
 {
 
 
+
 enum BRANCH_CONNECTION_TYPE{
     ROOT,
     TERMINAL,
@@ -42,6 +43,14 @@ enum BRANCH_CONNECTION_TYPE{
  */
 struct SkeletonBranch
 {
+    enum BRANCH_STATE {
+        ALL,
+        VALID,
+        INVALID,
+        SOMATIC,
+        SPINE
+    };
+
 public:
 
     /**
@@ -131,6 +140,19 @@ public:
      * @return True if the branch is terminal, otherwise false.
      */
     bool isTerminal() const;
+
+    /**
+     * @brief setInsideSoma
+     * Sets the branch to be entirely located inside the soma. This is an invalid branch.
+     */
+    void setInsideSoma();
+
+    /**
+     * @brief isInsideSoma
+     * Verifies if the branch is located inside the soma or not.
+     * @return True if the branch is located inside the soma, otherwise False.
+     */
+    bool isInsideSoma();
 
     /**
      * @brief setRoot
