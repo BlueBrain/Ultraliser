@@ -29,8 +29,6 @@
 namespace Ultraliser
 {
 
-
-
 enum BRANCH_CONNECTION_TYPE{
     ROOT,
     TERMINAL,
@@ -48,7 +46,8 @@ struct SkeletonBranch
         VALID,
         INVALID,
         SOMATIC,
-        SPINE
+        SPINE,
+        TERMINAL
     };
 
 public:

@@ -274,6 +274,12 @@ private:
      */
     void _mergeBranchesWithSingleChild();
 
+
+
+
+
+    void _mergeBranchesAfterFilteringSpines();
+
     /**
      * @brief _detectInactiveBranches
      * Find all the inactive branches in the skeleton that do not contribute to the actual

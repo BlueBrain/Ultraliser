@@ -176,6 +176,15 @@ void NeuronSkeletonizer::segmentComponents()
 
     // Filter the synapses
     _filterSpines();
+
+    _mergeBranchesAfterFilteringSpines();
+    _mergeBranchesWithSingleChild();
+
+    // Filter the synapses
+    _filterSpines();
+
+    _mergeBranchesAfterFilteringSpines();
+    _mergeBranchesWithSingleChild();
 }
 
 void NeuronSkeletonizer::_findClosestNodesInTwoPartitions(GraphComponent& partition1,
@@ -1247,6 +1256,74 @@ void NeuronSkeletonizer::_mergeBranchesWithSingleChild()
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
 }
+
+void NeuronSkeletonizer::_mergeBranchesAfterFilteringSpines()
+{
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        // A reference to the branch
+        auto& branch = _branches[i];
+
+        // If the branch is spine
+        if (branch->isSpine())
+        {
+            std::cout << "Spine " << branch->index << "\n";
+
+            for (size_t j = 0; j < branch->parents.size(); ++j)
+            {
+                // Get the parent
+                auto parent = branch->parents[j];
+
+                // Remove the spine from the children
+                const auto childrenBefore = parent->children.size();
+
+                std::vector< SkeletonBranch* > newChildren;
+                for (size_t k = 0; k < parent->children.size(); ++k)
+                {
+                    if (parent->children[k]->index == branch->index)
+                    {
+                        // IGNORE
+                    }
+                    else
+                    {
+                        newChildren.push_back(parent->children[k]);
+                    }
+                }
+
+                parent->children.clear();
+                parent->children.shrink_to_fit();
+
+                for (size_t k = 0; k < newChildren.size(); ++k)
+                {
+                    parent->children.push_back(newChildren[k]);
+                }
+
+                const auto childrenAfter = parent->children.size();
+
+                LOG_SUCCESS("Children Before %d Children After %d", childrenBefore, childrenAfter);
+            }
+
+        }
+
+        // LOOP_PROGRESS(i, _branches.size());
+    }
+
+
+    /// Set the terminals
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        auto branch = _branches[i];
+        if (branch->isValid() && branch->children.size() == 0)
+        {
+            branch->setTerminal();
+        }
+    }
+
+
+
+    ///
+}
+
 
 void NeuronSkeletonizer::_detectInactiveBranches(SkeletonWeightedEdges& graphEdges,
                                                  EdgesIndices& visitedEdgesIndices)
