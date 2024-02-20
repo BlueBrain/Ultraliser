@@ -21,7 +21,7 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#include<ctime>
+#include <common/Defines.h>
 #include "Skeletonizer.h"
 #include "SkeletonizerUtils.h"
 #include <algorithms/skeletonization/thinning/Neighbors.hh>
@@ -33,9 +33,14 @@
 
 namespace Ultraliser
 {
-Skeletonizer::Skeletonizer(Volume* volume, const bool &useAcceleration)
+Skeletonizer::Skeletonizer(Volume* volume,
+                           const bool &useAcceleration,
+                           const bool &debugSkeleton,
+                           const std::string debuggingPrefix)
     : _volume(volume)
     , _useAcceleration(useAcceleration)
+    , _debugSkeleton(debugSkeleton)
+    , _debuggingPrefix(debuggingPrefix)
 {
     // Mesh bounding box
     _pMinMesh = volume->getPMin();
@@ -861,6 +866,36 @@ void Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& nodes)
 std::vector< Vector3f > Skeletonizer::getShellPoints()
 {
     return _shellPoints;
+}
+
+void Skeletonizer::_exportGraphNodes(const std::string prefix)
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Construct the file path
+    std::string filePath = prefix + NODES_EXTENSION;
+    LOG_STATUS("Exporting Nodes : [ %s ]", filePath.c_str());
+
+    std::fstream stream;
+    stream.open(filePath, std::ios::out);
+
+    LOOP_STARTS("Writing Nodes");
+    size_t progress = 0;
+    for (size_t i = 0; i < _nodes.size(); ++i)
+    {
+        auto& node = _nodes[i];
+        stream << node->point.x() << " " << node->point.y() << " " << node->point.z() << " "
+               << node->radius << "\n";
+
+        LOOP_PROGRESS(progress, _nodes.size());
+        ++progress;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Close the file
+    stream.close();
 }
 
 }

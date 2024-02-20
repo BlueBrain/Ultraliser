@@ -44,7 +44,10 @@ public:
      * @brief NeuronSkeletonizer
      * @param volume
      */
-    NeuronSkeletonizer(Volume *volume, const bool &useAcceleration = true);
+    NeuronSkeletonizer(Volume *volume,
+                       const bool &useAcceleration = true,
+                       const bool &debugSkeleton = false,
+                       const std::string debuggingPrefix = NONE);
     ~NeuronSkeletonizer();
 
     /**
@@ -271,6 +274,12 @@ private:
      */
     void _mergeBranchesWithSingleChild();
 
+
+
+
+
+    void _mergeBranchesAfterFilteringSpines();
+
     /**
      * @brief _detectInactiveBranches
      * Find all the inactive branches in the skeleton that do not contribute to the actual
@@ -285,6 +294,10 @@ private:
      * @brief _adjustSomaRadius
      */
     void _adjustSomaRadius();
+
+    void _reconstructSomaMeshFromProxy();
+
+    void _exportBranches(const std::string &prefix, const SkeletonBranch::BRANCH_STATE state);
 
     /**
      * @brief _verifyGraphConnectivity
@@ -306,11 +319,22 @@ private:
     void _connectPartition(GraphComponents& partitions, const size_t &partitionIndex,
                            SkeletonEdges &edges);
 
+    void _exportSomaticNodes(const std::string prefix);
+
+    void _exportSomaticBranches(const std::string& prefix) const;
+
+
 private:
 
     /**
+     * @brief _somaProxyMesh
+     * A pointer to the proxy mesh of the segmented soma.
+     */
+    Mesh* _somaProxyMesh = nullptr;
+
+    /**
      * @brief _somaMesh
-     * A pointer to the mesh of the segmented soma.
+     * A pointer to the final mesh of the segmented soma, after processing the proxy mesh.
      */
     Mesh* _somaMesh = nullptr;
 

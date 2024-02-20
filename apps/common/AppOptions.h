@@ -624,6 +624,12 @@ public:
     bool exportBranches = false;
 
     /**
+     * @brief debugSkeletonization
+     * Debugs the skeletonization process by generating the artifacts at every stage.
+     */
+    bool debugSkeletonization = false;
+
+    /**
      * @brief preservePartitions
      * Keeps all the mesh partitions in the optimized mesh.
      */

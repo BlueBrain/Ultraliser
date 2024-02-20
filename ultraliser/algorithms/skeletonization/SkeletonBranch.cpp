@@ -27,7 +27,7 @@
 #define ROOT_BIT_INDEX          3
 #define DUPLICATE_BIT_INDEX     4
 #define SPINE_BIT_INDEX         5
-
+#define INSIDE_SOMA_BIT_INDEX   6
 
 #include "SkeletonBranch.h"
 
@@ -181,6 +181,16 @@ void SkeletonBranch::setSpine()
 bool SkeletonBranch::isSpine()
 {
     return _flags->bit(SPINE_BIT_INDEX);
+}
+
+void SkeletonBranch::setInsideSoma()
+{
+    _flags->setBit(INSIDE_SOMA_BIT_INDEX);
+}
+
+bool SkeletonBranch::isInsideSoma()
+{
+    return _flags->bit(INSIDE_SOMA_BIT_INDEX);
 }
 
 }

@@ -43,8 +43,14 @@ public:
     /**
      * @brief Skeletonizer
      * @param volume
+     * @param useAcceleration
+     * @param debugSkeleton
+     * @param debuggingPrefix
      */
-    Skeletonizer(Volume *volume, const bool &useAcceleration = true);
+    Skeletonizer(Volume *volume,
+                 const bool &useAcceleration = true,
+                 const bool &debugSkeleton = false,
+                 const std::string debuggingPrefix = NONE);
     ~Skeletonizer() { }
 
     /**
@@ -182,6 +188,14 @@ protected:
 
     void _buildBranchesFromNodes(const SkeletonNodes& nodes);
 
+    /**
+     * @brief _exportGraphNodes
+     * Debugging function.
+     * @param prefix
+     */
+    void _exportGraphNodes(const std::string prefix);
+
+
 protected:
 
     /**
@@ -195,6 +209,19 @@ protected:
      * Use acceleration data structure to improve the performance of the skeletonizer.
      */
     const bool _useAcceleration;
+
+    /**
+     * @brief _debugSkeleton
+     * Generate as many debugging files as possible to be able to debug the skeleton construction
+     * in case of failure.
+     */
+    const bool _debugSkeleton;
+
+    /**
+     * @brief _debuggingPrefix
+     * The preix, or path, where the debugging files will be writte.
+     */
+    const std::string _debuggingPrefix;
 
     /**
      * @brief _shellPoints
