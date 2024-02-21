@@ -203,9 +203,35 @@ public:
      */
     float computeLength() const;
 
+    /**
+     * @brief getMinimumRadius
+     * Gets the minimal radius of the branch.
+     * @return
+     * The minimal radius of the branch.
+     */
+    float getMinimumRadius() const;
+
+    /**
+     * @brief getMaximumRadius
+     * Get the maximum radius of the branch.
+     * @return
+     * The maximum radius of the branch.
+     */
+    float getMaximumRadius() const;
+
+    /**
+     * @brief computeAverageRadius
+     * Computes the average radius of the branch.
+     * @return
+     * The average radius of the branch.
+     */
+    float computeAverageRadius() const;
+
     void setSpine();
 
     bool isSpine();
+
+    void resampleAdaptively(const bool& relaxed);
 
 public:
 
