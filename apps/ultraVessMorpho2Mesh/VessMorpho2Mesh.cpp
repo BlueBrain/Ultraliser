@@ -30,7 +30,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
 {
     // Arguments
     std::unique_ptr< AppArguments > args = std::make_unique< AppArguments >(
-        argc, argv, COPYRIGHT
+        argc, argv,
         "This application reconstructs a watertight polygonal mesh from an input vasculature "
         "morphology. The generated mesh can be also optimized to reduce the number of "
         "triangles while preserving the volume. "
@@ -55,6 +55,7 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     options->verifyInputMorphologyArgument();
     options->verifyOutputDirectoryArgument();
     options->verifyBoudsFileArgument();
+    options->verifyMeshExportArguments();
     options->verifyMorphologyPrefixArgument();
     options->verifyPackingAlgorithmArgument();
     options->verifyProcessingArguments();

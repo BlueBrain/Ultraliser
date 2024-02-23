@@ -206,7 +206,7 @@ void AppOptions::verifyIsoSurfaceExtractionArgument()
 
 void AppOptions::verifyIsoOptionArgument()
 {
-    if (isoOption == "isovalue")
+    if (isoOption == ISOVALUE_STRING)
     {
         LOG_SUCCESS("Isovalue [%zu] will be used to segment the volume", isoValue);
     }

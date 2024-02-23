@@ -586,8 +586,11 @@ void generateReconstructedMeshArtifacts(Mesh* mesh, const AppOptions* options)
         applySmoothingOperator(mesh, options);
 
     // Create an optimized version of the mesh
-    if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)
-        generateOptimizedMesh(mesh, options);
+    if (options->optimizationIterations > 0)
+    {
+        if (options->optimizeMeshHomogenous || options->optimizeMeshAdaptively)
+            generateOptimizedMesh(mesh, options);
+    }
 
     // Create the final watertight mesh
     createWatertightMesh(mesh, options);
