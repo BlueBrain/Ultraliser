@@ -45,6 +45,13 @@ public:
         /// EMPTY CONSTRUCTOR
     }
 
+    SkeletonNode(const size_t& index, const Vector3f& point, const float radius)
+    {
+        this->index = index;
+        this->point = point;
+        this->radius = radius;
+    }
+
     /**
      * @brief SkeletonNode
      * @param index

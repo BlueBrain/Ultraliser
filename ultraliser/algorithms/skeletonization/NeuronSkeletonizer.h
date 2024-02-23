@@ -275,6 +275,20 @@ private:
     void _mergeBranchesWithSingleChild();
 
 
+    void _filterSpineCandidates();
+
+    void _removeSpines();
+
+    size_t _estimateNumberSpineCandidates();
+
+    void _removeRootSpines();
+
+
+
+
+
+
+
 
 
 

@@ -110,6 +110,10 @@ void NeuronSkeletonizer::constructGraph()
     if (_debugSkeleton && _debuggingPrefix != NONE)
     { _exportBranches(_debuggingPrefix, SkeletonBranch::SOMATIC); }
 
+    /// DEBUG: Export the valid branches
+    if (_debugSkeleton && _debuggingPrefix != NONE)
+    { _exportBranches(_debuggingPrefix, SkeletonBranch::VALID); }
+
     /// Connect all the skeleton branches since the roots have been identified after the
     /// soma segmentation
     _connectBranches();
@@ -174,17 +178,62 @@ void NeuronSkeletonizer::segmentComponents()
     // Update all the parents
     _updateParents();
 
-    // Filter the synapses
-    _filterSpines();
+    /// Spine removal
+    // Remove root spines
+    _removeRootSpines();
 
-    _mergeBranchesAfterFilteringSpines();
-    _mergeBranchesWithSingleChild();
 
-    // Filter the synapses
-    _filterSpines();
+    size_t terminals = 0;
+    size_t validTerminals = 0;
+    size_t terminalSpines = 0;
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        if (_branches[i]->isTerminal())
+        {
+            terminals++;
+            if (_branches[i]->isValid())
+            {
+                validTerminals++;
+            }
 
-    _mergeBranchesAfterFilteringSpines();
-    _mergeBranchesWithSingleChild();
+            if (_branches[i]->computeLength() < 6.0)
+            {
+                terminalSpines++;
+            }
+        }
+    }
+
+    LOG_INFO("Terminals %d, Valid Terminals %d, Spines %d", terminals, validTerminals, terminalSpines);
+
+     // _removeSpines();
+
+
+
+    for(size_t i = 0; i < 25; ++i)
+    {
+
+
+            // Filter the synapses
+            _filterSpines();
+
+            _mergeBranchesAfterFilteringSpines();
+            _mergeBranchesWithSingleChild();
+
+    }
+
+
+
+//    // Filter the synapses
+//    _filterSpines();
+
+//    _mergeBranchesAfterFilteringSpines();
+//    _mergeBranchesWithSingleChild();
+
+//    // Filter the synapses
+//    _filterSpines();
+
+//    _mergeBranchesAfterFilteringSpines();
+//    _mergeBranchesWithSingleChild();
 }
 
 void NeuronSkeletonizer::_findClosestNodesInTwoPartitions(GraphComponent& partition1,
@@ -1267,8 +1316,6 @@ void NeuronSkeletonizer::_mergeBranchesAfterFilteringSpines()
         // If the branch is spine
         if (branch->isSpine())
         {
-            std::cout << "Spine " << branch->index << "\n";
-
             for (size_t j = 0; j < branch->parents.size(); ++j)
             {
                 // Get the parent
@@ -1300,7 +1347,7 @@ void NeuronSkeletonizer::_mergeBranchesAfterFilteringSpines()
 
                 const auto childrenAfter = parent->children.size();
 
-                LOG_SUCCESS("Children Before %d Children After %d", childrenBefore, childrenAfter);
+                // LOG_SUCCESS("Children Before %d Children After %d", childrenBefore, childrenAfter);
             }
 
         }
@@ -1319,9 +1366,6 @@ void NeuronSkeletonizer::_mergeBranchesAfterFilteringSpines()
         }
     }
 
-
-
-    ///
 }
 
 
@@ -1437,6 +1481,240 @@ void NeuronSkeletonizer::_updateParents()
     }
 }
 
+
+
+void NeuronSkeletonizer::_removeRootSpines()
+{
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        auto& branch = _branches[i];
+        if (branch->isValid() &&
+            branch->isRoot() &&
+            branch->isTerminal() &&
+            branch->computeLength() < 6.0)
+        {
+            // This is a spine on the soma
+            branch->setSpine();
+            branch->setInvalid();
+        }
+    }
+}
+
+size_t NeuronSkeletonizer::_estimateNumberSpineCandidates()
+{
+    size_t numberSpineCandidates = 0;
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        auto& branch = _branches[i];
+        if (branch->isValid())
+        {
+            if (branch->isTerminal())
+            {
+                if (branch->computeLength() < 6.0)
+                {
+                    numberSpineCandidates += 1;
+                }
+            }
+        }
+    }
+
+    return numberSpineCandidates;
+}
+
+void NeuronSkeletonizer::_removeSpines()
+{
+
+    size_t iterations = 0;
+    while (true)
+    {
+        // Filter terminal candidates that could be spines
+        _filterSpineCandidates();
+        iterations++;
+
+        // _mergeBranchesWithSingleChild();
+
+        auto numberSpinesEstimated = _estimateNumberSpineCandidates();
+        if (numberSpinesEstimated == 0 || iterations > 5)
+        {
+            LOG_SUCCESS("Spines are completely eliminated");
+            return;
+        }
+        else
+        {
+            LOG_WARNING("Estimated Spines to Eliminate %d", numberSpinesEstimated);
+        }
+    }
+}
+
+
+void NeuronSkeletonizer::_filterSpineCandidates()
+{
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /// NOTE: Spine branches must be terminals and can have branching.
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        // The spine is always a valid branch
+        auto& branch = _branches[i];
+        if (branch->isValid())
+        {
+            // The spine is always a terminal branch
+            if (branch->isTerminal())
+            {
+                // Compute the branch features to determine if it could account for a spine or not
+                auto branchLength = branch->computeLength();
+                if (branchLength < 6.0)
+                {
+                    // This is a spine
+                    branch->setSpine();
+
+                    // It is indeed an invalid neuronal branch
+                    branch->setInvalid();
+
+                    // Determine the parents after the removal of the spine from the tree
+                    for (size_t j = 0; j < branch->parents.size(); ++j)
+                    {
+                        auto& parent = branch->parents[j];
+
+                        std::vector< SkeletonBranch* > newChildren;
+                        for (size_t k = 0; k < parent->children.size(); ++k)
+                        {
+                            // Exclude the spine branch
+                            if (parent->children[k]->index == branch->index) { }
+                            else { newChildren.push_back(parent->children[k]); }
+                        }
+
+                        // Clear the old children and add the new list
+                        parent->children.clear();
+                        parent->children.shrink_to_fit();
+                        for (size_t k = 0; k < newChildren.size(); ++k)
+                        {
+                            parent->children.push_back(newChildren[k]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+//    for (size_t i = 0; i < _branches.size(); ++i)
+//    {
+//        // The spine is still a valid branch
+//        auto& spineBranch = _branches[i];
+//        if (spineBranch->isSpine() && spineBranch->isValid())
+//        {
+//            size_t numberParents = spineBranch->parents.size();
+//            if (numberParents > 1) { LOG_WARNING("A spine has more than a single parent"); }
+
+//            for (size_t j = 0; j < numberParents; ++j)
+//            {
+//                // Determine the parents after the removal of the spine from the tree
+//                auto& parent = spineBranch->parents[j];
+
+//                // Remove the spine from the children
+//                // const auto childrenBefore = parent->children.size();
+
+//                std::vector< SkeletonBranch* > newChildren;
+//                for (size_t k = 0; k < parent->children.size(); ++k)
+//                {
+//                    // Exclude the spine branch
+//                    if (parent->children[k]->index == spineBranch->index) { }
+//                    else { newChildren.push_back(parent->children[k]); }
+//                }
+
+//                // Clear the old children and add the new list
+//                parent->children.clear();
+//                parent->children.shrink_to_fit();
+//                for (size_t k = 0; k < newChildren.size(); ++k)
+//                {
+//                    parent->children.push_back(newChildren[k]);
+//                }
+
+//                // const auto childrenAfter = parent->children.size();
+
+//                // LOG_SUCCESS("Children Before %d Children After %d", childrenBefore, childrenAfter);
+//            }
+//        }
+//    }
+
+    /// Merge the branches with a single children
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        auto& branch = _branches[i];
+        if (branch->isValid())
+        {
+            if (branch->children.size() == 1)
+            {
+                // Append the nodes of the child branch to the parent branch, except the commone node
+                auto& child = branch->children[0];
+                for(size_t j = 1; j < child->nodes.size(); ++j)
+                {
+                    branch->nodes.push_back(child->nodes[j]);
+                }
+
+                // Set the new children to be that of the other one
+                branch->children = branch->children[0]->children;
+
+                // Disregard the child branch
+                branch->children[0]->setInvalid();
+            }
+        }
+    }
+
+    /// Label the new terminals
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        auto& branch = _branches[i];
+        if (branch->isValid() && branch->children.size() == 0)
+        {
+            std::cout << "Terminal: " << branch->index << std::endl;
+            branch->setTerminal();
+        }
+    }
+}
+
+bool isItSpine(const SkeletonBranch* branch)
+{
+    auto length = branch->computeLength();
+    auto minimumRadius = branch->getMinimumRadius();
+    auto maximumRadius = branch->getMaximumRadius();
+    auto averageRadius = branch->computeAverageRadius();
+
+    if (length < 4.0 && averageRadius < 0.15)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+
 void NeuronSkeletonizer::_filterSpines()
 {
     /// NOTE: Spine branches must be terminals and can have branching.
@@ -1444,8 +1722,7 @@ void NeuronSkeletonizer::_filterSpines()
     {
         if (_branches[i]->isTerminal() && _branches[i]->isValid())
         {
-            auto length = _branches[i]->computeLength();
-            if (length < 6.0)
+            if (isItSpine(_branches[i]))
             {
                 // Set the branch to invalid
                 _branches[i]->setInvalid();
@@ -1673,6 +1950,16 @@ SkeletonNodes NeuronSkeletonizer::constructSWCTable()
     swcIndex++;
     swcNodes.push_back(_somaNode);
 
+//    // TODO: Add the resampling option
+//    for (size_t i = 0; i < _branches.size(); ++i)
+//    {
+//        auto& branch = _branches[i];
+//        if (branch->isValid())
+//        {
+//            branch->resampleAdaptively(false);
+//        }
+//    }
+
     // Get all the root branches
     TIMER_SET;
     LOOP_STARTS("Constructing SWC Table");
@@ -1794,6 +2081,10 @@ void NeuronSkeletonizer::_exportBranches(const std::string& prefix,
     {
         filePath += "-invalid";
     }
+    else if (state == SkeletonBranch::VALID)
+    {
+        filePath += "-valid";
+    }
     else if (state == SkeletonBranch::SOMATIC)
     {
         filePath += "-somatic";
@@ -1841,6 +2132,16 @@ void NeuronSkeletonizer::_exportBranches(const std::string& prefix,
         for (size_t i = 0; i < _branches.size(); ++i)
         {
             if (_branches[i]->isSpine())
+            {
+                toWrite.push_back(_branches[i]);
+            }
+        }
+    }
+    else if (state == SkeletonBranch::VALID)
+    {
+        for (size_t i = 0; i < _branches.size(); ++i)
+        {
+            if (_branches[i]->isValid())
             {
                 toWrite.push_back(_branches[i]);
             }
