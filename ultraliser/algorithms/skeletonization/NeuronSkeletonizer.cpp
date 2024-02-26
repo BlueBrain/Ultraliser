@@ -1847,7 +1847,7 @@ void NeuronSkeletonizer::_detectSpines()
             {
                 if (_branches[i]->traversalCount == 1)
                 {
-                    if (_branches[i]->computeLength() < 4.0)
+                    if (_branches[i]->computeLength() < 6.0)
                     {
                         // Set the branch to invalid
                         _branches[i]->setInvalid();
