@@ -285,6 +285,10 @@ private:
 
 
 
+    void _detectBasePaths();
+
+    void _filterShortTerminalBranches();
+
 
 
 
