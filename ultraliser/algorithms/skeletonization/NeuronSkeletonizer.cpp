@@ -183,21 +183,30 @@ void NeuronSkeletonizer::segmentComponents()
     _removeRootSpines();
 
     // Remove the branches that have 2 samples along the terminals
-//    for(size_t i = 0; i < 25; ++i)
-//    {
-//        // Filter the terminal branches that have two branches
-//        // TODO: Check the length of the branch
-//        _filterShortTerminalBranches();
+    for(size_t i = 0; i < 25; ++i)
+    {
+        // Filter the terminal branches that have two branches
+        // TODO: Check the length of the branch
+        _filterShortTerminalBranches();
+        _mergeBranchesAfterFilteringSpines();
+        _mergeBranchesWithSingleChild();
+    }
 
-//        _mergeBranchesAfterFilteringSpines();
-//        _mergeBranchesWithSingleChild();
-//    }
+    /// DEBUG: Export the somatic branches
+    if (_debugSkeleton && _debuggingPrefix != NONE)
+    { _exportBranches(_debuggingPrefix, SkeletonBranch::TWO_SAMPLE_AND_VALID); }
 
 
+    _detectBasePaths();
 
 
-
-
+    for(size_t i = 0; i < 5; ++i)
+    {
+        // Filter the synapses
+        _detectSpines();
+        _mergeBranchesAfterFilteringSpines();
+        _mergeBranchesWithSingleChild();
+    }
 
 
 //    size_t terminals = 0;
@@ -223,7 +232,7 @@ void NeuronSkeletonizer::segmentComponents()
 //    LOG_INFO("Terminals %d, Valid Terminals %d, Spines %d", terminals, validTerminals, terminalSpines);
 
 
-    _detectBasePaths();
+
 
 
 
@@ -232,19 +241,6 @@ void NeuronSkeletonizer::segmentComponents()
 
      // _removeSpines();
 
-
-    return;
-    for(size_t i = 0; i < 25; ++i)
-    {
-
-
-            // Filter the synapses
-            _filterSpines();
-
-            _mergeBranchesAfterFilteringSpines();
-            _mergeBranchesWithSingleChild();
-
-    }
 
 //    // Filter the synapses
 //    _filterSpines();
@@ -1631,6 +1627,7 @@ void NeuronSkeletonizer::_removeSpines()
 }
 
 
+
 void NeuronSkeletonizer::_filterSpineCandidates()
 {
 
@@ -1821,23 +1818,48 @@ bool isItSpine(const SkeletonBranch* branch)
 
 void NeuronSkeletonizer::_filterShortTerminalBranches()
 {
-    /// NOTE: Spine branches must be terminals and can have branching.
     for (size_t i = 0; i < _branches.size(); ++i)
     {
-        if (_branches[i]->isTerminal() && _branches[i]->isValid())
+        if (_branches[i]->isTerminal())
         {
-            if (_branches[i]->nodes.size() == 2)
+            if (_branches[i]->isValid())
             {
-                // Set the branch to invalid
-                _branches[i]->setInvalid();
+                if (_branches[i]->nodes.size() == 2)
+                {
+                    // Set the branch to invalid
+                    _branches[i]->setInvalid();
 
-                // Set the branch to be a spine
-                _branches[i]->setSpine();
+                    // Set the branch to be a spine
+                    _branches[i]->setSpine();
+                }
             }
         }
     }
 }
 
+void NeuronSkeletonizer::_detectSpines()
+{
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        if (_branches[i]->isTerminal())
+        {
+            if (_branches[i]->isValid())
+            {
+                if (_branches[i]->traversalCount == 1)
+                {
+                    if (_branches[i]->computeLength() < 4.0)
+                    {
+                        // Set the branch to invalid
+                        _branches[i]->setInvalid();
+
+                        // Set the branch to be a spine
+                        _branches[i]->setSpine();
+                    }
+                }
+            }
+        }
+    }
+}
 
 void NeuronSkeletonizer::_filterSpines()
 {
@@ -2213,6 +2235,18 @@ void NeuronSkeletonizer::_exportBranches(const std::string& prefix,
     {
         filePath += "-valid";
     }
+    else if (state == SkeletonBranch::TWO_SAMPLE)
+    {
+        filePath += "-two-sample";
+    }
+    else if (state == SkeletonBranch::TWO_SAMPLE_AND_VALID)
+    {
+        filePath += "-two-sample-valid";
+    }
+    else if (state == SkeletonBranch::TWO_SAMPLE_AND_INVALID)
+    {
+        filePath += "-two-sample-invalid";
+    }
     else if (state == SkeletonBranch::SOMATIC)
     {
         filePath += "-somatic";
@@ -2240,6 +2274,36 @@ void NeuronSkeletonizer::_exportBranches(const std::string& prefix,
         for (size_t i = 0; i < _branches.size(); ++i)
         {
             if (!_branches[i]->isValid())
+            {
+                toWrite.push_back(_branches[i]);
+            }
+        }
+    }
+    else if (state == SkeletonBranch::TWO_SAMPLE)
+    {
+        for (size_t i = 0; i < _branches.size(); ++i)
+        {
+            if (_branches[i]->nodes.size() == 2)
+            {
+                toWrite.push_back(_branches[i]);
+            }
+        }
+    }
+    else if (state == SkeletonBranch::TWO_SAMPLE_AND_VALID)
+    {
+        for (size_t i = 0; i < _branches.size(); ++i)
+        {
+            if (_branches[i]->nodes.size() == 2 && _branches[i]->isValid())
+            {
+                toWrite.push_back(_branches[i]);
+            }
+        }
+    }
+    else if (state == SkeletonBranch::TWO_SAMPLE_AND_INVALID)
+    {
+        for (size_t i = 0; i < _branches.size(); ++i)
+        {
+            if (_branches[i]->nodes.size() == 2 && !_branches[i]->isValid())
             {
                 toWrite.push_back(_branches[i]);
             }

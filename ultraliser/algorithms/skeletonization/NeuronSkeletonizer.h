@@ -290,7 +290,7 @@ private:
     void _filterShortTerminalBranches();
 
 
-
+    void _detectSpines();
 
 
 

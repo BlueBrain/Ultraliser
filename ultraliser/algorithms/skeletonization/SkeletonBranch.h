@@ -47,7 +47,10 @@ struct SkeletonBranch
         INVALID,
         SOMATIC,
         SPINE,
-        TERMINAL
+        TERMINAL,
+        TWO_SAMPLE,
+        TWO_SAMPLE_AND_VALID,
+        TWO_SAMPLE_AND_INVALID
     };
 
 public:
