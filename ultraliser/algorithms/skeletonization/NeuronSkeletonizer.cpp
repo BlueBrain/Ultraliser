@@ -182,33 +182,58 @@ void NeuronSkeletonizer::segmentComponents()
     // Remove root spines
     _removeRootSpines();
 
+    // Remove the branches that have 2 samples along the terminals
+//    for(size_t i = 0; i < 25; ++i)
+//    {
+//        // Filter the terminal branches that have two branches
+//        // TODO: Check the length of the branch
+//        _filterShortTerminalBranches();
 
-    size_t terminals = 0;
-    size_t validTerminals = 0;
-    size_t terminalSpines = 0;
-    for (size_t i = 0; i < _branches.size(); ++i)
-    {
-        if (_branches[i]->isTerminal())
-        {
-            terminals++;
-            if (_branches[i]->isValid())
-            {
-                validTerminals++;
-            }
+//        _mergeBranchesAfterFilteringSpines();
+//        _mergeBranchesWithSingleChild();
+//    }
 
-            if (_branches[i]->computeLength() < 6.0)
-            {
-                terminalSpines++;
-            }
-        }
-    }
 
-    LOG_INFO("Terminals %d, Valid Terminals %d, Spines %d", terminals, validTerminals, terminalSpines);
+
+
+
+
+
+
+//    size_t terminals = 0;
+//    size_t validTerminals = 0;
+//    size_t terminalSpines = 0;
+//    for (size_t i = 0; i < _branches.size(); ++i)
+//    {
+//        if (_branches[i]->isTerminal())
+//        {
+//            terminals++;
+//            if (_branches[i]->isValid())
+//            {
+//                validTerminals++;
+//            }
+
+//            if (_branches[i]->computeLength() < 6.0)
+//            {
+//                terminalSpines++;
+//            }
+//        }
+//    }
+
+//    LOG_INFO("Terminals %d, Valid Terminals %d, Spines %d", terminals, validTerminals, terminalSpines);
+
+
+    _detectBasePaths();
+
+
+
+    return;
+
 
      // _removeSpines();
 
 
-
+    return;
     for(size_t i = 0; i < 25; ++i)
     {
 
@@ -221,8 +246,6 @@ void NeuronSkeletonizer::segmentComponents()
 
     }
 
-
-
 //    // Filter the synapses
 //    _filterSpines();
 
@@ -234,6 +257,67 @@ void NeuronSkeletonizer::segmentComponents()
 
 //    _mergeBranchesAfterFilteringSpines();
 //    _mergeBranchesWithSingleChild();
+}
+
+
+
+void constructPathFromBranchToSoma(SkeletonBranch* branch,
+                                   SkeletonBranches& path,
+                                   std::vector< size_t >& pathIndices)
+{
+    // Add the branch to the path
+    path.push_back(branch);
+    pathIndices.push_back(branch->index);
+    branch->traversalCount += 1;
+
+    // Ensure that the branch has a single parent
+    if (branch->parents.size() == 1)
+    {
+        constructPathFromBranchToSoma(branch->parents[0], path, pathIndices);
+    }
+}
+
+void getTerminals(SkeletonBranch* root, SkeletonBranches& terminals)
+{
+    if (root->children.size() == 0)
+    {
+        terminals.push_back(root);
+        return;
+    }
+    else
+    {
+        for (size_t i = 0; i < root->children.size(); ++i)
+        {
+            getTerminals(root->children[i], terminals);
+        }
+    }
+}
+
+void NeuronSkeletonizer::_detectBasePaths()
+{
+    std::cout << "Roots: " <<  _roots.size() << std::endl;
+
+    for (size_t i = 0; i < _roots.size(); ++i)
+    {
+        SkeletonBranches terminals;
+        getTerminals(_roots[i], terminals);
+
+        std::cout << "\tRoot: " << i << ", Terminals: " << terminals.size() << std::endl;
+        for (size_t j = 0; j < terminals.size(); ++j)
+        {
+            auto& terminal = terminals[j];
+            SkeletonBranches path;
+            std::vector< size_t > pathIndices;
+            constructPathFromBranchToSoma(terminal, path, pathIndices);
+
+            std::cout << "\t\tPath: ";
+            for (size_t k = 0; k < pathIndices.size(); ++k)
+            {
+                std::cout << pathIndices[k] << " [" << path[k]->traversalCount << "], ";
+            }
+            std::cout << std::endl;
+        }
+    }
 }
 
 void NeuronSkeletonizer::_findClosestNodesInTwoPartitions(GraphComponent& partition1,
@@ -1701,17 +1785,57 @@ void NeuronSkeletonizer::_filterSpineCandidates()
 
 bool isItSpine(const SkeletonBranch* branch)
 {
+    // If the branch has two samples, it is indeed part of a spine.
+    if (branch->nodes.size() == 2)
+        return true;
+
     auto length = branch->computeLength();
     auto minimumRadius = branch->getMinimumRadius();
     auto maximumRadius = branch->getMaximumRadius();
-    auto averageRadius = branch->computeAverageRadius();
+    // auto averageRadius = branch->computeAverageRadius();
 
-    if (length < 4.0 && averageRadius < 0.15)
+    // Mushroom
+    if (length < 2 && length > 0.5 && minimumRadius > 0.05 && maximumRadius < 0.5)
     {
+        std::cout << "Mushroom" << std::endl;
+        return true;
+    }
+    else if (length < 1 && length > 0.2 && minimumRadius > 0.025 && maximumRadius < 0.25)
+    {
+        std::cout << "Thin" << std::endl;
+        return true;
+    }
+    else if (length < 0.5 && length > 0.2 && minimumRadius > 0.1 && maximumRadius < 0.5)
+    {
+        std::cout << "Stubby" << std::endl;
+        return true;
+    }
+    else if (maximumRadius < 0.05 && length < 5)
+    {
+        std::cout << "Filopodia" << std::endl;
         return true;
     }
 
     return false;
+}
+
+void NeuronSkeletonizer::_filterShortTerminalBranches()
+{
+    /// NOTE: Spine branches must be terminals and can have branching.
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        if (_branches[i]->isTerminal() && _branches[i]->isValid())
+        {
+            if (_branches[i]->nodes.size() == 2)
+            {
+                // Set the branch to invalid
+                _branches[i]->setInvalid();
+
+                // Set the branch to be a spine
+                _branches[i]->setSpine();
+            }
+        }
+    }
 }
 
 
@@ -1733,6 +1857,10 @@ void NeuronSkeletonizer::_filterSpines()
         }
     }
 }
+
+
+
+
 
 void identifyTerminalConnections(SkeletonBranches& branches)
 {

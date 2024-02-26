@@ -965,6 +965,11 @@ public:
         return _grid->getThinningVoxelsList(rebuild);
     }
 
+    size_t getBaseResolution() const
+    {
+        return _baseResolution;
+    }
+
 private:
 
     void _buildOccupancyRanges();

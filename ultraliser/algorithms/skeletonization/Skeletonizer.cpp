@@ -63,7 +63,9 @@ Skeletonizer::Skeletonizer(Volume* volume,
 
 void Skeletonizer::initialize()
 {
-     LOG_TITLE("Neuron Skeletonization");
+     LOG_TITLE("Neuron Skeletonization"); 
+     LOG_SUCCESS("Voxel Size [%f] μm", _volume->getVoxelSize());
+
      LOG_STATUS("Initialization - Building Structures");
 
      // Start the timer
@@ -553,13 +555,13 @@ void Skeletonizer::_inflateNodesUsingAcceleration()
         auto minimumDistance = nearestPoint.distance;
 
         // TODO: Make some logic to detect the actual radius based on the voxel size
-        if (minimumDistance > 0.01)
+        if (minimumDistance > _volume->getVoxelSize())
         {
             node.radius = minimumDistance * 1.2;
         }
         else
         {
-            node.radius = 0.1;
+            node.radius = _volume->getVoxelSize() * 0.5;
         }
 
         // Update the progress bar

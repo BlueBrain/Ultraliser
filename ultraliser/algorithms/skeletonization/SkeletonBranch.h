@@ -271,6 +271,13 @@ public:
      */
     std::vector< SkeletonBranch* > t2Connections;
 
+
+public:
+    size_t traversalCount = 0;
+
+    float distanceToSoma = 0.f;
+    float distanceToTermina = 0.f;
+
 private:
 
     /**
