@@ -208,7 +208,6 @@ void NeuronSkeletonizer::segmentComponents()
         _mergeBranchesWithSingleChild();
     }
 
-
 //    size_t terminals = 0;
 //    size_t validTerminals = 0;
 //    size_t terminalSpines = 0;
@@ -1848,6 +1847,18 @@ void NeuronSkeletonizer::_detectSpines()
                 if (_branches[i]->traversalCount == 1)
                 {
                     if (_branches[i]->computeLength() < 6.0)
+                    {
+                        // Set the branch to invalid
+                        _branches[i]->setInvalid();
+
+                        // Set the branch to be a spine
+                        _branches[i]->setSpine();
+                    }
+                }
+
+                if (_branches[i]->traversalCount == 2)
+                {
+                    if (_branches[i]->computeLength() < 4.0)
                     {
                         // Set the branch to invalid
                         _branches[i]->setInvalid();
