@@ -208,6 +208,16 @@ void NeuronSkeletonizer::segmentComponents()
         _mergeBranchesWithSingleChild();
     }
 
+    // Remove the branches that have 2 samples along the terminals
+    for(size_t i = 0; i < 5; ++i)
+    {
+        // Filter the terminal branches that have two branches
+        // TODO: Check the length of the branch
+        _filterShortTerminalBranches();
+        _mergeBranchesAfterFilteringSpines();
+        _mergeBranchesWithSingleChild();
+    }
+
 //    size_t terminals = 0;
 //    size_t validTerminals = 0;
 //    size_t terminalSpines = 0;
