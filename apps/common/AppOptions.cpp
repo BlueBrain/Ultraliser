@@ -280,10 +280,10 @@ void AppOptions::verifyVascularMorphologyExportArguments()
 void AppOptions::verifyNeuronalMorphologyExportArguments()
 {
     // Exporting formats, at least one of them must be there
-    if (!exportBranches)
+    if (!exportSWC)
     {
         LOG_ERROR("You must specify at least one valid morphology format to export:"
-                  "[--export-morphology-branches]");
+                  "[--export-swc-morphology]");
     }
 }
 
@@ -331,7 +331,7 @@ void AppOptions::createRespectiveDirectories()
     }
 
     // Morphology directory
-    if (exportVMV || exportBranches)
+    if (exportVMV || exportSWC || exportBranches)
     {
         std::stringstream path;
         path << outputDirectory << "/" << MORPHOLOGIES_DIRECTORY;

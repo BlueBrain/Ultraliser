@@ -618,6 +618,12 @@ public:
     bool exportVMV = false;
 
     /**
+     * @brief exportSWC
+     * Exports the neuronal morphology into an SWC file.
+     */
+    bool exportSWC = false;
+
+    /**
      * @brief exportBranches
      * Export the reconstructed branches of the skeleton into a .TXT file for display in Blender.
      */
@@ -628,6 +634,12 @@ public:
      * Debugs the skeletonization process by generating the artifacts at every stage.
      */
     bool debugSkeletonization = false;
+
+    /**
+     * @brief resampleSkeleton
+     * Resamples the skeleton adaptively to remove the useless samples.
+     */
+    bool resampleSkeleton = false;
 
     /**
      * @brief preservePartitions

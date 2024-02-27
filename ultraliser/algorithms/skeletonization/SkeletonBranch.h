@@ -230,11 +230,25 @@ public:
      */
     float computeAverageRadius() const;
 
+    /**
+     * @brief setSpine
+     * Sets the section as a spine.
+     */
     void setSpine();
 
-    bool isSpine();
+    /**
+     * @brief isSpine
+     * Checks if the section is a spine or not.
+     * @return
+     * True if the section is a spine, and false otherwise.
+     */
+    bool isSpine() const;
 
-    void resampleAdaptively(const bool& relaxed);
+    /**
+     * @brief resampleAdaptively
+     * Resamples the section adaptively.
+     */
+    void resampleAdaptively();
 
 public:
 
@@ -278,9 +292,6 @@ public:
 public:
     size_t traversalCount = 0;
 
-    float distanceToSoma = 0.f;
-    float distanceToTermina = 0.f;
-
 private:
 
     /**
@@ -289,10 +300,6 @@ private:
      * bit not a full byte.
      */
     BitArray* _flags;
-
-public:
-
-    bool active = false;
 };
 
 /**

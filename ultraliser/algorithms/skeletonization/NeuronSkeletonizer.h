@@ -90,8 +90,11 @@ public:
       * This function is called after the segmentation of all the components from the skeleton.
       * @param prefix
       * File prefix.
+      * @param resampleSkeleton
+      * If this flag is set, the morphology skeleton will be adaptively resampled to remove
+      * useless samples and create an optimum skeleton. False by default.
       */
-    void exportSWCFile(const std::string& prefix);
+    void exportSWCFile(const std::string& prefix, const bool &resampleSkeleton=false);
 
     /**
      * @brief constructSWCTable
@@ -100,8 +103,11 @@ public:
      * @return
      * A list of all the skeleton nodes, constructed in order, and ready for being exported into
      * SWC file.
+     * @param resampleSkeleton
+     * If this flag is set, the morphology skeleton will be adaptively resampled to remove
+     * useless samples and create an optimum skeleton. False by default.
      */
-    SkeletonNodes constructSWCTable();
+    SkeletonNodes constructSWCTable(const bool &resampleSkeleton=false);
 
     /**
      * @brief collectSWCNodes

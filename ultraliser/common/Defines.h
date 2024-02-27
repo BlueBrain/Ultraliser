@@ -175,6 +175,13 @@
 #define PER_AXIS_SEGMENTS_VOLUME                STRING("-per-axis-segments-volume")
 #define SECTIONS_VOLUME                         STRING("-sections-volume")
 
+// SWC flags
+#define SWC_UNDEFINED_STRUCT_IDENTIFIER         STRING("0")
+#define SWC_SOMA_STRUCT_IDENTIFIER              STRING("1")
+#define SWC_AXON_STRUCT_IDENTIFIER              STRING("2")
+#define SWC_BASAL_DENDRITE_STRUCT_IDENTIFIER    STRING("3")
+#define SWC_APICAL_DENDRITE_STRUCT_IDENTIFIER   STRING("4")
+
 // OBJ flags
 #define OBJ_VERTEX_FLAG                         STRING("v")
 #define OBJ_VERTEX_NORMAL_FLAG                  STRING("vn")

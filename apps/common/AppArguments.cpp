@@ -618,12 +618,12 @@ void AppArguments::addLaplacianOperatorArguments()
 
 void AppArguments::addVascularMorphologyExportArguments()
 {
-    Argument exportVMVMorphology(
+    Argument exportVMV(
                 "--export-vmv-morphology",
                 ARGUMENT_TYPE::BOOL,
                 "Exports the vascular morphology to .VMV file.");
-    _args->addArgument(&exportVMVMorphology);
-    _options->exportVMV = _args->getBoolValue(&exportVMVMorphology);
+    _args->addArgument(&exportVMV);
+    _options->exportVMV = _args->getBoolValue(&exportVMV);
 
     Argument exportMorphologyBranches(
                 "--export-morphology-branches",
@@ -635,12 +635,12 @@ void AppArguments::addVascularMorphologyExportArguments()
 
 void AppArguments::addNeuronalMorphologyExportArguments()
 {
-    Argument exportMorphologyBranches(
-                "--export-morphology-branches",
+    Argument exportSWC(
+                "--export-swc-morphology",
                 ARGUMENT_TYPE::BOOL,
-                "Exports the branches of the morphology to .TXT file.");
-    _args->addArgument(&exportMorphologyBranches);
-    _options->exportBranches = _args->getBoolValue(&exportMorphologyBranches);
+                "Exports the neuronal morphology to .SWC file.");
+    _args->addArgument(&exportSWC);
+    _options->exportSWC = _args->getBoolValue(&exportSWC);
 
     Argument debugSkeletonization(
                 "--debug-skeletonization",
@@ -649,6 +649,14 @@ void AppArguments::addNeuronalMorphologyExportArguments()
                 "the process.");
     _args->addArgument(&debugSkeletonization);
     _options->debugSkeletonization = _args->getBoolValue(&debugSkeletonization);
+
+    Argument resampleSkeleton(
+                "--resample-skeleton",
+                ARGUMENT_TYPE::BOOL,
+                "Resample the section to remove unnecessary samples to export an "
+                "optimum morphology.");
+    _args->addArgument(&resampleSkeleton);
+    _options->resampleSkeleton = _args->getBoolValue(&resampleSkeleton);
 }
 
 void AppArguments::addMeshExportArguments()

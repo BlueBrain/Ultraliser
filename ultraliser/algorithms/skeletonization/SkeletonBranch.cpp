@@ -216,7 +216,7 @@ void SkeletonBranch::setSpine()
     _flags->setBit(SPINE_BIT_INDEX);
 }
 
-bool SkeletonBranch::isSpine()
+bool SkeletonBranch::isSpine() const
 {
     return _flags->bit(SPINE_BIT_INDEX);
 }
@@ -231,7 +231,7 @@ bool SkeletonBranch::isInsideSoma()
     return _flags->bit(INSIDE_SOMA_BIT_INDEX);
 }
 
-void SkeletonBranch::resampleAdaptively(const bool& relaxed)
+void SkeletonBranch::resampleAdaptively()
 {
     // Get the total number of samples in the section
     const size_t numberSamples = nodes.size();
@@ -240,150 +240,69 @@ void SkeletonBranch::resampleAdaptively(const bool& relaxed)
     if (numberSamples < 2)
         return;
 
-    // If the sampling is relaxed, then use a distance factor of 2 to account for diameters
-    // instead of radii
-    auto factor = 1.f;
-    if (relaxed)
-        factor = 2.f;
-
-    // If the section has two samples only, then verify if it can be resampled or not
+    // TODO: If the section has only two samples, it is better not to resample it UFN
     if (numberSamples == 2)
+        return;
+
+    /// Initialization
+    // Make a copy of the skeleton nodes
+    SkeletonNodes newNodes;
+    for (size_t i = 0; i < nodes.size(); ++i) { newNodes.push_back(nodes[i]); }
+
+    /// Resample the section
+    size_t nodeIndex = 0;
+
+    // Resample until there is nothing to resample
+    while (true)
     {
-        const auto sample0 = nodes[0];
-        const auto sample1 = nodes[1];
+        // Break if the last sample is reached
+        if (nodeIndex >= newNodes.size() - 2) { break; }
 
-        // Compute the distance between samples
-        const auto distance = (sample1->point - sample0->point).abs();
+        // Compute the distance between the current sample and the next one
+        auto& sample0 = newNodes[nodeIndex];
+        auto& sample1 = newNodes[nodeIndex + 1];
 
-        // Compute the radii sum
-        const auto radii = sample0->radius + sample1->radius;
+        const auto distance = sample1->point.distance(sample0->point);
 
-        // If the distance is less than the radii sum, then we cannot resample this section
-        if (distance < radii)
-            return;
+        // Get the extent of the sample, where no other samples should be located
+        const auto extent = sample1->radius + sample0->radius;
 
-        // Otherwise, the section could be resampled, so RESAMPLE it
+        // If the next sample is located within the extent of the current sample, then remove it
+        if (distance < extent)
+        {
+            newNodes.erase(newNodes.begin() + nodeIndex + 1);
+            continue;
+        }
+
+        // If the sample is at a greater step, then add a new sample
         else
         {
-            // Create a new samples list
-            SkeletonNodes newSamples;
+            // Compute the radius of the new sample
+            const auto radius = (sample0->radius + sample1->radius) * 0.5f;
 
-            // Add the first sample to the section
-            newSamples.push_back(nodes[0]);
+            // Compute the direction of the next sample
+            const auto direction = (sample1->point - sample0->point).normalized();
 
-            // Compute the direction of the section
-            Vector3f direction = nodes[1]->point - nodes[0]->point;
-            direction.normalize();
+            // Compute the location of the new sample
+            const auto point = sample0->point + (direction * extent);
 
-            // This index will keep track on the current sample along the section
-            size_t index = 1;
-            while (true)
-            {
-                // Get the current sample
-                const auto currentSample = newSamples[index - 1];
+            // Construct the new sample
+            auto newNode = new SkeletonNode(nodeIndex + 1, point, radius);
 
-                // Geth the last sample
-                const auto lastSample = nodes[1];
+            // Insert the new node to the list
+            newNodes.insert(newNodes.begin() + nodeIndex + 1, newNode);
 
-                // Compute the radius of the new sample radius by interpolation with the last sample
-                const auto newSampleRadius =
-                        0.5f * (currentSample->radius + lastSample->radius);
+            // Update the index
+            nodeIndex++;
 
-                // Compute the position of the new sample
-                const auto position =
-                        currentSample->point + direction * newSampleRadius * factor;
-
-                // If the position of the new sample goes beyond the segment length, break
-                if ((position - sample0->point).abs() > distance)
-                    break;
-
-                // Add the new sample to the list of new sample
-                auto sample = new SkeletonNode(index, position, newSampleRadius);
-                newSamples.push_back(sample);
-
-                // Increase the sample index
-                ++index;
-            }
-
-            // Add the first sample to the section
-            newSamples.push_back(nodes.back());
-
-            // Clear the old samples list
-            nodes.clear();
-            nodes.shrink_to_fit();
-
-            // Update the samples list
-            nodes = newSamples;
+            // If we reach the last sample, then break
+            if (nodeIndex >= newNodes.size() - 1) { break; }
         }
     }
 
-    // If the section has more than two samples, resample the segments
-    else
-    {
-        // Create a new samples list
-        SkeletonNodes newSamples;
-
-        // Add the first sample to the new list
-        newSamples.push_back(nodes[0]);
-
-        // This index will keep track on the current sample along the section
-        size_t index = 1;
-
-        // On a per-segment basis
-        for (size_t i = 0; i < numberSamples - 2; ++i)
-        {
-            const auto sample0 = nodes[i];
-            const auto sample1 = nodes[i + 1];
-
-            // Compute the direction of the section
-            Vector3f direction = sample1->point - sample0->point;
-            direction.normalize();
-
-            // Compuet the distance between the two samples
-            const auto distance = (sample1->point - sample0->point).abs();
-
-            // Proceed wiht the resampling
-            size_t perSegmentIndex = 1;
-            while (true)
-            {
-                // Get the current sample
-                const auto currentSample = newSamples[index - 1];
-
-                // Geth the last sample
-                const auto lastSample = nodes[1];
-
-                // Compute the radius of the new sample radius by interpolation with the last sample
-                const auto newSampleRadius =
-                        0.5f * (currentSample->radius + lastSample->radius);
-
-                // Compute the position of the new sample
-                const auto position = currentSample->point + direction * newSampleRadius * factor;
-
-                // If the position of the new sample goes beyond the segment length, break
-                if ((position - sample0->point).abs() > distance)
-                {
-                    // Add the last sample of the segment
-                    newSamples.push_back(sample1);
-                    break;
-                }
-
-                // Add the new sample to the list of new sample
-                auto sample = new SkeletonNode(index, position, newSampleRadius);
-                newSamples.push_back(sample);
-
-                // Increase the sample index
-                ++index;
-                ++perSegmentIndex;
-            }
-        }
-
-        // Clear the old samples list
-        nodes.clear();
-        nodes.shrink_to_fit();
-
-        // Update the samples list
-        nodes = newSamples;
-    }
+    /// Clean-up
+    nodes.clear();
+    nodes.shrink_to_fit();
+    nodes = newNodes;
 }
-
 }

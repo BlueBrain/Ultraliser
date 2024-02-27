@@ -113,16 +113,14 @@ void run(int argc , const char** argv)
     // Construct the neuron graph from the volume
     skeletonizer->constructGraph();
 
-    //
-    skeletonizer->exportIndividualBranches(options->morphologyPrefix + "-branches");
-
     // Segment the different components of the graph
     skeletonizer->segmentComponents();
 
-    // skeletonizer->exportIndividualBranches(options->morphologyPrefix + "-2");
-
     // Export the SWC file of the neuron
-    skeletonizer->exportSWCFile(options->morphologyPrefix);
+    if (options->exportSWC)
+    {
+        skeletonizer->exportSWCFile(options->morphologyPrefix, options->resampleSkeleton);
+    }
 
     // Export the somatic mesh
     skeletonizer->exportSomaMesh(options->meshPrefix,
