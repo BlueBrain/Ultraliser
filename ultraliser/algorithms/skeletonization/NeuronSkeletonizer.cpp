@@ -297,20 +297,12 @@ void NeuronSkeletonizer::_detectBasePaths()
         SkeletonBranches terminals;
         getTerminals(_roots[i], terminals);
 
-        std::cout << "\tRoot: " << i << ", Terminals: " << terminals.size() << std::endl;
         for (size_t j = 0; j < terminals.size(); ++j)
         {
             auto& terminal = terminals[j];
             SkeletonBranches path;
             std::vector< size_t > pathIndices;
             constructPathFromBranchToSoma(terminal, path, pathIndices);
-
-            std::cout << "\t\tPath: ";
-            for (size_t k = 0; k < pathIndices.size(); ++k)
-            {
-                std::cout << pathIndices[k] << " [" << path[k]->traversalCount << "], ";
-            }
-            std::cout << std::endl;
         }
     }
 }
@@ -1354,11 +1346,8 @@ void NeuronSkeletonizer::_constructSkeletonHierarchy(GraphBranches& graphBranche
 void NeuronSkeletonizer::_mergeBranchesWithSingleChild()
 {
     TIMER_SET;
-    LOG_STATUS("Merging Branches with Single Child");
     for (size_t i = 0; i < _branches.size(); ++i)
     {
-        LOOP_PROGRESS(i, _branches.size());
-
         // A reference to the branch
         auto& branch = _branches[i];
 
@@ -1381,8 +1370,6 @@ void NeuronSkeletonizer::_mergeBranchesWithSingleChild()
             }
         }
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
 }
 
 void NeuronSkeletonizer::_mergeBranchesAfterFilteringSpines()
@@ -1399,9 +1386,6 @@ void NeuronSkeletonizer::_mergeBranchesAfterFilteringSpines()
             {
                 // Get the parent
                 auto parent = branch->parents[j];
-
-                // Remove the spine from the children
-                const auto childrenBefore = parent->children.size();
 
                 std::vector< SkeletonBranch* > newChildren;
                 for (size_t k = 0; k < parent->children.size(); ++k)
@@ -1423,15 +1407,9 @@ void NeuronSkeletonizer::_mergeBranchesAfterFilteringSpines()
                 {
                     parent->children.push_back(newChildren[k]);
                 }
-
-                const auto childrenAfter = parent->children.size();
-
-                // LOG_SUCCESS("Children Before %d Children After %d", childrenBefore, childrenAfter);
             }
 
         }
-
-        // LOOP_PROGRESS(i, _branches.size());
     }
 
 
