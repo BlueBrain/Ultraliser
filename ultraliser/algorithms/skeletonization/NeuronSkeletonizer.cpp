@@ -83,9 +83,9 @@ void NeuronSkeletonizer::constructGraph()
     /// Identify the somatic nodes in the skeleton
     _identifySomaticNodes();
 
-    /// DEBUG: Export the somatic nodes file
+    /// DEBUG: Export the somatic branches
     if (_debugSkeleton && _debuggingPrefix != NONE)
-    { _exportSomaticNodes(_debuggingPrefix + "-somatic"); }
+    { _exportBranches(_debuggingPrefix + "-1", SkeletonBranch::SOMATIC); }
 
     // Verify graph connectivity
     // _verifyGraphConnectivity(edges);
@@ -108,7 +108,7 @@ void NeuronSkeletonizer::constructGraph()
 
     /// DEBUG: Export the somatic branches
     if (_debugSkeleton && _debuggingPrefix != NONE)
-    { _exportBranches(_debuggingPrefix, SkeletonBranch::SOMATIC); }
+    { _exportBranches(_debuggingPrefix + "-2", SkeletonBranch::SOMATIC); }
 
     /// DEBUG: Export the valid branches
     if (_debugSkeleton && _debuggingPrefix != NONE)
@@ -2282,82 +2282,6 @@ void NeuronSkeletonizer::_exportBranches(const std::string& prefix,
         stream << "end\n";
 
         LOOP_PROGRESS(progress, toWrite.size());
-        ++progress;
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Close the file
-    stream.close();
-}
-
-void NeuronSkeletonizer::exportIndividualBranches(const std::string& prefix) const
-{
-    // Start the timer
-    TIMER_SET;
-
-    // Construct the file path
-    std::string filePath = prefix + TXT_EXTENSION;
-    LOG_STATUS("Exporting Neuron Branches: [ %s ]", filePath.c_str());
-
-    std::fstream stream;
-    stream.open(filePath, std::ios::out);
-
-    LOOP_STARTS("Writing Branches");
-    size_t progress = 0;
-    for (size_t i = 0; i < _branches.size(); ++i)
-    {
-        // If the branch does not have any valid nodes, then don't write it
-        if (!_branches[i]->isValid() || _branches[i]->nodes.size() == 0) continue;
-        // if (!_branches[i]->root) continue;
-
-        LOOP_PROGRESS(progress, _branches.size());
-        ++progress;
-
-        // The @start marks a new branch in the file
-        stream << "start " << _branches[i]->index << "\n";
-
-        for (auto& node: _branches[i]->nodes)
-        {
-            stream << node->point.x() << " "
-                   << node->point.y() << " "
-                   << node->point.z() << " "
-                   << node->radius << "\n";
-        }
-
-        // The @end marks the terminal sample of a branch
-        stream << "end\n";
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Close the file
-    stream.close();
-}
-
-void NeuronSkeletonizer::_exportSomaticNodes(const std::string prefix)
-{
-    // Start the timer
-    TIMER_SET;
-
-    // Construct the file path
-    std::string filePath = prefix + NODES_EXTENSION;
-    LOG_STATUS("Exporting Nodes : [ %s ]", filePath.c_str());
-
-    std::fstream stream;
-    stream.open(filePath, std::ios::out);
-
-    LOOP_STARTS("Writing Somatic Nodes");
-    size_t progress = 0;
-    for (size_t i = 0; i < _nodes.size(); ++i)
-    {
-        auto& node = _nodes[i];
-        if (node->insideSoma)
-        {
-            stream << node->point.x() << " " << node->point.y() << " " << node->point.z() << " "
-                   << node->radius << "\n";
-        }
-        LOOP_PROGRESS(progress, _nodes.size());
         ++progress;
     }
     LOOP_DONE;
