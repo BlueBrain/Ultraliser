@@ -63,4 +63,42 @@ bool areConnected(const SkeletonNode* n1, const SkeletonNode* n2);
  */
 bool isTriangleNode(const SkeletonNode* n, SkeletonNodes& connectedEdgeNodes);
 
+/**
+ * @brief constructPathFromBranchToSoma
+ * @param branch
+ * @param path
+ * @param pathIndices
+ */
+void constructPathFromBranchToSoma(SkeletonBranch* branch,
+                                   SkeletonBranches& path,
+                                   std::vector< size_t >& pathIndices);
+
+/**
+ * @brief getTerminals
+ * @param root
+ * @param terminals
+ */
+void getTerminals(SkeletonBranch* root, SkeletonBranches& terminals);
+
+/**
+ * @brief _detectChildren
+ * @param currentBranch
+ * @param allBranches
+ * @return
+ */
+SkeletonBranches _detectChildren(SkeletonBranch* currentBranch, SkeletonBranches& allBranches);
+
+/**
+ * @brief identifyTerminalConnections
+ * @param branches
+ */
+void identifyTerminalConnections(SkeletonBranches& branches);
+
+/**
+ * @brief confirmTerminalsBranches
+ * @param branches
+ */
+void confirmTerminalsBranches(SkeletonBranches& branches);
+
+
 }

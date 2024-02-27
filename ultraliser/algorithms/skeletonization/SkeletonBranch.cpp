@@ -250,8 +250,7 @@ void SkeletonBranch::resampleAdaptively()
     for (size_t i = 0; i < nodes.size(); ++i) { newNodes.push_back(nodes[i]); }
 
     /// Resample the section
-    size_t nodeIndex = 0;
-
+    size_t nodeIndex = isRoot()? 1 : 0;
     // Resample until there is nothing to resample
     while (true)
     {

@@ -23,8 +23,9 @@
 
 #include "NeuronSkeletonizer.h"
 #include <data/meshes/simple/IcoSphere.h>
-#include <algorithms/skeletonization/graphs/Graphs.h>
 #include <algorithms/mcs/DualMarchingCubes.h>
+#include <algorithms/skeletonization/graphs/Graphs.h>
+#include <algorithms/skeletonization/SkeletonizerUtils.h>
 
 namespace Ultraliser
 {
@@ -88,7 +89,6 @@ void NeuronSkeletonizer::constructGraph()
     { _exportBranches(_debuggingPrefix + "-1", SkeletonBranch::SOMATIC); }
 
     // Verify graph connectivity
-    // _verifyGraphConnectivity(edges);
     _verifyGraphConnectivityToClosestPartition(_edges);
 
     /// In the old approach, we needed to remove the triangle loops, but thanks to Foni's algorithm
@@ -181,8 +181,6 @@ void NeuronSkeletonizer::segmentComponents()
     // Remove the branches that have 2 samples along the terminals
     for(size_t i = 0; i < 25; ++i)
     {
-        // Filter the terminal branches that have two branches
-        // TODO: Check the length of the branch
         _filterShortTerminalBranches();
         _mergeBranchesAfterFilteringSpines();
     }
@@ -190,7 +188,6 @@ void NeuronSkeletonizer::segmentComponents()
     /// DEBUG: Export the somatic branches
     if (_debugSkeleton && _debuggingPrefix != NONE)
     { _exportBranches(_debuggingPrefix, SkeletonBranch::TWO_SAMPLE_AND_VALID); }
-
 
     _detectBasePaths();
 
@@ -207,38 +204,6 @@ void NeuronSkeletonizer::segmentComponents()
         // Filter the terminal branches that have two branches
         _filterShortTerminalBranches();
         _mergeBranchesAfterFilteringSpines();
-    }
-}
-
-void constructPathFromBranchToSoma(SkeletonBranch* branch,
-                                   SkeletonBranches& path,
-                                   std::vector< size_t >& pathIndices)
-{
-    // Add the branch to the path
-    path.push_back(branch);
-    pathIndices.push_back(branch->index);
-    branch->traversalCount += 1;
-
-    // Ensure that the branch has a single parent
-    if (branch->parents.size() == 1)
-    {
-        constructPathFromBranchToSoma(branch->parents[0], path, pathIndices);
-    }
-}
-
-void getTerminals(SkeletonBranch* root, SkeletonBranches& terminals)
-{
-    if (root->children.size() == 0)
-    {
-        terminals.push_back(root);
-        return;
-    }
-    else
-    {
-        for (size_t i = 0; i < root->children.size(); ++i)
-        {
-            getTerminals(root->children[i], terminals);
-        }
     }
 }
 
@@ -1672,42 +1637,6 @@ void NeuronSkeletonizer::_filterSpineCandidates()
     }
 }
 
-bool isItSpine(const SkeletonBranch* branch)
-{
-    // If the branch has two samples, it is indeed part of a spine.
-    if (branch->nodes.size() == 2)
-        return true;
-
-    auto length = branch->computeLength();
-    auto minimumRadius = branch->getMinimumRadius();
-    auto maximumRadius = branch->getMaximumRadius();
-    // auto averageRadius = branch->computeAverageRadius();
-
-    // Mushroom
-    if (length < 2 && length > 0.5 && minimumRadius > 0.05 && maximumRadius < 0.5)
-    {
-        std::cout << "Mushroom" << std::endl;
-        return true;
-    }
-    else if (length < 1 && length > 0.2 && minimumRadius > 0.025 && maximumRadius < 0.25)
-    {
-        std::cout << "Thin" << std::endl;
-        return true;
-    }
-    else if (length < 0.5 && length > 0.2 && minimumRadius > 0.1 && maximumRadius < 0.5)
-    {
-        std::cout << "Stubby" << std::endl;
-        return true;
-    }
-    else if (maximumRadius < 0.05 && length < 5)
-    {
-        std::cout << "Filopodia" << std::endl;
-        return true;
-    }
-
-    return false;
-}
-
 void NeuronSkeletonizer::_filterShortTerminalBranches()
 {
     for (size_t i = 0; i < _branches.size(); ++i)
@@ -1765,174 +1694,6 @@ void NeuronSkeletonizer::_detectSpines()
     }
 }
 
-void NeuronSkeletonizer::_filterSpines()
-{
-    /// NOTE: Spine branches must be terminals and can have branching.
-    for (size_t i = 0; i < _branches.size(); ++i)
-    {
-        if (_branches[i]->isTerminal() && _branches[i]->isValid())
-        {
-            if (isItSpine(_branches[i]))
-            {
-                // Set the branch to invalid
-                _branches[i]->setInvalid();
-
-                // Set the branch to be a spine
-                _branches[i]->setSpine();
-            }
-        }
-    }
-}
-
-
-
-
-
-void identifyTerminalConnections(SkeletonBranches& branches)
-{
-    for (size_t i = 0; i < branches.size(); ++i)
-    {
-        auto& iBranch = branches[i];
-
-        // Invalid branch, ignore
-        if (!iBranch->isValid()) continue;
-
-        auto& iBranchT1 = iBranch->nodes.front();
-        auto& iBranchT2 = iBranch->nodes.back();
-
-        for (size_t j = 0; j < branches.size(); ++j)
-        {
-            auto& jBranch = branches[j];
-
-            // Invalid branch, ignore
-            if (!jBranch->isValid()) continue;
-
-            // Same branch, next branch
-            if (iBranch->index == jBranch->index) continue;
-
-            auto& jBranchT1 = jBranch->nodes.front();
-            auto& jBranchT2 = jBranch->nodes.back();
-
-            // A new connection to the T1 terminal
-            if (iBranchT1->index == jBranchT1->index)
-            {
-                // The sample must not be the soma
-                if (jBranchT1->isSoma) continue;
-
-                iBranch->t1Connections.push_back(jBranch);
-            }
-
-            if (iBranchT1->index == jBranchT2->index)
-            {
-                // The sample must not be the soma
-                if (jBranchT2->isSoma) continue;
-
-                iBranch->t1Connections.push_back(jBranch);
-            }
-
-            if (iBranchT2->index == jBranchT1->index)
-            {
-                // The sample must not be the soma
-                if (jBranchT1->isSoma) continue;
-
-                iBranch->t2Connections.push_back(jBranch);
-            }
-
-            // A new connection to the T2 terminal
-            if (iBranchT2->index == jBranchT2->index)
-            {
-                // The sample must not be the soma
-                if (jBranchT2->isSoma) continue;
-
-                iBranch->t2Connections.push_back(jBranch);
-            }
-        }
-    }
-}
-
-void confirmTerminalsBranches(SkeletonBranches& branches)
-{
-    for (size_t i = 0; i < branches.size(); ++i)
-    {
-        // Reference to the branch
-        auto& branch = branches[i];
-
-        // Invalid branches, next
-        if (!branch->isValid()) continue;
-
-        // If root branch, then next
-        if (branch->isRoot()) continue;
-
-        // If terminal branch, then adjust the samples
-        if (branch->t1Connections.size() == 0 || branch->t2Connections.size() == 0)
-        {
-            // Update the status
-            branch->setTerminal();
-
-            // Reverse the sample if needed
-            if (branch->nodes.back()->edgeNodes.size() > 1)
-            {
-                std::reverse(std::begin(branch->nodes), std::end(branch->nodes));
-            }
-        }
-    }
-}
-
-SkeletonBranches _detectChildren(SkeletonBranch* currentBranch, SkeletonBranches& allBranches)
-{
-    SkeletonBranches childrenBranches;
-
-    // Get a reference to the last node in the root
-    auto rootLastNode = currentBranch->nodes.back();
-
-    for (size_t i = 0; i < allBranches.size(); ++i)
-    {
-        // Reference to the branch
-        auto& branch = allBranches[i];
-
-        // Invalid branches, next
-        if (!branch->isValid()) continue;
-
-        // If root branch, then next
-        if (branch->isRoot()) continue;
-
-        // If the currentBranch and the branch have the same index, then invalid
-        if (currentBranch->index == branch->index) continue;
-
-        // Access the nodes of the branch
-        auto& branchFirstNode = branch->nodes.front();
-        auto& branchLastNode = branch->nodes.back();
-
-        // If the last node of the root is the first node of the branch, then it is a child
-        if (rootLastNode->index == branchFirstNode->index)
-        {
-            childrenBranches.push_back(branch);
-
-            // Add the branch to the children list
-            // currentBranch->children.push_back(branch);
-
-            // Add the root to be a parent of the branch
-            // branch->parents.push_back(currentBranch);
-        }
-
-        // If the last node of the root is the last node of the branch, then it is a
-        // reversed child
-        if (rootLastNode->index == branchLastNode->index)
-        {
-            // Reverse the order of the nodes
-            std::reverse(std::begin(branch->nodes), std::end(branch->nodes));
-
-            // Add the branch to the children list
-            currentBranch->children.push_back(branch);
-
-            // Add the root to be a parent of the branch
-            branch->parents.push_back(currentBranch);
-        }
-    }
-
-    return childrenBranches;
-}
-
 void NeuronSkeletonizer::_connectBranches()
 {
     // Identify the connections at the terminals of each branch
@@ -1941,7 +1702,6 @@ void NeuronSkeletonizer::_connectBranches()
     // Roots, terminals and others
     confirmTerminalsBranches(_branches);
 }
-
 
 void NeuronSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
                                                        const size_t& numberOverlappingVoxels,

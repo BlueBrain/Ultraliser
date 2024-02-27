@@ -213,11 +213,6 @@ private:
     void _filterLoopsAtSingleBranchingPoint();
 
     /**
-     * @brief _filterSpines
-     */
-    void _filterSpines();
-
-    /**
      * @brief _updateParent
      * @param branch
      */
