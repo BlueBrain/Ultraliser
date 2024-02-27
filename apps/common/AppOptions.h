@@ -630,6 +630,19 @@ public:
     bool exportBranches = false;
 
     /**
+     * @brief exportSomaMesh
+     * If this flag is set, the segmented soma mesh will be exported.
+     */
+    bool exportSomaMesh = false;
+
+    /**
+     * @brief exportProxySomaMesh
+     * If this flag is set, the proxy soma mesh will be exported. This mesh is mainly used for
+     * debugging.
+     */
+    bool exportProxySomaMesh = false;
+
+    /**
      * @brief debugSkeletonization
      * Debugs the skeletonization process by generating the artifacts at every stage.
      */

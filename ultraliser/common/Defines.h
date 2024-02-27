@@ -136,6 +136,9 @@
 #define XYZ_SUFFIX                              STRING("-xyz")
 #define SKELETON_SUFFIX                         STRING("-skeleton")
 #define NODES_SUFFIX                            STRING("-nodes")
+#define PROXY_SOMA_MESH_SUFFIX                  STRING("-proxy-soma")
+#define SOMA_MESH_SUFFIX                        STRING("-soma")
+
 
 // Directories where the artifacts will be generated
 #define MORPHOLOGIES_DIRECTORY                  STRING("morphologies")

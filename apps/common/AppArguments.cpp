@@ -642,6 +642,21 @@ void AppArguments::addNeuronalMorphologyExportArguments()
     _args->addArgument(&exportSWC);
     _options->exportSWC = _args->getBoolValue(&exportSWC);
 
+    Argument exportSomaMesh(
+                "--export-soma-mesh",
+                ARGUMENT_TYPE::BOOL,
+                "Exports segmented soma mesh.");
+    _args->addArgument(&exportSomaMesh);
+    _options->exportSomaMesh = _args->getBoolValue(&exportSomaMesh);
+
+    Argument exportProxySomaMesh(
+                "--export-proxy-soma-mesh",
+                ARGUMENT_TYPE::BOOL,
+                "Exports the proxy mesh of the segmented soma. This mesh is mainly used for "
+                "debugging. For a better mesh, use the --export-soma-mesh flag.");
+    _args->addArgument(&exportProxySomaMesh);
+    _options->exportProxySomaMesh = _args->getBoolValue(&exportProxySomaMesh);
+
     Argument debugSkeletonization(
                 "--debug-skeletonization",
                 ARGUMENT_TYPE::BOOL,

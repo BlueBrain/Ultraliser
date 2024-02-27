@@ -285,6 +285,16 @@ void AppOptions::verifyNeuronalMorphologyExportArguments()
         LOG_ERROR("You must specify at least one valid morphology format to export:"
                   "[--export-swc-morphology]");
     }
+
+    // If the soma will be exported, make sure that at least one mesh format must be exported.
+    if (exportSomaMesh || exportProxySomaMesh)
+    {
+        if (!(exportOBJ || exportPLY || exportOFF || exportSTL))
+        {
+            LOG_ERROR("You must specify at least one valid mesh format to export the soma mesh:"
+                "[--export-obj-mesh, --export-ply-mesh, --export-off-mesh, --export-stl-mesh]");
+        }
+    }
 }
 
 void AppOptions::verifyVolumeExportArguments()

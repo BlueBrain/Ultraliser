@@ -516,7 +516,7 @@ void Volume::_allocateGrid(const size_t &width, const size_t &height, const size
     }
 }
 
-void Volume::_createGrid(void)
+void Volume::_createGrid()
 {
     LOG_TITLE("Creating Volume Grid");
 

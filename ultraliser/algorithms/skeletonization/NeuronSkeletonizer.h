@@ -142,6 +142,27 @@ public:
                         const bool &formatSTL);
 
     /**
+     * @brief exportSomaProxyMesh
+     * Exports the proxy mesh of the reconstructed soma. This is the initial mesh object that is
+     * used to reconstruct the mesh.
+     * @param prefix
+     * File prefix.
+     * @param formatOBJ
+     * If this flag is set, an OBJ mesh will be exported.
+     * @param formatPLY
+     * If this flag is set, a PLY mesh will be exported.
+     * @param formatOFF
+     * If this flag is set, an OFF mesh will be exported.
+     * @param formatSTL
+     * If this flag is set, an STL mesh will be exported.
+     */
+    void exportSomaProxyMesh(const std::string& prefix,
+                             const bool &formatOBJ,
+                             const bool &formatPLY,
+                             const bool &formatOFF,
+                             const bool &formatSTL);
+
+    /**
      * @brief getSomaMesh
      * Returns a pointer to the segmented soma mesh.
      * @return

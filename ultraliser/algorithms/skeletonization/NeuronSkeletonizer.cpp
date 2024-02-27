@@ -244,8 +244,6 @@ void getTerminals(SkeletonBranch* root, SkeletonBranches& terminals)
 
 void NeuronSkeletonizer::_detectBasePaths()
 {
-    std::cout << "Roots: " <<  _roots.size() << std::endl;
-
     for (size_t i = 0; i < _roots.size(); ++i)
     {
         SkeletonBranches terminals;
@@ -707,18 +705,16 @@ void NeuronSkeletonizer::_identifySomaticNodes()
     {
         auto& node = _nodes[i];
         // size_t key = _volume->mapTo1DIndexWithoutBoundCheck(
-                    // node->voxel.x(), node->voxel.y(), node->voxel.z());
+        // node->voxel.x(), node->voxel.y(), node->voxel.z());
         size_t key = node->voxelIndex;
-        if (std::find(insideSomaVoxels.begin(), insideSomaVoxels.end(), key) != insideSomaVoxels.end())
+        if (std::find(insideSomaVoxels.begin(), insideSomaVoxels.end(), key)
+                != insideSomaVoxels.end())
         {
             // The node is inside the soma
             node->insideSoma = true;
         }
     }
     LOG_STATS(GET_TIME_SECONDS);
-
-    // Before we delete the volume, use it to reconst a high quality soma mesh
-    _reconstructSomaMeshFromProxy();
 
     /// TODO: The volume is safe to be deallocated
     _volume->~Volume();
@@ -735,18 +731,19 @@ void NeuronSkeletonizer::_reconstructSomaMeshFromProxy()
     // Construct the volume
     Volume* somaVolume = new Volume(pMinInput, pMaxInput, 128, 0.1);
 
+    // Voxelize the proxy mesh
     somaVolume->surfaceVoxelization(_somaProxyMesh, false, false, 1.0);
     somaVolume->solidVoxelization();
 
+    // Use DMC to reconstruct a mesh
     _somaMesh = DualMarchingCubes::generateMeshFromVolume(somaVolume);
 
+    // Free the volume
     delete somaVolume;
 
-    // Smooth the soma mesh
-    _somaMesh->smoothSurface(15);
-
-    const std::string prefix = _debuggingPrefix + "-soma";
-     _somaMesh->exportMesh(prefix, true, false, false, false);
+    // Optimize the mesh
+    _somaMesh->smoothSurface(10);
+    _somaMesh->optimizeAdaptively(5, 5, 0.05, 5.0);
 }
 
 void NeuronSkeletonizer::_removeBranchesInsideSoma()
@@ -1955,14 +1952,25 @@ void NeuronSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
     segmentComponents();
 }
 
+void NeuronSkeletonizer::exportSomaProxyMesh(const std::string& prefix,
+                                             const bool& formatOBJ = false,
+                                             const bool& formatPLY = false,
+                                             const bool& formatOFF = false,
+                                             const bool& formatSTL = false)
+{
+    _somaProxyMesh->exportMesh(prefix + PROXY_SOMA_MESH_SUFFIX,
+                               formatOBJ, formatPLY, formatOFF, formatSTL);
+}
+
 void NeuronSkeletonizer::exportSomaMesh(const std::string& prefix,
                                         const bool& formatOBJ = false,
                                         const bool& formatPLY = false,
                                         const bool& formatOFF = false,
                                         const bool& formatSTL = false)
 {
-    const std::string somaMeshPrefix = prefix + "-proxy-soma";
-    _somaProxyMesh->exportMesh(somaMeshPrefix, formatOBJ, formatPLY, formatOFF, formatSTL);
+    // Reconstruct the soma mesh from the proxy one, only if we are going to export it
+    _reconstructSomaMeshFromProxy();
+    _somaMesh->exportMesh(prefix + SOMA_MESH_SUFFIX, formatOBJ, formatPLY, formatOFF, formatSTL);
 }
 
 void NeuronSkeletonizer::collectSWCNodes(const SkeletonBranch* branch, SkeletonNodes& swcNodes,

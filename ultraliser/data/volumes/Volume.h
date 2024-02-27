@@ -988,7 +988,7 @@ private:
      * @brief _createGrid
      * Creates the volume grid and initializes it to zeros.
      */
-    void _createGrid(void);
+    void _createGrid();
 
     /**
      * @brief _createGrid
