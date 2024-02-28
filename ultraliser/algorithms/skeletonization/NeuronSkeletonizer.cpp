@@ -1249,7 +1249,10 @@ void NeuronSkeletonizer::_constructSkeletonHierarchy(GraphBranches& graphBranche
         // Update the tree
         for(size_t j = 0; j < graphBranch->children.size(); ++j)
         {
-            skeletonBranch->children.push_back(_branches[graphBranch->children[j]->skeletonIndex]);
+            skeletonBranch->children.push_back(
+                        _branches[graphBranch->children[j]->skeletonIndex]);
+            skeletonBranch->logicalChildren.push_back(
+                        _branches[graphBranch->children[j]->skeletonIndex]);
         }
     }
     LOOP_DONE;
@@ -1367,7 +1370,7 @@ void NeuronSkeletonizer::_adjustSomaRadius()
         {
             // The second sample is the first sample of the branch and the first sample is
             // the soma center
-            somaRadius += branch->nodes[1]->point.distance(_somaNode->point);;
+            somaRadius += branch->nodes[1]->point.distance(_somaNode->point);
             numberValidRoots++;
         }
     }
@@ -1389,6 +1392,7 @@ void NeuronSkeletonizer::_updateParent(SkeletonBranch* branch)
 
         // Add the new parent
         child->parents.push_back(branch);
+        child->logicalParents.push_back(branch);
 
         _updateParent(child);
     }
@@ -1412,6 +1416,7 @@ void NeuronSkeletonizer::_updateParents()
 
                 // Add the new parent
                 child->parents.push_back(branch);
+                child->logicalParents.push_back(branch);
 
                 _updateParent(child);
             }

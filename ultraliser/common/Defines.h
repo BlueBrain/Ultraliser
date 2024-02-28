@@ -139,7 +139,6 @@
 #define PROXY_SOMA_MESH_SUFFIX                  STRING("-proxy-soma")
 #define SOMA_MESH_SUFFIX                        STRING("-soma")
 
-
 // Directories where the artifacts will be generated
 #define MORPHOLOGIES_DIRECTORY                  STRING("morphologies")
 #define MESHES_DIRECTORY                        STRING("meshes")

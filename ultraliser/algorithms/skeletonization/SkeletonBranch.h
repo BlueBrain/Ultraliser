@@ -271,10 +271,22 @@ public:
     std::vector< SkeletonBranch* > parents;
 
     /**
+     * @brief logicalParents
+     * A list of the logical parent branches.
+     */
+    std::vector< SkeletonBranch* > logicalParents;
+
+    /**
      * @brief children
      * A list of the child branches.
      */
     std::vector< SkeletonBranch* > children;
+
+    /**
+     * @brief children
+     * A list of the logical child branches.
+     */
+    std::vector< SkeletonBranch* > logicalChildren;
 
     /**
      * @brief t0Connections
