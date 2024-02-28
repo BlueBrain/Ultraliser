@@ -287,7 +287,7 @@ void AppOptions::verifyNeuronalMorphologyExportArguments()
     }
 
     // If the soma will be exported, make sure that at least one mesh format must be exported.
-    if (exportSomaMesh || exportProxySomaMesh)
+    if (exportSomaMesh || exportProxySomaMesh || exportOptimizedNeuronMesh)
     {
         if (!(exportOBJ || exportPLY || exportOFF || exportSTL))
         {

@@ -642,6 +642,13 @@ void AppArguments::addNeuronalMorphologyExportArguments()
     _args->addArgument(&exportSWC);
     _options->exportSWC = _args->getBoolValue(&exportSWC);
 
+    Argument exportOptimizedNeuronMesh(
+                "--export-optimized-neuron-mesh",
+                ARGUMENT_TYPE::BOOL,
+                "Exports an optimized mesh of the input neuron.");
+    _args->addArgument(&exportOptimizedNeuronMesh);
+    _options->exportOptimizedNeuronMesh = _args->getBoolValue(&exportOptimizedNeuronMesh);
+
     Argument exportSomaMesh(
                 "--export-soma-mesh",
                 ARGUMENT_TYPE::BOOL,
@@ -672,6 +679,14 @@ void AppArguments::addNeuronalMorphologyExportArguments()
                 "optimum morphology.");
     _args->addArgument(&resampleSkeleton);
     _options->resampleSkeleton = _args->getBoolValue(&resampleSkeleton);
+
+    Argument reomveSpines(
+                "--remove-spines",
+                ARGUMENT_TYPE::BOOL,
+                "Removes the spines and export only the branches of the the neuronal morphology "
+                "to the .SWC file.");
+    _args->addArgument(&reomveSpines);
+    _options->removeSpines = _args->getBoolValue(&reomveSpines);
 }
 
 void AppArguments::addMeshExportArguments()

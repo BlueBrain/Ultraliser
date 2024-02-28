@@ -624,10 +624,22 @@ public:
     bool exportSWC = false;
 
     /**
+     * @brief removeSpines
+     * Segments and removes the spines from the neuronal mesh.
+     */
+    bool removeSpines = false;
+
+    /**
      * @brief exportBranches
      * Export the reconstructed branches of the skeleton into a .TXT file for display in Blender.
      */
     bool exportBranches = false;
+
+    /**
+     * @brief exportOptimizedNeuronMesh
+     * Exports an optimized version of the input neuron mesh.
+     */
+    bool exportOptimizedNeuronMesh = false;
 
     /**
      * @brief exportSomaMesh

@@ -45,6 +45,7 @@ public:
      * @param volume
      */
     NeuronSkeletonizer(Volume *volume,
+                       const bool &removeSpines = true,
                        const bool &useAcceleration = true,
                        const bool &debugSkeleton = false,
                        const std::string debuggingPrefix = NONE);
@@ -299,7 +300,7 @@ private:
 
     void _filterSpineCandidates();
 
-    void _removeSpines();
+    void _removeSpinesss();
 
     size_t _estimateNumberSpineCandidates();
 
@@ -389,6 +390,11 @@ private:
      * A list of all the roots in the skeleton, i.e. the branches that emanate from the soma.
      */
     SkeletonBranches _roots;
+
+    /**
+     * @brief _removeSpines
+     */
+    const bool _removeSpines;
 };
 
 }

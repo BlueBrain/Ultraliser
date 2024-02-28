@@ -85,6 +85,16 @@ void run(int argc , const char** argv)
     solidVolume->solidVoxelization(options->voxelizationAxis);
     solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
 
+    // Export optimized neuron mesh
+    if (options->exportOptimizedNeuronMesh)
+    {
+        // Extract the mesh from the volume again
+        auto reconstructedMesh = reconstructMeshFromVolume(solidVolume, options);
+
+        // Generate the artifacts of the mesh
+        generateReconstructedMeshArtifacts(reconstructedMesh, options);
+    }
+
     // Project the volume created from the input mesh
     if (options->projectXY || options->projectXZ || options->projectZY)
     {
@@ -94,7 +104,7 @@ void run(int argc , const char** argv)
 
     // Create a skeletonization object
     NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(
-                solidVolume, options->useAccelerationStructures,
+                solidVolume, options->removeSpines, options->useAccelerationStructures,
                 options->debugSkeletonization, options->morphologyPrefix);
 
     // Initialize the skeltonizer

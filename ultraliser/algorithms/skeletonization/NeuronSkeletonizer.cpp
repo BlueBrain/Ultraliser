@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2016 - 2023
+ * Copyright (c) 2016 - 2024
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -30,20 +30,19 @@
 namespace Ultraliser
 {
 NeuronSkeletonizer::NeuronSkeletonizer(Volume* volume,
+                                       const bool &removeSpines,
                                        const bool &useAcceleration,
                                        const bool &debugSkeleton,
                                        const std::string debuggingPrefix)
     : Skeletonizer(volume, useAcceleration, debugSkeleton, debuggingPrefix)
+    , _removeSpines(removeSpines)
 {
     /// EMPTY CONSTRUCTOR
 }
 
 void NeuronSkeletonizer::skeletonizeVolumeToCenterLines()
 {
-    if (_useAcceleration)
-        _applyVolumeThinningUsingAcceleration();
-    else
-        _applyVolumeThinning();
+    if (_useAcceleration) _applyVolumeThinningUsingAcceleration(); else _applyVolumeThinning();
 }
 
 void NeuronSkeletonizer::constructGraph()
@@ -53,10 +52,7 @@ void NeuronSkeletonizer::constructGraph()
     auto indicesMapper = _extractNodesFromVoxels();
 
     /// DEBUG: Export the nodes file
-    if (_debugSkeleton && _debuggingPrefix != NONE)
-    {
-        _exportGraphNodes(_debuggingPrefix);
-    }
+    if (_debugSkeleton && _debuggingPrefix != NONE) { _exportGraphNodes(_debuggingPrefix); }
 
     /// Connect the nodes of the skeleton to construct its edges. This operation will not connect
     /// any gaps, it will just connect the nodes extracted from the voxels.
@@ -67,9 +63,7 @@ void NeuronSkeletonizer::constructGraph()
 
     /// DEBUG: Export the inflated nodes file
     if (_debugSkeleton && _debuggingPrefix != NONE)
-    {
-        _exportGraphNodes(_debuggingPrefix + "-inflated");
-    }
+    { _exportGraphNodes(_debuggingPrefix + "-inflated"); }
 
     /// Add a virtual soma node, until the soma is reconstructed later
     _addSomaNode();
@@ -175,35 +169,39 @@ void NeuronSkeletonizer::segmentComponents()
     // Update all the parents
     _updateParents();
 
-    // Remove root spines around the soma
-    _removeRootSpines();
-
-    // Remove the branches that have 2 samples along the terminals
-    for(size_t i = 0; i < 25; ++i)
+    // Remove the spines from the skeleton
+    if (_removeSpines)
     {
-        _filterShortTerminalBranches();
-        _mergeBranchesAfterFilteringSpines();
-    }
+        // Remove root spines around the soma
+        _removeRootSpines();
 
-    /// DEBUG: Export the somatic branches
-    if (_debugSkeleton && _debuggingPrefix != NONE)
-    { _exportBranches(_debuggingPrefix, SkeletonBranch::TWO_SAMPLE_AND_VALID); }
+        // Remove the branches that have 2 samples along the terminals
+        for(size_t i = 0; i < 25; ++i)
+        {
+            _filterShortTerminalBranches();
+            _mergeBranchesAfterFilteringSpines();
+        }
 
-    _detectBasePaths();
+        /// DEBUG: Export the somatic branches
+        if (_debugSkeleton && _debuggingPrefix != NONE)
+        { _exportBranches(_debuggingPrefix, SkeletonBranch::TWO_SAMPLE_AND_VALID); }
 
-    for(size_t i = 0; i < 5; ++i)
-    {
-        // Filter the synapses
-        _detectSpines();
-        _mergeBranchesAfterFilteringSpines();
-    }
+        _detectBasePaths();
 
-    // Remove the branches that have 2 samples along the terminals
-    for(size_t i = 0; i < 5; ++i)
-    {
-        // Filter the terminal branches that have two branches
-        _filterShortTerminalBranches();
-        _mergeBranchesAfterFilteringSpines();
+        for(size_t i = 0; i < 5; ++i)
+        {
+            // Filter the synapses
+            _detectSpines();
+            _mergeBranchesAfterFilteringSpines();
+        }
+
+        // Remove the branches that have 2 samples along the terminals
+        for(size_t i = 0; i < 5; ++i)
+        {
+            // Filter the terminal branches that have two branches
+            _filterShortTerminalBranches();
+            _mergeBranchesAfterFilteringSpines();
+        }
     }
 }
 
@@ -1459,7 +1457,7 @@ size_t NeuronSkeletonizer::_estimateNumberSpineCandidates()
     return numberSpineCandidates;
 }
 
-void NeuronSkeletonizer::_removeSpines()
+void NeuronSkeletonizer::_removeSpinesss()
 {
 
     size_t iterations = 0;
