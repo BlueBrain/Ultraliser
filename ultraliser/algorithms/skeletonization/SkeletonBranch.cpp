@@ -314,13 +314,14 @@ void SkeletonBranch::getBoundingBox(Vector3f& pMin, Vector3f& pMax,
     for (size_t i = 0; i < nodes.size(); ++i)
     {
         const auto& point = nodes[i]->point;
-        if (point.x() < _pMin.x()) _pMin.x() = point.x();
-        if (point.y() < _pMin.y()) _pMin.y() = point.y();
-        if (point.z() < _pMin.z()) _pMin.z() = point.z();
+        const auto& radius = nodes[i]->radius;
+        if (point.x() - radius < _pMin.x()) _pMin.x() = point.x() - radius ;
+        if (point.y() - radius < _pMin.y()) _pMin.y() = point.y() - radius ;
+        if (point.z() - radius < _pMin.z()) _pMin.z() = point.z() - radius ;
 
-        if (point.x() > _pMax.x()) _pMax.x() = point.x();
-        if (point.y() > _pMax.y()) _pMax.y() = point.y();
-        if (point.z() > _pMax.z()) _pMax.z() = point.z();
+        if (point.x() + radius > _pMax.x()) _pMax.x() = point.x() + radius;
+        if (point.y() + radius > _pMax.y()) _pMax.y() = point.y() + radius;
+        if (point.z() + radius > _pMax.z()) _pMax.z() = point.z() + radius;
     }
 
     pMin = _pMin;

@@ -417,11 +417,11 @@ void getTreeBoundingBox(SkeletonBranch* root,
     Vector3f pMinRoot, pMaxRoot, boundsRoot, centerRoot;
     root->getBoundingBox(pMinRoot, pMaxRoot, boundsRoot, centerRoot);
 
-    for (size_t i = 0; i < root->children.size(); ++i)
+    for (size_t i = 0; i < root->logicalChildren.size(); ++i)
     {
         // Get the bounding box of the child branch
         Vector3f pMinChild, pMaxChild, boundsChild, centerChild;
-        getTreeBoundingBox(root->children[i], pMinChild, pMaxChild, boundsChild, centerChild);
+        getTreeBoundingBox(root->logicalChildren[i], pMinChild, pMaxChild, boundsChild, centerChild);
 
         // Expandthe bounding box
         if (pMinChild.x() < pMinRoot.x()) pMinRoot.x() = pMinChild.x();

@@ -206,6 +206,10 @@ void NeuronSkeletonizer::segmentComponents()
         // Segment the spines and label (count) them
         segmentSpines();
 
+        /// DEBUG: Export the somatic branches
+        if (_debugSkeleton && _debuggingPrefix != NONE)
+        { _exportBranches(_debuggingPrefix, SkeletonBranch::SPINE); }
+
         /// DEBUG: Export the spine locations
         if (_debugSkeleton && _debuggingPrefix != NONE)
         { _exportSpineLocations(_debuggingPrefix); }
