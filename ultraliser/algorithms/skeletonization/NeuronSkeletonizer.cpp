@@ -206,7 +206,13 @@ void NeuronSkeletonizer::segmentComponents()
         // Segment the spines and label (count) them
         segmentSpines();
 
-        _exportSpineLocations(_debuggingPrefix);
+        /// DEBUG: Export the spine locations
+        if (_debugSkeleton && _debuggingPrefix != NONE)
+        { _exportSpineLocations(_debuggingPrefix); }
+
+        /// DEBUG: Export the spine extents
+        if (_debugSkeleton && _debuggingPrefix != NONE)
+        { _exportSpineExtents(_debuggingPrefix); }
     }
 }
 
@@ -2048,12 +2054,47 @@ void NeuronSkeletonizer::_exportSpineLocations(const std::string& prefix) const
     size_t progress = 0;
     for (size_t i = 0; i < _spineRoots.size(); ++i)
     {
-//         std::cout << _spineRoots[i]->nodes.size() << std::endl;
         auto node = _spineRoots[i]->nodes[0];
 
         stream << node->point.x() << " "
                << node->point.y() << " "
                << node->point.z() << "\n";
+
+        LOOP_PROGRESS(progress, _spineRoots.size());
+        ++progress;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Close the file
+    stream.close();
+}
+
+void NeuronSkeletonizer::_exportSpineExtents(const std::string& prefix) const
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Construct the file path
+    std::string filePath = prefix + "-spine-extents" + NODES_EXTENSION;
+    LOG_STATUS("Exporting Spines Extents: [ %s ]", filePath.c_str());
+
+    std::fstream stream;
+    stream.open(filePath, std::ios::out);
+
+    LOOP_STARTS("Writing Spines Extents");
+    size_t progress = 0;
+    for (size_t i = 0; i < _spineRoots.size(); ++i)
+    {
+        Vector3f pMin, pMax, bounds, center;
+        getLogicalTreeBoundingBox(_spineRoots[i], pMin, pMax, bounds, center);
+
+        stream << center.x() << " "
+               << center.y() << " "
+               << center.z() << " "
+               << bounds.x() << " "
+               << bounds.y() << " "
+               << bounds.z() << "\n";
 
         LOOP_PROGRESS(progress, _spineRoots.size());
         ++progress;

@@ -410,5 +410,64 @@ SkeletonBranch* segmentSpineFromBranch(SkeletonBranch* spineBranch, const size_t
     return spineRoot;
 }
 
+void getTreeBoundingBox(SkeletonBranch* root,
+                        Vector3f& pMin, Vector3f& pMax, Vector3f& bounds, Vector3f &center)
+{
+    // Get the bounding box of the root branch
+    Vector3f pMinRoot, pMaxRoot, boundsRoot, centerRoot;
+    root->getBoundingBox(pMinRoot, pMaxRoot, boundsRoot, centerRoot);
+
+    for (size_t i = 0; i < root->children.size(); ++i)
+    {
+        // Get the bounding box of the child branch
+        Vector3f pMinChild, pMaxChild, boundsChild, centerChild;
+        getTreeBoundingBox(root->children[i], pMinChild, pMaxChild, boundsChild, centerChild);
+
+        // Expandthe bounding box
+        if (pMinChild.x() < pMinRoot.x()) pMinRoot.x() = pMinChild.x();
+        if (pMinChild.y() < pMinRoot.y()) pMinRoot.y() = pMinChild.y();
+        if (pMinChild.z() < pMinRoot.z()) pMinRoot.z() = pMinChild.z();
+
+        if (pMaxChild.x() > pMaxRoot.x()) pMaxRoot.x() = pMaxChild.x();
+        if (pMaxChild.y() > pMaxRoot.y()) pMaxRoot.y() = pMaxChild.y();
+        if (pMaxChild.z() > pMaxRoot.z()) pMaxRoot.z() = pMaxChild.z();
+    }
+
+    // Calculate the center and bounds at the end
+    pMin = pMinRoot;
+    pMax = pMaxRoot;
+    bounds = pMax - pMin;
+    center = pMin + bounds * 0.5f;
+}
+
+void getLogicalTreeBoundingBox(SkeletonBranch* root,
+                               Vector3f& pMin, Vector3f& pMax, Vector3f& bounds, Vector3f &center)
+{
+    // Get the bounding box of the root branch
+    Vector3f pMinRoot, pMaxRoot, boundsRoot, centerRoot;
+    root->getBoundingBox(pMinRoot, pMaxRoot, boundsRoot, centerRoot);
+
+    for (size_t i = 0; i < root->logicalChildren.size(); ++i)
+    {
+        // Get the bounding box of the child branch
+        Vector3f pMinChild, pMaxChild, boundsChild, centerChild;
+        getTreeBoundingBox(root->logicalChildren[i], pMinChild, pMaxChild, boundsChild, centerChild);
+
+        // Expandthe bounding box
+        if (pMinChild.x() < pMinRoot.x()) pMinRoot.x() = pMinChild.x();
+        if (pMinChild.y() < pMinRoot.y()) pMinRoot.y() = pMinChild.y();
+        if (pMinChild.z() < pMinRoot.z()) pMinRoot.z() = pMinChild.z();
+
+        if (pMaxChild.x() > pMaxRoot.x()) pMaxRoot.x() = pMaxChild.x();
+        if (pMaxChild.y() > pMaxRoot.y()) pMaxRoot.y() = pMaxChild.y();
+        if (pMaxChild.z() > pMaxRoot.z()) pMaxRoot.z() = pMaxChild.z();
+    }
+
+    // Calculate the center and bounds at the end
+    pMin = pMinRoot;
+    pMax = pMaxRoot;
+    bounds = pMax - pMin;
+    center = pMin + bounds * 0.5f;
+}
 
 }

@@ -304,4 +304,29 @@ void SkeletonBranch::resampleAdaptively()
     nodes.shrink_to_fit();
     nodes = newNodes;
 }
+
+void SkeletonBranch::getBoundingBox(Vector3f& pMin, Vector3f& pMax,
+                                    Vector3f& bounds, Vector3f &center)
+{
+    Vector3f _pMin(FLT_MAX);
+    Vector3f _pMax(-1 * FLT_MAX);
+
+    for (size_t i = 0; i < nodes.size(); ++i)
+    {
+        const auto& point = nodes[i]->point;
+        if (point.x() < _pMin.x()) _pMin.x() = point.x();
+        if (point.y() < _pMin.y()) _pMin.y() = point.y();
+        if (point.z() < _pMin.z()) _pMin.z() = point.z();
+
+        if (point.x() > _pMax.x()) _pMax.x() = point.x();
+        if (point.y() > _pMax.y()) _pMax.y() = point.y();
+        if (point.z() > _pMax.z()) _pMax.z() = point.z();
+    }
+
+    pMin = _pMin;
+    pMax = _pMax;
+    bounds = _pMax - _pMin;
+    center = _pMin + bounds * 0.5f;
+}
+
 }

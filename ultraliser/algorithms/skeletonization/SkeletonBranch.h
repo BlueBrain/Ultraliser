@@ -250,6 +250,16 @@ public:
      */
     void resampleAdaptively();
 
+    /**
+     * @brief getBoundingBox
+     * Gets the bounding box or the extent of the branch.
+     * @param pMin
+     * @param pMax
+     * @param bounds
+     * @param center
+     */
+    void getBoundingBox(Vector3f& pMin, Vector3f& pMax, Vector3f& bounds, Vector3f &center);
+
 public:
 
     /**

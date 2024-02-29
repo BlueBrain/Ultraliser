@@ -109,4 +109,7 @@ void segmentSpine(SkeletonBranch* spineTerminal, const size_t& spineIndex);
 
 SkeletonBranch* segmentSpineFromBranch(SkeletonBranch* spineBranch, const size_t& spineIndex);
 
+void getLogicalTreeBoundingBox(SkeletonBranch* root,
+                               Vector3f& pMin, Vector3f& pMax, Vector3f& bounds, Vector3f &center);
+
 }

@@ -377,6 +377,9 @@ private:
 
     void _exportSpineLocations(const std::string& prefix) const;
 
+    void _exportSpineExtents(const std::string& prefix) const;
+
+
 private:
     /**
      * @brief _removeSpines
