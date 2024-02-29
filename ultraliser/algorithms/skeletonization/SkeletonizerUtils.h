@@ -100,5 +100,13 @@ void identifyTerminalConnections(SkeletonBranches& branches);
  */
 void confirmTerminalsBranches(SkeletonBranches& branches);
 
+/**
+ * @brief segmentSpine
+ * @param spineTerminal
+ * @param spineIndex
+ */
+void segmentSpine(SkeletonBranch* spineTerminal, const size_t& spineIndex);
+
+SkeletonBranch* segmentSpineFromBranch(SkeletonBranch* spineBranch, const size_t& spineIndex);
 
 }

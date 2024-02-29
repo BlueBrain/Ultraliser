@@ -278,5 +278,137 @@ SkeletonBranches _detectChildren(SkeletonBranch* currentBranch, SkeletonBranches
     return childrenBranches;
 }
 
+void setIndexToSpineTree(SkeletonBranch *spineBranch, const size_t &spineIndex)
+{
+    spineBranch->spineIndex = spineIndex;
+    spineBranch->setVisited();
+
+    // Verify the rest of the tree
+    for (size_t i = 0; i < spineBranch->logicalChildren.size(); ++i)
+    {
+        setIndexToSpineTree(spineBranch->logicalChildren[i], spineIndex);
+    }
+}
+
+SkeletonBranch *verifySpineTree(SkeletonBranch *spine,
+                                const size_t &spineIndex) {
+    SkeletonBranch* nonSpinyParent = nullptr;
+
+    // Get the parent (processed neurons will have indeed a single parent)
+    auto parent = spine->logicalParents[0];
+    if (parent->isSpine())
+    {
+        // Set the spine index
+        parent->spineIndex = spineIndex;
+
+        // Verify the tree of the parent to be spines or not
+        nonSpinyParent = verifySpineTree(parent, spineIndex);
+    }
+
+    // Return the non-spiny parent to propagate backwards
+    return nonSpinyParent;
+}
+
+SkeletonBranch* findEmanatingBranchOfSpine(SkeletonBranch *spine)
+{
+    // This is the branch, from which the spine emanates
+    SkeletonBranch* spineEmanatingBranch = spine;
+
+    // Get the parent (processed neurons will have indeed a single parent)
+    auto parent = spine->logicalParents[0];
+    if (parent->isSpine())
+    {
+        // Verify the tree of the parent to be spines or not
+        spineEmanatingBranch = findEmanatingBranchOfSpine(parent);
+    }
+
+    // Return the non-spiny parent to propagate backwards
+    return spineEmanatingBranch;
+}
+
+void segmentSpine(SkeletonBranch* spineTerminal, const size_t& spineIndex)
+{
+    // Set the spine index, and set it visited
+    spineTerminal->spineIndex = spineIndex;
+    spineTerminal->setVisited();
+
+    // Verify the spine tree, and return the non-spiny parent
+    auto nonSpinyParent = verifySpineTree(spineTerminal, spineIndex);
+
+    // Propagate backwards
+    if (nonSpinyParent != nullptr)
+    {
+        for (size_t i = 0; i < nonSpinyParent->logicalChildren.size(); ++i)
+        {
+            setIndexToSpineTree(nonSpinyParent->logicalChildren[i], spineIndex);
+        }
+    }
+}
+
+
+SkeletonBranch* segmentSpineFromBranch(SkeletonBranch* spineBranch, const size_t& spineIndex)
+{
+    SkeletonBranch* spineRoot;
+
+    // If the spine branch does not have any parent
+    if (spineBranch->logicalParents.size() == 0)
+    {
+        // Set the index to the spine branch
+        spineBranch->spineIndex = spineIndex;
+
+        // As this branch has no parents and it is a spine, then it is the spine root.
+        spineRoot = spineBranch;
+
+        // Traverse the forward tree to label the spine
+        for (size_t i = 0; i < spineBranch->logicalChildren.size(); ++i)
+        {
+            setIndexToSpineTree(spineBranch->logicalChildren[i], spineIndex);
+        }
+    }
+
+    // If the spine branch has a parent
+    else
+    {
+        // Get this parent
+        auto parent = spineBranch->logicalParents[0];
+
+        // If the branch is a spine but the parent is not a spine
+        if (!parent->isSpine())
+        {
+
+            spineRoot = spineBranch;
+
+            // Traverse the forward tree to label the spine
+            for (size_t i = 0; i < spineBranch->logicalChildren.size(); ++i)
+            {
+                setIndexToSpineTree(spineBranch->logicalChildren[i], spineIndex);
+            }
+        }
+
+        // If the branch is a spine and the parent is also a spine
+        else
+        {
+            // Find the parent that is not a spine
+            auto emanatingBranch = findEmanatingBranchOfSpine(spineBranch);
+
+            spineRoot = emanatingBranch;
+
+            if (emanatingBranch != nullptr)
+            {
+                // Traverse the forward tree to label the spine
+                for (size_t i = 0; i < emanatingBranch->logicalChildren.size(); ++i)
+                {
+                    setIndexToSpineTree(emanatingBranch->logicalChildren[i], spineIndex);
+                }
+            }
+        }
+    }
+
+    // The spine branch is visited
+    spineBranch->setVisited();
+
+    return spineRoot;
+}
+
 
 }

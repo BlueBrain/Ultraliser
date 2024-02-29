@@ -171,6 +171,16 @@ public:
      */
     Mesh* getSomaMesh() const { return _somaMesh; }
 
+
+
+
+
+    void segmentSpines();
+
+
+
+
+
 private:
 
     /**
@@ -362,10 +372,16 @@ private:
 
     void _exportSomaticNodes(const std::string prefix);
 
+
     void _exportSomaticBranches(const std::string& prefix) const;
 
+    void _exportSpineLocations(const std::string& prefix) const;
 
 private:
+    /**
+     * @brief _removeSpines
+     */
+    const bool _removeSpines;
 
     /**
      * @brief _somaProxyMesh
@@ -392,9 +408,15 @@ private:
     SkeletonBranches _roots;
 
     /**
-     * @brief _removeSpines
+     * @brief _spines
      */
-    const bool _removeSpines;
+    std::vector< SkeletonBranches > _spines;
+
+
+    SkeletonBranches _spineRoots;
+
+
+
 };
 
 }

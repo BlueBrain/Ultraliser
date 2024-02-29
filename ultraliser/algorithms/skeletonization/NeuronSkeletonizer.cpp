@@ -202,6 +202,11 @@ void NeuronSkeletonizer::segmentComponents()
             _filterShortTerminalBranches();
             _mergeBranchesAfterFilteringSpines();
         }
+
+        // Segment the spines and label (count) them
+        segmentSpines();
+
+        _exportSpineLocations(_debuggingPrefix);
     }
 }
 
@@ -1486,38 +1491,43 @@ void NeuronSkeletonizer::_removeSpinesss()
     }
 }
 
+void NeuronSkeletonizer::segmentSpines()
+{
+    // Unset the visited flag for all the spines
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        auto branch = _branches[i];
+        branch->setUnvisited();
+    }
 
+    // An index that will be assigned to the spine
+    size_t spineIndex = 1;
+
+    /// NOTE: This function must be called after the labeling of the spines.
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        auto branch = _branches[i];
+
+        // The branch is then labeled as a spine
+        if (branch->isSpine())
+        {
+            // The branch must not be visited before, otherwise it is already segmented
+            if (!branch->visited())
+            {
+                // Do the traversal logical and segment the spine
+                _spineRoots.push_back(segmentSpineFromBranch(branch, spineIndex));
+
+                // Next spine
+                spineIndex++;
+            }
+        }
+    }
+
+    LOG_SUCCESS("[%ld] spine were segmented!", spineIndex - 1);
+}
 
 void NeuronSkeletonizer::_filterSpineCandidates()
 {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     /// NOTE: Spine branches must be terminals and can have branching.
     for (size_t i = 0; i < _branches.size(); ++i)
     {
@@ -1563,46 +1573,6 @@ void NeuronSkeletonizer::_filterSpineCandidates()
             }
         }
     }
-
-//    for (size_t i = 0; i < _branches.size(); ++i)
-//    {
-//        // The spine is still a valid branch
-//        auto& spineBranch = _branches[i];
-//        if (spineBranch->isSpine() && spineBranch->isValid())
-//        {
-//            size_t numberParents = spineBranch->parents.size();
-//            if (numberParents > 1) { LOG_WARNING("A spine has more than a single parent"); }
-
-//            for (size_t j = 0; j < numberParents; ++j)
-//            {
-//                // Determine the parents after the removal of the spine from the tree
-//                auto& parent = spineBranch->parents[j];
-
-//                // Remove the spine from the children
-//                // const auto childrenBefore = parent->children.size();
-
-//                std::vector< SkeletonBranch* > newChildren;
-//                for (size_t k = 0; k < parent->children.size(); ++k)
-//                {
-//                    // Exclude the spine branch
-//                    if (parent->children[k]->index == spineBranch->index) { }
-//                    else { newChildren.push_back(parent->children[k]); }
-//                }
-
-//                // Clear the old children and add the new list
-//                parent->children.clear();
-//                parent->children.shrink_to_fit();
-//                for (size_t k = 0; k < newChildren.size(); ++k)
-//                {
-//                    parent->children.push_back(newChildren[k]);
-//                }
-
-//                // const auto childrenAfter = parent->children.size();
-
-//                // LOG_SUCCESS("Children Before %d Children After %d", childrenBefore, childrenAfter);
-//            }
-//        }
-//    }
 
     /// Merge the branches with a single children
     for (size_t i = 0; i < _branches.size(); ++i)
@@ -2053,6 +2023,39 @@ void NeuronSkeletonizer::_exportBranches(const std::string& prefix,
         stream << "end\n";
 
         LOOP_PROGRESS(progress, toWrite.size());
+        ++progress;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Close the file
+    stream.close();
+}
+
+void NeuronSkeletonizer::_exportSpineLocations(const std::string& prefix) const
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Construct the file path
+    std::string filePath = prefix + "-spine-locations" + NODES_EXTENSION;
+    LOG_STATUS("Exporting Spines Locations: [ %s ]", filePath.c_str());
+
+    std::fstream stream;
+    stream.open(filePath, std::ios::out);
+
+    LOOP_STARTS("Writing Spines Locations");
+    size_t progress = 0;
+    for (size_t i = 0; i < _spineRoots.size(); ++i)
+    {
+//         std::cout << _spineRoots[i]->nodes.size() << std::endl;
+        auto node = _spineRoots[i]->nodes[0];
+
+        stream << node->point.x() << " "
+               << node->point.y() << " "
+               << node->point.z() << "\n";
+
+        LOOP_PROGRESS(progress, _spineRoots.size());
         ++progress;
     }
     LOOP_DONE;

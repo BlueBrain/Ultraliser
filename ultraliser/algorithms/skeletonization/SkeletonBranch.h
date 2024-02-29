@@ -265,6 +265,24 @@ public:
     size_t index;
 
     /**
+     * @brief traversalCount
+     * This number indicates the frequency, in which the branch is traversed while collecting
+     * paths from the terminal branches to the soma.
+     * This parameter is mainly used to segment and remove spines from the actual branches of
+     * the neuron.
+     */
+    size_t traversalCount = 0;
+
+    /**
+     * @brief spineIndex
+     * This index is used to label a specific spine. It has to be noted that multiple branches
+     * can have the same index as they could belong to the same spine, for example, in case of
+     * bifurcating spines. Zero indicates that this is not a spine. For this parameter to be valid,
+     * it must have an index greater than 0.
+     */
+    size_t spineIndex = 0;
+
+    /**
      * @brief parent
      * A list of the parent branches.
      */
@@ -298,11 +316,7 @@ public:
      * @brief t2Connections
      * Connecting branches at termianl 2.
      */
-    std::vector< SkeletonBranch* > t2Connections;
-
-
-public:
-    size_t traversalCount = 0;
+    std::vector< SkeletonBranch* > t2Connections;    
 
 private:
 
