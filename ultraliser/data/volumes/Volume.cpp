@@ -753,6 +753,102 @@ void Volume::surfaceVoxelizeNeuronMorphology(
     LOG_STATS(_surfaceVoxelizationTime);
 }
 
+void Volume::surfaceVoxelizeSpineMorphology(
+        SpineMorphology* spineMorphology,
+        const std::string &packingAlgorithm)
+{
+    LOG_TITLE("Surface Voxelization");
+
+    // Start the timer
+    TIMER_SET;
+
+    // Get all the sections of the vascular morphology
+    Sections sections = spineMorphology->getSections();
+
+    LOG_STATUS("Creating Volume Shell from Sections");
+    LOOP_STARTS("Rasterization");
+    PROGRESS_SET;
+    if (packingAlgorithm == POLYLINE_SPHERE_PACKING)
+    {
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < sections.size(); ++i)
+        {
+            auto section = sections[i];
+            auto samples = section->getSamples();
+
+           // Rasterize a polyline representing the section samples
+            auto mesh = new Mesh(samples);
+            _rasterize(mesh, _grid);
+            mesh->~Mesh();
+
+            // Rasterize the first and last samples as spheres to fill any gaps
+            _rasterize(samples.front(), _grid);
+            _rasterize(samples.back(), _grid);
+
+            // Update the progress bar
+            LOOP_PROGRESS(PROGRESS, sections.size());
+            PROGRESS_UPDATE;
+        }
+    }
+    else if (packingAlgorithm == POLYLINE_PACKING)
+    {
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < sections.size(); i++)
+        {
+            // Construct the paths
+            Paths paths = spineMorphology->getConnectedPathsFromParentsToChildren(sections[i]);
+            for (size_t j = 0; j < paths.size(); ++j)
+            {
+                auto mesh = new Mesh(paths[j]);
+                _rasterize(mesh , _grid);
+                mesh->~Mesh();
+            }
+
+            paths.clear();
+            paths.shrink_to_fit();
+
+            // Update the progress bar
+            LOOP_PROGRESS(PROGRESS, sections.size());
+            PROGRESS_UPDATE;
+        }
+    }
+    else if (packingAlgorithm == SDF_PACKING)
+    {
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < sections.size(); ++i)
+        {
+            auto section = sections[i];
+            auto samples = section->getSamples();
+
+            // Rasterize each segment of the section samples
+            for (uint32_t i = 0; i < samples.size() - 1; ++i)
+                _rasterize(samples[i], samples[i + 1], _grid);
+
+            // Rasterize the last segment of the section
+            auto children = section->getChildrenIndices();
+            if (children.size() > 0)
+                _rasterize(samples.back(), sections[children[0]]->getSamples()[0], _grid);
+            children.clear();
+            children.shrink_to_fit();
+
+            // Update the progress bar
+            LOOP_PROGRESS(PROGRESS, sections.size());
+            PROGRESS_UPDATE;
+        }
+    }
+    else
+    {
+        LOG_ERROR("[%s] is not a correct packing algorithm.");
+    }
+    LOOP_DONE;
+
+    _surfaceVoxelizationTime = GET_TIME_SECONDS;
+
+    // Statistics
+    LOG_STATUS_IMPORTANT("Rasterization Stats.");
+    LOG_STATS(_surfaceVoxelizationTime);
+}
+
 void Volume::surfaceVoxelizeVasculatureMorphology(
         VasculatureMorphology* vasculatureMorphology,
         const std::string &packingAlgorithm)

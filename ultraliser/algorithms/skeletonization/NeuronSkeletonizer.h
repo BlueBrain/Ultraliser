@@ -178,8 +178,7 @@ public:
     void segmentSpines();
 
 
-
-
+    void reskeletonizeSpines(Mesh* neuronMesh);
 
 private:
 
@@ -379,6 +378,8 @@ private:
 
     void _exportSpineExtents(const std::string& prefix) const;
 
+
+    void _handleSpines(SkeletonBranch* root) const;
 
 private:
     /**

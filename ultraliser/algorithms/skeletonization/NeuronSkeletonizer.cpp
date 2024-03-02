@@ -1533,8 +1533,63 @@ void NeuronSkeletonizer::segmentSpines()
         }
     }
 
+
+
+    for (size_t i = 0; i < 10; ++i)
+    {
+        _handleSpines(_spineRoots[i]);
+    }
+
     LOG_SUCCESS("[%ld] spine were segmented!", spineIndex - 1);
 }
+
+
+
+
+
+void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh)
+{
+    if (_spineRoots.size() == 0)
+        return;
+
+    for (size_t i = 0; i < _spineRoots.size(); ++i)
+    {
+        if (i > 10)
+            return;
+
+        auto spine =_spineRoots[i];
+        SpineMorphology* spineMorphology = new SpineMorphology(spine);
+
+        // Get relaxed bounding box to build the volume
+        Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
+        spineMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
+
+        // Get the largest dimension
+        float largestDimension = inputBB.getLargestDimension();
+
+        // Construct the volume
+        std::unique_ptr< Volume > volume = std::make_unique< Volume >(pMinInput, pMaxInput, 128);
+
+        volume->surfaceVoxelization(neuronMesh);
+        volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+
+        std::stringstream prefix;
+        prefix << "/ssd2/skeletonization-project/spine-extraction/output/volume-spines" << spine->index;
+        volume->projectXY(prefix.str());
+
+    }
+
+
+
+}
+
+
+
+
+
+
+
+
 
 void NeuronSkeletonizer::_filterSpineCandidates()
 {
@@ -2073,6 +2128,46 @@ void NeuronSkeletonizer::_exportSpineLocations(const std::string& prefix) const
     // Close the file
     stream.close();
 }
+
+
+void NeuronSkeletonizer::_handleSpines(SkeletonBranch* root) const
+{
+    // From the spine morphology create a mesh
+    // Create a new class called SpineMorphology
+    SpineMorphology* spineMorphology = new SpineMorphology(root);
+
+    // Get relaxed bounding box to build the volume
+    Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
+    spineMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
+
+    // Get the largest dimension
+    float largestDimension = inputBB.getLargestDimension();
+
+    // Construct the volume
+    std::unique_ptr< Volume > volume = std::make_unique< Volume >(pMinInput, pMaxInput, 128);
+
+    // Voxelize morphology
+    volume->surfaceVoxelizeSpineMorphology(spineMorphology, POLYLINE_SPHERE_PACKING);
+volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+
+
+
+    std::stringstream prefix;
+    prefix << "/ssd2/skeletonization-project/spine-extraction/output/spines" << root->index;
+    volume->projectXY(prefix.str());
+
+
+    // Voxelize the neuro mesh at the selected region
+
+    // Get the cloud of the volume
+
+    // Map the spine mesh onto the cloud
+
+    // Re-skeletonize the mesh and extract a nice skeleton !
+
+}
+
+
 
 void NeuronSkeletonizer::_exportSpineExtents(const std::string& prefix) const
 {

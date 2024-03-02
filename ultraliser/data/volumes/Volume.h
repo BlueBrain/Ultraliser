@@ -239,7 +239,15 @@ public:
      * @param morphology
      */
     void surfaceVoxelizeNeuronMorphology(NeuronMorphology* neuronMorphology,
-                                                 const std::string &packingAlgorithm);
+                                         const std::string &packingAlgorithm);
+
+    /**
+     * @brief surfaceVoxelizeSpineMorphology
+     * @param spineMorphology
+     * @param packingAlgorithm
+     */
+    void surfaceVoxelizeSpineMorphology(SpineMorphology* spineMorphology,
+                                        const std::string &packingAlgorithm);
 
     /**
      * @brief surfaceVoxelizeAstrocyteMorphology
