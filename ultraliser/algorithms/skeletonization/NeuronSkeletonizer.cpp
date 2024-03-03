@@ -1535,7 +1535,7 @@ void NeuronSkeletonizer::segmentSpines()
 
 
 
-    for (size_t i = 0; i < 10; ++i)
+    for (size_t i = 0; i < _spineRoots.size(); ++i)
     {
         _handleSpines(_spineRoots[i]);
     }
@@ -1554,9 +1554,6 @@ void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh)
 
     for (size_t i = 0; i < _spineRoots.size(); ++i)
     {
-        if (i > 10)
-            return;
-
         auto spine =_spineRoots[i];
         SpineMorphology* spineMorphology = new SpineMorphology(spine);
 
@@ -1568,14 +1565,20 @@ void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh)
         float largestDimension = inputBB.getLargestDimension();
 
         // Construct the volume
-        std::unique_ptr< Volume > volume = std::make_unique< Volume >(pMinInput, pMaxInput, 128);
+        std::unique_ptr< Volume > volume = std::make_unique< Volume >(pMinInput, pMaxInput, 80);
 
         volume->surfaceVoxelization(neuronMesh);
-        volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+        //volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
 
-        std::stringstream prefix;
-        prefix << "/ssd2/skeletonization-project/spine-extraction/output/volume-spines" << spine->index;
-        volume->projectXY(prefix.str());
+//        std::stringstream prefix;
+//        prefix << "/ssd2/skeletonization-project/spine-extraction/output/volume-spines" << spine->index;
+//        volume->projectXY(prefix.str());
+
+
+        auto mesh = DualMarchingCubes::generateMeshFromVolume(volume.get());
+        std::stringstream prefixs;
+        prefixs << "/home/abdellah/spines/extracted/spine_" << spine->index;
+        mesh->exportMesh(prefixs.str(), true);
 
     }
 
@@ -2144,17 +2147,23 @@ void NeuronSkeletonizer::_handleSpines(SkeletonBranch* root) const
     float largestDimension = inputBB.getLargestDimension();
 
     // Construct the volume
-    std::unique_ptr< Volume > volume = std::make_unique< Volume >(pMinInput, pMaxInput, 128);
+    std::unique_ptr< Volume > volume = std::make_unique< Volume >(pMinInput, pMaxInput, 80);
 
     // Voxelize morphology
     volume->surfaceVoxelizeSpineMorphology(spineMorphology, POLYLINE_SPHERE_PACKING);
-volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+    //volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
 
 
 
-    std::stringstream prefix;
-    prefix << "/ssd2/skeletonization-project/spine-extraction/output/spines" << root->index;
-    volume->projectXY(prefix.str());
+//    std::stringstream prefix;
+//    prefix << "/ssd2/skeletonization-project/spine-extraction/output/spines" << root->index;
+//    volume->projectXY(prefix.str());
+
+    auto mesh = DualMarchingCubes::generateMeshFromVolume(volume.get());
+    std::stringstream prefixs;
+    prefixs << "/home/abdellah/spines/models/spine_" << root->index;
+    mesh->exportMesh(prefixs.str(), true);
+
 
 
     // Voxelize the neuro mesh at the selected region
