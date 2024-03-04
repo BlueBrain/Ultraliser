@@ -132,10 +132,39 @@ void run(int argc , const char** argv)
         skeletonizer->exportSWCFile(options->morphologyPrefix, options->resampleSkeleton);
     }
 
-    skeletonizer->reskeletonizeSpines(inputMesh, 20, 0.25);
+    {
+        // Adjust the input mesh
+        // Get relaxed bounding box to build the volume
+        Vector3f pMinInput, pMaxInput;
+        inputMesh->computeBoundingBox(pMinInput, pMaxInput);
+        const auto& meshBoundingBox = pMaxInput - pMinInput;
 
-    skeletonizer->_exportSpineExtents(options->morphologyPrefix);
+        // Get the largest dimension
+        const auto largestDimension = meshBoundingBox.getLargestDimension();
+        size_t resolution = static_cast< size_t >(options->voxelsPerMicron * largestDimension);
+        auto volume = new Volume(pMinInput, pMaxInput, resolution, options->edgeGap,
+                              VolumeGrid::getType(options->volumeType));
+        volume->surfaceVoxelization(inputMesh, false, false, 1.0);
+        volume->solidVoxelization(options->voxelizationAxis);
+        auto bordeVoxels = volume->searchForBorderVoxels();
+        for (size_t i = 0; i < bordeVoxels.size(); ++i)
+        {
+            for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
+            {
+                auto voxel = bordeVoxels[i][j];
+                volume->clear(voxel.x(), voxel.y(), voxel.z());
+            }
+            bordeVoxels[i].clear();
+        }
+        bordeVoxels.clear();
+        volume->surfaceVoxelization(inputMesh, false, false, 0.5);
+        auto resultMesh = DualMarchingCubes::generateMeshFromVolume(volume);
 
+
+        skeletonizer->reskeletonizeSpines(resultMesh, 20, 0.25);
+
+        skeletonizer->_exportSpineExtents(options->morphologyPrefix);
+    }
     // Export the somatic proxy mesh
     if (options->exportProxySomaMesh)
     {

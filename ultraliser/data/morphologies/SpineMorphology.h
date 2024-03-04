@@ -68,10 +68,13 @@ public:
     /**
      * @brief reconstructMesh
      * @param voxelsPerMicron
+     * @param edgeGap
      * @param verbose
      * @return
      */
-    Mesh* reconstructMesh(const float& voxelsPerMicron, const bool &verbose = false);
+    Mesh* reconstructMesh(const float& voxelsPerMicron,
+                          const float& edgeGap = 0.1,
+                          const bool &verbose = false);
 
     /**
      * @brief exportBranches
@@ -79,6 +82,12 @@ public:
      * @param verbose
      */
     void exportBranches(const std::string &prefix, const bool &verbose = false);
+
+    /**
+     * @brief exportExtents
+     * @param prefix
+     */
+    void exportExtents(const std::string& prefix) const;
 
 private:
 

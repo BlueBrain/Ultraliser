@@ -143,10 +143,12 @@ Volume* SpineMorphology::reconstructVolume(const float& voxelsPerMicron,
     return volume;
 }
 
-Mesh* SpineMorphology::reconstructMesh(const float &voxelsPerMicron, const bool &verbose)
+Mesh* SpineMorphology::reconstructMesh(const float &voxelsPerMicron,
+                                       const float& edgeGap,
+                                       const bool &verbose)
 {
     // Reconstruct the volume
-    auto volume = reconstructVolume(voxelsPerMicron, verbose);
+    auto volume = reconstructVolume(voxelsPerMicron, edgeGap, verbose);
 
     // Use the DMC algorithm to reconstruct a mesh
     auto mesh = DualMarchingCubes::generateMeshFromVolume(volume);
@@ -156,6 +158,30 @@ Mesh* SpineMorphology::reconstructMesh(const float &voxelsPerMicron, const bool 
 ;
     // Return the mesh
     return mesh;
+}
+
+void SpineMorphology::exportExtents(const std::string& prefix) const
+{
+    // Construct the file path
+    std::stringstream sstream;
+    sstream << prefix << "_spine_" <<_spineIndex << ".extents";
+    std::fstream stream;
+    stream.open(sstream.str(), std::ios::out);
+
+    // Compute the BB
+    auto bounds = _pMax - _pMin;
+    auto center = _pMin + bounds * 0.5f;
+
+    // Export the data
+    stream << center.x() << " "
+           << center.y() << " "
+           << center.z() << " "
+           << bounds.x() << " "
+           << bounds.y() << " "
+           << bounds.z() << "\n";
+
+    // Close the file
+    stream.close();
 }
 
 void SpineMorphology::exportBranches(const std::string &prefix,

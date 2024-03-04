@@ -1554,20 +1554,11 @@ void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh,
         SpineMorphology* spineMorphology = new SpineMorphology(spine);
 
         // Get the mesh of the spine model
-        auto spineModelMesh = spineMorphology->reconstructMesh(voxelsPerMicron);
+        auto spineModelMesh = spineMorphology->reconstructMesh(voxelsPerMicron, edgeGap);
 
         // Get relaxed bounding box to build the volume
         Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
         spineMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
-
-        // Expand the bounding box to be able to caprture all the details missed
-        pMinInput -= edgeGap * inputBB;
-        pMaxInput += edgeGap * inputBB;
-
-        pMinInput -= edgeGap * inputBB;
-        pMaxInput += edgeGap * inputBB;
-        inputBB = pMaxInput - pMinInput;
-        inputCenter = pMinInput + (0.5f * inputBB);
 
         // Get the largest dimension
         float largestDimension = inputBB.getLargestDimension();
@@ -1578,6 +1569,12 @@ void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh,
 
         // Rasterize the morphologies into the volume
         volume->surfaceVoxelization(neuronMesh);
+        // volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+
+        std::stringstream prefixs;
+        prefixs << "//home/abdellah/spines/models/spine_" << spine->index;
+
+        volume->project(prefixs.str(), true);
 
         // Use the DMC algorithm to reconstruct a mesh
         auto originalMesh = DualMarchingCubes::generateMeshFromVolume(volume);
@@ -1586,20 +1583,14 @@ void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh,
         // Map the surface
         spineModelMesh->map(originalMesh);
 
-        std::stringstream prefixs;
-        prefixs << "//home/abdellah/spines/models/spine_" << spine->index;
+
+        // prefixs << "//home/abdellah/spines/models/spine_" << spine->index;
         spineModelMesh->exportMesh(prefixs.str(), true);
+
+        spineMorphology->exportExtents(_debuggingPrefix);
     }
 
 }
-
-
-
-
-
-
-
-
 
 void NeuronSkeletonizer::_filterSpineCandidates()
 {
