@@ -76,5 +76,13 @@ double string2double(std::string input)
     return static_cast< double >(atof(input.c_str()));
 }
 
+template< class T >
+std::string number2string(T input)
+{
+    std::stringstream stream;
+    stream << input;
+    return stream.str();
+}
+
 }
 }

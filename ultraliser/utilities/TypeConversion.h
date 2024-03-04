@@ -104,6 +104,14 @@ float string2float(std::string input);
  */
 double string2double(std::string input);
 
+/**
+ * @brief number2string
+ * @param input
+ * @return
+ */
+template< class T >
+std::string number2string(T input);
+
 // Specialization
 template<> float int2float< int >(int);
 template<> float int2float< int8_t >(int8_t);
@@ -141,6 +149,19 @@ template<> uint16_t string2uint< uint16_t >(std::string);
 template<> uint32_t string2uint< uint32_t >(std::string);
 template<> uint64_t string2uint< uint64_t >(std::string);
 template<> size_t string2uint< size_t >(std::string);
+
+template<> std::string number2string< int >(int);
+template<> std::string number2string< int8_t >(int8_t);
+template<> std::string number2string< int16_t >(int16_t);
+template<> std::string number2string< int32_t >(int32_t);
+template<> std::string number2string< int64_t >(int64_t);
+template<> std::string number2string< uint8_t >(uint8_t);
+template<> std::string number2string< uint16_t >(uint16_t);
+template<> std::string number2string< uint32_t >(uint32_t);
+template<> std::string number2string< uint64_t >(uint64_t);
+template<> std::string number2string< size_t  >(size_t);
+
+
 
 }
 }

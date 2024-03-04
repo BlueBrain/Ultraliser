@@ -178,7 +178,12 @@ public:
     void segmentSpines();
 
 
-    void reskeletonizeSpines(Mesh* neuronMesh);
+    void reskeletonizeSpines(Mesh* neuronMesh,
+                             const float& voxelsPerMicron = 15,
+                             const float &edgeGap = 0.1);
+
+    void _exportSpineExtents(const std::string& prefix) const;
+
 
 private:
 
@@ -375,9 +380,6 @@ private:
     void _exportSomaticBranches(const std::string& prefix) const;
 
     void _exportSpineLocations(const std::string& prefix) const;
-
-    void _exportSpineExtents(const std::string& prefix) const;
-
 
     void _handleSpines(SkeletonBranch* root) const;
 

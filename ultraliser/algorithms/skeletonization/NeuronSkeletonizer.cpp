@@ -1533,13 +1533,6 @@ void NeuronSkeletonizer::segmentSpines()
         }
     }
 
-
-
-    for (size_t i = 0; i < _spineRoots.size(); ++i)
-    {
-        _handleSpines(_spineRoots[i]);
-    }
-
     LOG_SUCCESS("[%ld] spine were segmented!", spineIndex - 1);
 }
 
@@ -1547,42 +1540,56 @@ void NeuronSkeletonizer::segmentSpines()
 
 
 
-void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh)
+void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh,
+                                             const float& voxelsPerMicron,
+                                             const float& edgeGap)
 {
     if (_spineRoots.size() == 0)
         return;
 
     for (size_t i = 0; i < _spineRoots.size(); ++i)
     {
+        // Get the spine morphology
         auto spine =_spineRoots[i];
         SpineMorphology* spineMorphology = new SpineMorphology(spine);
+
+        // Get the mesh of the spine model
+        auto spineModelMesh = spineMorphology->reconstructMesh(voxelsPerMicron);
 
         // Get relaxed bounding box to build the volume
         Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
         spineMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
 
+        // Expand the bounding box to be able to caprture all the details missed
+        pMinInput -= edgeGap * inputBB;
+        pMaxInput += edgeGap * inputBB;
+
+        pMinInput -= edgeGap * inputBB;
+        pMaxInput += edgeGap * inputBB;
+        inputBB = pMaxInput - pMinInput;
+        inputCenter = pMinInput + (0.5f * inputBB);
+
         // Get the largest dimension
         float largestDimension = inputBB.getLargestDimension();
+        size_t resolution = static_cast< size_t >(voxelsPerMicron * largestDimension);
 
         // Construct the volume
-        std::unique_ptr< Volume > volume = std::make_unique< Volume >(pMinInput, pMaxInput, 80);
+        Volume* volume = new Volume(pMinInput, pMaxInput, resolution, edgeGap, VOLUME_TYPE::BIT, false);
 
+        // Rasterize the morphologies into the volume
         volume->surfaceVoxelization(neuronMesh);
-        //volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
 
-//        std::stringstream prefix;
-//        prefix << "/ssd2/skeletonization-project/spine-extraction/output/volume-spines" << spine->index;
-//        volume->projectXY(prefix.str());
+        // Use the DMC algorithm to reconstruct a mesh
+        auto originalMesh = DualMarchingCubes::generateMeshFromVolume(volume);
+        originalMesh->smoothSurface(10);
 
+        // Map the surface
+        spineModelMesh->map(originalMesh);
 
-        auto mesh = DualMarchingCubes::generateMeshFromVolume(volume.get());
         std::stringstream prefixs;
-        prefixs << "/home/abdellah/spines/extracted/spine_" << spine->index;
-        mesh->exportMesh(prefixs.str(), true);
-
+        prefixs << "//home/abdellah/spines/models/spine_" << spine->index;
+        spineModelMesh->exportMesh(prefixs.str(), true);
     }
-
-
 
 }
 
@@ -2138,31 +2145,18 @@ void NeuronSkeletonizer::_handleSpines(SkeletonBranch* root) const
     // From the spine morphology create a mesh
     // Create a new class called SpineMorphology
     SpineMorphology* spineMorphology = new SpineMorphology(root);
-
-    // Get relaxed bounding box to build the volume
-    Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
-    spineMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
-
-    // Get the largest dimension
-    float largestDimension = inputBB.getLargestDimension();
-
-    // Construct the volume
-    std::unique_ptr< Volume > volume = std::make_unique< Volume >(pMinInput, pMaxInput, 80);
-
-    // Voxelize morphology
-    volume->surfaceVoxelizeSpineMorphology(spineMorphology, POLYLINE_SPHERE_PACKING);
-    //volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
-
-
-
-//    std::stringstream prefix;
-//    prefix << "/ssd2/skeletonization-project/spine-extraction/output/spines" << root->index;
-//    volume->projectXY(prefix.str());
-
-    auto mesh = DualMarchingCubes::generateMeshFromVolume(volume.get());
     std::stringstream prefixs;
     prefixs << "/home/abdellah/spines/models/spine_" << root->index;
-    mesh->exportMesh(prefixs.str(), true);
+    spineMorphology->exportBranches(prefixs.str());
+
+    auto mesh = spineMorphology->reconstructMesh(20, true);
+    std::stringstream prefixss;
+    prefixss << "/home/abdellah/spines/models/spine_" << root->index;
+    mesh->exportMesh(prefixss.str(), true);
+
+
+
+
 
 
 

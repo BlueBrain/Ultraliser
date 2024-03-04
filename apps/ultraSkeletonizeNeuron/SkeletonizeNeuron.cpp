@@ -132,9 +132,9 @@ void run(int argc , const char** argv)
         skeletonizer->exportSWCFile(options->morphologyPrefix, options->resampleSkeleton);
     }
 
+    skeletonizer->reskeletonizeSpines(inputMesh, 20, 0.25);
 
-
-    skeletonizer->reskeletonizeSpines(inputMesh);
+    skeletonizer->_exportSpineExtents(options->morphologyPrefix);
 
     // Export the somatic proxy mesh
     if (options->exportProxySomaMesh)

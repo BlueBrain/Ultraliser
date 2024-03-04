@@ -42,13 +42,16 @@
 #include <nrrdloader/NRRDLoader.h>
 #endif
 
+#define GLOBAL_VERBOSE(X) (if (_globalVerbose){ X })
+
 namespace Ultraliser
 {
 
-Volume::Volume(const Volume *inputVolume)
+Volume::Volume(const Volume *inputVolume, const bool& verbose)
     : _surfaceVoxelizationTime(0.f)
     , _solidVoxelizationTime(0.f)
     , _addingVolumePassTime(0.f)
+    , _globalVerbose(verbose)
 {
     // Copy the bounds
     _pMin = inputVolume->getPMin();
@@ -128,17 +131,18 @@ Volume::Volume(const Volume *inputVolume)
 
     default:
     {
-        LOG_ERROR("Undefined volume format");
+        LOG_ERROR("Undefined volume format!");
     } break;
     }
 }
 
-Volume::Volume(const std::string &filePath)
+Volume::Volume(const std::string &filePath, const bool& verbose)
     : _pMin(Vector3f::ZERO)
     , _pMax(Vector3f::ZERO)
     , _surfaceVoxelizationTime(0.f)
     , _solidVoxelizationTime(0.f)
     , _addingVolumePassTime(0.f)
+    , _globalVerbose(verbose)
 {
     // Get the volume extension
     auto extension = std::filesystem::path(filePath).extension().string();
@@ -201,7 +205,8 @@ Volume::Volume(const Vector3f& pMin,
                const Vector3f& pMax,
                const size_t &baseResolution,
                const float &expansionRatio,
-               const VOLUME_TYPE& gridType)
+               const VOLUME_TYPE& gridType,
+               const bool& verbose)
     : _gridType(gridType)
     , _pMin(pMin)
     , _pMax(pMax)
@@ -210,6 +215,7 @@ Volume::Volume(const Vector3f& pMin,
     , _surfaceVoxelizationTime(0.f)
     , _solidVoxelizationTime(0.f)
     , _addingVolumePassTime(0.f)
+    , _globalVerbose(verbose)
 {
     // Create the grid
     _createGrid();
@@ -221,7 +227,8 @@ Volume::Volume(const int64_t width,
                const Vector3f pMin,
                const Vector3f pMax,
                const VOLUME_TYPE& gridType,
-               const float expansionRatio)
+               const float expansionRatio,
+               const bool& verbose)
     : _gridType(gridType)
     , _pMin(pMin)
     , _pMax(pMax)
@@ -229,6 +236,7 @@ Volume::Volume(const int64_t width,
     , _surfaceVoxelizationTime(0.f)
     , _solidVoxelizationTime(0.f)
     , _addingVolumePassTime(0.f)
+    , _globalVerbose(verbose)
 {
     // Since we don't have any geometric bounds, use 1.0 for the voxel resolution
     // TODO: The voxel resolution should be computed from the given bounds
@@ -251,7 +259,7 @@ void Volume::_createGrid(const NRRDVolumeData* volumeData)
     {
     case VOLUME_TYPE::BIT:
     {
-        LOG_ERROR("Unimplemented Volume::_createGrid(const NRRDVolumeData* volumeData)");
+        LOG_ERROR("Unimplemented Volume::_createGrid(const NRRDVolumeData* volumeData)!");
     } break;
 
     case VOLUME_TYPE::UI8:
@@ -304,7 +312,7 @@ void Volume::_createGrid(const NRRDVolumeData* volumeData)
 
     default:
     {
-        LOG_ERROR("Undefined volume format");
+        LOG_ERROR("Undefined volume format!");
 
     } break;
     }
@@ -398,7 +406,7 @@ void Volume::_createGrid(const std::string& hdrFilePath)
     case VOLUME_TYPE::F64:
     default:
     {
-        LOG_ERROR("Unimplemented volume format");
+        LOG_ERROR("Unimplemented volume format!");
     } break;
     }
 }
@@ -465,7 +473,7 @@ void Volume::_createGrid(const UltraliserVolumeData* volumeData)
 
     default:
     {
-        LOG_ERROR("Undefined volume format");
+        LOG_ERROR("Undefined volume format!");
 
     } break;
     }
@@ -706,7 +714,7 @@ void Volume::surfaceVoxelizeNeuronMorphology(
 
         // Construct the neurites geometry
         OMP_PARALLEL_FOR
-                for (size_t i = 0; i < paths.size(); i++)
+        for (size_t i = 0; i < paths.size(); i++)
         {
             auto samples = paths[i];
             auto mesh = new Mesh(samples);

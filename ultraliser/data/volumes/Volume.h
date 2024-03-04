@@ -62,13 +62,13 @@ public:
      * Copy constructor
      * @param volume Input volume to be copied.
      */
-    Volume(const Volume* volume);
+    Volume(const Volume* volume, const bool& verbose = true);
 
     /**
      * @brief Volume
      * @param filePath
      */
-    Volume(const std::string &filePath);
+    Volume(const std::string &filePath, const bool& verbose = true);
 
     /**
      * @brief Volume
@@ -90,7 +90,8 @@ public:
            const Vector3f& pMax,
            const size_t &baseResolution = 512,
            const float &expansionRatio = 0.0,
-           const VOLUME_TYPE& gridType = VOLUME_TYPE::BIT);
+           const VOLUME_TYPE& gridType = VOLUME_TYPE::BIT,
+           const bool& verbose = true);
 
     /**
      * @brief Volume
@@ -105,7 +106,8 @@ public:
            const Vector3f pMin = Vector3f::ZERO,
            const Vector3f pMax = Vector3f::ZERO,
            const VOLUME_TYPE& gridType = VOLUME_TYPE::BIT,
-           const float expansionRatio = 0.0);
+           const float expansionRatio = 0.0,
+           const bool& verbose = true);
 
     ~Volume();
 
@@ -1230,6 +1232,8 @@ private:
     int _triangleCubeSign(Mesh* mesh, int tIdx, const GridIndex& boundingBox);
 
 private:
+
+    bool _globalVerbose = true;
 
     /**
      * @brief grid
