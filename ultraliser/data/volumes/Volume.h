@@ -241,7 +241,8 @@ public:
      * @param morphology
      */
     void surfaceVoxelizeNeuronMorphology(NeuronMorphology* neuronMorphology,
-                                         const std::string &packingAlgorithm);
+                                         const std::string &packingAlgorithm,
+                                         const bool& verbose = false);
 
     /**
      * @brief surfaceVoxelizeSpineMorphology

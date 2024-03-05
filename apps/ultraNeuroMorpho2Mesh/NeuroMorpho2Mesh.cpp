@@ -116,7 +116,7 @@ void run(int argc, const char** argv)
                                 VolumeGrid::getType(options->volumeType));
 
     // Voxelize morphology
-    volume->surfaceVoxelizeNeuronMorphology(neuronMorphology, options->packingAlgorithm);
+    volume->surfaceVoxelizeNeuronMorphology(neuronMorphology, options->packingAlgorithm, true);
 
     // Enable solid voxelization
     if (options->useSolidVoxelization)

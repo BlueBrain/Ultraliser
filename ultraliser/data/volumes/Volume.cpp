@@ -526,7 +526,7 @@ void Volume::_allocateGrid(const size_t &width, const size_t &height, const size
 
 void Volume::_createGrid()
 {
-    LOG_TITLE("Creating Volume Grid");
+    if (_globalVerbose) LOG_TITLE("Creating Volume Grid");
 
     // Compute the bounding box size of the given mesh
     Vector3f boundingBoxSize = (_pMax - _pMin);
@@ -550,9 +550,12 @@ void Volume::_createGrid()
     auto height = F2UI64(std::round(boundingBoxSize[1] / _voxelSize));
     auto depth = F2UI64(std::round(boundingBoxSize[2] / _voxelSize));
 
-    LOG_SUCCESS("Volume Dimenions [ %d x %d x %d ] : [ %f x %f x %f ]",
-                width, height, depth,
-                boundingBoxSize[0], boundingBoxSize[1], boundingBoxSize[2]);
+    if (_globalVerbose)
+    {
+        LOG_SUCCESS("Volume Dimenions [ %d x %d x %d ] : [ %f x %f x %f ]",
+                    width, height, depth,
+                    boundingBoxSize[0], boundingBoxSize[1], boundingBoxSize[2]);
+    }
 
     // Allocating the grid
     _allocateGrid(width, height, depth);
@@ -585,14 +588,17 @@ void Volume::surfaceVoxelization(Mesh* mesh,
                                  const bool parallel,
                                  const float& sideRatio)
 {
-    if (verbose) LOG_TITLE("Surface Voxelization");
+    if (_globalVerbose || verbose) LOG_TITLE("Surface Voxelization");
 
     // Start the timer
     TIMER_SET;
 
-    if (verbose)
+    if (_globalVerbose || verbose)
+    {
         LOG_STATUS("Creating Volume Shell [%zu x %zu x %zu]",
                    _grid->getWidth(), _grid->getHeight(), _grid->getDepth());
+    }
+
     if (parallel)
         _rasterizeParallel(mesh, _grid, sideRatio);
     else
@@ -600,7 +606,7 @@ void Volume::surfaceVoxelization(Mesh* mesh,
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
 
     // Statistics
-    if (verbose)
+    if (_globalVerbose || verbose)
     {
         LOG_STATUS_IMPORTANT("Rasterization Stats.");
         LOG_STATS(_surfaceVoxelizationTime);
@@ -612,30 +618,33 @@ void Volume::surfaceVoxelizationReion(Mesh* mesh,
                                       const Vector3f& pMaxRegion,
                                       const bool& verbose)
 {
-    if (verbose) LOG_TITLE("Surface Voxelization");
+    if (_globalVerbose || verbose) LOG_TITLE("Surface Voxelization");
 
     // Start the timer
     TIMER_SET;
 
-    if (verbose)
+    if (_globalVerbose || verbose)
+    {
         LOG_STATUS("Creating Volume Shell [%zu x %zu x %zu]",
                    _grid->getWidth(), _grid->getHeight(), _grid->getDepth());
+    }
 
     _rasterizeRegion(mesh , _grid, pMinRegion, pMaxRegion, verbose);
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
 
     // Statistics
-    if (verbose)
+    if (_globalVerbose || verbose)
     {
         LOG_STATUS_IMPORTANT("Rasterization Stats.");
         LOG_STATS(_surfaceVoxelizationTime);
     }
 }
 
-void Volume::surfaceVoxelizeNeuronMorphology(
-    NeuronMorphology* neuronMorphology, const std::string& packingAlgorithm)
+void Volume::surfaceVoxelizeNeuronMorphology(NeuronMorphology* neuronMorphology,
+                                             const std::string& packingAlgorithm,
+                                             const bool& verbose)
 {
-    LOG_TITLE("Neuron Surface Voxelization");
+    if (_globalVerbose || verbose) LOG_TITLE("Neuron Surface Voxelization");
 
     // Start the timer
     TIMER_SET;
@@ -765,7 +774,7 @@ void Volume::surfaceVoxelizeSpineMorphology(
         SpineMorphology* spineMorphology,
         const std::string &packingAlgorithm)
 {
-    LOG_TITLE("Surface Voxelization");
+    if (_globalVerbose) LOG_TITLE("Surface Voxelization");
 
     // Start the timer
     TIMER_SET;
@@ -773,8 +782,12 @@ void Volume::surfaceVoxelizeSpineMorphology(
     // Get all the sections of the vascular morphology
     Sections sections = spineMorphology->getSections();
 
-    LOG_STATUS("Creating Volume Shell from Sections");
-    LOOP_STARTS("Rasterization");
+    if (_globalVerbose)
+    {
+        LOG_STATUS("Creating Volume Shell from Sections");
+        LOOP_STARTS("Rasterization");
+    }
+
     PROGRESS_SET;
     if (packingAlgorithm == POLYLINE_SPHERE_PACKING)
     {
@@ -794,7 +807,7 @@ void Volume::surfaceVoxelizeSpineMorphology(
             _rasterize(samples.back(), _grid);
 
             // Update the progress bar
-            LOOP_PROGRESS(PROGRESS, sections.size());
+             if (_globalVerbose) LOOP_PROGRESS(PROGRESS, sections.size());
             PROGRESS_UPDATE;
         }
     }
@@ -816,7 +829,7 @@ void Volume::surfaceVoxelizeSpineMorphology(
             paths.shrink_to_fit();
 
             // Update the progress bar
-            LOOP_PROGRESS(PROGRESS, sections.size());
+             if (_globalVerbose) LOOP_PROGRESS(PROGRESS, sections.size());
             PROGRESS_UPDATE;
         }
     }
@@ -840,7 +853,7 @@ void Volume::surfaceVoxelizeSpineMorphology(
             children.shrink_to_fit();
 
             // Update the progress bar
-            LOOP_PROGRESS(PROGRESS, sections.size());
+             if (_globalVerbose) LOOP_PROGRESS(PROGRESS, sections.size());
             PROGRESS_UPDATE;
         }
     }
@@ -848,13 +861,16 @@ void Volume::surfaceVoxelizeSpineMorphology(
     {
         LOG_ERROR("[%s] is not a correct packing algorithm.");
     }
-    LOOP_DONE;
+     if (_globalVerbose) LOOP_DONE;
 
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
 
     // Statistics
-    LOG_STATUS_IMPORTANT("Rasterization Stats.");
-    LOG_STATS(_surfaceVoxelizationTime);
+    if (_globalVerbose)
+    {
+        LOG_STATUS_IMPORTANT("Rasterization Stats.");
+        LOG_STATS(_surfaceVoxelizationTime);
+    }
 }
 
 void Volume::surfaceVoxelizeVasculatureMorphology(

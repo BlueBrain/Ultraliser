@@ -31,6 +31,7 @@
 #include <data/common/ROI.h>
 #include <data/structures/Neighbors.h>
 #include <math/Math.h>
+#include <algorithms/utilities/KdTree.h>
 
 namespace Ultraliser
 {
@@ -351,6 +352,10 @@ public:
 
     void map(Mesh* toMesh);
     void map(std::vector< Vector3f >& pointCloud, const bool &showProgress = true);
+
+    void kdTreeMapping(std::vector< Vector3f >& pointCloud, const bool& showProgress);
+    void kdTreeMapping(const KdTree& kdTree,  const bool& showProgress);
+
 
 
     void createEdgeList();

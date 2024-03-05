@@ -159,9 +159,9 @@ void run(int argc , const char** argv)
         bordeVoxels.clear();
         volume->surfaceVoxelization(inputMesh, false, false, 0.5);
         auto resultMesh = DualMarchingCubes::generateMeshFromVolume(volume);
+        resultMesh->smoothSurface(10);
 
-
-        skeletonizer->reskeletonizeSpines(resultMesh, 20, 0.25);
+        skeletonizer->reskeletonizeSpines(resultMesh, 20, 0.5);
 
         skeletonizer->_exportSpineExtents(options->morphologyPrefix);
     }

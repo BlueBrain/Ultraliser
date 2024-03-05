@@ -1547,6 +1547,21 @@ void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh,
     if (_spineRoots.size() == 0)
         return;
 
+    // Neuron point cloud
+    std::vector< Vector3f > pointCloud;
+    pointCloud.resize(neuronMesh->getNumberVertices());
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < neuronMesh->getNumberVertices(); ++i)
+    {
+        const auto& vertex = neuronMesh->getVertices()[i];
+        pointCloud[i].x() = vertex.x();
+        pointCloud[i].y() = vertex.y();
+        pointCloud[i].z() = vertex.z();
+    }
+
+    auto kdTree = KdTree::from(pointCloud);
+
+
     for (size_t i = 0; i < _spineRoots.size(); ++i)
     {
         // Get the spine morphology
@@ -1574,14 +1589,15 @@ void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh,
         std::stringstream prefixs;
         prefixs << "//home/abdellah/spines/models/spine_" << spine->index;
 
-        volume->project(prefixs.str(), true);
+        // volume->project(prefixs.str(), true);
 
         // Use the DMC algorithm to reconstruct a mesh
-        auto originalMesh = DualMarchingCubes::generateMeshFromVolume(volume);
-        originalMesh->smoothSurface(10);
+        // auto originalMesh = DualMarchingCubes::generateMeshFromVolume(volume);
+        // originalMesh->smoothSurface(10);
 
         // Map the surface
-        spineModelMesh->map(originalMesh);
+        // spineModelMesh->map(originalMesh);
+        spineModelMesh->kdTreeMapping(kdTree, false);
 
 
         // prefixs << "//home/abdellah/spines/models/spine_" << spine->index;

@@ -32,6 +32,7 @@
 #include "Mesh.h"
 #include "MeshOperations.h"
 #include "MeshStatistics.h"
+#include <algorithms/utilities/KdTree.h>
 #include "TriangleOperations.h"
 #include <utilities/Utilities.h>
 #include <math/Math.h>
@@ -2121,44 +2122,69 @@ void Mesh::refineROIs(const ROIs& regions)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
+void Mesh::kdTreeMapping(std::vector< Vector3f >& pointCloud, const bool& showProgress)
+{
+    auto kdtree = KdTree::from(pointCloud);
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _numberVertices; ++i)
+    {
+        auto nearestPoint = kdtree.findNearestPoint(_vertices[i]);
+        _vertices[i].x() = nearestPoint.position.x();
+        _vertices[i].y() = nearestPoint.position.y();
+        _vertices[i].z() = nearestPoint.position.z();
+    }
+}
+
+void Mesh::kdTreeMapping(const KdTree& kdTree, const bool& showProgress)
+{
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _numberVertices; ++i)
+    {
+        auto nearestPoint = kdTree.findNearestPoint(_vertices[i]);
+        _vertices[i].x() = nearestPoint.position.x();
+        _vertices[i].y() = nearestPoint.position.y();
+        _vertices[i].z() = nearestPoint.position.z();
+    }
+}
+
 void Mesh::map(std::vector< Vector3f >& pointCloud, const bool& showProgress)
 {
     if (showProgress)
     {
-    // Starting the timer
-    TIMER_SET;
+        // Starting the timer
+        TIMER_SET;
 
-    LOG_STATUS("Mapping Vertices");
+        LOG_STATUS("Mapping Vertices");
 
-    LOOP_STARTS("Mapping Loop");
-    PROGRESS_SET;
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _numberVertices; ++i)
-    {
-        PROGRESS_UPDATE;
-        LOOP_PROGRESS(PROGRESS, _numberVertices);
-
-        float minDistance = std::numeric_limits<float>::max();
-        int64_t minIndex = -1;
-
-        for (size_t j = 0; j < pointCloud.size(); ++j)
+        LOOP_STARTS("Mapping Loop");
+        PROGRESS_SET;
+        OMP_PARALLEL_FOR
+                for (size_t i = 0; i < _numberVertices; ++i)
         {
-            float distance = _vertices[i].distance(pointCloud[j]);
+            PROGRESS_UPDATE;
+            LOOP_PROGRESS(PROGRESS, _numberVertices);
 
-            if (distance < minDistance)
+            float minDistance = std::numeric_limits<float>::max();
+            int64_t minIndex = -1;
+
+            for (size_t j = 0; j < pointCloud.size(); ++j)
             {
-                minDistance = distance;
-                minIndex = j;
+                float distance = _vertices[i].distance(pointCloud[j]);
+
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    minIndex = j;
+                }
             }
+
+            _vertices[i] = pointCloud[minIndex];
         }
+        LOOP_DONE;
+        LOG_STATS(GET_TIME_SECONDS);
 
-        _vertices[i] = pointCloud[minIndex];
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    LOG_STATUS("Mapping");
-    LOG_STATS(GET_TIME_SECONDS);
+        LOG_STATUS("Mapping");
+        LOG_STATS(GET_TIME_SECONDS);
     }
     else
     {
