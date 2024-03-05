@@ -178,9 +178,9 @@ public:
     void segmentSpines();
 
 
-    void reskeletonizeSpines(Mesh* neuronMesh,
-                             const float& voxelsPerMicron = 15,
-                             const float &edgeGap = 0.1);
+    Meshes reconstructSpineMeshes(Mesh* neuronMesh,
+                                  const float& voxelsPerMicron,
+                                  const float& edgeGap = 0.1);
 
     void _exportSpineExtents(const std::string& prefix) const;
 

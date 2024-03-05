@@ -52,11 +52,7 @@ namespace Ultraliser
 
 void Mesh::_destroyVertexMarkers()
 {
-    if (_vertexMarkers.size() > 0)
-    {
-        _vertexMarkers.clear();
-        _vertexMarkers.shrink_to_fit();
-    }
+    if (_vertexMarkers.size() > 0) { _vertexMarkers.clear(); _vertexMarkers.shrink_to_fit(); }
 }
 
 void Mesh::_resetVertexMarkers()
@@ -68,10 +64,7 @@ void Mesh::_resetVertexMarkers()
     }
 
     OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _numberVertices; ++i)
-    {
-        _vertexMarkers[i] = 0;
-    }
+    for (size_t i = 0; i < _numberVertices; ++i) { _vertexMarkers[i] = 0; }
 }
 
 void Mesh::_destroyNeighborlist()
@@ -99,7 +92,7 @@ void Mesh::_destroyNeighborlist()
     }
 }
 
-void Mesh::_createNeighbourList(const bool showProgress)
+void Mesh::_createNeighbourList(const bool verbose)
 {
     // Start the timer
     TIMER_SET;
@@ -114,7 +107,7 @@ void Mesh::_createNeighbourList(const bool showProgress)
     for (size_t i = 0; i < _numberVertices; ++i)
         neighborList[i] = nullptr;
 
-    if (showProgress)
+    if (verbose)
     {
         LOOP_STARTS("Creating Neighbour List");
         for (size_t i = 0; i < _numberTriangles; ++i)
@@ -179,7 +172,7 @@ void Mesh::_createNeighbourList(const bool showProgress)
     // Order the neighbors so they are connected counter clockwise
     NeighborTriangle *firstNGR, *secondNGR, *auxNGR;
     TIMER_RESET;
-    if (showProgress) { LOOP_STARTS("Ordering Vertices"); }
+    if (verbose) { LOOP_STARTS("Ordering Vertices"); }
     for (size_t i = 0; i < _numberVertices; ++i)
     {
         firstNGR = neighborList[i];
@@ -223,7 +216,7 @@ void Mesh::_createNeighbourList(const bool showProgress)
             {
                 if (firstNGR->b != c)
                 {
-                    LOG_WARNING("Some polygons are not closed, Vertices: [%d-%d]", firstNGR->b, c);
+                    LOG_WARNING("Open Polygons! Vertices: [%d-%d]", firstNGR->b, c);
                     LOG_WARNING("[%f, %f, %f]", F2D(_vertices[firstNGR->b].x()),
                                                 F2D(_vertices[firstNGR->b].y()),
                                                 F2D(_vertices[firstNGR->b].z()));
@@ -234,63 +227,81 @@ void Mesh::_createNeighbourList(const bool showProgress)
             }
             firstNGR = firstNGR->next;
         }
-        if (showProgress) { LOOP_PROGRESS(i, _numberVertices); }
+        if (verbose) { LOOP_PROGRESS(i, _numberVertices); }
     }
-    if (showProgress) { LOOP_DONE; LOG_STATS(GET_TIME_SECONDS); }
+    if (verbose) { LOOP_DONE; LOG_STATS(GET_TIME_SECONDS); }
 
     // Attach the neigborlist to the surfmesh
     this->_neighborList = neighborList;
 }
 
-void Mesh::_selectVerticesInROI(const ROIs& regions)
+void Mesh::_selectVerticesInROI(const ROIs& regions, const bool verbose)
 {
     // Start the timer
     TIMER_SET;
-    LOG_STATUS("Selecting ROI Vertices: Total [ %d ]", _numberVertices);
+    if (verbose) { LOG_STATUS("Selecting ROI Vertices: Total [ %d ]", _numberVertices); }
 
     // Reset the vertex markers
     _resetVertexMarkers();
 
     // Select the triangles that are located within the ROI
-    LOOP_STARTS("Labeling Vertices");
-    PROGRESS_SET;
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _numberVertices; ++i)
+    if (verbose)
     {
-        // Get the vertex
-        const auto& vertex = _vertices[i];
-
-        // Make sure that you cover all the regions
-        for (size_t j = 0; j < regions.size(); ++j)
+        LOOP_STARTS("Labeling Vertices");
+        PROGRESS_SET;
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < _numberVertices; ++i)
         {
-            const auto region = regions[j];
+            // Get the vertex
+            const auto& vertex = _vertices[i];
 
-            // If the vertex is in the sphere
-            if (isPointInSphere(vertex, region->center, region->radius))
+            // Make sure that you cover all the regions
+            for (size_t j = 0; j < regions.size(); ++j)
             {
-                // Mark the vertices to avoid losing them
-                _vertexMarkers[i] = 1;
+                // If the vertex is in the sphere, mark the vertex
+                const auto region = regions[j];
+                if (isPointInSphere(vertex, region->center, region->radius)) { _vertexMarkers[i] = 1; }
+            }
+
+            // Update the progress bar
+            LOOP_PROGRESS_FRACTION(PROGRESS, _numberVertices);
+            PROGRESS_UPDATE;
+        }
+        LOOP_DONE;
+        LOG_STATS(GET_TIME_SECONDS);
+    }
+    else
+    {
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < _numberVertices; ++i)
+        {
+            // Get the vertex
+            const auto& vertex = _vertices[i];
+
+            // Make sure that you cover all the regions
+            for (size_t j = 0; j < regions.size(); ++j)
+            {
+                // If the vertex is in the sphere, mark the vertex
+                const auto region = regions[j];
+                if (isPointInSphere(vertex, region->center, region->radius))
+                {
+                    _vertexMarkers[i] = 1;
+                }
             }
         }
-
-        // Update the progress bar
-        LOOP_PROGRESS_FRACTION(PROGRESS, _numberVertices);
-        PROGRESS_UPDATE;
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
 
     size_t numberSelectedVertices = 0;
     for (size_t i = 0; i < _numberVertices; ++i)
     {
-        if (_vertexMarkers[i] == 1)
-        {
-            numberSelectedVertices++;
-        }
+        if (_vertexMarkers[i] == 1) { numberSelectedVertices++; }
     }
 
-    LOG_SUCCESS("[ %d ] vertices are selected for [ %d ] ROIs",
-                numberSelectedVertices, regions.size());
+    if (verbose)
+    {
+        LOG_SUCCESS("[ %d ] vertices are selected for [ %d ] ROIs",
+                    numberSelectedVertices, regions.size());
+    }
 }
 
 void Mesh::optimizeAdapttivelyWithROI(const size_t &optimizationIterations,
@@ -2189,34 +2200,85 @@ void Mesh::refineROIs(const ROIs& regions)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Mesh::kdTreeMapping(std::vector< Vector3f >& pointCloud, const bool& showProgress)
+void Mesh::kdTreeMapping(std::vector< Vector3f >& pointCloud, const bool verbose)
 {
-    auto kdtree = KdTree::from(pointCloud);
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _numberVertices; ++i)
+    if (verbose)
     {
-        auto nearestPoint = kdtree.findNearestPoint(_vertices[i]);
-        _vertices[i].x() = nearestPoint.position.x();
-        _vertices[i].y() = nearestPoint.position.y();
-        _vertices[i].z() = nearestPoint.position.z();
+        // Start the timer
+        TIMER_SET;
+
+        // Build the kdTree from the point cloud
+        auto kdtree = KdTree::from(pointCloud);
+
+        // Find the nearest point and map
+        LOOP_STARTS("Mesh Mapping with K-d Tree");
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < _numberVertices; ++i)
+        {
+            auto nearestPoint = kdtree.findNearestPoint(_vertices[i]);
+            _vertices[i].x() = nearestPoint.position.x();
+            _vertices[i].y() = nearestPoint.position.y();
+            _vertices[i].z() = nearestPoint.position.z();
+            LOOP_PROGRESS(i, _numberVertices);
+        }
+        LOOP_DONE;
+        LOG_STATS(GET_TIME_SECONDS);
+    }
+    else
+    {
+        // Build the kdTree from the point cloud
+        auto kdtree = KdTree::from(pointCloud);
+
+        // Find the nearest point and map
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < _numberVertices; ++i)
+        {
+            auto nearestPoint = kdtree.findNearestPoint(_vertices[i]);
+            _vertices[i].x() = nearestPoint.position.x();
+            _vertices[i].y() = nearestPoint.position.y();
+            _vertices[i].z() = nearestPoint.position.z();
+        }
     }
 }
 
-void Mesh::kdTreeMapping(const KdTree& kdTree, const bool& showProgress)
+void Mesh::kdTreeMapping(const KdTree& kdTree, const bool verbose)
 {
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _numberVertices; ++i)
+    if (verbose)
     {
-        auto nearestPoint = kdTree.findNearestPoint(_vertices[i]);
-        _vertices[i].x() = nearestPoint.position.x();
-        _vertices[i].y() = nearestPoint.position.y();
-        _vertices[i].z() = nearestPoint.position.z();
+        // Start the timer
+        TIMER_SET;
+
+        // Find the nearest point and map
+        LOOP_STARTS("Mesh Mapping with K-d Tree");
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < _numberVertices; ++i)
+        {
+            auto nearestPoint = kdTree.findNearestPoint(_vertices[i]);
+            _vertices[i].x() = nearestPoint.position.x();
+            _vertices[i].y() = nearestPoint.position.y();
+            _vertices[i].z() = nearestPoint.position.z();
+            LOOP_PROGRESS(i, _numberVertices);
+        }
+        LOOP_DONE;
+        LOG_STATS(GET_TIME_SECONDS);
+    }
+    else
+    {
+        // Find the nearest point and map
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < _numberVertices; ++i)
+        {
+            auto nearestPoint = kdTree.findNearestPoint(_vertices[i]);
+            _vertices[i].x() = nearestPoint.position.x();
+            _vertices[i].y() = nearestPoint.position.y();
+            _vertices[i].z() = nearestPoint.position.z();
+        }
     }
 }
 
-void Mesh::map(std::vector< Vector3f >& pointCloud, const bool& showProgress)
+void Mesh::map(std::vector< Vector3f >& pointCloud, const bool verbose)
 {
-    if (showProgress)
+    if (verbose)
     {
         // Starting the timer
         TIMER_SET;

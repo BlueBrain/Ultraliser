@@ -217,8 +217,17 @@ void run(int argc , const char** argv)
     }
 
     {
-        skeletonizer->reskeletonizeSpines(remeshedNeuron, 20, 0.5);
-        skeletonizer->_exportSpineExtents(options->morphologyPrefix);
+        auto spineMeshes = skeletonizer->reconstructSpineMeshes(remeshedNeuron, 20, 0.5);
+
+        for (size_t i = 0; i < spineMeshes.size(); ++i)
+        {
+            auto spineMesh = spineMeshes[i];
+            std::stringstream stream;
+            stream << options->morphologyPrefix << "_spine_" << i;
+            spineMesh->exportMesh(stream.str(), true);
+        }
+
+        // skeletonizer->_exportSpineExtents(options->morphologyPrefix);
     }
 
     // Export the somatic proxy mesh

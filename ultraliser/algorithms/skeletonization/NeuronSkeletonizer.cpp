@@ -1540,34 +1540,54 @@ void NeuronSkeletonizer::segmentSpines()
 
 
 
-void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh,
-                                             const float& voxelsPerMicron,
-                                             const float& edgeGap)
+Meshes NeuronSkeletonizer::reconstructSpineMeshes(Mesh* neuronMesh,
+                                                  const float& voxelsPerMicron,
+                                                  const float& edgeGap)
 {
-    if (_spineRoots.size() == 0)
-        return;
+    // Start the timer
+    TIMER_SET;
 
-    // Neuron point cloud
-    std::vector< Vector3f > pointCloud;
-    pointCloud.resize(neuronMesh->getNumberVertices());
+    LOG_STATUS("Reconstructing Spine Meshes");
+
+    // Initially create a list of meshes to contain the result
+    Meshes spineMeshes;
+
+    if (_spineRoots.size() == 0)
+    {
+        LOG_WARNING("The neuron has Zero segmented spines!");
+        return spineMeshes;
+    }
+
+    // Constructing the point cloud of the neuron mesh to apply the mapping
+    std::vector< Vector3f > neuronPointCloud;
+    neuronPointCloud.resize(neuronMesh->getNumberVertices());
+    LOOP_STARTS("Constructing Neuron Point Cloud");
+    PROGRESS_SET;
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < neuronMesh->getNumberVertices(); ++i)
     {
         const auto& vertex = neuronMesh->getVertices()[i];
-        pointCloud[i].x() = vertex.x();
-        pointCloud[i].y() = vertex.y();
-        pointCloud[i].z() = vertex.z();
+        neuronPointCloud[i] = vertex;
+        LOOP_PROGRESS(PROGRESS, neuronMesh->getNumberVertices());
+        PROGRESS_UPDATE;
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
-    auto kdTree = KdTree::from(pointCloud);
+    TIMER_RESET;
+    LOOP_STARTS("Building Accelerating Data Structure");
+    auto neuronKdTree = KdTree::from(neuronPointCloud);
+    LOG_STATS(GET_TIME_SECONDS);
 
-    TIMER_SET;
-    LOOP_STARTS("Skeletonizing Spines");
+    spineMeshes.resize(_spineRoots.size());
+
+    TIMER_RESET;
+    LOOP_STARTS("Mapping Spine Meshes");
     for (size_t i = 0; i < _spineRoots.size(); ++i)
     {
         // Get the spine morphology
         auto spine =_spineRoots[i];
-        SpineMorphology* spineMorphology = new SpineMorphology(spine);
+        auto spineMorphology = new SpineMorphology(spine);
 
         // Get the mesh of the spine model
         auto spineModelMesh = spineMorphology->reconstructMesh(voxelsPerMicron, edgeGap, SILENT);
@@ -1584,34 +1604,23 @@ void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh,
         Volume* volume = new Volume(pMinInput, pMaxInput, resolution, edgeGap,
                                     VOLUME_TYPE::BIT, SILENT);
 
-        // Rasterize the morphologies into the volume
+        // Rasterize the neuron mesh within the bounding box
         volume->surfaceVoxelization(neuronMesh);
-        // volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
 
-        std::stringstream prefixs;
-        prefixs << "//home/abdellah/spines/models/spine_" << spine->index;
+        // Map the spine model mesh to the KdTree of the neuron
+        spineModelMesh->kdTreeMapping(neuronKdTree, SILENT);
 
+        // Add the mesh to the list
+        spineMeshes[i] = spineModelMesh;
 
-
-        // Use the DMC algorithm to reconstruct a mesh
-        // auto originalMesh = DualMarchingCubes::generateMeshFromVolume(volume);
-        // originalMesh->smoothSurface(10);
-
-        // Map the surface
-        // spineModelMesh->map(originalMesh);
-        // spineModelMesh->subdivideTrianglseAtCentroid();
-
-        spineModelMesh->kdTreeMapping(kdTree, SILENT);
-
-        // prefixs << "//home/abdellah/spines/models/spine_" << spine->index;
-        spineModelMesh->exportMesh(prefixs.str(), SILENT);
-
-        // spineMorphology->exportExtents(_debuggingPrefix);
-
+        // Update the progress bar
         LOOP_PROGRESS(i, _spineRoots.size());
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
+
+    // Return the final list
+    return spineMeshes;
 
 }
 

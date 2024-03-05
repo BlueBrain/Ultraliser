@@ -353,10 +353,10 @@ public:
     void refine(const bool showProgress = true);
 
     void map(Mesh* toMesh);
-    void map(std::vector< Vector3f >& pointCloud, const bool &showProgress = true);
+    void map(std::vector< Vector3f >& pointCloud, const bool verbose = VERBOSE);
 
-    void kdTreeMapping(std::vector< Vector3f >& pointCloud, const bool& showProgress);
-    void kdTreeMapping(const KdTree& kdTree,  const bool& showProgress);
+    void kdTreeMapping(std::vector< Vector3f >& pointCloud, const bool verbose = VERBOSE);
+    void kdTreeMapping(const KdTree& kdTree,  const bool verbose = VERBOSE);
 
 
 
@@ -686,9 +686,9 @@ private:
 
     /**
      * @brief _createNeighbourList
-     * @param showProgress
+     * @param verbose
      */
-    void _createNeighbourList(const bool showProgress = true);
+    void _createNeighbourList(const bool verbose = VERBOSE);
 
     /**
      * @brief _updateVertexMarkers
@@ -713,8 +713,9 @@ private:
     /**
      * @brief _selectVerticesInROI
      * @param regions
+     * @param verbose
      */
-    void _selectVerticesInROI(const ROIs& regions);
+    void _selectVerticesInROI(const ROIs& regions, const bool verbose = VERBOSE);
 
 public:
 
@@ -771,10 +772,12 @@ protected:
      * Number of triangles (or faces) in the meshes.
      */
     size_t _numberTriangles;
-
-
-
 };
+
+/**
+ * @brief Meshes
+ */
+typedef std::vector< Mesh* > Meshes;
 
 }
 
