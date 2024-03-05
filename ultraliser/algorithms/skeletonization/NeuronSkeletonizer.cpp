@@ -1561,7 +1561,8 @@ void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh,
 
     auto kdTree = KdTree::from(pointCloud);
 
-
+    TIMER_SET;
+    LOOP_STARTS("Skeletonizing Spines");
     for (size_t i = 0; i < _spineRoots.size(); ++i)
     {
         // Get the spine morphology
@@ -1569,7 +1570,7 @@ void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh,
         SpineMorphology* spineMorphology = new SpineMorphology(spine);
 
         // Get the mesh of the spine model
-        auto spineModelMesh = spineMorphology->reconstructMesh(voxelsPerMicron, edgeGap);
+        auto spineModelMesh = spineMorphology->reconstructMesh(voxelsPerMicron, edgeGap, SILENT);
 
         // Get relaxed bounding box to build the volume
         Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
@@ -1580,7 +1581,8 @@ void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh,
         size_t resolution = static_cast< size_t >(voxelsPerMicron * largestDimension);
 
         // Construct the volume
-        Volume* volume = new Volume(pMinInput, pMaxInput, resolution, edgeGap, VOLUME_TYPE::BIT, false);
+        Volume* volume = new Volume(pMinInput, pMaxInput, resolution, edgeGap,
+                                    VOLUME_TYPE::BIT, SILENT);
 
         // Rasterize the morphologies into the volume
         volume->surfaceVoxelization(neuronMesh);
@@ -1589,7 +1591,7 @@ void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh,
         std::stringstream prefixs;
         prefixs << "//home/abdellah/spines/models/spine_" << spine->index;
 
-        // volume->project(prefixs.str(), true);
+
 
         // Use the DMC algorithm to reconstruct a mesh
         // auto originalMesh = DualMarchingCubes::generateMeshFromVolume(volume);
@@ -1597,14 +1599,19 @@ void NeuronSkeletonizer::reskeletonizeSpines(Mesh* neuronMesh,
 
         // Map the surface
         // spineModelMesh->map(originalMesh);
-        spineModelMesh->kdTreeMapping(kdTree, false);
+        // spineModelMesh->subdivideTrianglseAtCentroid();
 
+        spineModelMesh->kdTreeMapping(kdTree, SILENT);
 
         // prefixs << "//home/abdellah/spines/models/spine_" << spine->index;
-        spineModelMesh->exportMesh(prefixs.str(), true);
+        spineModelMesh->exportMesh(prefixs.str(), SILENT);
 
-        spineMorphology->exportExtents(_debuggingPrefix);
+        // spineMorphology->exportExtents(_debuggingPrefix);
+
+        LOOP_PROGRESS(i, _spineRoots.size());
     }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
 
 }
 

@@ -819,7 +819,8 @@ void exportOBJ(const std::string &prefix,
                const Vertex *vertices,
                const size_t &numberVertices,
                const Triangle* triangles,
-               const size_t &numberTriangles)
+               const size_t &numberTriangles,
+               const bool& verbose)
 {
     // Open the file
     std::string fileName = prefix + OBJ_EXTENSION;
@@ -829,46 +830,46 @@ void exportOBJ(const std::string &prefix,
         LOG_ERROR("Cannot write mesh file [ %s ]", fileName.c_str());
     }
 
-    LOG_STATUS("Exporting OBJ Mesh : [ %s ]", fileName.c_str());
+    if (verbose) LOG_STATUS("Exporting OBJ Mesh : [ %s ]", fileName.c_str());
 
     // Start the time
     TIMER_SET;
 
     // Write the vertices
-    LOOP_STARTS("Writing Vertices");
+    if (verbose) LOOP_STARTS("Writing Vertices");
     for (size_t i = 0; i < numberVertices; ++i)
     {
-        LOOP_PROGRESS_FRACTION(i, numberVertices);
+        if (verbose) LOOP_PROGRESS_FRACTION(i, numberVertices);
 
         stream << OBJ_VERTEX_FLAG << SPACE
                << vertices[i][0] << SPACE
                << vertices[i][1] << SPACE
                << vertices[i][2] << NEW_LINE;
     }
-    LOOP_DONE;
+    if (verbose) LOOP_DONE;
 
     // Statistics
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
     // Reset timer
     TIMER_RESET;
 
-    LOOP_STARTS("Writing Triangles");
+    if (verbose) LOOP_STARTS("Writing Triangles");
     for (size_t i = 0; i < numberTriangles; ++i)
     {
-        LOOP_PROGRESS_FRACTION(i, numberTriangles);
+        if (verbose) LOOP_PROGRESS_FRACTION(i, numberTriangles);
         stream << OBJ_FACE_FLAG << SPACE
                << triangles[i][0] + 1 << SPACE
                << triangles[i][1] + 1 << SPACE
                << triangles[i][2] + 1 << NEW_LINE;
     }
-    LOOP_DONE;
+    if (verbose) LOOP_DONE;
 
     // Statistics
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
     // Add the end flags
-    stream<<OBJ_END_FLAG;
+    stream << OBJ_END_FLAG;
 
     // Close the file stream
     stream.close();

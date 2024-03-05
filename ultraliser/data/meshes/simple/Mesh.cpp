@@ -22,7 +22,6 @@
 #include "Mesh.h"
 #include "MeshOperations.h"
 #include "MeshStatistics.h"
-#include "TriangleOperations.h"
 #include <utilities/Utilities.h>
 #include <math/Math.h>
 #include <algorithms/geometry/Geometry.h>
@@ -693,20 +692,17 @@ void Mesh::shrinkOrInflateSurface(const Neighborhood& vertexNeighbours,
     }
 
     // Update vertices
-    #pragma omp parallel for
-    for (size_t iVertex = 0; iVertex < _numberVertices; ++iVertex)
-    {
-        _vertices[iVertex] = newVertices[iVertex];
-    }
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _numberVertices; ++i) { _vertices[i] = newVertices[i]; }
 }
 
-void Mesh::smoothSurface(size_t numIterations)
+void Mesh::smoothSurface(size_t numIterations, const bool verbose)
 {
     // If no iterations, return
-    if (numIterations < 1)
+    if (numIterations == 0)
         return;
 
-    LOG_TITLE("Smoothing");
+    if (verbose) LOG_TITLE("Smoothing");
     TIMER_SET;
 
     // Compute the vertex and face neighbours
@@ -714,16 +710,16 @@ void Mesh::smoothSurface(size_t numIterations)
     _computeNeighborhoods(*this, vertexNeighbours, faceNeighbours);
 
     // Shrink/Inflate the surface using a tic-toe approach
-    LOOP_STARTS("Smoothing")
+    if (verbose) LOOP_STARTS("Smoothing")
     for (size_t i = 0; i < numIterations; ++i)
     {
         shrinkOrInflateSurface(vertexNeighbours, faceNeighbours, true);
         shrinkOrInflateSurface(vertexNeighbours, faceNeighbours, false);
 
-        LOOP_PROGRESS(i, numIterations);
+        if (verbose) LOOP_PROGRESS(i, numIterations);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOOP_DONE;
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 
     // Clean
     vertexNeighbours.clear();
@@ -731,27 +727,28 @@ void Mesh::smoothSurface(size_t numIterations)
     faceNeighbours.clear();
     faceNeighbours.shrink_to_fit();
 
-    LOG_STATUS_IMPORTANT("Smoothing Operator Stats.");
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) LOG_STATUS_IMPORTANT("Smoothing Operator Stats.");
+    if (verbose) LOG_STATS(GET_TIME_SECONDS);
 }
 
 void Mesh::exportMesh(const std::string &prefix,
                       const bool &formatOBJ,
                       const bool &formatPLY,
                       const bool &formatOFF,
-                      const bool &formatSTL) const
+                      const bool &formatSTL,
+                      const bool &verbose) const
 {
     if (formatOBJ || formatPLY || formatOFF || formatSTL)
     {
         // Start timer
         TIMER_SET;
 
-        LOG_TITLE("Exporting Mesh");
+        if (verbose) LOG_TITLE("Exporting Mesh");
 
         if (formatOBJ)
         {
             exportOBJ(prefix,
-                      _vertices, _numberVertices, _triangles, _numberTriangles);
+                      _vertices, _numberVertices, _triangles, _numberTriangles, verbose);
         }
 
         if (formatPLY)
@@ -772,8 +769,11 @@ void Mesh::exportMesh(const std::string &prefix,
                       _vertices, _numberVertices, _triangles, _numberTriangles);
         }
 
-        LOG_STATUS_IMPORTANT("Exporting Mesh Stats.");
-        LOG_STATS(GET_TIME_SECONDS);
+        if (verbose)
+        {
+            LOG_STATUS_IMPORTANT("Exporting Mesh Stats.");
+            LOG_STATS(GET_TIME_SECONDS);
+        }
     }
 }
 

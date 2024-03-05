@@ -142,18 +142,20 @@ void importH5(const std::string &filePath, Vertices& vertices, Triangles& triang
 
 
 /**
- * @brief exportToOBJ
+ * @brief exportOBJ
  * @param prefix
  * @param vertices
  * @param numberVertices
  * @param triangles
  * @param numberTriangles
+ * @param verbose
  */
 void exportOBJ(const std::string &prefix,
                const Vertex* vertices,
                const size_t &numberVertices,
                const Triangle* triangles,
-               const size_t &numberTriangles);
+               const size_t &numberTriangles,
+               const bool &verbose = true);
 
 /**
  * @brief exportToOFF

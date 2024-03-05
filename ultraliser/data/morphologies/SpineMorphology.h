@@ -86,6 +86,7 @@ public:
     /**
      * @brief exportExtents
      * @param prefix
+     * @param showProgrress
      */
     void exportExtents(const std::string& prefix) const;
 

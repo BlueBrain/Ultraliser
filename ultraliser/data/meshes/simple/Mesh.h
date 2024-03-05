@@ -347,8 +347,10 @@ public:
     /**
      * @brief refine
      * Refine the durface mesh.
+     * @param showProgress
+     * Shows the progress of the function.
      */
-    void refine();
+    void refine(const bool showProgress = true);
 
     void map(Mesh* toMesh);
     void map(std::vector< Vector3f >& pointCloud, const bool &showProgress = true);
@@ -369,6 +371,8 @@ public:
                                      std::vector< Vector3f >& vertexList,
                                      std::vector< Triangle >& triangleList);
 
+    void subdivideTrianglseAtCentroid();
+
     /**
      * @brief subdivideTriangleAtMidPoints
      * @param triangleIndex
@@ -381,6 +385,7 @@ public:
 
 
     void subdivideTrianglseAtMidPoints();
+
 
 
 
@@ -477,7 +482,8 @@ public:
                     const bool &formatOBJ = false,
                     const bool &formatPLY = false,
                     const bool &formatOFF = false,
-                    const bool &formatSTL = false) const;
+                    const bool &formatSTL = false,
+                    const bool &verbose = true) const;
 
     /**
      * @brief writeDistributions
@@ -551,7 +557,7 @@ public:
      * @param numIterations
      * Number of iterations.
      */
-    void smoothSurface(size_t numIterations);
+    void smoothSurface(size_t numIterations, const bool verbose = true);
 
     /**
      * @brief Mesh simplification using edge collapse. One vertex per iteration is collapsed,
@@ -680,8 +686,9 @@ private:
 
     /**
      * @brief _createNeighbourList
+     * @param showProgress
      */
-    void _createNeighbourList();
+    void _createNeighbourList(const bool showProgress = true);
 
     /**
      * @brief _updateVertexMarkers

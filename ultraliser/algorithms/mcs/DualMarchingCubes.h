@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2018 - 2021
+ * Copyright (c) 2018 - 2024
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -64,17 +64,23 @@ public:
 
     /**
      * @brief generateMesh
-     * @param paralle
+     * Generates a mesh from the input volume.
+     * @param verbose
+     * Verbosity flag.
      * @return
+     * Returns a pointer to the reconstructed mesh.
      */
-    Mesh* generateMesh();
+    Mesh* generateMesh(const bool verbose = VERBOSE);
 
     /**
      * @brief generateAdvancedMesh
-     * @param paralle
+     * Generates an AdvancedMesh from the input volume.
+     * @param verbose
+     * Verbosity flag.
      * @return
+     * Returns a pointer to the reconstructed mesh in AdvancedMesh container.
      */
-    AdvancedMesh* generateAdvancedMesh();
+    AdvancedMesh* generateAdvancedMesh(const bool verbose = VERBOSE);
 
 public:
 
@@ -83,20 +89,26 @@ public:
      * Generate a mesh from the DMC algorithm given an input volume.
      * @param volume
      * An input volume that will be used to create the mesh.
+     * @param verbose
+     * Verbosity flag.
      * @return
      * A pointer to the mesh.
      */
-    static Mesh* generateMeshFromVolume(Volume *volume);
+    static Mesh* generateMeshFromVolume(Volume *volume,
+                                        const bool verbose = VERBOSE);
 
     /**
      * @brief generateMeshFromVolume
      * Generate an avanced mesh from the DMC algorithm given an input volume.
      * @param volume
      * An input volume that will be used to create the mesh.
+     * @param verbose
+     * Verbosity flag.
      * @return
      * A pointer to the resulting mesh.
      */
-    static AdvancedMesh* generateAdvancedMeshFromVolume(Volume* volume);
+    static AdvancedMesh* generateAdvancedMeshFromVolume(Volume* volume,
+                                                        const bool verbose = VERBOSE);
 
 private:
 
@@ -113,9 +125,12 @@ private:
      * @brief _buildSharedVertices
      * Extract quad mesh with shared vertex indices, but in parallel using all
      * the CPUs available.
-     * @param mesh
+     * @param vertices
+     * @param triangles
+     * @param verbose
      */
-    void _buildSharedVertices(Vertices& vertices, Triangles &triangles);
+    void _buildSharedVertices(Vertices& vertices, Triangles &triangles,
+                              const bool verbose = VERBOSE);
 
     /**
      * @brief _getCellCode

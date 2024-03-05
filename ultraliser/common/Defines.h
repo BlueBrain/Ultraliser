@@ -21,8 +21,9 @@
 
 #pragma once
 
-#include <string>
-#include <limits.h>
+// Verbosity
+#define SILENT                                  false
+#define VERBOSE                                 true
 
 #define AXES_COUNT                              6
 

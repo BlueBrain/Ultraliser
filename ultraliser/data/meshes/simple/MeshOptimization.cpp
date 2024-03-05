@@ -79,7 +79,6 @@ void Mesh::_destroyNeighborlist()
     if (_neighborList != nullptr)
     {
         // Release the single neighbors
-        // OMP_PARALLEL_FOR
         for (size_t i = 0; i < _numberVertices; ++i)
         {
             NeighborTriangle* firstNGR = nullptr;
@@ -100,8 +99,11 @@ void Mesh::_destroyNeighborlist()
     }
 }
 
-void Mesh::_createNeighbourList()
+void Mesh::_createNeighbourList(const bool showProgress)
 {
+    // Start the timer
+    TIMER_SET;
+
     // Destroy exsisting neigborlist, if found
     _destroyNeighborlist();
 
@@ -112,60 +114,74 @@ void Mesh::_createNeighbourList()
     for (size_t i = 0; i < _numberVertices; ++i)
         neighborList[i] = nullptr;
 
-    // Start the timer
-    TIMER_SET;
-
-    LOOP_STARTS("Creating Neighbour List");
-    PROGRESS_SET;
-    // OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _numberTriangles; ++i)
+    if (showProgress)
     {
-        PROGRESS_UPDATE;
-        LOOP_PROGRESS(PROGRESS, _numberTriangles);
+        LOOP_STARTS("Creating Neighbour List");
+        for (size_t i = 0; i < _numberTriangles; ++i)
+        {
+            // Iterate over the triangless and collect line segments (a, b) and
+            // its connection to a triangles (c).
+            // Save the line segment so it forms a counter clockwise triangle with the
+            // origin vertices
+            const int64_t a = _triangles[i][0];
+            const int64_t b = _triangles[i][1];
+            const int64_t c = _triangles[i][2];
 
-        // Iterate over the triangless and collect line segments (a, b) and
-        // its connection to a triangles (c).
-        // Save the line segment so it forms a counter clockwise triangle with the
-        // origin vertices
-        const int64_t a = _triangles[i][0];
-        const int64_t b = _triangles[i][1];
-        const int64_t c = _triangles[i][2];
+            NeighborTriangle *firstNGR = new NeighborTriangle();
+            firstNGR->a = b; firstNGR->b = c; firstNGR->c = i;
+            firstNGR->next = neighborList[a];
+            neighborList[a] = firstNGR;
 
-        NeighborTriangle *firstNGR = new NeighborTriangle();
-        firstNGR->a = b;
-        firstNGR->b = c;
-        firstNGR->c = i;
-        firstNGR->next = neighborList[a];
-        neighborList[a] = firstNGR;
+            firstNGR = new NeighborTriangle();
+            firstNGR->a = c; firstNGR->b = a; firstNGR->c = i;
+            firstNGR->next = neighborList[b];
+            neighborList[b] = firstNGR;
 
-        firstNGR = new NeighborTriangle();
-        firstNGR->a = c;
-        firstNGR->b = a;
-        firstNGR->c = i;
-        firstNGR->next = neighborList[b];
-        neighborList[b] = firstNGR;
+            firstNGR = new NeighborTriangle();
+            firstNGR->a = a; firstNGR->b = b; firstNGR->c = i;
+            firstNGR->next = neighborList[c];
+            neighborList[c] = firstNGR;
 
-        firstNGR = new NeighborTriangle();
-        firstNGR->a = a;
-        firstNGR->b = b;
-        firstNGR->c = i;
-        firstNGR->next = neighborList[c];
-        neighborList[c] = firstNGR;
+            LOOP_PROGRESS(i, _numberTriangles);
+        }
+        LOOP_DONE;
+        LOG_STATS(GET_TIME_SECONDS);
     }
-    LOOP_DONE;
+    else
+    {
+        for (size_t i = 0; i < _numberTriangles; ++i)
+        {
+            // Iterate over the triangless and collect line segments (a, b) and
+            // its connection to a triangles (c).
+            // Save the line segment so it forms a counter clockwise triangle with the
+            // origin vertices
+            const int64_t a = _triangles[i][0];
+            const int64_t b = _triangles[i][1];
+            const int64_t c = _triangles[i][2];
 
-    // Statistics
-    LOG_STATS(GET_TIME_SECONDS);
+            NeighborTriangle *firstNGR = new NeighborTriangle();
+            firstNGR->a = b; firstNGR->b = c; firstNGR->c = i;
+            firstNGR->next = neighborList[a];
+            neighborList[a] = firstNGR;
 
-    NeighborTriangle *firstNGR, *secondNGR, *auxNGR;
+            firstNGR = new NeighborTriangle();
+            firstNGR->a = c; firstNGR->b = a; firstNGR->c = i;
+            firstNGR->next = neighborList[b];
+            neighborList[b] = firstNGR;
+
+            firstNGR = new NeighborTriangle();
+            firstNGR->a = a; firstNGR->b = b; firstNGR->c = i;
+            firstNGR->next = neighborList[c];
+            neighborList[c] = firstNGR;
+        }
+    }
 
     // Order the neighbors so they are connected counter clockwise
+    NeighborTriangle *firstNGR, *secondNGR, *auxNGR;
     TIMER_RESET;
-    LOOP_STARTS("Ordering Vertices");
+    if (showProgress) { LOOP_STARTS("Ordering Vertices"); }
     for (size_t i = 0; i < _numberVertices; ++i)
     {
-        LOOP_PROGRESS(i, _numberVertices);
-
         firstNGR = neighborList[i];
         const int64_t c = firstNGR->a;
 
@@ -207,7 +223,7 @@ void Mesh::_createNeighbourList()
             {
                 if (firstNGR->b != c)
                 {
-                    LOG_WARNING("Some polygons are not closed, Vertices: [%d - %d]", firstNGR->b, c);
+                    LOG_WARNING("Some polygons are not closed, Vertices: [%d-%d]", firstNGR->b, c);
                     LOG_WARNING("[%f, %f, %f]", F2D(_vertices[firstNGR->b].x()),
                                                 F2D(_vertices[firstNGR->b].y()),
                                                 F2D(_vertices[firstNGR->b].z()));
@@ -216,14 +232,11 @@ void Mesh::_createNeighbourList()
                                                 F2D(_vertices[c].z()));
                 }
             }
-
             firstNGR = firstNGR->next;
         }
+        if (showProgress) { LOOP_PROGRESS(i, _numberVertices); }
     }
-    LOOP_DONE;
-
-    // Statistics
-    LOG_STATS(GET_TIME_SECONDS);
+    if (showProgress) { LOOP_DONE; LOG_STATS(GET_TIME_SECONDS); }
 
     // Attach the neigborlist to the surfmesh
     this->_neighborList = neighborList;
@@ -1961,6 +1974,60 @@ void Mesh::subdivideTrianglseAtMidPoints()
     _triangles = newTriangles;
 }
 
+void Mesh::subdivideTrianglseAtCentroid()
+{
+    // New lists of vertices and triangles
+    std::vector< Vector3f > createdVertices;
+    std::vector< Triangle > createdTriangles;
+
+    // Subdivide all the triangles
+    for (size_t i = 0; i < _numberTriangles; ++i)
+    {
+        subdivideTriangleAtCentroid(i, createdVertices, createdTriangles);
+    }
+
+    // Update the _vertices and _triangles lists
+    const size_t totalNumberVertices = _numberVertices + createdVertices.size();
+    const size_t totalNumberTriangles = createdTriangles.size();
+
+    // Allocate the new arrays
+    Vector3f* newVertices = new Vector3f[totalNumberVertices];
+    Triangle* newTriangles = new Triangle[totalNumberTriangles];
+
+    // Copy the old vertices to the new vertices list
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _numberVertices; ++i)
+    {
+        newVertices[i] = _vertices[i];
+    }
+
+    // Release the old vertices list
+    delete [] _vertices; _vertices = nullptr;
+
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < createdVertices.size(); ++i)
+    {
+        newVertices[_numberVertices + i] = createdVertices[i];
+    }
+
+    createdVertices.clear();
+    createdVertices.shrink_to_fit();
+
+    delete [] _triangles; _triangles = nullptr;
+
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < createdTriangles.size(); ++i) { newTriangles[i] = createdTriangles[i]; }
+
+    createdTriangles.clear();
+    createdTriangles.shrink_to_fit();
+
+    _numberVertices = totalNumberVertices;
+    _numberTriangles = totalNumberTriangles;
+
+    _vertices = newVertices;
+    _triangles = newTriangles;
+}
+
 void Mesh::refineSelectedTriangles(const std::vector< size_t > &trianglesIndices)
 {
     // Starting the timer
@@ -2251,11 +2318,11 @@ void Mesh::map(Mesh* toMesh)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void Mesh::refine()
+void Mesh::refine(const bool showProgress)
 {
     // Starting the timer
     TIMER_SET;
-    LOG_STATUS("Refining Mesh Surface");
+    if (showProgress) LOG_STATUS("Refining Mesh Surface");
 
     // Check if neighborlist is created
     if (_neighborList == nullptr)

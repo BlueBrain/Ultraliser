@@ -134,7 +134,7 @@ Volume* SpineMorphology::reconstructVolume(const float& voxelsPerMicron,
     size_t resolution = static_cast< size_t >(voxelsPerMicron * largestDimension);
 
     // Construct the volume
-    Volume* volume = new Volume(pMinInput, pMaxInput, resolution, edgeGap, VOLUME_TYPE::BIT, false);
+    Volume* volume = new Volume(pMinInput, pMaxInput, resolution, edgeGap, VOLUME_TYPE::BIT, verbose);
 
     // Rasterize the morphologies into the volume
     volume->surfaceVoxelizeSpineMorphology(this, POLYLINE_PACKING);
@@ -151,10 +151,10 @@ Mesh* SpineMorphology::reconstructMesh(const float &voxelsPerMicron,
     auto volume = reconstructVolume(voxelsPerMicron, edgeGap, verbose);
 
     // Use the DMC algorithm to reconstruct a mesh
-    auto mesh = DualMarchingCubes::generateMeshFromVolume(volume);
+    auto mesh = DualMarchingCubes::generateMeshFromVolume(volume, verbose);
 
     // Smooth the mesh to be able to have correct mapping
-    mesh->smoothSurface(10)
+    mesh->smoothSurface(10, verbose)
 ;
     // Return the mesh
     return mesh;

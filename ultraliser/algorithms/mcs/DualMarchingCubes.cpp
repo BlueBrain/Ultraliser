@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2018 - 2022
+ * Copyright (c) 2018 - 2024
  * Blue Brain Project (BBP) / Ecole Polytechnique Federale de Lausanne (EPFL)
  *
  * Author(s)
@@ -43,50 +43,53 @@ DualMarchingCubes::DualMarchingCubes(Volume *volume,
     /// EMPTY CONSTRUCTOR
 }
 
-Mesh* DualMarchingCubes::generateMesh()
+Mesh* DualMarchingCubes::generateMesh(const bool verbose)
 {
-    LOG_TITLE("Mesh Reconstruction with DMC");
+    // Strat the timer
+    if (verbose) { LOG_TITLE("Mesh Reconstruction with DMC"); }
+    TIMER_SET;
 
     // Build the mesh
     Vertices vertices;
     Triangles triangles;
 
-    // Strat the timer
-    TIMER_SET;
+    if (verbose) { LOG_STATUS("Building Mesh"); }
+    _buildSharedVertices(vertices, triangles, verbose);
 
-    LOG_STATUS("Building Mesh");
-    _buildSharedVertices(vertices, triangles);
-
+    // Construct the mesh from the vertices and triangles
     Mesh* mesh = new Mesh(vertices, triangles);
 
-    // Statistics
+    if (verbose) { LOG_STATUS_IMPORTANT("Mesh Reconstruction with Dual Marching Cubes Stats."); }
+    if (verbose) { LOG_STATS(GET_TIME_SECONDS); }
+
+    // Save for statistics
     _meshExtractionTime = GET_TIME_SECONDS;
-    LOG_STATUS_IMPORTANT("Mesh Reconstruction with Dual Marching Cubes Stats.");
-    LOG_STATS(_meshExtractionTime);
 
     return mesh;
 }
 
-AdvancedMesh* DualMarchingCubes::generateAdvancedMesh()
+AdvancedMesh* DualMarchingCubes::generateAdvancedMesh(const bool verbose)
 {
-    LOG_TITLE("Mesh Reconstruction with DMC");
+    // Strat the timer
+    if (verbose) { LOG_TITLE("Mesh Reconstruction with DMC"); }
+    TIMER_SET;
 
     // Build the mesh
     Vertices vertices;
     Triangles triangles;
 
-    // Strat the timer
-    TIMER_SET;
+    if (verbose) { LOG_STATUS("Building Mesh"); }
+    _buildSharedVertices(vertices, triangles, verbose);
 
-    LOG_STATUS("Building Mesh");
-    _buildSharedVertices(vertices, triangles);
-
+        // Construct the mesh from the vertices and triangles
     AdvancedMesh* mesh = new AdvancedMesh(vertices, triangles);
 
     // Statistics
+    if (verbose) { LOG_STATUS_IMPORTANT("Mesh Reconstruction with Dual Marching Cubes Stats."); }
+    if (verbose) { LOG_STATS(_meshExtractionTime); }
+
+    // Save for statistics
     _meshExtractionTime = GET_TIME_SECONDS;
-    LOG_STATUS_IMPORTANT("Mesh Reconstruction with Dual Marching Cubes Stats.");
-    LOG_STATS(_meshExtractionTime);
 
     return mesh;
 }
@@ -352,7 +355,8 @@ bool DualPointKey::operator==(DualPointKey const & other) const
     return (linearizedCellID == other.linearizedCellID && pointCode == other.pointCode);
 }
 
-void DualMarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangles)
+void DualMarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &triangles,
+                                             const bool verbose)
 {
     // Start timer
     TIMER_SET;
@@ -380,7 +384,7 @@ void DualMarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &tria
     pointToIndex.clear();
 
     // Searching for non-zero voxels in parallel
-    LOOP_STARTS("Searching Filled Voxels");
+    if (verbose) { LOOP_STARTS("Searching Filled Voxels"); }
     PROGRESS_SET;
     OMP_PARALLEL_FOR
     for (int64_t x = minValue; x < maxX; ++x)
@@ -444,20 +448,18 @@ void DualMarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &tria
         }
 
         // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, sizeX);
         PROGRESS_UPDATE;
+        if (verbose) { LOOP_PROGRESS(PROGRESS, sizeX); }
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) { LOOP_DONE; LOG_STATS(GET_TIME_SECONDS); }
 
     // Reset the time
     TIMER_RESET;
 
     // Building the shared vertices
-    LOOP_STARTS("Building Shared Vertices");
+    if (verbose) { LOOP_STARTS("Building Shared Vertices"); }
     for (size_t i = 0; i < volumeDMCVoxels.size(); i++)
     {
-        LOOP_PROGRESS(i, volumeDMCVoxels.size());
         for (size_t j = 0; j < volumeDMCVoxels[i].size(); j++)
         {
             DMCVoxel* dmcVoxel = volumeDMCVoxels[i][j];
@@ -554,7 +556,7 @@ void DualMarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &tria
             }
             else
             {
-                LOG_ERROR("UNKNOWN DMC EDGE!");
+                LOG_ERROR("Unknowd DMC Edge!");
             }
 
             // Delete the DMC voxel
@@ -563,32 +565,32 @@ void DualMarchingCubes::_buildSharedVertices(Vertices& vertices, Triangles &tria
 
         volumeDMCVoxels[i].clear();
         volumeDMCVoxels[i].shrink_to_fit();
+
+        if (verbose) { LOOP_PROGRESS(i, volumeDMCVoxels.size()); }
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) { LOOP_DONE; LOG_STATS(GET_TIME_SECONDS); }
 
     // Clear the DMC voxel list
     volumeDMCVoxels.clear();
     volumeDMCVoxels.shrink_to_fit();
 }
 
-Mesh* DualMarchingCubes::generateMeshFromVolume(Volume* volume)
+Mesh* DualMarchingCubes::generateMeshFromVolume(Volume* volume, const bool verbose)
 {
     // Reconstruct a watertight mesh from the volume with DMC
     std::unique_ptr< DualMarchingCubes > workflow = std::make_unique< DualMarchingCubes >(volume);
 
     // Generate the DMC mesh
-    return workflow->generateMesh();
+    return workflow->generateMesh(verbose);
 }
 
-AdvancedMesh* DualMarchingCubes::generateAdvancedMeshFromVolume(Volume* volume)
+AdvancedMesh* DualMarchingCubes::generateAdvancedMeshFromVolume(Volume* volume, const bool verbose)
 {
     // Reconstruct a watertight mesh from the volume with DMC
     std::unique_ptr< DualMarchingCubes > workflow = std::make_unique< DualMarchingCubes >(volume);
 
     // Generate the DMC mesh
-    return workflow->generateAdvancedMesh();
+    return workflow->generateAdvancedMesh(verbose);
 }
-
 
 }
