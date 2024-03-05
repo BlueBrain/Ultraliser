@@ -2199,21 +2199,15 @@ void NeuronSkeletonizer::_exportSpineExtents(const std::string& prefix) const
     stream.open(filePath, std::ios::out);
 
     LOOP_STARTS("Writing Spines Extents");
-    size_t progress = 0;
     for (size_t i = 0; i < _spineRoots.size(); ++i)
     {
         Vector3f pMin, pMax, bounds, center;
         getLogicalTreeBoundingBox(_spineRoots[i], pMin, pMax, bounds, center);
 
-        stream << center.x() << " "
-               << center.y() << " "
-               << center.z() << " "
-               << bounds.x() << " "
-               << bounds.y() << " "
-               << bounds.z() << "\n";
+        stream << center.x() << " " << center.y() << " " << center.z() << " "
+               << bounds.x() << " " << bounds.y() << " " << bounds.z() << "\n";
 
-        LOOP_PROGRESS(progress, _spineRoots.size());
-        ++progress;
+        LOOP_PROGRESS(i, _spineRoots.size());
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
