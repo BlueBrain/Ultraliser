@@ -24,6 +24,9 @@
 #include <AppArguments.h>
 #include <algorithms/skeletonization/NeuronSkeletonizer.h>
 
+// Defines
+#define NEURON_SMOOTHING_ITERATIONS 10
+
 namespace Ultraliser
 {
 
@@ -69,27 +72,108 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     return options;
 }
 
+Mesh* remeshNeuron(Mesh* inputNeuronMesh, AppOptions* options, const bool verbose = VERBOSE)
+{
+    // Compute the bounding box of the input neuron mesh
+    Vector3f pMinInput, pMaxInput;
+    inputNeuronMesh->computeBoundingBox(pMinInput, pMaxInput);
+    const auto& meshBoundingBox = pMaxInput - pMinInput;
+
+    // Compute the resolution of the volume
+    const auto largestDimension = meshBoundingBox.getLargestDimension();
+    size_t resolution = static_cast< size_t >(options->voxelsPerMicron * largestDimension);
+
+    // Construct the volume from the input mesh
+    auto volume = new Volume(pMinInput, pMaxInput, resolution, options->edgeGap,
+                             VolumeGrid::getType(options->volumeType), verbose);
+
+    // Apply surface and solid voxelization to the input neuron mesh
+    volume->surfaceVoxelization(inputNeuronMesh, false, false, 1.0);
+    volume->solidVoxelization(options->voxelizationAxis);
+
+    // Remove the border voxels that span less than half the voxel
+    auto bordeVoxels = volume->searchForBorderVoxels();
+    for (size_t i = 0; i < bordeVoxels.size(); ++i)
+    {
+        for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
+        {
+            auto voxel = bordeVoxels[i][j]; volume->clear(voxel.x(), voxel.y(), voxel.z());
+        }
+        bordeVoxels[i].clear();
+    }
+    bordeVoxels.clear();
+    volume->surfaceVoxelization(inputNeuronMesh, false, false, 0.5);
+
+    // Construct the mesh using the DMC technique
+    auto reconstructedNeuronMesh = DualMarchingCubes::generateMeshFromVolume(volume);
+
+    // Smooth the resulting surface mesh
+    reconstructedNeuronMesh->smoothSurface(NEURON_SMOOTHING_ITERATIONS, verbose);
+
+    // Return a pointer to the resulting neuron
+    return reconstructedNeuronMesh;
+}
+
+Volume* createNeuronVolume(Mesh* neuronMesh, AppOptions* options, const bool verbose = VERBOSE)
+{
+    // Create the volume from the mesh
+    auto neuronVolume = createVolumeGrid(neuronMesh, options);
+
+    // Adaptive and conservative Voxelization
+    neuronVolume->surfaceVoxelization(neuronMesh, false, false, 1.0);
+    neuronVolume->solidVoxelization(options->voxelizationAxis);
+
+    // Remove the border voxels that span less than half the voxel
+    // TODO: VERIFY neuronVolume->surfaceVoxelization(neuronMesh, false, false, 0.5);
+    auto bordeVoxels = neuronVolume->searchForBorderVoxels();
+    for (size_t i = 0; i < bordeVoxels.size(); ++i)
+    {
+        for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
+        {
+            auto voxel = bordeVoxels[i][j];
+            neuronVolume->clear(voxel.x(), voxel.y(), voxel.z());
+        }
+        bordeVoxels[i].clear();
+    }
+    bordeVoxels.clear();
+    neuronVolume->surfaceVoxelization(neuronMesh, false, false, 0.5);
+
+    // Return the volume
+    return neuronVolume;
+}
+
+Mesh* reconstructNeuronMeshFromVolume(Volume* neuronVolume,
+                                      AppOptions* options, const bool verbose = VERBOSE)
+{
+    // Construct the mesh using the DMC technique
+    auto reconstructedNeuronMesh = DualMarchingCubes::generateMeshFromVolume(neuronVolume);
+
+    // Smooth the resulting surface mesh
+    reconstructedNeuronMesh->smoothSurface(NEURON_SMOOTHING_ITERATIONS, verbose);
+
+    // Return a pointer to the resulting neuron
+    return reconstructedNeuronMesh;
+}
+
 void run(int argc , const char** argv)
 {
     // Parse the arguments and get the tool options
     auto options = parseArguments(argc, argv);
 
-    // Load the input mesh
+    // Load the input mesh of the neuron
     auto inputMesh = loadInputMesh(options);
 
-    // Create the volume from the mesh
-    auto solidVolume = createVolumeGrid(inputMesh, options);
+    // Construct the neuron volume
+    auto neuronVolume = createNeuronVolume(inputMesh, options, VERBOSE);
 
-    // Adaptive and conservative Voxelization
-    solidVolume->surfaceVoxelization(inputMesh, false, false, 1.0);
-    solidVolume->solidVoxelization(options->voxelizationAxis);
-    solidVolume->surfaceVoxelization(inputMesh, false, false, 0.5);
+    // TODO: Make this as an option
+    auto remeshedNeuron = reconstructNeuronMeshFromVolume(neuronVolume, options, VERBOSE);
 
     // Export optimized neuron mesh
     if (options->exportOptimizedNeuronMesh)
     {
         // Extract the mesh from the volume again
-        auto reconstructedMesh = reconstructMeshFromVolume(solidVolume, options);
+        auto reconstructedMesh = reconstructMeshFromVolume(neuronVolume, options);
 
         // Generate the artifacts of the mesh
         generateReconstructedMeshArtifacts(reconstructedMesh, options);
@@ -98,13 +182,13 @@ void run(int argc , const char** argv)
     // Project the volume created from the input mesh
     if (options->projectXY || options->projectXZ || options->projectZY)
     {
-        solidVolume->project(options->projectionPrefix,
+        neuronVolume->project(options->projectionPrefix,
                              options->projectXY, options->projectXZ, options->projectZY);
     }
 
     // Create a skeletonization object
     NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(
-                solidVolume, options->removeSpines, options->useAccelerationStructures,
+                neuronVolume, options->removeSpines, options->useAccelerationStructures,
                 options->debugSkeletonization, options->morphologyPrefix);
 
     // Initialize the skeltonizer
@@ -117,7 +201,7 @@ void run(int argc , const char** argv)
     if (options->projectXY || options->projectXZ || options->projectZY)
     {
         const std::string prefix = options->projectionPrefix + SKELETON_SUFFIX;
-        solidVolume->project(prefix, options->projectXY, options->projectXZ, options->projectZY);
+        neuronVolume->project(prefix, options->projectXY, options->projectXZ, options->projectZY);
     }
 
     // Construct the neuron graph from the volume
@@ -133,36 +217,7 @@ void run(int argc , const char** argv)
     }
 
     {
-        // Adjust the input mesh
-        // Get relaxed bounding box to build the volume
-        Vector3f pMinInput, pMaxInput;
-        inputMesh->computeBoundingBox(pMinInput, pMaxInput);
-        const auto& meshBoundingBox = pMaxInput - pMinInput;
-
-        // Get the largest dimension
-        const auto largestDimension = meshBoundingBox.getLargestDimension();
-        size_t resolution = static_cast< size_t >(options->voxelsPerMicron * largestDimension);
-        auto volume = new Volume(pMinInput, pMaxInput, resolution, options->edgeGap,
-                              VolumeGrid::getType(options->volumeType));
-        volume->surfaceVoxelization(inputMesh, false, false, 1.0);
-        volume->solidVoxelization(options->voxelizationAxis);
-        auto bordeVoxels = volume->searchForBorderVoxels();
-        for (size_t i = 0; i < bordeVoxels.size(); ++i)
-        {
-            for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
-            {
-                auto voxel = bordeVoxels[i][j];
-                volume->clear(voxel.x(), voxel.y(), voxel.z());
-            }
-            bordeVoxels[i].clear();
-        }
-        bordeVoxels.clear();
-        volume->surfaceVoxelization(inputMesh, false, false, 0.5);
-        auto resultMesh = DualMarchingCubes::generateMeshFromVolume(volume);
-        resultMesh->smoothSurface(10, false);
-
-        skeletonizer->reskeletonizeSpines(resultMesh, 20, 0.5);
-
+        skeletonizer->reskeletonizeSpines(remeshedNeuron, 20, 0.5);
         skeletonizer->_exportSpineExtents(options->morphologyPrefix);
     }
     // Export the somatic proxy mesh
