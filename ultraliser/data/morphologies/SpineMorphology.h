@@ -44,8 +44,9 @@ public:
     /**
      * @brief SpineMorphology
      * @param root
+     * @param includeDendriticSample
      */
-    SpineMorphology(SkeletonBranch* root);
+    SpineMorphology(SkeletonBranch* root, const bool includeDendriticSample = false);
 
     /**
      * @brief SpineMorphology

@@ -46,7 +46,7 @@ void SpineMorphology::_constructTreeFromLogicalBranches(SkeletonBranch* root, si
     }
 }
 
-SpineMorphology::SpineMorphology(SkeletonBranch* root)
+SpineMorphology::SpineMorphology(SkeletonBranch* root, const bool includeDendriticSample)
 {
     _spineIndex = root->index;
 
@@ -55,10 +55,22 @@ SpineMorphology::SpineMorphology(SkeletonBranch* root)
 
     // Add the root to the list of the sections
     Section* section = new Section(sectionIndex++);
-    for (size_t i = 0; i < root->nodes.size(); ++i)
+    const size_t startingIndex = includeDendriticSample ? 0 : 1;
+    if (root->nodes.size() > 2)
     {
-        auto node = root->nodes[i];
-        section->addSample(new Sample(node->point, node->radius, i));
+        for (size_t i = 1; i < root->nodes.size(); ++i)
+        {
+            auto node = root->nodes[i];
+            section->addSample(new Sample(node->point, node->radius, i - 1));
+        }
+    }
+    else
+    {
+        for (size_t i = 0; i < root->nodes.size(); ++i)
+        {
+            auto node = root->nodes[i];
+            section->addSample(new Sample(node->point, node->radius, i));
+        }
     }
     _sections.push_back(section);
 
@@ -154,8 +166,8 @@ Mesh* SpineMorphology::reconstructMesh(const float &voxelsPerMicron,
     auto mesh = DualMarchingCubes::generateMeshFromVolume(volume, verbose);
 
     // Smooth the mesh to be able to have correct mapping
-    mesh->smoothSurface(10, verbose)
-;
+    mesh->smoothSurface(10, verbose);
+
     // Return the mesh
     return mesh;
 }
