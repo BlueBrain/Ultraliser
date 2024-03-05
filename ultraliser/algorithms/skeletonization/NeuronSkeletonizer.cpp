@@ -1536,10 +1536,6 @@ void NeuronSkeletonizer::segmentSpines()
     LOG_SUCCESS("[%ld] spine were segmented!", spineIndex - 1);
 }
 
-
-
-
-
 Meshes NeuronSkeletonizer::reconstructSpineMeshes(Mesh* neuronMesh,
                                                   const float& voxelsPerMicron,
                                                   const float& edgeGap)

@@ -224,7 +224,7 @@ void run(int argc , const char** argv)
             auto spineMesh = spineMeshes[i];
             std::stringstream stream;
             stream << options->morphologyPrefix << "_spine_" << i;
-            spineMesh->exportMesh(stream.str(), true);
+            spineMesh->exportMesh(stream.str(), true, false, false, false, SILENT);
         }
 
         // skeletonizer->_exportSpineExtents(options->morphologyPrefix);
