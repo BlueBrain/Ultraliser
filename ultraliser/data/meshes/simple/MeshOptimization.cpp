@@ -2200,6 +2200,20 @@ void Mesh::refineROIs(const ROIs& regions)
     LOG_STATS(GET_TIME_SECONDS);
 }
 
+std::vector< Vector3f > Mesh::constructPointCloud() const
+{
+    std::vector< Vector3f > pointCloud;
+    pointCloud.resize(_numberVertices);
+
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _numberVertices; ++i)
+    {
+        pointCloud[i] = _vertices[i];
+    }
+
+    return pointCloud;
+}
+
 void Mesh::kdTreeMapping(std::vector< Vector3f >& pointCloud, const bool verbose)
 {
     if (verbose)

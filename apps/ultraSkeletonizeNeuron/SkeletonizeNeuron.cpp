@@ -217,7 +217,7 @@ void run(int argc , const char** argv)
     }
 
     {
-        auto spineMeshes = skeletonizer->reconstructSpineMeshes(remeshedNeuron, 20, 0.5);
+        auto spineMeshes = skeletonizer->reconstructSpineMeshes(inputMesh, 20, 0.5);
 
         for (size_t i = 0; i < spineMeshes.size(); ++i)
         {

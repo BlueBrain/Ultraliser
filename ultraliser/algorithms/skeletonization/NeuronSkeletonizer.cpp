@@ -1603,8 +1603,16 @@ Meshes NeuronSkeletonizer::reconstructSpineMeshes(Mesh* neuronMesh,
         // Rasterize the neuron mesh within the bounding box
         volume->surfaceVoxelization(neuronMesh);
 
+        auto mesh = DualMarchingCubes::generateMeshFromVolume(volume, SILENT);
+
+        // Smooth the mesh to be able to have correct mapping
+        mesh->smoothSurface(10, SILENT);
+
+        // Construct the neuron spine point cloud
+        auto spinePointCloud = mesh->constructPointCloud();
+
         // Map the spine model mesh to the KdTree of the neuron
-        spineModelMesh->kdTreeMapping(neuronKdTree, SILENT);
+        spineModelMesh->kdTreeMapping(spinePointCloud, SILENT);
 
         // Add the mesh to the list
         spineMeshes[i] = spineModelMesh;

@@ -24,13 +24,13 @@
 #include <common/Common.h>
 #include <utilities/TypeConversion.h>
 #include <utilities/Utilities.h>
-#include <data/volumes/Volume.h>
 #include <algorithms/mcs/DualMarchingCubes.h>
 
 namespace Ultraliser
 {
 
-void SpineMorphology::_constructTreeFromLogicalBranches(SkeletonBranch* root, size_t& sectionIndex)
+void SpineMorphology::_constructTreeFromLogicalBranches(SkeletonBranch* root,
+                                                        size_t& sectionIndex)
 {
     for (size_t i = 0; i < root->logicalChildren.size(); ++i)
     {
@@ -38,7 +38,7 @@ void SpineMorphology::_constructTreeFromLogicalBranches(SkeletonBranch* root, si
         for (size_t j = 0; j < root->logicalChildren[i]->nodes.size(); ++j)
         {
             auto node = root->logicalChildren[i]->nodes[j];
-            section->addSample(new Sample(node->point, node->radius, j));
+            section->addSample(new Sample(node->point, node->radius * _radfiusScaleFactor, j));
         }
         _sections.push_back(section);
 
@@ -55,13 +55,14 @@ SpineMorphology::SpineMorphology(SkeletonBranch* root, const bool includeDendrit
 
     // Add the root to the list of the sections
     Section* section = new Section(sectionIndex++);
+
     const size_t startingIndex = includeDendriticSample ? 0 : 1;
     if (root->nodes.size() > 2)
     {
         for (size_t i = 1; i < root->nodes.size(); ++i)
         {
             auto node = root->nodes[i];
-            section->addSample(new Sample(node->point, node->radius, i - 1));
+            section->addSample(new Sample(node->point, node->radius * _radfiusScaleFactor, i - 1));
         }
     }
     else
@@ -69,7 +70,7 @@ SpineMorphology::SpineMorphology(SkeletonBranch* root, const bool includeDendrit
         for (size_t i = 0; i < root->nodes.size(); ++i)
         {
             auto node = root->nodes[i];
-            section->addSample(new Sample(node->point, node->radius, i));
+            section->addSample(new Sample(node->point, node->radius * _radfiusScaleFactor, i));
         }
     }
     _sections.push_back(section);
@@ -149,7 +150,7 @@ Volume* SpineMorphology::reconstructVolume(const float& voxelsPerMicron,
     Volume* volume = new Volume(pMinInput, pMaxInput, resolution, edgeGap, VOLUME_TYPE::BIT, verbose);
 
     // Rasterize the morphologies into the volume
-    volume->surfaceVoxelizeSpineMorphology(this, POLYLINE_PACKING);
+    volume->surfaceVoxelizeSpineMorphology(this, POLYLINE_SPHERE_PACKING);
 
     // Return the volume
     return volume;

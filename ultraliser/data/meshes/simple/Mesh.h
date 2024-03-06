@@ -387,6 +387,7 @@ public:
     void subdivideTrianglseAtMidPoints();
 
 
+    std::vector< Vector3f > constructPointCloud() const;
 
 
     /**

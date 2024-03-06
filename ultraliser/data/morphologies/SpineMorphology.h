@@ -98,6 +98,8 @@ private:
      */
     size_t _spineIndex;
 
+    float _radfiusScaleFactor = 2.0;
+
 private:
 
     /**
