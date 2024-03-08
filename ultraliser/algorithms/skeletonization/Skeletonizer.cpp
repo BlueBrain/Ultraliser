@@ -61,15 +61,17 @@ Skeletonizer::Skeletonizer(Volume* volume,
     _scaleFactor = _boundsMesh / _boundsVolume;
 }
 
-void Skeletonizer::initialize()
+void Skeletonizer::initialize(const bool verbose)
 {
-     LOG_TITLE("Neuron Skeletonization"); 
-     LOG_SUCCESS("Voxel Size [%f] μm", _volume->getVoxelSize());
+    // Start the timer
+    TIMER_SET;
 
-     LOG_STATUS("Initialization - Building Structures");
-
-     // Start the timer
-     TIMER_SET;
+    if (verbose)
+    {
+        LOG_TITLE("Ultraliser Skeletonization");
+        LOG_SUCCESS("Voxel Size [%f] μm", _volume->getVoxelSize());
+        LOG_STATUS("Initialization - Building Structures");
+    }
 
      // Compute the shell points either natively or by using the acceleration structures
      if (_useAcceleration)
@@ -86,8 +88,7 @@ void Skeletonizer::initialize()
          _computeShellPoints();
      }
 
-     LOG_STATUS_IMPORTANT("Initialization Stats.");
-     LOG_STATS(GET_TIME_SECONDS);
+     if (verbose) { LOG_STATUS_IMPORTANT("Initialization Stats."); LOG_STATS(GET_TIME_SECONDS); }
 }
 
 void Skeletonizer::_scaleShellPoints()
@@ -250,6 +251,11 @@ void Skeletonizer::_applyVolumeThinningUsingAcceleration()
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
+}
+
+void Skeletonizer::skeletonizeVolumeToCenterLines()
+{
+    if (_useAcceleration) _applyVolumeThinningUsingAcceleration(); else _applyVolumeThinning();
 }
 
 std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
@@ -863,6 +869,15 @@ void Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& nodes)
             }
         }
     }
+}
+
+void Skeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
+                                                 const size_t& numberOverlappingVoxels,
+                                                 const size_t& numberZeroVoxels)
+{
+    thinVolumeBlockByBlock(blockSize, numberOverlappingVoxels, numberZeroVoxels);
+    constructGraph();
+    segmentComponents();
 }
 
 std::vector< Vector3f > Skeletonizer::getShellPoints()

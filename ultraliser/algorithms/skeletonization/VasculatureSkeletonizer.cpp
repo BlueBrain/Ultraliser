@@ -12,8 +12,6 @@ VasculatureSkeletonizer::VasculatureSkeletonizer(Volume* volume, const bool &use
 
 void VasculatureSkeletonizer::skeletonizeVolumeToCenterLines()
 {
-
-
     // Start the timer
     TIMER_SET;
 
@@ -23,15 +21,6 @@ void VasculatureSkeletonizer::skeletonizeVolumeToCenterLines()
 
     LOG_STATUS_IMPORTANT("Skeletonization Stats.");
     LOG_STATS(GET_TIME_SECONDS);
-}
-
-void VasculatureSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
-                                                 const size_t& numberOverlappingVoxels,
-                                                 const size_t& numberZeroVoxels)
-{
-    thinVolumeBlockByBlock(blockSize, numberOverlappingVoxels, numberZeroVoxels);
-    constructGraph();
-    segmentComponents();
 }
 
 void VasculatureSkeletonizer::segmentComponents()

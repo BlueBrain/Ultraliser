@@ -59,7 +59,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Ultraliser.h
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # Create a shared library
-add_library(ultraliser ${ULTRALISER_SOURCE_FILES} ${ULTRALISER_HEADER_FILES})
+add_library(ultraliser ${ULTRALISER_SOURCE_FILES} ${ULTRALISER_HEADER_FILES}
+    algorithms/skeletonization/SpineSkeletonizer.h algorithms/skeletonization/SpineSkeletonizer.cpp)
 
 # Link against nrrdlib, if compiled
 if(${ULTRALISER_USE_NRRD})

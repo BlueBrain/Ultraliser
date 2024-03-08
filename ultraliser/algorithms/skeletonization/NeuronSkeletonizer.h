@@ -39,7 +39,6 @@ namespace Ultraliser
 class NeuronSkeletonizer : public Skeletonizer
 {
 public:
-
     /**
      * @brief NeuronSkeletonizer
      * @param volume
@@ -52,11 +51,6 @@ public:
     ~NeuronSkeletonizer();
 
     /**
-     * @brief skeletonizeVolumeToCenterLines
-     */
-    void skeletonizeVolumeToCenterLines() override;
-
-    /**
      * @brief constructGraph
      */
     void constructGraph() override;
@@ -65,16 +59,6 @@ public:
      * @brief segmentComponents
      */
     void segmentComponents() override;
-
-    /**
-     * @brief skeletonizeVolumeBlockByBlock
-     * @param blockSize
-     * @param numberOverlappingVoxels
-     * @param numberZeroVoxels
-     */
-    void skeletonizeVolumeBlockByBlock(const size_t& blockSize = 512,
-                                       const size_t& numberOverlappingVoxels = 25,
-                                       const size_t& numberZeroVoxels = 5) override;
 
     /**
       * @brief exportIndividualBranches
@@ -420,9 +404,6 @@ private:
 
 
     SkeletonBranches _spineRoots;
-
-
-
 };
 
 }

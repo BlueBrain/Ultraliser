@@ -40,11 +40,6 @@ NeuronSkeletonizer::NeuronSkeletonizer(Volume* volume,
     /// EMPTY CONSTRUCTOR
 }
 
-void NeuronSkeletonizer::skeletonizeVolumeToCenterLines()
-{
-    if (_useAcceleration) _applyVolumeThinningUsingAcceleration(); else _applyVolumeThinning();
-}
-
 void NeuronSkeletonizer::constructGraph()
 {
     /// Extract the nodes of the skeleton from the center-line "thinned" voxels and return a
@@ -1776,15 +1771,6 @@ void NeuronSkeletonizer::_connectBranches()
 
     // Roots, terminals and others
     confirmTerminalsBranches(_branches);
-}
-
-void NeuronSkeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
-                                                       const size_t& numberOverlappingVoxels,
-                                                       const size_t& numberZeroVoxels)
-{
-    thinVolumeBlockByBlock(blockSize, numberOverlappingVoxels, numberZeroVoxels);
-    constructGraph();
-    segmentComponents();
 }
 
 void NeuronSkeletonizer::exportSomaProxyMesh(const std::string& prefix,

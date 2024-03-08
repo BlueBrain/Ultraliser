@@ -23,6 +23,8 @@
 #include <AppCommon.h>
 #include <AppArguments.h>
 #include <algorithms/skeletonization/NeuronSkeletonizer.h>
+#include <algorithms/skeletonization/SpineSkeletonizer.h>
+
 
 // Defines
 #define NEURON_SMOOTHING_ITERATIONS 10
@@ -225,6 +227,34 @@ void run(int argc , const char** argv)
             std::stringstream stream;
             stream << options->morphologyPrefix << "_spine_" << i;
             spineMesh->exportMesh(stream.str(), true, false, false, false, SILENT);
+
+
+            // Construct the spine volume from the mesh
+            // Get relaxed bounding box to build the volume
+            Vector3f pMinInput, pMaxInput;
+            spineMesh->computeBoundingBox(pMinInput, pMaxInput);
+            const auto& meshBoundingBox = pMaxInput - pMinInput;
+
+            // Get the largest dimension
+            float largestDimension = meshBoundingBox.getLargestDimension();
+            auto voxelsPerMicron = 50;
+            size_t resolution = static_cast< size_t >(voxelsPerMicron * largestDimension);
+
+            // Construct the volume
+            Volume* volume = new Volume(pMinInput, pMaxInput, resolution, 0.1,
+                                        VOLUME_TYPE::BIT, SILENT);
+
+            // Rasterize the neuron mesh within the bounding box
+            volume->surfaceVoxelization(spineMesh);
+            volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
+
+            std::stringstream prefixStream;
+            prefixStream << options->morphologyPrefix << "_spine" << i;
+            volume->projectXY(prefixStream.str());
+
+            std::unique_ptr< SpineSkeletonizer > spineSkeletonizer =
+                 std::make_unique< SpineSkeletonizer >(volume, true, false, prefixStream.str());
+            spineSkeletonizer->run();
         }
 
         // skeletonizer->_exportSpineExtents(options->morphologyPrefix);

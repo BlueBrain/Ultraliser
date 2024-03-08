@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include <data/meshes/simple/Mesh.h>
 #include <data/volumes/Volume.h>
+#include <data/meshes/simple/Mesh.h>
 #include <algorithms/skeletonization/SkeletonNode.hh>
 #include <algorithms/skeletonization/SkeletonEdge.hh>
 #include <algorithms/skeletonization/SkeletonBranch.h>
@@ -55,14 +55,14 @@ public:
 
     /**
      * @brief initialize
-     * Initialize the skeletonizer.
+     * @param verbose
      */
-    void initialize();
+    void initialize(const bool verbose = VERBOSE);
 
     /**
      * @brief skeletonizeVolumeToCenterLines
      */
-    virtual void skeletonizeVolumeToCenterLines() = 0;
+    virtual void skeletonizeVolumeToCenterLines();
 
     /**
      * @brief skeletonizeVolumeBlockByBlock
@@ -72,7 +72,7 @@ public:
      */
     virtual void skeletonizeVolumeBlockByBlock(const size_t& blockSize = 512,
                                        const size_t& numberOverlappingVoxels = 25,
-                                       const size_t& numberZeroVoxels = 5) = 0;
+                                       const size_t& numberZeroVoxels = 5);
 
 
 
@@ -202,7 +202,12 @@ protected:
      * @brief _volume
      * Input volume that will be used to extract the skeleton.
      */
-    Volume* _volume;
+    Volume* _volume = nullptr;
+
+    /**
+     * @brief _mesh
+     */
+    Mesh* _mesh = nullptr;
 
     /**
      * @brief _useAcceleration
