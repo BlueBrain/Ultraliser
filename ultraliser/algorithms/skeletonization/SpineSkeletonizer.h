@@ -52,9 +52,22 @@ public:
 
     void segmentComponents() override;
 
+    void exportSWCFile(const std::string& prefix, const bool& resampleSkeleton,
+                       const bool = VERBOSE);
+
+
+
+
 private:
 
     void _exportBranches(const std::string& prefix);
+
+    SkeletonNodes _constructSWCTable(const bool& resampleSkeleton,  const bool = VERBOSE);
+
+    void _collectSWCNodes(const SkeletonBranch* branch, SkeletonNodes& swcNodes,
+                         int64_t& swcIndex, int64_t branchingNodeSWCIndex,
+                         const bool = VERBOSE);
+
 
 };
 

@@ -104,4 +104,136 @@ void SpineSkeletonizer::_exportBranches(const std::string& prefix)
     // Close the file
     stream.close();
 }
+
+void SpineSkeletonizer::_collectSWCNodes(const SkeletonBranch* branch, SkeletonNodes& swcNodes,
+                                         int64_t& swcIndex, int64_t branchingNodeSWCIndex, const bool)
+{
+    // Get a reference to the nodes of the current branch
+    auto& currentBranchNodes = branch->nodes;
+
+    for (size_t i = 1; i < currentBranchNodes.size(); ++i)
+    {
+        currentBranchNodes[i]->swcIndex = swcIndex;
+
+        if (i == 1) { currentBranchNodes[i]->prevSampleSWCIndex = branchingNodeSWCIndex;}
+        else { currentBranchNodes[i]->prevSampleSWCIndex= swcIndex - 1; }
+
+        swcIndex++;
+        swcNodes.push_back(currentBranchNodes[i]);
+    }
+
+    const int64_t branchingIndex = swcIndex - 1;
+    for (size_t i = 0; i < branch->children.size(); ++i)
+    {
+        if (branch->children[i]->isValid())
+        {
+            _collectSWCNodes(branch->children[i], swcNodes, swcIndex, branchingIndex);
+        }
+    }
+}
+
+SkeletonNodes SpineSkeletonizer::_constructSWCTable(const bool& resampleSkeleton, const bool)
+{
+    // A table, or list that contains all the nodes in order
+    SkeletonNodes swcNodes;
+
+    // A global index that will be used to correctly index the nodes
+    int64_t swcIndex = 1;
+
+    // Fake soma node
+    SkeletonNode* fakeSomaNode = new SkeletonNode();
+
+    // Append the somatic mode
+    fakeSomaNode->swcIndex = swcIndex;
+    fakeSomaNode->prevSampleSWCIndex = -1;
+
+    swcIndex++;
+    swcNodes.push_back(fakeSomaNode);
+
+    // Resample the skeleton
+    TIMER_SET;
+    if (resampleSkeleton)
+    {
+        LOOP_STARTS("Resampling Skeleton");
+        for (size_t i = 0; i < _branches.size(); ++i)
+        {
+            auto& branch = _branches[i];
+
+            // Do not resample the root sections
+            if (branch->isRoot()) continue;
+
+            // Resample only valid branches
+            if (branch->isValid()) { branch->resampleAdaptively(); }
+            LOOP_PROGRESS(i, _branches.size());
+        }
+        LOOP_DONE;
+        LOG_STATS(GET_TIME_SECONDS);
+    }
+
+    // Get all the root branches
+    TIMER_RESET;
+    LOOP_STARTS("Constructing SWC Table");
+    const size_t numberBranches = _branches.size();
+    for (size_t i = 0; i < numberBranches ; ++i)
+    {
+
+        auto& branch = _branches[i];
+        if (branch->isRoot() && branch->isValid())
+        {
+            // The branching index is that of the soma
+            _collectSWCNodes(branch, swcNodes, swcIndex, 1);
+        }
+        LOOP_PROGRESS(i, numberBranches);
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    return swcNodes;
+}
+
+void SpineSkeletonizer::exportSWCFile(const std::string& prefix, const bool& resampleSkeleton, const bool)
+{
+    // Start the timer
+    TIMER_SET;
+
+    // Construct the file path
+    std::string filePath = prefix + SWC_EXTENSION;
+    LOG_STATUS("Exporting Spine to SWC file: [ %s ]", filePath.c_str());
+
+    auto swcNodes = _constructSWCTable(resampleSkeleton);
+
+    std::fstream stream;
+    stream.open(filePath, std::ios::out);
+
+    auto somaNode = swcNodes[0];
+    stream << somaNode->swcIndex << " "
+           << SWC_SOMA_STRUCT_IDENTIFIER << " "
+           << somaNode->point.x() << " "
+           << somaNode->point.y() << " "
+           << somaNode->point.z() << " "
+           << somaNode->radius << " "
+           << "-1" << "\n";
+
+    LOOP_STARTS("Writing SWC Table");
+    const size_t numberSWCNodes = swcNodes.size();
+    for (size_t i = 1; i < numberSWCNodes; ++i)
+    {
+        // TODO: Export all the branches as basal dendrites UFN
+        auto swcNode = swcNodes[i];
+        stream << swcNode->swcIndex << " "
+               << SWC_BASAL_DENDRITE_STRUCT_IDENTIFIER << " "
+               << swcNode->point.x() << " "
+               << swcNode->point.y() << " "
+               << swcNode->point.z() << " "
+               << swcNode->radius << " "
+               << swcNode->prevSampleSWCIndex << "\n";
+    LOOP_PROGRESS(i, numberSWCNodes);
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Close the file
+    stream.close();
+}
+
 }
