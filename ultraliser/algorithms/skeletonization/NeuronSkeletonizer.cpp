@@ -1531,13 +1531,45 @@ void NeuronSkeletonizer::segmentSpines()
     LOG_SUCCESS("[%ld] spine were segmented!", spineIndex - 1);
 }
 
+SpineMorphologies NeuronSkeletonizer::reconstructSpineProxyMorphologies()
+{
+    // Start the timer
+    TIMER_SET;
+
+    LOG_STATUS("Reconstructing Spine Proxy Morphologies");
+
+    SpineMorphologies spineProxyMorphologies;
+    if (_spineRoots.size() == 0)
+    {
+        LOG_WARNING("The neuron has Zero segmented spines!");
+        return spineProxyMorphologies;
+    }
+
+    // Resize the
+    spineProxyMorphologies.resize(_spineRoots.size());
+
+    LOOP_STARTS("Building Spine Proxy Morphologies");
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _spineRoots.size(); ++i)
+    {
+        spineProxyMorphologies[i] = new SpineMorphology(_spineRoots[i]);
+        LOOP_PROGRESS(PROGRESS, _spineRoots.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Return a spine proxy morphologies
+    return spineProxyMorphologies;
+}
+
 Meshes NeuronSkeletonizer::reconstructSpineMeshes(Mesh* neuronMesh,
                                                   const float& voxelsPerMicron,
                                                   const float& edgeGap)
 {
     // Start the timer
     TIMER_SET;
-
     LOG_STATUS("Reconstructing Spine Meshes");
 
     // Initially create a list of meshes to contain the result
@@ -1572,20 +1604,21 @@ Meshes NeuronSkeletonizer::reconstructSpineMeshes(Mesh* neuronMesh,
 
     spineMeshes.resize(_spineRoots.size());
 
+    auto spineProxyMorphologies = reconstructSpineProxyMorphologies();
+
     TIMER_RESET;
     LOOP_STARTS("Mapping Spine Meshes");
     for (size_t i = 0; i < _spineRoots.size(); ++i)
     {
         // Get the spine morphology
-        auto spine =_spineRoots[i];
-        auto spineMorphology = new SpineMorphology(spine);
+        auto spineProxyMorphology = spineProxyMorphologies[i];
 
         // Get the mesh of the spine model
-        auto spineModelMesh = spineMorphology->reconstructMesh(voxelsPerMicron, edgeGap, SILENT);
+        auto spineModelMesh = spineProxyMorphology->reconstructMesh(voxelsPerMicron, edgeGap, SILENT);
 
         // Get relaxed bounding box to build the volume
         Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
-        spineMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
+        spineProxyMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
 
         // Get the largest dimension
         float largestDimension = inputBB.getLargestDimension();

@@ -48,6 +48,10 @@ void SpineMorphology::_constructTreeFromLogicalBranches(SkeletonBranch* root,
 
 SpineMorphology::SpineMorphology(SkeletonBranch* root, const bool includeDendriticSample)
 {
+    // Update the base point
+    _basePoint = root->nodes[0]->point;
+
+    // Set the spine index
     _spineIndex = root->index;
 
     // The section index should be the same as the index of the section in the list
@@ -99,6 +103,11 @@ SpineMorphology::SpineMorphology(SkeletonBranches branches, const size_t &index)
 
     // Compute the bounding box of the entire morphology
     _computeBoundingBox();
+
+    /// TODO: Find an algorithm to compute the base.
+    /// For the moment, use the center of the bounding box.
+    auto bounds = _pMax - _pMin;
+    _basePoint = _pMin + 0.5 * bounds;
 }
 
 void SpineMorphology::_computeBoundingBox()

@@ -51,6 +51,8 @@ public:
     /**
      * @brief SpineMorphology
      * @param branches
+     * @note It's recommended to avoid using this constructor and use the other one to construct
+     * the tree.
      */
     SpineMorphology(SkeletonBranches branches, const size_t& index);
 
@@ -65,6 +67,12 @@ public:
     Volume* reconstructVolume(const float& voxelsPerMicron,
                               const float &edgeGap = 0.1,
                               const bool &verbose = false);
+
+    /**
+     * @brief getBasePoint
+     * @return
+     */
+    Vector3f getBasePoint() const { return _basePoint; }
 
     /**
      * @brief reconstructMesh
@@ -113,6 +121,18 @@ private:
      * @brief _computeBoundingBox
      */
     void _computeBoundingBox();
+
+private:
+
+    /**
+     * @brief _basePoint
+     */
+    Vector3f _basePoint;
 };
+
+/**
+ * @brief SpineMorphologies
+ */
+typedef std::vector< SpineMorphology* > SpineMorphologies;
 
 }

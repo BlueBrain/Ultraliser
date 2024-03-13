@@ -22,6 +22,7 @@
  **************************************************************************************************/
 
 #include "SpineSkeletonizer.h"
+#include "SkeletonizerUtils.h"
 
 namespace Ultraliser
 {
@@ -56,15 +57,18 @@ void SpineSkeletonizer::run(const bool verbose)
     /// Reconstruct the sections "or branches" from the nodes using the edges data
     _buildBranchesFromNodes(_nodes);
 
-
-    _exportBranches(_debuggingPrefix);
-
+    exportBranches(_debuggingPrefix, verbose);
 
     // Identify the connections at the terminals of each branch
-    // identifyTerminalConnections(_branches);
+    identifyTerminalConnections(_branches);
 
     // Roots, terminals and others
-    // confirmTerminalsBranches(_branches);
+    confirmTerminalsBranches(_branches);
+
+    // exportSWCFile(_debuggingPrefix, false, SILENT);
+
+
+
 }
 
 void SpineSkeletonizer::segmentComponents()
@@ -72,8 +76,7 @@ void SpineSkeletonizer::segmentComponents()
 
 }
 
-
-void SpineSkeletonizer::_exportBranches(const std::string& prefix)
+void SpineSkeletonizer::exportBranches(const std::string& prefix, const bool)
 {
 
     // Construct the file path
@@ -146,6 +149,11 @@ SkeletonNodes SpineSkeletonizer::_constructSWCTable(const bool& resampleSkeleton
     // Append the somatic mode
     fakeSomaNode->swcIndex = swcIndex;
     fakeSomaNode->prevSampleSWCIndex = -1;
+    fakeSomaNode->point.x() = 0;
+    fakeSomaNode->point.y() = 0;
+    fakeSomaNode->point.z() = 0;
+    fakeSomaNode->radius = 0;
+
 
     swcIndex++;
     swcNodes.push_back(fakeSomaNode);

@@ -237,7 +237,7 @@ void run(int argc , const char** argv)
 
             // Get the largest dimension
             float largestDimension = meshBoundingBox.getLargestDimension();
-            auto voxelsPerMicron = 50;
+            auto voxelsPerMicron = 100;
             size_t resolution = static_cast< size_t >(voxelsPerMicron * largestDimension);
 
             // Construct the volume
@@ -254,7 +254,7 @@ void run(int argc , const char** argv)
 
             std::unique_ptr< SpineSkeletonizer > spineSkeletonizer =
                  std::make_unique< SpineSkeletonizer >(volume, true, false, prefixStream.str());
-            spineSkeletonizer->run();
+            spineSkeletonizer->run(SILENT);
         }
 
         // skeletonizer->_exportSpineExtents(options->morphologyPrefix);

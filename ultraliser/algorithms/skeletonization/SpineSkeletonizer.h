@@ -39,6 +39,9 @@ public:
     /**
      * @brief SpineSkeletonizer
      * @param spineVolume
+     * @param useAcceleration
+     * @param debugSkeleton
+     * @param debuggingPrefix
      */
     SpineSkeletonizer(Volume* spineVolume,
                       const bool useAcceleration,
@@ -48,25 +51,50 @@ public:
 
 public:
 
+    /**
+     * @brief exportBranches
+     * @param prefix
+     */
+    void exportBranches(const std::string& prefix, const bool = VERBOSE);
+
+    /**
+     * @brief run
+     * @param verbose
+     */
     void run(const bool verbose = VERBOSE);
 
-    void segmentComponents() override;
-
+    /**
+     * @brief exportSWCFile
+     * @param prefix
+     * @param resampleSkeleton
+     */
     void exportSWCFile(const std::string& prefix, const bool& resampleSkeleton,
                        const bool = VERBOSE);
 
-
-
+    /**
+     * @brief segmentComponents
+     */
+    void segmentComponents();
 
 private:
 
-    void _exportBranches(const std::string& prefix);
+    /**
+     * @brief _constructSWCTable
+     * @param resampleSkeleton
+     * @return
+     */
+    SkeletonNodes _constructSWCTable(const bool& resampleSkeleton, const bool = VERBOSE);
 
-    SkeletonNodes _constructSWCTable(const bool& resampleSkeleton,  const bool = VERBOSE);
-
+    /**
+     * @brief _collectSWCNodes
+     * @param branch
+     * @param swcNodes
+     * @param swcIndex
+     * @param branchingNodeSWCIndex
+     */
     void _collectSWCNodes(const SkeletonBranch* branch, SkeletonNodes& swcNodes,
-                         int64_t& swcIndex, int64_t branchingNodeSWCIndex,
-                         const bool = VERBOSE);
+                          int64_t& swcIndex, int64_t branchingNodeSWCIndex,
+                          const bool = VERBOSE);
 
 
 };

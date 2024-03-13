@@ -155,13 +155,21 @@ public:
      */
     Mesh* getSomaMesh() const { return _somaMesh; }
 
-
-
-
-
     void segmentSpines();
 
+    /**
+     * @brief reconstructSpineProxyMorphologies
+     * @return
+     */
+    SpineMorphologies reconstructSpineProxyMorphologies();
 
+    /**
+     * @brief reconstructSpineMeshes
+     * @param neuronMesh
+     * @param voxelsPerMicron
+     * @param edgeGap
+     * @return
+     */
     Meshes reconstructSpineMeshes(Mesh* neuronMesh,
                                   const float& voxelsPerMicron,
                                   const float& edgeGap = 0.1);
