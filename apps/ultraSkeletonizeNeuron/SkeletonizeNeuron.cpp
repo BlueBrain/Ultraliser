@@ -266,6 +266,8 @@ void run(int argc , const char** argv)
 
         TIMER_SET;
         LOOP_STARTS("Spine Remeshing");
+        PROGRESS_SET;
+        OMP_PARALLEL_FOR
         for (size_t i = 0; i < spineMeshes.size(); ++i)
         {
             auto spineMesh = spineMeshes[i];
@@ -274,7 +276,6 @@ void run(int argc , const char** argv)
             spineMesh->exportMesh(stream.str(), true, false, false, false, SILENT);
 
             auto remeshedSpine = remeshSpine(spineMesh, 50, SILENT);
-            stream.clear();
             stream << "_refined";
             remeshedSpine->exportMesh(stream.str(), true, false, false, false, SILENT);
 
@@ -282,7 +283,7 @@ void run(int argc , const char** argv)
             //     std::make_unique< SpineSkeletonizer >(volume, true, false, prefixStream.str());
             // spineSkeletonizer->run(SILENT);
 
-            LOOP_PROGRESS(i, spineMeshes.size());
+            LOOP_PROGRESS(PROGRESS, spineMeshes.size());
         }
         LOOP_DONE;
         LOG_STATS(GET_TIME_SECONDS);

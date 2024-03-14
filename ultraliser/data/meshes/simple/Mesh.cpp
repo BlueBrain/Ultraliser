@@ -702,7 +702,7 @@ void Mesh::smoothSurface(size_t numIterations, const bool verbose)
     if (numIterations == 0)
         return;
 
-    if (verbose) LOG_TITLE("Smoothing");
+    if (verbose) { LOG_TITLE("Smoothing"); }
     TIMER_SET;
 
     // Compute the vertex and face neighbours
@@ -718,8 +718,7 @@ void Mesh::smoothSurface(size_t numIterations, const bool verbose)
 
         if (verbose) LOOP_PROGRESS(i, numIterations);
     }
-    if (verbose) LOOP_DONE;
-    if (verbose) LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) { LOOP_DONE; LOG_STATS(GET_TIME_SECONDS); }
 
     // Clean
     vertexNeighbours.clear();
@@ -727,8 +726,7 @@ void Mesh::smoothSurface(size_t numIterations, const bool verbose)
     faceNeighbours.clear();
     faceNeighbours.shrink_to_fit();
 
-    if (verbose) LOG_STATUS_IMPORTANT("Smoothing Operator Stats.");
-    if (verbose) LOG_STATS(GET_TIME_SECONDS);
+    if (verbose) { LOG_STATUS_IMPORTANT("Smoothing Operator Stats."); LOG_STATS(GET_TIME_SECONDS);}
 }
 
 void Mesh::exportMesh(const std::string &prefix,
