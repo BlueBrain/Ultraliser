@@ -262,7 +262,13 @@ void run(int argc , const char** argv)
     }
 
     {
+
+        auto proxySpineMorphologies = skeletonizer->reconstructSpineProxyMorphologies();
+
         auto spineMeshes = skeletonizer->reconstructSpineMeshes(inputMesh, 20, 0.5);
+
+        std::vector<Mesh*> remeshedSpines;
+        remeshedSpines.resize(proxySpineMorphologies.size());
 
         TIMER_SET;
         LOOP_STARTS("Spine Remeshing");
@@ -278,15 +284,28 @@ void run(int argc , const char** argv)
             auto remeshedSpine = remeshSpine(spineMesh, 50, SILENT);
             stream << "_refined";
             remeshedSpine->exportMesh(stream.str(), true, false, false, false, SILENT);
-
-            // std::unique_ptr< SpineSkeletonizer > spineSkeletonizer =
-            //     std::make_unique< SpineSkeletonizer >(volume, true, false, prefixStream.str());
-            // spineSkeletonizer->run(SILENT);
-
+            remeshedSpines[i] = remeshedSpine;
             LOOP_PROGRESS(PROGRESS, spineMeshes.size());
         }
         LOOP_DONE;
         LOG_STATS(GET_TIME_SECONDS);
+
+
+
+        for (size_t i = 0; i < spineMeshes.size(); ++i)
+        {
+            auto basePoint = proxySpineMorphologies[i]->getBasePoint();
+
+            Skeletonizer::VoxelizationOptions options;
+            options.voxelizationAxis = Volume::SOLID_VOXELIZATION_AXIS::XYZ;
+            options.volumeResolution = 80;
+            std::unique_ptr< SpineSkeletonizer > spineSkeletonizer =
+                std::make_unique< SpineSkeletonizer >(remeshedSpines[i], basePoint, options, true, false, NONE);
+            spineSkeletonizer->run(SILENT);
+        }
+
+
+
 
         skeletonizer->_exportSpineExtents(options->morphologyPrefix);
     }

@@ -41,6 +41,45 @@ class Skeletonizer
 public:
 
     /**
+     * @brief The VoxelizationOptions class
+     */
+    struct VoxelizationOptions
+    {
+        /**
+         * @brief volumeResolution
+         * The resolution used to voxelize the mesh given to the Skeletonizer.
+         */
+        size_t volumeResolution = 1024;
+
+        /**
+         * @brief voxelizationAxis
+         * The solid voxelization axis of the Skeletonizer.
+         */
+        Volume::SOLID_VOXELIZATION_AXIS voxelizationAxis = Volume::SOLID_VOXELIZATION_AXIS::X;
+
+        /**
+         * @brief volumeType
+         * The type of the volume, by default BIT.
+         */
+        VOLUME_TYPE volumeType = VOLUME_TYPE::BIT;
+
+        /**
+         * @brief edgeGapPrecentage
+         * The percentage of the volume that is used to make a gap between the core volume
+         * and its edges.
+         */
+        float edgeGapPrecentage = 0.1f;
+
+        /**
+         * @brief verbose
+         * If the operations will be executed silently or not.
+         */
+        bool verbose = false;
+    };
+
+public:
+
+    /**
      * @brief Skeletonizer
      * @param volume
      * @param useAcceleration
@@ -51,6 +90,21 @@ public:
                  const bool &useAcceleration = true,
                  const bool &debugSkeleton = false,
                  const std::string debuggingPrefix = NONE);
+
+    /**
+     * @brief Skeletonizer
+     * @param mesh
+     * @param options
+     * @param useAcceleration
+     * @param debugSkeleton
+     * @param debuggingPrefix
+     */
+    Skeletonizer(Mesh *mesh,
+                 const VoxelizationOptions& options,
+                 const bool &useAcceleration = true,
+                 const bool &debugSkeleton = false,
+                 const std::string debuggingPrefix = NONE);
+
     ~Skeletonizer() { }
 
     /**
@@ -97,6 +151,13 @@ public:
     void applyVolumeThinningToVolume(Volume* volume, const bool &displayProgress = true);
 
 protected:
+
+    /**
+     * @brief _computeVolumeFromMesh
+     * If the input datasets to the constructor is a mesh, compute the volume such that we can
+     * proceed with the Skeletonization.
+     */
+    void _computeVolumeFromMesh();
 
     /**
      * @brief _computeShellPoints
@@ -170,17 +231,17 @@ protected:
     /**
      * @brief _inflateNodes
      */
-    void _inflateNodes();
+    void _inflateNodes(const bool verbose = VERBOSE);
 
     /**
      * @brief _inflateNodesUsingAcceleration
      */
-    void _inflateNodesUsingAcceleration();
+    void _inflateNodesUsingAcceleration(const bool verbose = VERBOSE);
 
     /**
      * @brief _inflateNodesUsingAcceleration
      */
-    void _inflateNodesNatively();
+    void _inflateNodesNatively(const bool verbose = VERBOSE);
 
 
     void _connectNodesToBuildEdges(const std::map< size_t, size_t > &indicesMapper);
@@ -208,6 +269,11 @@ protected:
      * @brief _mesh
      */
     Mesh* _mesh = nullptr;
+
+    /**
+     * @brief _voxelizationOptions
+     */
+    const VoxelizationOptions _voxelizationOptions;
 
     /**
      * @brief _useAcceleration

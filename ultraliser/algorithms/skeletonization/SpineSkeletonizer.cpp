@@ -21,8 +21,9 @@
  * GNU web site < https://www.gnu.org/licenses/gpl-3.0.en.html >
  **************************************************************************************************/
 
-#include "SpineSkeletonizer.h"
-#include "SkeletonizerUtils.h"
+
+#include <algorithms/skeletonization/SpineSkeletonizer.h>
+#include <algorithms/skeletonization/SkeletonizerUtils.h>
 
 namespace Ultraliser
 {
@@ -34,6 +35,18 @@ SpineSkeletonizer::SpineSkeletonizer(Volume* spineVolume,
     : Skeletonizer(spineVolume, useAcceleration, debugSkeleton, debuggingPrefix)
 {
     /// EMPTY CONSTRUCTOR
+}
+
+SpineSkeletonizer::SpineSkeletonizer(Mesh* spineMesh,
+                                     const Vector3f basePoint,
+                                     const VoxelizationOptions& options,
+                                     const bool useAcceleration,
+                                     const bool debugSkeleton,
+                                     const std::string debuggingPrefix)
+    : Skeletonizer(spineMesh, options, useAcceleration, debugSkeleton, debuggingPrefix)
+{
+    _basePoint = basePoint;
+    _computeVolumeFromMesh();
 }
 
 void SpineSkeletonizer::run(const bool verbose)
@@ -52,18 +65,25 @@ void SpineSkeletonizer::run(const bool verbose)
     _connectNodesToBuildEdges(indicesMapper);
 
     /// Inflate the nodes, i.e. adjust their radii
-    _inflateNodes();
+    _inflateNodes(verbose);
 
     /// Reconstruct the sections "or branches" from the nodes using the edges data
     _buildBranchesFromNodes(_nodes);
 
-    exportBranches(_debuggingPrefix, verbose);
+    // exportBranches(_debuggingPrefix, verbose);
+
+    // Check how many branches are in the spine
+    if (_branches.size() == 1)
+    {
+        std::cout << "1 branch spine \n";
+    }
+
 
     // Identify the connections at the terminals of each branch
-    // identifyTerminalConnections(_branches);
+    identifyTerminalConnections(_branches);
 
-    // Roots, terminals and others
-    // confirmTerminalsBranches(_branches);
+    //
+    confirmTerminalsBranches(_branches);
 
     // exportSWCFile(_debuggingPrefix, false, SILENT);
 
@@ -153,7 +173,6 @@ SkeletonNodes SpineSkeletonizer::_constructSWCTable(const bool& resampleSkeleton
     fakeSomaNode->point.y() = 0;
     fakeSomaNode->point.z() = 0;
     fakeSomaNode->radius = 0;
-
 
     swcIndex++;
     swcNodes.push_back(fakeSomaNode);

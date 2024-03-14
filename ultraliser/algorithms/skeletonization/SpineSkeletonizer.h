@@ -47,6 +47,22 @@ public:
                       const bool useAcceleration,
                       const bool debugSkeleton,
                       const std::string debuggingPrefix = NONE);
+
+    /**
+     * @brief SpineSkeletonizer
+     * @param spineMesh
+     * @param basePoint
+     * @param options
+     * @param useAcceleration
+     * @param debugSkeleton
+     * @param debuggingPrefix
+     */
+    SpineSkeletonizer(Mesh* spineMesh,
+                      const Vector3f basePoint,
+                      const VoxelizationOptions& options,
+                      const bool useAcceleration,
+                      const bool debugSkeleton,
+                      const std::string debuggingPrefix = NONE);
     ~SpineSkeletonizer() { }
 
 public:
@@ -96,7 +112,13 @@ private:
                           int64_t& swcIndex, int64_t branchingNodeSWCIndex,
                           const bool = VERBOSE);
 
+private:
 
+    /**
+     * @brief _basePoint
+     * The base point of the spine. This value is used later to compute the orientation of the spine.
+     */
+    Vector3f _basePoint;
 };
 
 }

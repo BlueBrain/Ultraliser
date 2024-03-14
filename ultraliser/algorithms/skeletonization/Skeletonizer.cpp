@@ -38,10 +38,13 @@ Skeletonizer::Skeletonizer(Volume* volume,
                            const bool &debugSkeleton,
                            const std::string debuggingPrefix)
     : _volume(volume)
+    , _mesh(nullptr)
     , _useAcceleration(useAcceleration)
     , _debugSkeleton(debugSkeleton)
     , _debuggingPrefix(debuggingPrefix)
 {
+    /// NOTE: The mesh is assigned a nullptr, until further notice
+
     // Mesh bounding box
     _pMinMesh = volume->getPMin();
     _pMaxMesh = volume->getPMax();
@@ -61,34 +64,105 @@ Skeletonizer::Skeletonizer(Volume* volume,
     _scaleFactor = _boundsMesh / _boundsVolume;
 }
 
+Skeletonizer::Skeletonizer(Mesh* mesh,
+                           const VoxelizationOptions& options,
+                           const bool &useAcceleration,
+                           const bool &debugSkeleton,
+                           const std::string debuggingPrefix)
+    : _volume(nullptr)
+    , _mesh(mesh)
+    , _voxelizationOptions(options)
+    , _useAcceleration(useAcceleration)
+    , _debugSkeleton(debugSkeleton)
+    , _debuggingPrefix(debuggingPrefix)
+{
+    /// NOTE: The volume is assigned a nullptr, until further notice
+
+    // Compute the mesh bounding box
+    mesh->computeBoundingBox(_pMinMesh, _pMaxMesh);
+    _boundsMesh = _pMaxMesh - _pMinMesh;
+    _centerMesh = _pMinMesh + 0.5 * _boundsMesh;
+
+    /// NOTE: Compute the volume bounds after the generation of the volume
+}
+
+void Skeletonizer::_computeVolumeFromMesh()
+{
+    // If the mesh is a nullptr, then return, there is nothing to compute
+    if (_mesh == nullptr)
+    {
+        LOG_ERROR("Skeletonizer::_computeVolumeFromMesh(): An empty mesh is given to voxelize!");
+        return;
+    }
+
+    // The volume must be a nullptr to be able to compute it
+    if (_volume == nullptr)
+    {
+        // Create the volume extent
+        _volume = new Volume(_pMinMesh, _pMaxMesh,
+                             _voxelizationOptions.volumeResolution,
+                             _voxelizationOptions.edgeGapPrecentage,
+                             _voxelizationOptions.volumeType,
+                             _voxelizationOptions.verbose);
+
+        // Apply surface and solid voxelization to the input neuron mesh
+        _volume->surfaceVoxelization(_mesh, _voxelizationOptions.verbose, false, 1.0);
+        _volume->solidVoxelization(_voxelizationOptions.voxelizationAxis,
+                                   _voxelizationOptions.verbose);
+
+        // Remove the border voxels that span less than half the voxel
+        auto bordeVoxels = _volume->searchForBorderVoxels(_voxelizationOptions.verbose);
+        for (size_t i = 0; i < bordeVoxels.size(); ++i)
+        {
+            for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
+            {
+                _volume->clear(bordeVoxels[i][j].x(), bordeVoxels[i][j].y(), bordeVoxels[i][j].z());
+            }
+            bordeVoxels[i].clear();
+        }
+        bordeVoxels.clear();
+        _volume->surfaceVoxelization(_mesh, _voxelizationOptions.verbose, false, 0.5);
+    }
+}
+
 void Skeletonizer::initialize(const bool verbose)
 {
-    // Start the timer
-    TIMER_SET;
-
     if (verbose)
     {
+        TIMER_SET;
         LOG_TITLE("Ultraliser Skeletonization");
         LOG_SUCCESS("Voxel Size [%f] μm", _volume->getVoxelSize());
         LOG_STATUS("Initialization - Building Structures");
+
+        // Compute the shell points either natively or by using the acceleration structures
+        if (_useAcceleration)
+        {
+            // Build the ThinningVoxels acceleration structure from the input solid volume
+            // NOTE: We do not rebuild the ThinningVoxels structure!
+            auto thinningVoxels = _volume->getThinningVoxelsList(false);
+
+            // Compute the surface shell from the pre-built ThinningVoxels structure
+            _computeShellPointsUsingAcceleration(thinningVoxels);
+        }
+        else { _computeShellPoints(); }
+
+        LOG_STATUS_IMPORTANT("Initialization Stats.");
+        LOG_STATS(GET_TIME_SECONDS);
     }
+    else
+    {
+        // Compute the shell points either natively or by using the acceleration structures
+        if (_useAcceleration)
+        {
+            // Build the ThinningVoxels acceleration structure from the input solid volume
+            // NOTE: We do not rebuild the ThinningVoxels structure!
+            auto thinningVoxels = _volume->getThinningVoxelsList(false);
 
-     // Compute the shell points either natively or by using the acceleration structures
-     if (_useAcceleration)
-     {
-         // Build the ThinningVoxels acceleration structure from the input solid volume
-         // NOTE: We do not rebuild the ThinningVoxels structure!
-         auto thinningVoxels = _volume->getThinningVoxelsList(false);
-
-         // Compute the surface shell from the pre-built ThinningVoxels structure
-         _computeShellPointsUsingAcceleration(thinningVoxels);
-     }
-     else
-     {
-         _computeShellPoints();
-     }
-
-     if (verbose) { LOG_STATUS_IMPORTANT("Initialization Stats."); LOG_STATS(GET_TIME_SECONDS); }
+            // Compute the surface shell from the pre-built ThinningVoxels structure
+            _computeShellPointsUsingAcceleration(thinningVoxels);
+        }
+        else { _computeShellPoints(); }
+    }
 }
 
 void Skeletonizer::_scaleShellPoints()
@@ -536,80 +610,127 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleratio
 }
 
 
-void Skeletonizer::_inflateNodes()
+void Skeletonizer::_inflateNodes(const bool verbose)
 {
     if (_useAcceleration)
-        _inflateNodesUsingAcceleration();
+        _inflateNodesUsingAcceleration(verbose);
     else
-        _inflateNodesNatively();
+        _inflateNodesNatively(verbose);
 }
 
-void Skeletonizer::_inflateNodesUsingAcceleration()
+void Skeletonizer::_inflateNodesUsingAcceleration(const bool verbose)
 {
-    TIMER_SET;
-    LOG_STATUS("Inflating Graph Nodes - Mapping to Surface");
-
-    auto kdtree = KdTree::from(_shellPoints);
-
-    PROGRESS_SET;
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _nodes.size(); ++i)
+    if (verbose)
     {
-        auto &node = *_nodes[i];
+        TIMER_SET;
+        LOG_STATUS("Inflating Graph Nodes - Mapping to Surface");
 
-        auto nearestPoint = kdtree.findNearestPoint(node.point);
-        auto minimumDistance = nearestPoint.distance;
+        auto kdtree = KdTree::from(_shellPoints);
 
-        // TODO: Make some logic to detect the actual radius based on the voxel size
-        if (minimumDistance > _volume->getVoxelSize())
+        PROGRESS_SET;
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < _nodes.size(); ++i)
         {
-            node.radius = minimumDistance * 1.2;
-        }
-        else
-        {
-            node.radius = _volume->getVoxelSize() * 0.5;
-        }
+            auto &node = *_nodes[i];
 
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, _nodes.size());
-        PROGRESS_UPDATE;
+            auto nearestPoint = kdtree.findNearestPoint(node.point);
+            auto minimumDistance = nearestPoint.distance;
+
+            // TODO: Make some logic to detect the actual radius based on the voxel size
+            if (minimumDistance > _volume->getVoxelSize())
+            {
+                node.radius = minimumDistance * 1.2;
+            }
+            else
+            {
+                node.radius = _volume->getVoxelSize() * 0.5;
+            }
+
+            // Update the progress bar
+            LOOP_PROGRESS(PROGRESS, _nodes.size());
+            PROGRESS_UPDATE;
+        }
+        LOOP_DONE;
+        LOG_STATS(GET_TIME_SECONDS);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    else
+    {
+        auto kdtree = KdTree::from(_shellPoints);
+        for (size_t i = 0; i < _nodes.size(); ++i)
+        {
+            auto &node = *_nodes[i];
+
+            auto nearestPoint = kdtree.findNearestPoint(node.point);
+            auto minimumDistance = nearestPoint.distance;
+
+            // TODO: Make some logic to detect the actual radius based on the voxel size
+            if (minimumDistance > _volume->getVoxelSize())
+            { node.radius = minimumDistance * 1.2; }
+            else
+            { node.radius = _volume->getVoxelSize() * 0.5; }
+        }
+    }
 }
 
-void Skeletonizer::_inflateNodesNatively()
+void Skeletonizer::_inflateNodesNatively(const bool verbose)
 {
-    TIMER_SET;
-    LOG_STATUS("Inflating Graph Nodes - Mapping to Surface");
-
-    PROGRESS_SET;
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _nodes.size(); ++i)
+    if (verbose)
     {
-        float minimumDistance = std::numeric_limits< float >::max();
-        for (size_t j = 0; j < _shellPoints.size(); ++j)
-        {
-            const float distance = (_nodes[i]->point - _shellPoints[j]).abs();
-            if (distance < minimumDistance) { minimumDistance = distance; }
-        }
+        TIMER_SET;
+        LOG_STATUS("Inflating Graph Nodes - Mapping to Surface");
 
-        // TODO: Make some logic to detect the actual radius based on the voxel size
-        if (minimumDistance > 0.01)
+        PROGRESS_SET;
+        OMP_PARALLEL_FOR
+            for (size_t i = 0; i < _nodes.size(); ++i)
         {
-            _nodes[i]->radius = minimumDistance * 1.2;
-        }
-        else
-        {
-            _nodes[i]->radius = 0.1;
-        }
+            float minimumDistance = std::numeric_limits< float >::max();
+            for (size_t j = 0; j < _shellPoints.size(); ++j)
+            {
+                const float distance = (_nodes[i]->point - _shellPoints[j]).abs();
+                if (distance < minimumDistance) { minimumDistance = distance; }
+            }
 
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, _nodes.size());
-        PROGRESS_UPDATE;
+            // TODO: Make some logic to detect the actual radius based on the voxel size
+            if (minimumDistance > 0.01)
+            {
+                _nodes[i]->radius = minimumDistance * 1.2;
+            }
+            else
+            {
+                _nodes[i]->radius = 0.1;
+            }
+
+            // Update the progress bar
+            LOOP_PROGRESS(PROGRESS, _nodes.size());
+            PROGRESS_UPDATE;
+        }
+        LOOP_DONE;
+        LOG_STATS(GET_TIME_SECONDS);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    else
+    {
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < _nodes.size(); ++i)
+        {
+            float minimumDistance = std::numeric_limits< float >::max();
+            for (size_t j = 0; j < _shellPoints.size(); ++j)
+            {
+                const float distance = (_nodes[i]->point - _shellPoints[j]).abs();
+                if (distance < minimumDistance) { minimumDistance = distance; }
+            }
+
+            // TODO: Make some logic to detect the actual radius based on the voxel size
+            if (minimumDistance > 0.01)
+            {
+                _nodes[i]->radius = minimumDistance * 1.2;
+            }
+            else
+            {
+                _nodes[i]->radius = 0.1;
+            }
+        }
+    }
+
 }
 
 void Skeletonizer::_connectNodesToBuildEdges(const std::map< size_t, size_t >& indicesMapper)
