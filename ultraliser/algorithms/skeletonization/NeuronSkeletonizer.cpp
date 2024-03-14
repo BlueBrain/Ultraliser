@@ -40,7 +40,7 @@ NeuronSkeletonizer::NeuronSkeletonizer(Volume* volume,
     /// EMPTY CONSTRUCTOR
 }
 
-void NeuronSkeletonizer::constructGraph()
+void NeuronSkeletonizer::constructGraph(const bool verbose)
 {
     /// Extract the nodes of the skeleton from the center-line "thinned" voxels and return a
     /// mapper that maps the indices of the voxels in the volume and the nodes in the skeleton

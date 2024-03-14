@@ -135,7 +135,7 @@ public:
 
 
 
-    virtual void constructGraph();
+    virtual void constructGraph(const bool verbose = VERBOSE);
 
 
 
@@ -221,7 +221,7 @@ protected:
      * @brief _extractNodesFromVoxelsUsingAcceleration
      * @return
      */
-    std::map< size_t, size_t > _extractNodesFromVoxelsUsingAcceleration();
+    std::map< size_t, size_t > _extractNodesFromVoxelsUsingAcceleration(const bool verbose = VERBOSE);
 
     SkeletonBranch* _buildBranch(SkeletonNode* firstNode, SkeletonNode* edgeNode);
 
@@ -244,8 +244,10 @@ protected:
     void _inflateNodesNatively(const bool verbose = VERBOSE);
 
 
-    void _connectNodesToBuildEdges(const std::map< size_t, size_t > &indicesMapper);
-    void _removeTriangleLoops();
+    void _connectNodesToBuildEdges(const std::map< size_t, size_t > &indicesMapper,
+                                   const bool verbose = VERBOSE);
+
+    void _removeTriangleLoops(const bool verbose = VERBOSE);
 
     void _buildBranchesFromNodes(const SkeletonNodes& nodes);
 

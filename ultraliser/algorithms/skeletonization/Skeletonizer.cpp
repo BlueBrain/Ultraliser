@@ -524,7 +524,7 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingSlicing()
     return indicesMapper;
 }
 
-std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleration()
+std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleration(const bool verbose)
 {
     LOG_STATUS("Mapping Voxels to Nodes *");
     TIMER_SET;
@@ -733,134 +733,223 @@ void Skeletonizer::_inflateNodesNatively(const bool verbose)
 
 }
 
-void Skeletonizer::_connectNodesToBuildEdges(const std::map< size_t, size_t >& indicesMapper)
+void Skeletonizer::_connectNodesToBuildEdges(const std::map< size_t, size_t >& indicesMapper,
+                                             const bool verbose)
 {
-    TIMER_SET;
-    LOG_STATUS("Connecting Graph Nodes");
-
-    size_t numberEdges;
-
-    /// TODO: Makre sure that there are no race conditions in the code
-    LOOP_STARTS("Building & Linking Edges");
-    PROGRESS_SET;
-    // OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _nodes.size(); ++i)
+    if (verbose)
     {
-        // Check if the node has been visited before
-        SkeletonNode* node = _nodes[i];
+        TIMER_SET;
+        LOG_STATUS("Connecting Graph Nodes");
 
-        // Count the number of the connected edges to the node
-        size_t connectedEdges = 0;
-
-        // Search for the neighbours
-        for (size_t l = 0; l < 26; l++)
+        size_t numberEdges;
+        LOOP_STARTS("Building & Linking Edges");
+        PROGRESS_SET;
+        for (size_t i = 0; i < _nodes.size(); ++i)
         {
-            size_t idx = node->voxel.x() + VDX[l];
-            size_t idy = node->voxel.y() + VDY[l];
-            size_t idz = node->voxel.z() + VDZ[l];
+            // Check if the node has been visited before
+            SkeletonNode* node = _nodes[i];
 
-            if (_volume->isFilled(idx, idy, idz))
+            // Count the number of the connected edges to the node
+            size_t connectedEdges = 0;
+
+            // Search for the neighbours
+            for (size_t l = 0; l < 26; l++)
             {
-                // Increment the number of conected edges along this node
-                connectedEdges++;
+                size_t idx = node->voxel.x() + VDX[l];
+                size_t idy = node->voxel.y() + VDY[l];
+                size_t idz = node->voxel.z() + VDZ[l];
 
-                // Find the index of the voxel
-                const auto& vIndex = _volume->mapTo1DIndexWithoutBoundCheck(idx, idy, idz);
+                if (_volume->isFilled(idx, idy, idz))
+                {
+                    // Increment the number of conected edges along this node
+                    connectedEdges++;
 
-                // Find the corresponding index of the node to access the node from the nodes list
-                const auto& nIndex = indicesMapper.find(vIndex)->second;
+                    // Find the index of the voxel
+                    const auto& vIndex = _volume->mapTo1DIndexWithoutBoundCheck(idx, idy, idz);
 
-                // Add the node to the edgeNodes, only to be able to access it later
-                SkeletonNode* edgeNode = _nodes[nIndex];
-                node->edgeNodes.push_back(edgeNode);
+                    // Find the corresponding index of the node to access the node from the nodes list
+                    const auto& nIndex = indicesMapper.find(vIndex)->second;
 
-                // Construct the edge
-                SkeletonEdge* edge = new SkeletonEdge(numberEdges, node, edgeNode);
+                    // Add the node to the edgeNodes, only to be able to access it later
+                    SkeletonNode* edgeNode = _nodes[nIndex];
+                    node->edgeNodes.push_back(edgeNode);
 
-                // Add the constructed edge to the list
-                _edges.push_back(edge);
+                    // Construct the edge
+                    SkeletonEdge* edge = new SkeletonEdge(numberEdges, node, edgeNode);
 
-                // Increment the number of edges
-                numberEdges++;
+                    // Add the constructed edge to the list
+                    _edges.push_back(edge);
+
+                    // Increment the number of edges
+                    numberEdges++;
+                }
             }
+
+            if (connectedEdges == 1)
+                node->terminal = true;
+
+            if (connectedEdges > 2)
+                node->branching = true;
+
+            // Update the progress bar
+            LOOP_PROGRESS(PROGRESS, _nodes.size());
+            PROGRESS_UPDATE;
         }
-
-        if (connectedEdges == 1)
-            node->terminal = true;
-
-        if (connectedEdges > 2)
-            node->branching = true;
-
-        // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, _nodes.size());
-        PROGRESS_UPDATE;
+        LOOP_DONE;
+        LOG_STATS(GET_TIME_SECONDS);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    else
+    {
+        size_t numberEdges;
+        for (size_t i = 0; i < _nodes.size(); ++i)
+        {
+            // Check if the node has been visited before
+            SkeletonNode* node = _nodes[i];
 
-    /// Re-index the nodes, for simplicity, i.e. the index of the node represents its location in
-    /// the _nodes list
-    // OMP_PARALLEL_FOR for (size_t i = 0; i < _nodes.size(); ++i) { _nodes[i]->index = i; }
+            // Count the number of the connected edges to the node
+            size_t connectedEdges = 0;
+
+            // Search for the neighbours
+            for (size_t l = 0; l < 26; l++)
+            {
+                size_t idx = node->voxel.x() + VDX[l];
+                size_t idy = node->voxel.y() + VDY[l];
+                size_t idz = node->voxel.z() + VDZ[l];
+
+                if (_volume->isFilled(idx, idy, idz))
+                {
+                    // Increment the number of conected edges along this node
+                    connectedEdges++;
+
+                    // Find the index of the voxel
+                    const auto& vIndex = _volume->mapTo1DIndexWithoutBoundCheck(idx, idy, idz);
+
+                    // Find the corresponding index of the node to access the node from the nodes list
+                    const auto& nIndex = indicesMapper.find(vIndex)->second;
+
+                    // Add the node to the edgeNodes, only to be able to access it later
+                    SkeletonNode* edgeNode = _nodes[nIndex];
+                    node->edgeNodes.push_back(edgeNode);
+
+                    // Construct the edge
+                    SkeletonEdge* edge = new SkeletonEdge(numberEdges, node, edgeNode);
+
+                    // Add the constructed edge to the list
+                    _edges.push_back(edge);
+
+                    // Increment the number of edges
+                    numberEdges++;
+                }
+            }
+
+            if (connectedEdges == 1)
+                node->terminal = true;
+
+            if (connectedEdges > 2)
+                node->branching = true;
+        }
+    }
 }
 
-void Skeletonizer::_removeTriangleLoops()
-{    
-    TIMER_SET;
-    LOG_STATUS("Removing Triangle Loops");
-
-    const size_t currentNodesSize = _nodes.size();
-    size_t progress = 0;
-    for (size_t i = 0; i < currentNodesSize; ++i)
+void Skeletonizer::_removeTriangleLoops(const bool verbose)
+{
+    if (verbose)
     {
-        LOOP_PROGRESS(progress, currentNodesSize);
-        progress++;
 
-        if (_nodes[i]->branching)
+        TIMER_SET;
+        LOG_STATUS("Removing Triangle Loops");
+
+        const size_t currentNodesSize = _nodes.size();
+        for (size_t i = 0; i < currentNodesSize; ++i)
         {
-            SkeletonNodes sideNodes;
-            if (isTriangleNode(_nodes[i], sideNodes))
+            if (_nodes[i]->branching)
             {
-                if (_nodes[i]->visited) continue;
+                SkeletonNodes sideNodes;
+                if (isTriangleNode(_nodes[i], sideNodes))
+                {
+                    if (_nodes[i]->visited) continue;
 
-                auto& n1 = _nodes[i];
-                auto& n2 = sideNodes[0];
-                auto& n3 = sideNodes[1];
+                    auto& n1 = _nodes[i];
+                    auto& n2 = sideNodes[0];
+                    auto& n3 = sideNodes[1];
 
-                // Collapse a triangle into a single node
-                collapseTriangleIntoNode(_nodes, n1, n2, n3);
+                    // Collapse a triangle into a single node
+                    collapseTriangleIntoNode(_nodes, n1, n2, n3);
 
-                if (n1->edgeNodes.size() > 2)
-                    n1->branching = true;
-                else
-                    n1->branching = false;
+                    if (n1->edgeNodes.size() > 2)
+                        n1->branching = true;
+                    else
+                        n1->branching = false;
 
-                if (n2->edgeNodes.size() > 2)
-                    n2->branching = true;
-                else
-                    n2->branching = false;
+                    if (n2->edgeNodes.size() > 2)
+                        n2->branching = true;
+                    else
+                        n2->branching = false;
 
-                if (n3->edgeNodes.size() > 2)
-                    n3->branching = true;
-                else
-                    n3->branching = false;
+                    if (n3->edgeNodes.size() > 2)
+                        n3->branching = true;
+                    else
+                        n3->branching = false;
 
-                n1->visited = true;
-                n2->visited = true;
-                n3->visited = true;
+                    n1->visited = true;
+                    n2->visited = true;
+                    n3->visited = true;
+                }
+            }
+
+            LOOP_PROGRESS(i, currentNodesSize);
+        }
+        LOOP_DONE;
+        LOG_STATS(GET_TIME_SECONDS);
+    }
+    else
+    {
+        const size_t currentNodesSize = _nodes.size();
+        for (size_t i = 0; i < currentNodesSize; ++i)
+        {
+            if (_nodes[i]->branching)
+            {
+                SkeletonNodes sideNodes;
+                if (isTriangleNode(_nodes[i], sideNodes))
+                {
+                    if (_nodes[i]->visited) continue;
+
+                    auto& n1 = _nodes[i];
+                    auto& n2 = sideNodes[0];
+                    auto& n3 = sideNodes[1];
+
+                    // Collapse a triangle into a single node
+                    collapseTriangleIntoNode(_nodes, n1, n2, n3);
+
+                    if (n1->edgeNodes.size() > 2)
+                        n1->branching = true;
+                    else
+                        n1->branching = false;
+
+                    if (n2->edgeNodes.size() > 2)
+                        n2->branching = true;
+                    else
+                        n2->branching = false;
+
+                    if (n3->edgeNodes.size() > 2)
+                        n3->branching = true;
+                    else
+                        n3->branching = false;
+
+                    n1->visited = true;
+                    n2->visited = true;
+                    n3->visited = true;
+                }
             }
         }
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
 
+    // Reset the visiting state
     OMP_PARALLEL_FOR
-    for (size_t i = 0; i < _nodes.size(); ++i)
-    {
-        _nodes[i]->visited = false;
-    }
+    for (size_t i = 0; i < _nodes.size(); ++i) { _nodes[i]->visited = false; }
 }
 
-void Skeletonizer::constructGraph()
+void Skeletonizer::constructGraph(const bool verbose)
 {
     std::map< size_t, size_t > indicesMapper = _extractNodesFromVoxels();
 

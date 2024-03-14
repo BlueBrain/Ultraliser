@@ -53,7 +53,7 @@ public:
     /**
      * @brief constructGraph
      */
-    void constructGraph() override;
+    void constructGraph(const bool verbose = VERBOSE) override;
 
     /**
      * @brief segmentComponents
