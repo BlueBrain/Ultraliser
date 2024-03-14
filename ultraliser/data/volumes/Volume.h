@@ -512,9 +512,10 @@ public:
 
     /**
      * @brief searchForBorderVoxels
+     * @param verbose
      * @return
      */
-    std::vector< std::vector< Vec3ui_64> > searchForBorderVoxels() ;
+    std::vector< std::vector< Vec3ui_64> > searchForBorderVoxels(const bool verbose = VERBOSE) ;
 
     /**
      * @brief searchForCandidateVoxels

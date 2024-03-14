@@ -60,10 +60,10 @@ void SpineSkeletonizer::run(const bool verbose)
     exportBranches(_debuggingPrefix, verbose);
 
     // Identify the connections at the terminals of each branch
-    identifyTerminalConnections(_branches);
+    // identifyTerminalConnections(_branches);
 
     // Roots, terminals and others
-    confirmTerminalsBranches(_branches);
+    // confirmTerminalsBranches(_branches);
 
     // exportSWCFile(_debuggingPrefix, false, SILENT);
 

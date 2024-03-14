@@ -742,13 +742,11 @@ void Mesh::exportMesh(const std::string &prefix,
     {
         // Start timer
         TIMER_SET;
-
         if (verbose) LOG_TITLE("Exporting Mesh");
 
         if (formatOBJ)
         {
-            exportOBJ(prefix,
-                      _vertices, _numberVertices, _triangles, _numberTriangles, verbose);
+            exportOBJ(prefix, _vertices, _numberVertices, _triangles, _numberTriangles, verbose);
         }
 
         if (formatPLY)
@@ -756,17 +754,14 @@ void Mesh::exportMesh(const std::string &prefix,
             exportPLY(prefix, _vertices, _numberVertices, _triangles, _numberTriangles);
         }
 
-
         if (formatOFF)
         {
-            exportOFF(prefix,
-                      _vertices, _numberVertices, _triangles, _numberTriangles);
+            exportOFF(prefix, _vertices, _numberVertices, _triangles, _numberTriangles);
         }
 
         if (formatSTL)
         {
-            exportSTL(prefix,
-                      _vertices, _numberVertices, _triangles, _numberTriangles);
+            exportSTL(prefix, _vertices, _numberVertices, _triangles, _numberTriangles);
         }
 
         if (verbose)

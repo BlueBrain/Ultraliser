@@ -74,6 +74,49 @@ AppOptions* parseArguments(const int& argc , const char** argv)
     return options;
 }
 
+Mesh* remeshSpine(Mesh* inputSpineMesh, const float voxelsPerMicron = 50,
+                  const bool verbose = SILENT)
+{
+    // Compute the bounding box of the input neuron mesh
+    Vector3f pMinInput, pMaxInput;
+    inputSpineMesh->computeBoundingBox(pMinInput, pMaxInput);
+    const auto& meshBoundingBox = pMaxInput - pMinInput;
+
+    // Compute the resolution of the volume
+    const auto largestDimension = meshBoundingBox.getLargestDimension();
+    size_t resolution = static_cast< size_t >(voxelsPerMicron * largestDimension);
+
+    // Construct the volume
+    Volume* volume = new Volume(pMinInput, pMaxInput, resolution, 0.1,
+                                VOLUME_TYPE::BIT, SILENT);
+
+    // Apply surface and solid voxelization to the input neuron mesh
+    volume->surfaceVoxelization(inputSpineMesh, SILENT, false, 1.0);
+    volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ, SILENT);
+
+    // Remove the border voxels that span less than half the voxel
+    auto bordeVoxels = volume->searchForBorderVoxels(SILENT);
+    for (size_t i = 0; i < bordeVoxels.size(); ++i)
+    {
+        for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
+        {
+            auto voxel = bordeVoxels[i][j]; volume->clear(voxel.x(), voxel.y(), voxel.z());
+        }
+        bordeVoxels[i].clear();
+    }
+    bordeVoxels.clear();
+    volume->surfaceVoxelization(inputSpineMesh, SILENT, false, 0.5);
+
+    // Construct the mesh using the DMC technique
+    auto reconstructedSpineMesh = DualMarchingCubes::generateMeshFromVolume(volume, SILENT);
+
+    // Smooth the resulting surface mesh
+    reconstructedSpineMesh->smoothSurface(NEURON_SMOOTHING_ITERATIONS, SILENT);
+
+    // Return a pointer to the resulting neuron
+    return reconstructedSpineMesh;
+}
+
 Mesh* remeshNeuron(Mesh* inputNeuronMesh, AppOptions* options, const bool verbose = VERBOSE)
 {
     // Compute the bounding box of the input neuron mesh
@@ -221,6 +264,8 @@ void run(int argc , const char** argv)
     {
         auto spineMeshes = skeletonizer->reconstructSpineMeshes(inputMesh, 20, 0.5);
 
+        TIMER_SET;
+        LOOP_STARTS("Spine Remeshing");
         for (size_t i = 0; i < spineMeshes.size(); ++i)
         {
             auto spineMesh = spineMeshes[i];
@@ -228,36 +273,21 @@ void run(int argc , const char** argv)
             stream << options->morphologyPrefix << "_spine_" << i;
             spineMesh->exportMesh(stream.str(), true, false, false, false, SILENT);
 
+            auto remeshedSpine = remeshSpine(spineMesh, 50, SILENT);
+            stream.clear();
+            stream << "_refined";
+            remeshedSpine->exportMesh(stream.str(), true, false, false, false, SILENT);
 
-            // Construct the spine volume from the mesh
-            // Get relaxed bounding box to build the volume
-            Vector3f pMinInput, pMaxInput;
-            spineMesh->computeBoundingBox(pMinInput, pMaxInput);
-            const auto& meshBoundingBox = pMaxInput - pMinInput;
+            // std::unique_ptr< SpineSkeletonizer > spineSkeletonizer =
+            //     std::make_unique< SpineSkeletonizer >(volume, true, false, prefixStream.str());
+            // spineSkeletonizer->run(SILENT);
 
-            // Get the largest dimension
-            float largestDimension = meshBoundingBox.getLargestDimension();
-            auto voxelsPerMicron = 100;
-            size_t resolution = static_cast< size_t >(voxelsPerMicron * largestDimension);
-
-            // Construct the volume
-            Volume* volume = new Volume(pMinInput, pMaxInput, resolution, 0.1,
-                                        VOLUME_TYPE::BIT, SILENT);
-
-            // Rasterize the neuron mesh within the bounding box
-            volume->surfaceVoxelization(spineMesh);
-            volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ);
-
-            std::stringstream prefixStream;
-            prefixStream << options->morphologyPrefix << "_spine" << i;
-            volume->projectXY(prefixStream.str());
-
-            std::unique_ptr< SpineSkeletonizer > spineSkeletonizer =
-                 std::make_unique< SpineSkeletonizer >(volume, true, false, prefixStream.str());
-            spineSkeletonizer->run(SILENT);
+            LOOP_PROGRESS(i, spineMeshes.size());
         }
+        LOOP_DONE;
+        LOG_STATS(GET_TIME_SECONDS);
 
-        // skeletonizer->_exportSpineExtents(options->morphologyPrefix);
+        skeletonizer->_exportSpineExtents(options->morphologyPrefix);
     }
 
     // Export the somatic proxy mesh

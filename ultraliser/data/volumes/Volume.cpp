@@ -3925,36 +3925,52 @@ CandidateVoxels Volume::searchForCandidateVoxelsOne()
     return candiateVoxels;
 }
 
-std::vector< std::vector< Vec3ui_64 > > Volume::searchForBorderVoxels()
+std::vector< std::vector< Vec3ui_64 > > Volume::searchForBorderVoxels(const bool verbose)
 {
-    // Start the timer
-    TIMER_SET;
-
     // This list will collect the border voxels per slice (along the width)
     std::vector< std::vector< Vec3ui_64 > > perSlice;
     perSlice.resize(getWidth());
 
     // Collect the border voxels per slice in parallel
-    PROGRESS_SET;
-    LOOP_STARTS("Searching for Border Voxels");
-    OMP_PARALLEL_FOR
-    for (size_t i = 0; i < getWidth(); ++i)
+    if (verbose)
     {
-        for (size_t j = 0; j < getHeight(); ++j)
+        TIMER_SET; PROGRESS_SET; LOOP_STARTS("Searching for Border Voxels");
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < getWidth(); ++i)
         {
-            for (size_t k = 0; k < getDepth(); ++k)
+            for (size_t j = 0; j < getHeight(); ++j)
             {
-                if (isBorderVoxel(i, j, k))
+                for (size_t k = 0; k < getDepth(); ++k)
                 {
-                    perSlice[i].push_back(Vec3ui_64(i, j, k));
+                    if (isBorderVoxel(i, j, k))
+                    {
+                        perSlice[i].push_back(Vec3ui_64(i, j, k));
+                    }
+                }
+            }
+            LOOP_PROGRESS(PROGRESS, getWidth());
+            PROGRESS_UPDATE;
+        }
+        LOOP_DONE;
+        LOG_STATS(GET_TIME_SECONDS);
+    }
+    else
+    {
+        OMP_PARALLEL_FOR
+        for (size_t i = 0; i < getWidth(); ++i)
+        {
+            for (size_t j = 0; j < getHeight(); ++j)
+            {
+                for (size_t k = 0; k < getDepth(); ++k)
+                {
+                    if (isBorderVoxel(i, j, k))
+                    {
+                        perSlice[i].push_back(Vec3ui_64(i, j, k));
+                    }
                 }
             }
         }
-        LOOP_PROGRESS(PROGRESS, getWidth());
-        PROGRESS_UPDATE;
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
 
     return perSlice;
 }
