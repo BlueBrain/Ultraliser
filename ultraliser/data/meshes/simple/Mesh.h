@@ -336,13 +336,14 @@ public:
     bool smooth(const int64_t &maxMinAngle = 15,
                 const int64_t &minMaxAngle = 150,
                 const int64_t &maxIterations = 6,
-                const bool& flipEdges = true);
+                const bool& flipEdges = true,
+                const bool verbose = VERBOSE);
 
     /**
      * @brief smoothNormals
      * @return
      */
-    void smoothNormals();
+    void smoothNormals(const bool verbose = VERBOSE);
 
     /**
      * @brief refine
@@ -421,15 +422,19 @@ public:
      * @brief coarseDense
      * @param denseRate
      * @param iterations
+     * @param verbose
      */
-    void coarseDense(const float &denseRate, const int64_t &iterations = 1);
+    void coarseDense(const float &denseRate, const int64_t &iterations = 1,
+                     const bool verbose = VERBOSE);
 
     /**
      * @brief coarseFlat
      * @param flatnessRate
      * @param iterations
+     * @param verbose
      */
-    void coarseFlat(const float &flatnessRate, const int64_t &iterations = 1);
+    void coarseFlat(const float &flatnessRate, const int64_t &iterations = 1,
+                    const bool verbose = VERBOSE);
 
     /**
      * @brief optimizeUsingDefaultParameters
@@ -455,7 +460,8 @@ public:
     void optimizeAdaptively(const size_t &optimizationIterations,
                             const size_t &smoothingIterations,
                             const float &flatFactor,
-                            const float &denseFactor);
+                            const float &denseFactor,
+                            const bool verbose = VERBOSE);
 
     /**
      * @brief optimizeAdapttivelyWithROI

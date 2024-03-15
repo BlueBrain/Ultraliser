@@ -222,7 +222,7 @@ SkeletonNodes SpineSkeletonizer::_constructSWCTable(const bool& resampleSkeleton
     return swcNodes;
 }
 
-void SpineSkeletonizer::exportSWCFile(const std::string& prefix, const bool& resampleSkeleton, const bool)
+void SpineSkeletonizer::exportSWCFile(const std::string& prefix, const bool& resampleSkeleton, const bool verbose)
 {
     // Start the timer
     TIMER_SET;

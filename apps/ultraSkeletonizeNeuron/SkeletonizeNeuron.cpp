@@ -137,7 +137,7 @@ Mesh* remeshNeuron(Mesh* inputNeuronMesh, AppOptions* options, const bool verbos
     volume->solidVoxelization(options->voxelizationAxis);
 
     // Remove the border voxels that span less than half the voxel
-    auto bordeVoxels = volume->searchForBorderVoxels();
+    auto bordeVoxels = volume->searchForBorderVoxels(verbose);
     for (size_t i = 0; i < bordeVoxels.size(); ++i)
     {
         for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
@@ -165,12 +165,12 @@ Volume* createNeuronVolume(Mesh* neuronMesh, AppOptions* options, const bool ver
     auto neuronVolume = createVolumeGrid(neuronMesh, options);
 
     // Adaptive and conservative Voxelization
-    neuronVolume->surfaceVoxelization(neuronMesh, false, false, 1.0);
-    neuronVolume->solidVoxelization(options->voxelizationAxis);
+    neuronVolume->surfaceVoxelization(neuronMesh, SILENT, false, 1.0);
+    neuronVolume->solidVoxelization(options->voxelizationAxis, SILENT);
 
     // Remove the border voxels that span less than half the voxel
     // TODO: VERIFY neuronVolume->surfaceVoxelization(neuronMesh, false, false, 0.5);
-    auto bordeVoxels = neuronVolume->searchForBorderVoxels();
+    auto bordeVoxels = neuronVolume->searchForBorderVoxels(verbose);
     for (size_t i = 0; i < bordeVoxels.size(); ++i)
     {
         for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
@@ -209,7 +209,7 @@ void run(int argc , const char** argv)
     auto inputMesh = loadInputMesh(options);
 
     // Construct the neuron volume
-    auto neuronVolume = createNeuronVolume(inputMesh, options, VERBOSE);
+    auto neuronVolume = createNeuronVolume(inputMesh, options, SILENT);
 
     // TODO: Make this as an option
     // auto remeshedNeuron = reconstructNeuronMeshFromVolume(neuronVolume, options, VERBOSE);
@@ -258,7 +258,7 @@ void run(int argc , const char** argv)
     // Export the SWC file of the neuron
     if (options->exportSWC)
     {
-        skeletonizer->exportSWCFile(options->morphologyPrefix, options->resampleSkeleton);
+        skeletonizer->exportSWCFile(options->morphologyPrefix, options->resampleSkeleton, false);
     }
 
     {
@@ -307,7 +307,7 @@ void run(int argc , const char** argv)
 
 
 
-//        skeletonizer->_exportSpineExtents(options->morphologyPrefix);
+//        skeletonizer->exportSpineExtents(options->morphologyPrefix);
     }
 
     // Export the somatic proxy mesh

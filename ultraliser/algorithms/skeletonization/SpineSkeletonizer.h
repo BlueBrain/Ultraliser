@@ -85,7 +85,7 @@ public:
      * @param resampleSkeleton
      */
     void exportSWCFile(const std::string& prefix, const bool& resampleSkeleton,
-                       const bool = VERBOSE);
+                       const bool verbose = VERBOSE);
 
     /**
      * @brief segmentComponents

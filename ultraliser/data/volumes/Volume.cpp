@@ -47,11 +47,10 @@
 namespace Ultraliser
 {
 
-Volume::Volume(const Volume *inputVolume, const bool& verbose)
+Volume::Volume(const Volume *inputVolume)
     : _surfaceVoxelizationTime(0.f)
     , _solidVoxelizationTime(0.f)
     , _addingVolumePassTime(0.f)
-    , _globalVerbose(verbose)
 {
     // Copy the bounds
     _pMin = inputVolume->getPMin();
@@ -136,13 +135,12 @@ Volume::Volume(const Volume *inputVolume, const bool& verbose)
     }
 }
 
-Volume::Volume(const std::string &filePath, const bool& verbose)
+Volume::Volume(const std::string &filePath)
     : _pMin(Vector3f::ZERO)
     , _pMax(Vector3f::ZERO)
     , _surfaceVoxelizationTime(0.f)
     , _solidVoxelizationTime(0.f)
     , _addingVolumePassTime(0.f)
-    , _globalVerbose(verbose)
 {
     // Get the volume extension
     auto extension = std::filesystem::path(filePath).extension().string();
@@ -206,7 +204,7 @@ Volume::Volume(const Vector3f& pMin,
                const size_t &baseResolution,
                const float &expansionRatio,
                const VOLUME_TYPE& gridType,
-               const bool& verbose)
+               const bool verbose)
     : _gridType(gridType)
     , _pMin(pMin)
     , _pMax(pMax)
@@ -215,10 +213,9 @@ Volume::Volume(const Vector3f& pMin,
     , _surfaceVoxelizationTime(0.f)
     , _solidVoxelizationTime(0.f)
     , _addingVolumePassTime(0.f)
-    , _globalVerbose(verbose)
 {
     // Create the grid
-    _createGrid();
+    _createGrid(verbose);
 }
 
 Volume::Volume(const int64_t width,
@@ -227,8 +224,7 @@ Volume::Volume(const int64_t width,
                const Vector3f pMin,
                const Vector3f pMax,
                const VOLUME_TYPE& gridType,
-               const float expansionRatio,
-               const bool& verbose)
+               const float expansionRatio)
     : _gridType(gridType)
     , _pMin(pMin)
     , _pMax(pMax)
@@ -236,7 +232,6 @@ Volume::Volume(const int64_t width,
     , _surfaceVoxelizationTime(0.f)
     , _solidVoxelizationTime(0.f)
     , _addingVolumePassTime(0.f)
-    , _globalVerbose(verbose)
 {
     // Since we don't have any geometric bounds, use 1.0 for the voxel resolution
     // TODO: The voxel resolution should be computed from the given bounds
@@ -338,10 +333,8 @@ void Volume::_createGrid(const std::string& hdrFilePath)
         // std::string data = readRawFile(rawFilePath);
 
         std::vector<uint8_t> data = readRawFileToByteVector(rawFilePath);
-        std::cout << rawFilePath << std::endl;
-
         _grid = new BitVolumeGrid(volumeData->width, volumeData->height, volumeData->depth,
-                                   new BitArray(data.data(), volumeData->width * volumeData->height * volumeData->depth));
+                                  new BitArray(data.data(), volumeData->width * volumeData->height * volumeData->depth));
 
         // Update the grid type
         _gridType = VOLUME_TYPE::BIT;
@@ -524,9 +517,9 @@ void Volume::_allocateGrid(const size_t &width, const size_t &height, const size
     }
 }
 
-void Volume::_createGrid()
+void Volume::_createGrid(const bool verbose)
 {
-    if (_globalVerbose) LOG_TITLE("Creating Volume Grid");
+    VERBOSE_LOG(LOG_TITLE("Creating Volume Grid"), verbose);
 
     // Compute the bounding box size of the given mesh
     Vector3f boundingBoxSize = (_pMax - _pMin);
@@ -550,12 +543,9 @@ void Volume::_createGrid()
     auto height = F2UI64(std::round(boundingBoxSize[1] / _voxelSize));
     auto depth = F2UI64(std::round(boundingBoxSize[2] / _voxelSize));
 
-    if (_globalVerbose)
-    {
-        LOG_SUCCESS("Volume Dimenions [ %d x %d x %d ] : [ %f x %f x %f ]",
-                    width, height, depth,
-                    boundingBoxSize[0], boundingBoxSize[1], boundingBoxSize[2]);
-    }
+    VERBOSE_LOG(LOG_SUCCESS("Volume Dimenions [ %d x %d x %d ] : [ %f x %f x %f ]",
+                            width, height, depth,
+                            boundingBoxSize[0], boundingBoxSize[1], boundingBoxSize[2]), verbose);
 
     // Allocating the grid
     _allocateGrid(width, height, depth);
@@ -588,16 +578,10 @@ void Volume::surfaceVoxelization(Mesh* mesh,
                                  const bool parallel,
                                  const float& sideRatio)
 {
-    if (_globalVerbose || verbose) LOG_TITLE("Surface Voxelization");
-
-    // Start the timer
     TIMER_SET;
-
-    if (_globalVerbose || verbose)
-    {
-        LOG_STATUS("Creating Volume Shell [%zu x %zu x %zu]",
-                   _grid->getWidth(), _grid->getHeight(), _grid->getDepth());
-    }
+    VERBOSE_LOG(LOG_TITLE("Surface Voxelization"), verbose);
+    VERBOSE_LOG(LOG_STATUS("Creating Volume Shell [%zu x %zu x %zu]",
+                           _grid->getWidth(), _grid->getHeight(), _grid->getDepth()), verbose);
 
     if (parallel)
         _rasterizeParallel(mesh, _grid, sideRatio);
@@ -606,11 +590,8 @@ void Volume::surfaceVoxelization(Mesh* mesh,
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
 
     // Statistics
-    if (_globalVerbose || verbose)
-    {
-        LOG_STATUS_IMPORTANT("Rasterization Stats.");
-        LOG_STATS(_surfaceVoxelizationTime);
-    }
+    VERBOSE_LOG(LOG_STATUS_IMPORTANT("Rasterization Stats."), verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
 void Volume::surfaceVoxelizationReion(Mesh* mesh,
@@ -618,48 +599,37 @@ void Volume::surfaceVoxelizationReion(Mesh* mesh,
                                       const Vector3f& pMaxRegion,
                                       const bool& verbose)
 {
-    if (_globalVerbose || verbose) LOG_TITLE("Surface Voxelization");
-
-    // Start the timer
     TIMER_SET;
-
-    if (_globalVerbose || verbose)
-    {
-        LOG_STATUS("Creating Volume Shell [%zu x %zu x %zu]",
-                   _grid->getWidth(), _grid->getHeight(), _grid->getDepth());
-    }
+    VERBOSE_LOG(LOG_TITLE("Surface Voxelization"), verbose);
+    VERBOSE_LOG(LOG_STATUS("Creating Volume Shell [%zu x %zu x %zu]",
+                   _grid->getWidth(), _grid->getHeight(), _grid->getDepth()), verbose);
 
     _rasterizeRegion(mesh , _grid, pMinRegion, pMaxRegion, verbose);
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
 
     // Statistics
-    if (_globalVerbose || verbose)
-    {
-        LOG_STATUS_IMPORTANT("Rasterization Stats.");
-        LOG_STATS(_surfaceVoxelizationTime);
-    }
+    VERBOSE_LOG(LOG_STATUS_IMPORTANT("Rasterization Stats."), verbose);
+        VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
 void Volume::surfaceVoxelizeNeuronMorphology(NeuronMorphology* neuronMorphology,
                                              const std::string& packingAlgorithm,
                                              const bool& verbose)
 {
-    if (_globalVerbose || verbose) LOG_TITLE("Neuron Surface Voxelization");
-
-    // Start the timer
     TIMER_SET;
+    VERBOSE_LOG(LOG_TITLE("Neuron Surface Voxelization"), verbose);
 
     // Get all the sections of the vascular morphology
     Sections sections = neuronMorphology->getSections();
 
-    LOG_STATUS("Creating Volume Shell from Sections");
-    LOOP_STARTS("Rasterization");
-    PROGRESS_SET;
+    VERBOSE_LOG(LOG_STATUS("Creating Volume Shell from Sections"), verbose);
+    VERBOSE_LOG(LOOP_STARTS("Rasterization"), verbose);
 
     // Construct the soma geometry
     auto mesh = new Mesh(neuronMorphology);
     _rasterize(mesh, _grid);
 
+    PROGRESS_SET;
     if (packingAlgorithm == POLYLINE_SPHERE_PACKING)
     {
         OMP_PARALLEL_FOR
@@ -690,7 +660,7 @@ void Volume::surfaceVoxelizeNeuronMorphology(NeuronMorphology* neuronMorphology,
             }
 
             // Update the progress bar
-            LOOP_PROGRESS(PROGRESS, sections.size());
+            VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, sections.size()), verbose);
             PROGRESS_UPDATE;
         }
     }
@@ -730,7 +700,7 @@ void Volume::surfaceVoxelizeNeuronMorphology(NeuronMorphology* neuronMorphology,
             _rasterize(mesh, _grid);
 
             // Update the progress bar
-            LOOP_PROGRESS(PROGRESS, paths.size());
+            VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, paths.size()), verbose);
             PROGRESS_UPDATE;
         }
     }
@@ -752,7 +722,7 @@ void Volume::surfaceVoxelizeNeuronMorphology(NeuronMorphology* neuronMorphology,
                 _rasterize(samples.back(), sections[children[0]]->getSamples()[0], _grid);
 
             // Update the progress bar
-            LOOP_PROGRESS(PROGRESS, sections.size());
+            VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, sections.size()), verbose);
             PROGRESS_UPDATE;
         }
     }
@@ -760,34 +730,28 @@ void Volume::surfaceVoxelizeNeuronMorphology(NeuronMorphology* neuronMorphology,
     {
         LOG_ERROR("[%s] is not a correct packing algorithm.");
     }
-
-    LOOP_DONE;
-
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Statistics
-    LOG_STATUS_IMPORTANT("Rasterization Stats.");
-    LOG_STATS(_surfaceVoxelizationTime);
+    VERBOSE_LOG(LOG_STATUS_IMPORTANT("Rasterization Stats."), verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
 void Volume::surfaceVoxelizeSpineMorphology(
         SpineMorphology* spineMorphology,
-        const std::string &packingAlgorithm)
+        const std::string &packingAlgorithm,
+        const bool verbose)
 {
-    if (_globalVerbose) LOG_TITLE("Surface Voxelization");
-
-    // Start the timer
     TIMER_SET;
+    VERBOSE_LOG(LOG_TITLE("Surface Voxelization for Spine Morphology"), verbose);
 
     // Get all the sections of the vascular morphology
     Sections sections = spineMorphology->getSections();
 
-    if (_globalVerbose)
-    {
-        LOG_STATUS("Creating Volume Shell from Sections");
-        LOOP_STARTS("Rasterization");
-    }
-
+    VERBOSE_LOG(LOG_STATUS("Creating Volume Shell from Sections"), verbose);
+    VERBOSE_LOG(LOOP_STARTS("Rasterization"), verbose);
     PROGRESS_SET;
     if (packingAlgorithm == POLYLINE_SPHERE_PACKING)
     {
@@ -807,8 +771,8 @@ void Volume::surfaceVoxelizeSpineMorphology(
             _rasterize(samples.back(), _grid);
 
             // Update the progress bar
-             if (_globalVerbose) LOOP_PROGRESS(PROGRESS, sections.size());
-            PROGRESS_UPDATE;
+            VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, sections.size()), verbose);
+            VERBOSE_LOG(PROGRESS_UPDATE, verbose);
         }
     }
     else if (packingAlgorithm == POLYLINE_PACKING)
@@ -829,8 +793,8 @@ void Volume::surfaceVoxelizeSpineMorphology(
             paths.shrink_to_fit();
 
             // Update the progress bar
-             if (_globalVerbose) LOOP_PROGRESS(PROGRESS, sections.size());
-            PROGRESS_UPDATE;
+            VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, sections.size()), verbose);
+            VERBOSE_LOG(PROGRESS_UPDATE, verbose);
         }
     }
     else if (packingAlgorithm == SDF_PACKING)
@@ -853,7 +817,7 @@ void Volume::surfaceVoxelizeSpineMorphology(
             children.shrink_to_fit();
 
             // Update the progress bar
-             if (_globalVerbose) LOOP_PROGRESS(PROGRESS, sections.size());
+            VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, sections.size()), verbose);
             PROGRESS_UPDATE;
         }
     }
@@ -861,16 +825,13 @@ void Volume::surfaceVoxelizeSpineMorphology(
     {
         LOG_ERROR("[%s] is not a correct packing algorithm.");
     }
-     if (_globalVerbose) LOOP_DONE;
-
     _surfaceVoxelizationTime = GET_TIME_SECONDS;
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Statistics
-    if (_globalVerbose)
-    {
-        LOG_STATUS_IMPORTANT("Rasterization Stats.");
-        LOG_STATS(_surfaceVoxelizationTime);
-    }
+    VERBOSE_LOG(LOG_STATUS_IMPORTANT("Rasterization Stats."), verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
 void Volume::surfaceVoxelizeVasculatureMorphology(
@@ -1492,14 +1453,14 @@ void Volume::_rasterize(AdvancedMesh* mesh, VolumeGrid* grid)
 
 void Volume::solidVoxelization(const SOLID_VOXELIZATION_AXIS& axis, const bool& verbose)
 {
-    if (verbose) LOG_TITLE("Solid Voxelization");
+    VERBOSE_LOG(LOG_TITLE("Solid Voxelization"), verbose);
 
     // The 2D flood filling is only supported for the solid voxelization
-    if (verbose) LOG_STATUS("Flood-filling Volume");
+    VERBOSE_LOG(LOG_STATUS("Flood-filling Volume"), verbose);
     _floodFill2D(axis, verbose);
 
-    if (verbose) LOG_STATUS_IMPORTANT("Solid Voxelization Stats.");
-    LOG_STATS(_solidVoxelizationTime);
+    VERBOSE_LOG(LOG_STATUS_IMPORTANT("Solid Voxelization Stats."), verbose);
+    VERBOSE_LOG(LOG_STATS(_solidVoxelizationTime), verbose);
 }
 
 void Volume::solidVoxelizationROI(const SOLID_VOXELIZATION_AXIS& axis,
@@ -3932,45 +3893,27 @@ std::vector< std::vector< Vec3ui_64 > > Volume::searchForBorderVoxels(const bool
     perSlice.resize(getWidth());
 
     // Collect the border voxels per slice in parallel
-    if (verbose)
+    TIMER_SET;
+    PROGRESS_SET;
+    VERBOSE_LOG(LOOP_STARTS("Searching for Border Voxels"), verbose);
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < getWidth(); ++i)
     {
-        TIMER_SET; PROGRESS_SET; LOOP_STARTS("Searching for Border Voxels");
-        OMP_PARALLEL_FOR
-        for (size_t i = 0; i < getWidth(); ++i)
+        for (size_t j = 0; j < getHeight(); ++j)
         {
-            for (size_t j = 0; j < getHeight(); ++j)
+            for (size_t k = 0; k < getDepth(); ++k)
             {
-                for (size_t k = 0; k < getDepth(); ++k)
+                if (isBorderVoxel(i, j, k))
                 {
-                    if (isBorderVoxel(i, j, k))
-                    {
-                        perSlice[i].push_back(Vec3ui_64(i, j, k));
-                    }
-                }
-            }
-            LOOP_PROGRESS(PROGRESS, getWidth());
-            PROGRESS_UPDATE;
-        }
-        LOOP_DONE;
-        LOG_STATS(GET_TIME_SECONDS);
-    }
-    else
-    {
-        OMP_PARALLEL_FOR
-        for (size_t i = 0; i < getWidth(); ++i)
-        {
-            for (size_t j = 0; j < getHeight(); ++j)
-            {
-                for (size_t k = 0; k < getDepth(); ++k)
-                {
-                    if (isBorderVoxel(i, j, k))
-                    {
-                        perSlice[i].push_back(Vec3ui_64(i, j, k));
-                    }
+                    perSlice[i].push_back(Vec3ui_64(i, j, k));
                 }
             }
         }
+        VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, getWidth()), verbose);
+        PROGRESS_UPDATE;
     }
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     return perSlice;
 }

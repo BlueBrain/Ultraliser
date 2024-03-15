@@ -47,7 +47,7 @@ void NeuronSkeletonizer::constructGraph(const bool verbose)
     auto indicesMapper = _extractNodesFromVoxels(verbose);
 
     /// DEBUG: Export the nodes file
-    if (_debugSkeleton && _debuggingPrefix != NONE) { _exportGraphNodes(_debuggingPrefix); }
+    if (_debugSkeleton && _debuggingPrefix != NONE) { _exportGraphNodes(_debuggingPrefix, verbose); }
 
     /// Connect the nodes of the skeleton to construct its edges. This operation will not connect
     /// any gaps, it will just connect the nodes extracted from the voxels.
@@ -58,7 +58,7 @@ void NeuronSkeletonizer::constructGraph(const bool verbose)
 
     /// DEBUG: Export the inflated nodes file
     if (_debugSkeleton && _debuggingPrefix != NONE)
-    { _exportGraphNodes(_debuggingPrefix + "-inflated"); }
+    { _exportGraphNodes(_debuggingPrefix + "-inflated", verbose); }
 
     /// Add a virtual soma node, until the soma is reconstructed later
     _addSomaNode();
@@ -75,7 +75,7 @@ void NeuronSkeletonizer::constructGraph(const bool verbose)
 
     /// DEBUG: Export the somatic branches
     if (_debugSkeleton && _debuggingPrefix != NONE)
-    { _exportBranches(_debuggingPrefix + "-1", SkeletonBranch::SOMATIC); }
+    { exportBranches(_debuggingPrefix + "-1", SkeletonBranch::SOMATIC, verbose); }
 
     // Verify graph connectivity
     _verifyGraphConnectivityToClosestPartition(_edges);
@@ -89,7 +89,7 @@ void NeuronSkeletonizer::constructGraph(const bool verbose)
 
     /// DEBUG: Export all the branches
     if (_debugSkeleton && _debuggingPrefix != NONE)
-    { _exportBranches(_debuggingPrefix, SkeletonBranch::ALL); }
+    { exportBranches(_debuggingPrefix, SkeletonBranch::ALL, verbose); }
 
     /// Validate the branches, and remove the branches inside the soma, i.e. consider them to
     /// be invalid
@@ -97,11 +97,11 @@ void NeuronSkeletonizer::constructGraph(const bool verbose)
 
     /// DEBUG: Export the somatic branches
     if (_debugSkeleton && _debuggingPrefix != NONE)
-    { _exportBranches(_debuggingPrefix + "-2", SkeletonBranch::SOMATIC); }
+    { exportBranches(_debuggingPrefix + "-2", SkeletonBranch::SOMATIC, verbose); }
 
     /// DEBUG: Export the valid branches
     if (_debugSkeleton && _debuggingPrefix != NONE)
-    { _exportBranches(_debuggingPrefix, SkeletonBranch::VALID); }
+    { exportBranches(_debuggingPrefix, SkeletonBranch::VALID, verbose); }
 
     /// Connect all the skeleton branches since the roots have been identified after the
     /// soma segmentation
@@ -117,7 +117,7 @@ void NeuronSkeletonizer::segmentComponents(const bool verbose)
     _filterLoopsAtSingleBranchingPoint();
 
     /// Reduce the skeleton into a list of SkeletonWeightedEdge's
-    SkeletonWeightedEdges weighteEdges = _reduceSkeletonToWeightedEdges();
+    SkeletonWeightedEdges weighteEdges = _reduceSkeletonToWeightedEdges(verbose);
 
     /// Get a list of all the branching/terminal nodes within the skeleton from the
     /// SkeletonWeightedEdges list
@@ -181,7 +181,7 @@ void NeuronSkeletonizer::segmentComponents(const bool verbose)
 
         /// DEBUG: Export the somatic branches
         if (_debugSkeleton && _debuggingPrefix != NONE)
-        { _exportBranches(_debuggingPrefix, SkeletonBranch::TWO_SAMPLE_AND_VALID); }
+        { exportBranches(_debuggingPrefix, SkeletonBranch::TWO_SAMPLE_AND_VALID, verbose); }
 
         _detectBasePaths();
 
@@ -205,15 +205,15 @@ void NeuronSkeletonizer::segmentComponents(const bool verbose)
 
         /// DEBUG: Export the somatic branches
         if (_debugSkeleton && _debuggingPrefix != NONE)
-        { _exportBranches(_debuggingPrefix, SkeletonBranch::SPINE); }
+        { exportBranches(_debuggingPrefix, SkeletonBranch::SPINE, verbose); }
 
         /// DEBUG: Export the spine locations
         if (_debugSkeleton && _debuggingPrefix != NONE)
-        { _exportSpineLocations(_debuggingPrefix); }
+        { exportSpineLocations(_debuggingPrefix, verbose); }
 
         /// DEBUG: Export the spine extents
         if (_debugSkeleton && _debuggingPrefix != NONE)
-        { _exportSpineExtents(_debuggingPrefix); }
+        { exportSpineExtents(_debuggingPrefix, verbose); }
     }
 }
 
@@ -704,10 +704,10 @@ void NeuronSkeletonizer::_reconstructSomaMeshFromProxy(const bool verbose)
     const auto& meshBoundingBox = pMaxInput - pMinInput;
 
     // Construct the volume
-    Volume* somaVolume = new Volume(pMinInput, pMaxInput, 128, 0.1);
+    Volume* somaVolume = new Volume(pMinInput, pMaxInput, 128, 0.1, VOLUME_TYPE::BIT, verbose);
 
     // Voxelize the proxy mesh
-    somaVolume->surfaceVoxelization(_somaProxyMesh, false, false, 1.0);
+    somaVolume->surfaceVoxelization(_somaProxyMesh, SILENT, false, 1.0);
     somaVolume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ, verbose);
 
     // Use DMC to reconstruct a mesh
@@ -717,8 +717,8 @@ void NeuronSkeletonizer::_reconstructSomaMeshFromProxy(const bool verbose)
     delete somaVolume;
 
     // Optimize the mesh
-    _somaMesh->smoothSurface(10);
-    _somaMesh->optimizeAdaptively(5, 5, 0.05, 5.0);
+    _somaMesh->smoothSurface(10, verbose);
+    _somaMesh->optimizeAdaptively(5, 5, 0.05, 5.0, verbose);
 }
 
 void NeuronSkeletonizer::_removeBranchesInsideSoma()
@@ -1817,6 +1817,7 @@ void NeuronSkeletonizer::exportSomaProxyMesh(const std::string& prefix,
                                              const bool& formatOFF = false,
                                              const bool& formatSTL = false)
 {
+    // Export the proxy soma mesh
     _somaProxyMesh->exportMesh(prefix + PROXY_SOMA_MESH_SUFFIX,
                                formatOBJ, formatPLY, formatOFF, formatSTL);
 }
@@ -1829,6 +1830,8 @@ void NeuronSkeletonizer::exportSomaMesh(const std::string& prefix,
 {
     // Reconstruct the soma mesh from the proxy one, only if we are going to export it
     _reconstructSomaMeshFromProxy();
+
+    // Export the soma mesh
     _somaMesh->exportMesh(prefix + SOMA_MESH_SUFFIX, formatOBJ, formatPLY, formatOFF, formatSTL);
 }
 
@@ -1859,7 +1862,8 @@ void NeuronSkeletonizer::collectSWCNodes(const SkeletonBranch* branch, SkeletonN
     }
 }
 
-SkeletonNodes NeuronSkeletonizer::constructSWCTable(const bool& resampleSkeleton)
+SkeletonNodes NeuronSkeletonizer::constructSWCTable(const bool& resampleSkeleton,
+                                                    const bool verbose)
 {
     // A table, or list that contains all the nodes in order
     SkeletonNodes swcNodes;
@@ -1878,53 +1882,56 @@ SkeletonNodes NeuronSkeletonizer::constructSWCTable(const bool& resampleSkeleton
     TIMER_SET;
     if (resampleSkeleton)
     {
-        LOOP_STARTS("Resampling Skeleton");
+        VERBOSE_LOG(LOOP_STARTS("Resampling Skeleton"), verbose);
         for (size_t i = 0; i < _branches.size(); ++i)
         {
             auto& branch = _branches[i];
 
             // Do not resample the root sections
+            // TODO: Fix the soma segment resampling issue
             if (branch->isRoot()) continue;
 
             // Resample only valid branches
-            if (branch->isValid()) { branch->resampleAdaptively(); }
-            LOOP_PROGRESS(i, _branches.size());
+            if (branch->isValid())
+            {
+                branch->resampleAdaptively();
+            }
+
+            VERBOSE_LOG(LOOP_PROGRESS(i, _branches.size()), verbose);
         }
-        LOOP_DONE;
-        LOG_STATS(GET_TIME_SECONDS);
+        VERBOSE_LOG(LOOP_DONE, verbose);
+        VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
     }
 
     // Get all the root branches
     TIMER_RESET;
-    LOOP_STARTS("Constructing SWC Table");
+    VERBOSE_LOG(LOOP_STARTS("Constructing SWC Table"), verbose);
     const size_t numberBranches = _branches.size();
     for (size_t i = 0; i < numberBranches ; ++i)
     {
-
         auto& branch = _branches[i];
         if (branch->isRoot() && branch->isValid())
         {
             // The branching index is that of the soma
             collectSWCNodes(branch, swcNodes, swcIndex, 1);
         }
-        LOOP_PROGRESS(i, numberBranches);
+        VERBOSE_LOG(LOOP_PROGRESS(i, numberBranches), verbose);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     return swcNodes;
 }
 
-void NeuronSkeletonizer::exportSWCFile(const std::string& prefix, const bool& resampleSkeleton)
+void NeuronSkeletonizer::exportSWCFile(const std::string& prefix,
+                                       const bool& resampleSkeleton,
+                                       const bool verbose)
 {
-    // Start the timer
-    TIMER_SET;
-
     // Construct the file path
     std::string filePath = prefix + SWC_EXTENSION;
-    LOG_STATUS("Exporting Neuron to SWC file: [ %s ]", filePath.c_str());
+    VERBOSE_LOG(LOG_STATUS("Exporting Neuron to SWC file: [ %s ]", filePath.c_str()), verbose);
 
-    auto swcNodes = constructSWCTable(resampleSkeleton);
+    auto swcNodes = constructSWCTable(resampleSkeleton, verbose);
 
     std::fstream stream;
     stream.open(filePath, std::ios::out);
@@ -1936,9 +1943,10 @@ void NeuronSkeletonizer::exportSWCFile(const std::string& prefix, const bool& re
            << somaNode->point.y() << " "
            << somaNode->point.z() << " "
            << somaNode->radius << " "
-           << "-1" << "\n";
+           << "-1" << NEW_LINE;
 
-    LOOP_STARTS("Writing SWC Table");
+    TIMER_SET;
+    VERBOSE_LOG(LOOP_STARTS("Writing SWC Table"), verbose);
     const size_t numberSWCNodes = swcNodes.size();
     for (size_t i = 1; i < numberSWCNodes; ++i)
     {
@@ -1950,65 +1958,21 @@ void NeuronSkeletonizer::exportSWCFile(const std::string& prefix, const bool& re
                << swcNode->point.y() << " "
                << swcNode->point.z() << " "
                << swcNode->radius << " "
-               << swcNode->prevSampleSWCIndex << "\n";
-	LOOP_PROGRESS(i, numberSWCNodes);
+               << swcNode->prevSampleSWCIndex << NEW_LINE;
+
+        VERBOSE_LOG(LOOP_PROGRESS(i, numberSWCNodes), verbose);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Close the file
     stream.close();
 }
 
-void NeuronSkeletonizer::_exportSomaticBranches(const std::string& prefix) const
+void NeuronSkeletonizer::exportBranches(const std::string& prefix,
+                                        const SkeletonBranch::BRANCH_STATE state,
+                                        const bool verbose)
 {
-    // Start the timer
-    TIMER_SET;
-
-    // Construct the file path
-    std::string filePath = prefix + "-somatic" + BRANCHES_EXTENSION;
-    LOG_STATUS("Exporting Somatic Branches: [ %s ]", filePath.c_str());
-
-    std::fstream stream;
-    stream.open(filePath, std::ios::out);
-
-    LOOP_STARTS("Writing Somatic Branches");
-    size_t progress = 0;
-    for (size_t i = 0; i < _branches.size(); ++i)
-    {
-        if (_branches[i]->isInsideSoma())
-        {
-            // The @start marks a new branch in the file
-            stream << "start " << _branches[i]->index << "\n";
-
-            for (auto& node: _branches[i]->nodes)
-            {
-                stream << node->point.x() << " "
-                       << node->point.y() << " "
-                       << node->point.z() << " "
-                       << node->radius << "\n";
-            }
-
-            // The @end marks the terminal sample of a branch
-            stream << "end\n";
-        }
-
-        LOOP_PROGRESS(progress, _branches.size());
-        ++progress;
-    }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
-
-    // Close the file
-    stream.close();
-}
-
-void NeuronSkeletonizer::_exportBranches(const std::string& prefix,
-                                         const SkeletonBranch::BRANCH_STATE state)
-{
-    // Start the timer
-    TIMER_SET;
-
     // Construct the file path
     std::string filePath = prefix;
     if (state == SkeletonBranch::INVALID)
@@ -2046,7 +2010,7 @@ void NeuronSkeletonizer::_exportBranches(const std::string& prefix,
 
     filePath += BRANCHES_EXTENSION;
 
-    LOG_STATUS("Exporting Neuron Branches: [ %s ]", filePath.c_str());
+    VERBOSE_LOG(LOG_STATUS("Exporting Neuron Branches: [ %s ]", filePath.c_str()), verbose);
 
     std::fstream stream;
     stream.open(filePath, std::ios::out);
@@ -2131,8 +2095,14 @@ void NeuronSkeletonizer::_exportBranches(const std::string& prefix,
         }
     }
 
-    LOOP_STARTS("Writing Branches");
-    size_t progress = 0;
+    if (toWrite.size() == 0)
+    {
+        LOG_WARNING("No Branches have been Collected! Aborting Export!");
+        return;
+    }
+
+    TIMER_SET;
+    VERBOSE_LOG(LOOP_STARTS("Writing Branches"), verbose);
     for (size_t i = 0; i < toWrite.size(); ++i)
     {
         // The @start marks a new branch in the file
@@ -2143,111 +2113,84 @@ void NeuronSkeletonizer::_exportBranches(const std::string& prefix,
             stream << node->point.x() << " "
                    << node->point.y() << " "
                    << node->point.z() << " "
-                   << node->radius << "\n";
+                   << node->radius << NEW_LINE;
         }
+
         // The @end marks the terminal sample of a branch
         stream << "end\n";
 
-        LOOP_PROGRESS(progress, toWrite.size());
-        ++progress;
+        VERBOSE_LOG(LOOP_PROGRESS(i, toWrite.size()), verbose);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Close the file
     stream.close();
 }
 
-void NeuronSkeletonizer::_exportSpineLocations(const std::string& prefix) const
+void NeuronSkeletonizer::exportSpineLocations(const std::string& prefix, const bool verbose) const
 {
-    // Start the timer
-    TIMER_SET;
+    if (_spineRoots.size() == 0)
+    {
+        LOG_WARNING("No Spines have been Identified! Aborting Export!");
+        return;
+    }
 
     // Construct the file path
     std::string filePath = prefix + "-spine-locations" + NODES_EXTENSION;
-    LOG_STATUS("Exporting Spines Locations: [ %s ]", filePath.c_str());
+    VERBOSE_LOG(LOG_STATUS("Exporting Spines Locations: [ %s ]", filePath.c_str()), verbose);
 
     std::fstream stream;
     stream.open(filePath, std::ios::out);
 
-    LOOP_STARTS("Writing Spines Locations");
-    size_t progress = 0;
+    TIMER_SET;
+    VERBOSE_LOG(LOOP_STARTS("Writing Locations (per Spine)"), verbose);
     for (size_t i = 0; i < _spineRoots.size(); ++i)
     {
         auto node = _spineRoots[i]->nodes[0];
 
         stream << node->point.x() << " "
                << node->point.y() << " "
-               << node->point.z() << "\n";
+               << node->point.z() << NEW_LINE;
 
-        LOOP_PROGRESS(progress, _spineRoots.size());
-        ++progress;
+        VERBOSE_LOG(LOOP_PROGRESS(i, _spineRoots.size()), verbose);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Close the file
     stream.close();
 }
 
-
-void NeuronSkeletonizer::_handleSpines(SkeletonBranch* root) const
+void NeuronSkeletonizer::exportSpineExtents(const std::string& prefix, const bool verbose) const
 {
-    // From the spine morphology create a mesh
-    // Create a new class called SpineMorphology
-    SpineMorphology* spineMorphology = new SpineMorphology(root);
-    std::stringstream prefixs;
-    prefixs << "/home/abdellah/spines/models/spine_" << root->index;
-    spineMorphology->exportBranches(prefixs.str());
-
-    auto mesh = spineMorphology->reconstructMesh(20, true);
-    std::stringstream prefixss;
-    prefixss << "/home/abdellah/spines/models/spine_" << root->index;
-    mesh->exportMesh(prefixss.str(), true);
-
-
-
-
-
-
-
-    // Voxelize the neuro mesh at the selected region
-
-    // Get the cloud of the volume
-
-    // Map the spine mesh onto the cloud
-
-    // Re-skeletonize the mesh and extract a nice skeleton !
-
-}
-
-
-
-void NeuronSkeletonizer::_exportSpineExtents(const std::string& prefix) const
-{
-    // Start the timer
-    TIMER_SET;
+    if (_spineRoots.size() == 0)
+    {
+        LOG_WARNING("No Spines have been Identified! Aborting Export!");
+        return;
+    }
 
     // Construct the file path
     std::string filePath = prefix + "-spine-extents" + NODES_EXTENSION;
-    LOG_STATUS("Exporting Spines Extents: [ %s ]", filePath.c_str());
+    VERBOSE_LOG(LOG_STATUS("Exporting Spines Extents: [ %s ]", filePath.c_str()), verbose);
 
     std::fstream stream;
     stream.open(filePath, std::ios::out);
 
-    LOOP_STARTS("Writing Spines Extents");
+    TIMER_SET;
+    VERBOSE_LOG(LOOP_STARTS("Writing Extents (per Spine)"), verbose);
     for (size_t i = 0; i < _spineRoots.size(); ++i)
     {
         Vector3f pMin, pMax, bounds, center;
         getLogicalTreeBoundingBox(_spineRoots[i], pMin, pMax, bounds, center);
 
         stream << center.x() << " " << center.y() << " " << center.z() << " "
-               << bounds.x() << " " << bounds.y() << " " << bounds.z() << "\n";
+               << bounds.x() << " " << bounds.y() << " " << bounds.z() << NEW_LINE;
 
-        LOOP_PROGRESS(i, _spineRoots.size());
+        VERBOSE_LOG(LOOP_PROGRESS(i, _spineRoots.size()), verbose);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Close the file
     stream.close();

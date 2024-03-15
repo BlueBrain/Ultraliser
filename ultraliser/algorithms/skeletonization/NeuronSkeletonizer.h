@@ -80,8 +80,10 @@ public:
       * @param resampleSkeleton
       * If this flag is set, the morphology skeleton will be adaptively resampled to remove
       * useless samples and create an optimum skeleton. False by default.
+      * @param verbose
       */
-    void exportSWCFile(const std::string& prefix, const bool &resampleSkeleton=false);
+    void exportSWCFile(const std::string& prefix, const bool &resampleSkeleton = false,
+                       const bool verbose = VERBOSE);
 
     /**
      * @brief constructSWCTable
@@ -93,8 +95,10 @@ public:
      * @param resampleSkeleton
      * If this flag is set, the morphology skeleton will be adaptively resampled to remove
      * useless samples and create an optimum skeleton. False by default.
+     * @param verbose
      */
-    SkeletonNodes constructSWCTable(const bool &resampleSkeleton=false);
+    SkeletonNodes constructSWCTable(const bool &resampleSkeleton = false,
+                                    const bool verbose = VERBOSE);
 
     /**
      * @brief collectSWCNodes
@@ -176,7 +180,29 @@ public:
                                   const float& voxelsPerMicron,
                                   const float& edgeGap = 0.1);
 
-    void _exportSpineExtents(const std::string& prefix) const;
+    /**
+     * @brief exportBranches
+     * @param prefix
+     * @param state
+     * @param verbose
+     */
+    void exportBranches(const std::string &prefix, const SkeletonBranch::BRANCH_STATE state,
+                        const bool verbose = VERBOSE);
+
+    /**
+     * @brief exportSpineLocations
+     * @param prefix
+     * @param verbose
+     */
+    void exportSpineLocations(const std::string& prefix, const bool verbose = VERBOSE) const;
+
+    /**
+     * @brief exportSpineExtents
+     * @param prefix
+     * @param verbose
+     */
+    void exportSpineExtents(const std::string& prefix, const bool verbose = VERBOSE) const;
+
 
 
 private:
@@ -351,7 +377,6 @@ private:
 
     void _reconstructSomaMeshFromProxy(const bool verbose = VERBOSE);
 
-    void _exportBranches(const std::string &prefix, const SkeletonBranch::BRANCH_STATE state);
 
     /**
      * @brief _verifyGraphConnectivity
@@ -376,11 +401,9 @@ private:
     void _exportSomaticNodes(const std::string prefix);
 
 
-    void _exportSomaticBranches(const std::string& prefix) const;
 
-    void _exportSpineLocations(const std::string& prefix) const;
 
-    void _handleSpines(SkeletonBranch* root) const;
+
 
 private:
     /**

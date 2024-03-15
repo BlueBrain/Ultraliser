@@ -1708,48 +1708,42 @@ void Mesh::smoothNormal(const int64_t n)
     {
         _vertices[n] = position / I2F(number);
     }
-
 }
 
-void Mesh::smoothNormals()
+void Mesh::smoothNormals(const bool verbose)
 {
-    // Starting timer
     TIMER_SET;
-
-    LOG_STATUS("Smoothing Mesh Normals");
+    VERBOSE_LOG(LOG_STATUS("Smoothing Mesh Normals"), verbose);
 
     // Check if neighborlist is created
     if (_neighborList == nullptr)
-        _createNeighbourList();
+        _createNeighbourList(verbose);
 
     // Normal smooth all vertices
-    LOOP_STARTS("Smoothing Normals");
+    VERBOSE_LOG(LOOP_STARTS("Smoothing Normals"), verbose);
     for (size_t n = 0; n < _numberVertices; n++)
     {
-        LOOP_PROGRESS(n, _numberVertices);
-
         smoothNormal(n);
+        VERBOSE_LOG(LOOP_PROGRESS(n, _numberVertices), verbose);
     }
-    LOOP_DONE;
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     float minAngle, maxAngle;
     int64_t numSmall, numLarge;
     computeAngles(&minAngle, &maxAngle, &numSmall, &numLarge, 15, 150);
 
-    LOG_WARNING("Min. Angle: [%f],  Max. Angle : [%f], Smaller than 15: [%d], Larger than 150: [%d]",
-                F2D(minAngle), F2D(maxAngle), numSmall, numLarge);
-
-    // Statistics
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOG_WARNING("Min. Angle: [%f],  Max. Angle : [%f], "
+                            "Smaller than 15: [%d], Larger than 150: [%d]",
+                            F2D(minAngle), F2D(maxAngle), numSmall, numLarge), verbose);
 }
 
 bool Mesh::smooth(const int64_t &maxMinAngle, const int64_t &minMaxAngle,
-                  const int64_t &maxIteration, const bool &flipEdges)
+                  const int64_t &maxIteration, const bool &flipEdges,
+                  const bool verbose)
 {
-    // Starting the timer
     TIMER_SET;
-
-    LOG_STATUS("Smoothing Mesh Surface");
+    VERBOSE_LOG(LOG_STATUS("Smoothing Mesh Surface"), verbose);
 
     float minAngle, maxAngle;
     int64_t numSmall, numLarge;
@@ -1757,7 +1751,7 @@ bool Mesh::smooth(const int64_t &maxMinAngle, const int64_t &minMaxAngle,
 
     // Check if neighborlist is created
     if (_neighborList == nullptr)
-        _createNeighbourList();
+        _createNeighbourList(verbose);
 
     // Global index
     int64_t i = 0;
@@ -1774,11 +1768,9 @@ bool Mesh::smooth(const int64_t &maxMinAngle, const int64_t &minMaxAngle,
                   minMaxAngle, numLarge);
     }
 
-    LOOP_STARTS("Smoothing Faces");
+    VERBOSE_LOG(LOOP_STARTS("Smoothing Faces"), verbose);
     while (!smoothed && i < maxIteration)
     {
-        LOOP_PROGRESS(i, maxIteration);
-
         // Increment the index
         ++i;
 
@@ -1821,15 +1813,18 @@ bool Mesh::smooth(const int64_t &maxMinAngle, const int64_t &minMaxAngle,
 
         // Check if the mesh is smoothed or not
         smoothed = (minAngle > maxMinAngle) && (maxAngle < minMaxAngle);
-    }
-    LOOP_DONE;
 
-    LOG_WARNING("Min. angle: %f, Max. angle: %f, "
-                "Smaler than %d: %d, Larger than %d: %d \n",
-                F2D(minAngle), F2D(maxAngle), maxMinAngle, numSmall, minMaxAngle, numLarge);
+        VERBOSE_LOG(LOOP_PROGRESS(i, maxIteration), verbose);
+    }
+    VERBOSE_LOG(LOOP_DONE, verbose);
+
+    VERBOSE_LOG(LOG_WARNING("Min. angle: %f, Max. angle: %f, "
+                            "Smaler than %d: %d, Larger than %d: %d \n",
+                            F2D(minAngle), F2D(maxAngle), maxMinAngle, numSmall,
+                            minMaxAngle, numLarge), verbose);
 
     // Statistics
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     return smoothed;
 }
@@ -3107,61 +3102,61 @@ bool Mesh::coarse(const float& coarseRate,
     return false;
 }
 
-void Mesh::coarseDense(const float& denseRate, const int64_t &iterations)
+void Mesh::coarseDense(const float& denseRate, const int64_t &iterations, const bool verbose)
 {
-    // Starting the timer
     TIMER_SET;
+    VERBOSE_LOG(LOG_STATUS("Coarsing (Dense)"), verbose);
 
     for (int64_t i = 0; i < iterations; ++i)
         if (!coarse(denseRate, 0, 10, -1, i)) break;
 
     // Statistics
-    LOG_STATUS_IMPORTANT("Dense Coarsing (Decimation) Stats.");
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOG_STATUS("Dense Coarsing (Decimation) Stats."), verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
 void Mesh::coarseFlat(const float& flatnessRate,
-                      const int64_t &iterations)
+                      const int64_t &iterations,
+                      const bool verbose)
 {
-    // Starting the timer
     TIMER_SET;
+    VERBOSE_LOG(LOG_STATUS("Coarsing (Flat)"), verbose);
 
     for (int64_t i = 0; i < iterations; ++i)
         if (!coarse(flatnessRate, 1, 0, -1, i)) break;
 
     // Statistics
-    LOG_STATUS("Flat Coarsing (Decimation) Stats.");
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOG_STATUS("Flat Coarsing (Decimation) Stats."), verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
 void Mesh::optimizeAdaptively(const size_t &optimizationIterations,
                               const size_t &smoothingIterations,
                               const float &flatFactor,
-                              const float &denseFactor)
+                              const float &denseFactor,
+                              const bool verbose)
 {
-    LOG_TITLE("Adaptive Mesh Optimization");
-
-    // Starting the timer
     TIMER_SET;
+    VERBOSE_LOG(LOG_TITLE("Adaptive Mesh Optimization"), verbose);
 
     // Coarse flat
-    coarseFlat(flatFactor, optimizationIterations);
+    coarseFlat(flatFactor, optimizationIterations, verbose);
 
     // Smooth normals
-    smoothNormals();
+    smoothNormals(verbose);
 
     // Smooth
-    smooth(15, 150, smoothingIterations);
+    smooth(15, 150, smoothingIterations, true, verbose);
 
     // Smooth normals
-    smoothNormals();
+    smoothNormals(verbose);
 
     // Statistics
     _optimizationTime = GET_TIME_SECONDS;
 
     // Statistics
-    LOG_STATUS_IMPORTANT("Total Optimization");
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOG_STATUS_IMPORTANT("Optimization Stats."), verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
 void Mesh::optimize(const size_t &optimizationIterations,

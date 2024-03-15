@@ -62,13 +62,13 @@ public:
      * Copy constructor
      * @param volume Input volume to be copied.
      */
-    Volume(const Volume* volume, const bool& verbose = true);
+    Volume(const Volume* volume);
 
     /**
      * @brief Volume
      * @param filePath
      */
-    Volume(const std::string &filePath, const bool& verbose = true);
+    Volume(const std::string &filePath);
 
     /**
      * @brief Volume
@@ -91,7 +91,7 @@ public:
            const size_t &baseResolution = 512,
            const float &expansionRatio = 0.0,
            const VOLUME_TYPE& gridType = VOLUME_TYPE::BIT,
-           const bool& verbose = true);
+           const bool verbose = VERBOSE);
 
     /**
      * @brief Volume
@@ -106,8 +106,7 @@ public:
            const Vector3f pMin = Vector3f::ZERO,
            const Vector3f pMax = Vector3f::ZERO,
            const VOLUME_TYPE& gridType = VOLUME_TYPE::BIT,
-           const float expansionRatio = 0.0,
-           const bool& verbose = true);
+           const float expansionRatio = 0.0);
 
     ~Volume();
 
@@ -242,7 +241,7 @@ public:
      */
     void surfaceVoxelizeNeuronMorphology(NeuronMorphology* neuronMorphology,
                                          const std::string &packingAlgorithm,
-                                         const bool& verbose = false);
+                                         const bool& verbose = SILENT);
 
     /**
      * @brief surfaceVoxelizeSpineMorphology
@@ -250,7 +249,8 @@ public:
      * @param packingAlgorithm
      */
     void surfaceVoxelizeSpineMorphology(SpineMorphology* spineMorphology,
-                                        const std::string &packingAlgorithm);
+                                        const std::string &packingAlgorithm,
+                                        const bool verbose = SILENT);
 
     /**
      * @brief surfaceVoxelizeAstrocyteMorphology
@@ -277,7 +277,7 @@ public:
      * @param axis
      * @param verbose
      */
-    void solidVoxelization(const SOLID_VOXELIZATION_AXIS& axis=X, const bool &verbose = true);
+    void solidVoxelization(const SOLID_VOXELIZATION_AXIS& axis=X, const bool &verbose = VERBOSE);
 
     /**
      * @brief solidVoxelizationROI
@@ -1001,7 +1001,7 @@ private:
      * @brief _createGrid
      * Creates the volume grid and initializes it to zeros.
      */
-    void _createGrid();
+    void _createGrid(const bool verbose = VERBOSE);
 
     /**
      * @brief _createGrid
@@ -1235,8 +1235,6 @@ private:
     int _triangleCubeSign(Mesh* mesh, int tIdx, const GridIndex& boundingBox);
 
 private:
-
-    bool _globalVerbose = true;
 
     /**
      * @brief grid
