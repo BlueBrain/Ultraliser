@@ -95,6 +95,21 @@ SkeletonBranches _detectChildren(SkeletonBranch* currentBranch, SkeletonBranches
 void identifyTerminalConnections(SkeletonBranches& branches);
 
 /**
+ * @brief identifyTerminalBranchesForSpine
+ * @param branches
+ */
+void identifyTerminalBranchesForSpine(SkeletonBranches& branches);
+
+/**
+ * @brief identifyRootBranchForSpine
+ * @param branches
+ * @param basePoint
+ * @return
+ */
+SkeletonBranch* identifyRootBranchForSpine(SkeletonBranches& branches,
+                                           const Vector3f basePoint);
+
+/**
  * @brief confirmTerminalsBranches
  * @param branches
  */

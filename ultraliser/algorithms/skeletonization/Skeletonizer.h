@@ -115,8 +115,9 @@ public:
 
     /**
      * @brief skeletonizeVolumeToCenterLines
+     * @param verbose
      */
-    virtual void skeletonizeVolumeToCenterLines();
+    virtual void skeletonizeVolumeToCenterLines(const bool verbose = VERBOSE);
 
     /**
      * @brief skeletonizeVolumeBlockByBlock
@@ -125,8 +126,9 @@ public:
      * @param numberZeroVoxels
      */
     virtual void skeletonizeVolumeBlockByBlock(const size_t& blockSize = 512,
-                                       const size_t& numberOverlappingVoxels = 25,
-                                       const size_t& numberZeroVoxels = 5);
+                                               const size_t& numberOverlappingVoxels = 25,
+                                               const size_t& numberZeroVoxels = 5,
+                                               const bool verbose = VERBOSE);
 
 
 
@@ -139,7 +141,7 @@ public:
 
 
 
-    virtual void segmentComponents() = 0;
+    virtual void segmentComponents(const bool verbose = VERBOSE) = 0;
 
 
     void applyVolumeThinningWithDomainDecomposition();
@@ -163,8 +165,9 @@ protected:
      * @brief _computeShellPoints
      * Computes the shell points of the volume, i.e. the points that are representing the surface
      * shell of the volume, or those on its boundary and not internal.
+     * @param verbose
      */
-    void _computeShellPoints();
+    void _computeShellPoints(const bool verbose = VERBOSE);
 
     /**
      * @brief _computeShellPointsUsingAcceleration
@@ -174,34 +177,46 @@ protected:
      * @param thinningVoxels
      * The ThinningVoxels list that contains all the filled voxels that will be used directly
      * to skeletonize the volume.
+     * @param verbose
      */
-    void _computeShellPointsUsingAcceleration(ThinningVoxelsUI16List &thinningVoxels);
+    void _computeShellPointsUsingAcceleration(ThinningVoxelsUI16List &thinningVoxels,
+                                              const bool verbose = VERBOSE);
 
     /**
      * @brief _scaleShellPoints
      * Scales the extracted shell points to ensure their mapping to the input mesh, if any.
+     * @param verbose
      */
-    void _scaleShellPoints();
+    void _scaleShellPoints(const bool verbose = VERBOSE);
 
     /**
      * @brief _applyVolumeThinning
      * Apply the VolumeThinning kernels to extract the center-lines of the volume.
+     * @param verbose
      */
-    void _applyVolumeThinning();
+    void _applyVolumeThinning(const bool verbose = VERBOSE);
 
     /**
      * @brief _applyVolumeThinningUsingAcceleration
      * Apply the VolumeThinning kernels to extract the center-lines of the volume, using the
      * acceleration data structures that were built during the initialization stage.
      */
-    void _applyVolumeThinningUsingAcceleration();
+
+    /**
+     * @brief _applyVolumeThinningUsingAcceleration
+     * Apply the VolumeThinning kernels to extract the center-lines of the volume, using the
+     * acceleration data structures that were built during the initialization stage.
+     * @param verbose
+     */
+    void _applyVolumeThinningUsingAcceleration(const bool verbose = VERBOSE);
 
     /**
      * @brief _extractNodesFromVoxels
      * Extract the graph nodes from the centerline voxels remaining in the volume.
+     * @param verbose
      * @return
      */
-    std::map< size_t, size_t > _extractNodesFromVoxels();
+    std::map< size_t, size_t > _extractNodesFromVoxels(const bool verbose = VERBOSE);
 
     /**
      * @brief _extractNodesFromVoxelsNaive
@@ -209,13 +224,13 @@ protected:
      * naive loops. Note that this function is just keep for benchmarking.
      * @return
      */
-    std::map< size_t, size_t > _extractNodesFromVoxelsNaive();
+    std::map< size_t, size_t > _extractNodesFromVoxelsNaive(const bool verbose = VERBOSE);
 
     /**
      * @brief _extractNodesFromVoxelsUsingSlicing
      * @return
      */
-    std::map< size_t, size_t > _extractNodesFromVoxelsUsingSlicing();
+    std::map< size_t, size_t > _extractNodesFromVoxelsUsingSlicing(const bool verbose = VERBOSE);
 
     /**
      * @brief _extractNodesFromVoxelsUsingAcceleration
@@ -255,8 +270,9 @@ protected:
      * @brief _exportGraphNodes
      * Debugging function.
      * @param prefix
+     * @param verbose
      */
-    void _exportGraphNodes(const std::string prefix);
+    void _exportGraphNodes(const std::string prefix, const bool verbose = VERBOSE);
 
 
 protected:

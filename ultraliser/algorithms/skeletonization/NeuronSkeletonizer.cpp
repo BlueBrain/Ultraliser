@@ -44,17 +44,17 @@ void NeuronSkeletonizer::constructGraph(const bool verbose)
 {
     /// Extract the nodes of the skeleton from the center-line "thinned" voxels and return a
     /// mapper that maps the indices of the voxels in the volume and the nodes in the skeleton
-    auto indicesMapper = _extractNodesFromVoxels();
+    auto indicesMapper = _extractNodesFromVoxels(verbose);
 
     /// DEBUG: Export the nodes file
     if (_debugSkeleton && _debuggingPrefix != NONE) { _exportGraphNodes(_debuggingPrefix); }
 
     /// Connect the nodes of the skeleton to construct its edges. This operation will not connect
     /// any gaps, it will just connect the nodes extracted from the voxels.
-    _connectNodesToBuildEdges(indicesMapper);
+    _connectNodesToBuildEdges(indicesMapper, verbose);
 
     /// Inflate the nodes, i.e. adjust their radii
-    _inflateNodes();
+    _inflateNodes(verbose);
 
     /// DEBUG: Export the inflated nodes file
     if (_debugSkeleton && _debuggingPrefix != NONE)
@@ -68,10 +68,10 @@ void NeuronSkeletonizer::constructGraph(const bool verbose)
     // OMP_PARALLEL_FOR for (size_t i = 1; i <= _nodes.size(); ++i) { _nodes[i - 1]->index = i; }
 
     /// Segmentthe soma mesh from the branches
-    _segmentSomaMesh();
+    _segmentSomaMesh(verbose);
 
     /// Identify the somatic nodes in the skeleton
-    _identifySomaticNodes();
+    _identifySomaticNodes(verbose);
 
     /// DEBUG: Export the somatic branches
     if (_debugSkeleton && _debuggingPrefix != NONE)
@@ -108,10 +108,10 @@ void NeuronSkeletonizer::constructGraph(const bool verbose)
     _connectBranches();
 }
 
-void NeuronSkeletonizer::segmentComponents()
+void NeuronSkeletonizer::segmentComponents(const bool verbose)
 {
     /// Initially, and before constructing the graph, remove the loops between two branching points
-    _filterLoopsBetweenTwoBranchingPoints();
+    _filterLoopsBetweenTwoBranchingPoints(verbose);
 
     /// Remove the loops at a single branching point, i.e. starting and ending at the same node.
     _filterLoopsAtSingleBranchingPoint();
@@ -121,7 +121,8 @@ void NeuronSkeletonizer::segmentComponents()
 
     /// Get a list of all the branching/terminal nodes within the skeleton from the
     /// SkeletonWeightedEdges list
-    SkeletonNodes skeletonBranchingNodes = _selectBranchingNodesFromWeightedEdges(weighteEdges);
+    SkeletonNodes skeletonBranchingNodes = _selectBranchingNodesFromWeightedEdges(weighteEdges,
+                                                                                  verbose);
 
     /// Get the soma node index within the weighted graph
     int64_t somaNodeIndex = _getSomaIndexFromGraphNodes(skeletonBranchingNodes);
@@ -144,16 +145,17 @@ void NeuronSkeletonizer::segmentComponents()
 
     // Find the shortest paths of all the terminals and get a list of the indices of the active edges
     EdgesIndices edgeIndices = _findShortestPathsFromTerminalNodesToSoma(
-                weighteEdges, skeletonBranchingNodes, graphNodes, somaNodeIndex);
+                weighteEdges, skeletonBranchingNodes, graphNodes, somaNodeIndex, verbose);
 
     // Construct the GraphBranches from the GraphNodes
-    GraphBranches graphBranches = _constructGraphBranchesFromGraphNodes(graphNodes, somaNodeIndex);
+    GraphBranches graphBranches = _constructGraphBranchesFromGraphNodes(
+                graphNodes, somaNodeIndex, verbose);
 
     // Construct the hierarchy of the graph
-    _constructGraphHierarchy(graphBranches);
+    _constructGraphHierarchy(graphBranches, verbose);
 
     // Construct the hierarchy of the skeleton
-    _constructSkeletonHierarchy(graphBranches);
+    _constructSkeletonHierarchy(graphBranches, verbose);
 
     // Invalidate the inactive branches
     _detectInactiveBranches(weighteEdges, edgeIndices);
@@ -501,9 +503,9 @@ void NeuronSkeletonizer::_addSomaNode()
     _nodes.push_back(_somaNode);
 }
 
-void NeuronSkeletonizer::_segmentSomaMesh()
+void NeuronSkeletonizer::_segmentSomaMesh(const bool verbose)
 {
-    LOG_STATUS("Segmenting Soma");
+    VERBOSE_LOG(LOG_STATUS("Segmenting Soma Mesh"), verbose);
 
     // The _somaProxyMesh should be a complex geometry containing overlapping spheres that would define
     // its structure
@@ -541,7 +543,7 @@ void NeuronSkeletonizer::_segmentSomaMesh()
     size_t numberSelectedNodes = interSomaticNodesCount;
 
     TIMER_SET;
-    LOOP_STARTS("Detecting Soma Nodes");
+    VERBOSE_LOG(LOOP_STARTS("Detecting Soma Nodes"), verbose);
     for (size_t i = 0; i < numberSelectedNodes; ++i)
     {
         auto& node0 = _nodes[pairsVector[i].first];
@@ -557,10 +559,10 @@ void NeuronSkeletonizer::_segmentSomaMesh()
         estimatedSomaCenter += node0->point;
         numberSamples++;
 
-       LOOP_PROGRESS(i, numberSelectedNodes);
+       VERBOSE_LOG(LOOP_PROGRESS(i, numberSelectedNodes), verbose);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Normalize
     estimatedSomaCenter /= numberSamples;
@@ -570,18 +572,18 @@ void NeuronSkeletonizer::_segmentSomaMesh()
     _somaNode->radius = 0.5; /// TODO: Fix me
 }
 
-void NeuronSkeletonizer::_identifySomaticNodes()
+void NeuronSkeletonizer::_identifySomaticNodes(const bool verbose)
 {
     TIMER_SET;
-    LOG_STATUS("Identifying Somatic Nodes");
+    VERBOSE_LOG(LOG_STATUS("Identifying Somatic Nodes"), verbose);
 
     // Clear the volume to start using the same grid for filling the soma
     _volume->clear();
 
     // Rasterize the soma mesh
-    LOOP_STARTS("Surface Voxelization");
+    VERBOSE_LOG(LOOP_STARTS("Surface Voxelization"), verbose);
     _volume->surfaceVoxelization(_somaProxyMesh, false, false);
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // This is a list of 1D indices of all the voxels that are inside the soma
     std::vector< size_t > insideSomaVoxels;
@@ -626,14 +628,14 @@ void NeuronSkeletonizer::_identifySomaticNodes()
 
         // Apply the solid voxelization only to the selected ROI to avoid flood-filling large slices
         TIMER_RESET;
-        LOOP_STARTS("Solid Voxelization ROI *");
+        VERBOSE_LOG(LOOP_STARTS("Solid Voxelization ROI *"), verbose);
         _volume->solidVoxelizationROI(Volume::SOLID_VOXELIZATION_AXIS::X, x1, x2, y1, y2, z1, z2,
                                       false);
-        LOG_STATS(GET_TIME_SECONDS);
+        VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
         // Compute the voxels that are inside the soma
         TIMER_RESET;
-        LOOP_STARTS("Finding Somatic Voxels");
+        VERBOSE_LOG(LOOP_STARTS("Finding Somatic Voxels"), verbose);
         for (size_t i = x1; i <= x2; ++i)
         {
             for (size_t j = y1; j <= y2; ++j)
@@ -648,7 +650,7 @@ void NeuronSkeletonizer::_identifySomaticNodes()
                 }
             }
         }
-        LOG_STATS(GET_TIME_SECONDS);
+        VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
     }
 
     // This branch is used for debugging just in case any optimizations fail
@@ -656,23 +658,23 @@ void NeuronSkeletonizer::_identifySomaticNodes()
     {
         // Apply solid voxelization on the entire slice
         TIMER_RESET;
-        LOOP_STARTS("Solid Voxelization");
+        VERBOSE_LOG(LOOP_STARTS("Solid Voxelization"), verbose);
         _volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::X);
-        LOG_STATS(GET_TIME_SECONDS);
+        VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
         // Compute the voxels that are inside the soma
         TIMER_RESET;
-        LOOP_STARTS("Finding Somatic Voxels");
+        VERBOSE_LOG(LOOP_STARTS("Finding Somatic Voxels"), verbose);
         for (size_t i = 0; i < _volume->getNumberVoxels(); ++i)
         {
             if (_volume->isFilled(i)) { insideSomaVoxels.push_back(i); }
         }
-        LOG_STATS(GET_TIME_SECONDS);
+        VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
     }
 
     // Find out the nodes that are inside the soma
     TIMER_RESET;
-    LOOP_STARTS("Mapping Voxels to Nodes");
+    VERBOSE_LOG(LOOP_STARTS("Mapping Voxels to Nodes"), verbose);
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
@@ -687,14 +689,14 @@ void NeuronSkeletonizer::_identifySomaticNodes()
             node->insideSoma = true;
         }
     }
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     /// TODO: The volume is safe to be deallocated
     _volume->~Volume();
     _volume = nullptr;
 }
 
-void NeuronSkeletonizer::_reconstructSomaMeshFromProxy()
+void NeuronSkeletonizer::_reconstructSomaMeshFromProxy(const bool verbose)
 {
     // Get relaxed bounding box to build the volume
     Vector3f pMinInput, pMaxInput;
@@ -706,10 +708,10 @@ void NeuronSkeletonizer::_reconstructSomaMeshFromProxy()
 
     // Voxelize the proxy mesh
     somaVolume->surfaceVoxelization(_somaProxyMesh, false, false, 1.0);
-    somaVolume->solidVoxelization();
+    somaVolume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ, verbose);
 
     // Use DMC to reconstruct a mesh
-    _somaMesh = DualMarchingCubes::generateMeshFromVolume(somaVolume);
+    _somaMesh = DualMarchingCubes::generateMeshFromVolume(somaVolume, verbose);
 
     // Free the volume
     delete somaVolume;
@@ -721,7 +723,6 @@ void NeuronSkeletonizer::_reconstructSomaMeshFromProxy()
 
 void NeuronSkeletonizer::_removeBranchesInsideSoma()
 {
-    // OMP_PARALLEL_FOR
     for (size_t i = 0; i < _branches.size(); ++i)
     {
         auto& branch = _branches[i];
@@ -825,10 +826,10 @@ void NeuronSkeletonizer::_removeBranchesInsideSoma()
     }
 }
 
-void NeuronSkeletonizer::_filterLoopsBetweenTwoBranchingPoints()
+void NeuronSkeletonizer::_filterLoopsBetweenTwoBranchingPoints(const bool verbose)
 {
     TIMER_SET;
-    LOG_STATUS("Filtering Loops Between Two Branches");
+    VERBOSE_LOG(LOG_STATUS("Filtering Loops Between Two Branches"), verbose);
     for (size_t i = 0; i < _branches.size(); ++i)
     {
         // Reference to the iBranch
@@ -869,10 +870,10 @@ void NeuronSkeletonizer::_filterLoopsBetweenTwoBranchingPoints()
                 }
             }
         }
-        LOOP_PROGRESS(i, _branches.size());
+        VERBOSE_LOG(LOOP_PROGRESS(i, _branches.size()), verbose);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
 void NeuronSkeletonizer::_filterLoopsAtSingleBranchingPoint()
@@ -891,10 +892,9 @@ void NeuronSkeletonizer::_filterLoopsAtSingleBranchingPoint()
     }
 }
 
-SkeletonWeightedEdges NeuronSkeletonizer::_reduceSkeletonToWeightedEdges()
+SkeletonWeightedEdges NeuronSkeletonizer::_reduceSkeletonToWeightedEdges(const bool verbose)
 {
-    TIMER_SET;
-    LOG_STATUS("Created Simplified Weighted Graph from Skeleton");
+    VERBOSE_LOG(LOG_STATUS("Creating Simplified Weighted Graph from Skeleton"), verbose);
 
     /// The "thinned" skeleton has a list of edges, but indeed we would like to simplify it to
     /// avoid spending hours traversing it. Therefore, we created a "weighted skeleton", where
@@ -903,6 +903,9 @@ SkeletonWeightedEdges NeuronSkeletonizer::_reduceSkeletonToWeightedEdges()
     /// nodes. The "weighted edges" must be constructed only for valid branches.
     SkeletonWeightedEdges edges;
     const auto branchesCount = _branches.size();
+
+    TIMER_SET;
+    VERBOSE_LOG(LOOP_STARTS("Constructing Weighted Edges"), verbose);
     for (size_t i = 0; i < _branches.size(); ++i)
     {
         // Reference to the current branch
@@ -921,20 +924,19 @@ SkeletonWeightedEdges NeuronSkeletonizer::_reduceSkeletonToWeightedEdges()
             edges.push_back(edge);
         }
 
-        LOOP_PROGRESS(i, branchesCount);
+        VERBOSE_LOG(LOOP_PROGRESS(i, branchesCount), verbose);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Return the resulting edges array that will be used for constructing the graph
     return edges;
 }
 
 SkeletonNodes NeuronSkeletonizer::_selectBranchingNodesFromWeightedEdges(
-        const SkeletonWeightedEdges& edges)
+        const SkeletonWeightedEdges& edges, const bool verbose)
 {
-    TIMER_SET;
-    LOG_STATUS("Identifying Branching Nodes");
+    VERBOSE_LOG(LOG_STATUS("Identifying Branching Nodes"), verbose);
 
     // Use a new index to label the branching nodes, where the maximum value corresponds to the
     // actual number of the branching nodes in the graph
@@ -942,6 +944,9 @@ SkeletonNodes NeuronSkeletonizer::_selectBranchingNodesFromWeightedEdges(
 
     // A list to collect the branching nodes
     SkeletonNodes nodes;
+
+    TIMER_SET;
+    VERBOSE_LOG(LOOP_STARTS("Selecting Branching Nodes for Weighted Skeleton"), verbose);
     for (size_t i = 0; i < edges.size(); ++i)
     {
         // The node must be visited once to append it to the @skeletonBranchingNodes list
@@ -966,10 +971,10 @@ SkeletonNodes NeuronSkeletonizer::_selectBranchingNodesFromWeightedEdges(
             branchingNodeIndex++;
             node2->visited = true;
         }
-        LOOP_PROGRESS(i, edges.size());
+        VERBOSE_LOG(LOOP_PROGRESS(i, edges.size()), verbose);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     return nodes;
 }
@@ -1018,10 +1023,9 @@ GraphNodes NeuronSkeletonizer::_constructGraphNodesFromSkeletonNodes(
 EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
         SkeletonWeightedEdges& edges,
         SkeletonNodes &skeletonBranchingNodes, GraphNodes &graphNodes,
-        const int64_t& somaNodeIndex)
+        const int64_t& somaNodeIndex, const bool verbose)
 {
-    TIMER_SET;
-    LOG_STATUS("Identifying Short Paths from Terminals To Soma");
+    VERBOSE_LOG(LOG_STATUS("Identifying Short Paths from Terminals To Soma"), verbose);
 
     // Identify the terminal nodes to process the paths in parallel
     SkeletonNodes terminalNodes;
@@ -1042,8 +1046,9 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
     std::vector< PathIndices > terminalsToSomaPaths;
     terminalsToSomaPaths.resize(numberTerminalNodes);
 
-    LOOP_STARTS("Searching Terminals-to-soma Paths *");
+    TIMER_SET;
     PROGRESS_SET;
+    VERBOSE_LOG(LOOP_STARTS("Searching Terminals-to-soma Paths *"), verbose);
     OMP_PARALLEL_FOR
     for (size_t iNode = 0; iNode < numberTerminalNodes; ++iNode)
     {
@@ -1059,14 +1064,14 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
         terminalsToSomaPaths[iNode] = pathFinder.findPath(
                     somaNodeIndex, terminalNodes[iNode]->graphIndex);
 #endif
-        LOOP_PROGRESS(PROGRESS, numberTerminalNodes);
+        VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, numberTerminalNodes), verbose);
         PROGRESS_UPDATE;
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
-    LOOP_STARTS("Updating Graph");
     PROGRESS_RESET;
+    VERBOSE_LOG(LOOP_STARTS("Updating Graph"), verbose);
     for (size_t iNode = 0; iNode < numberTerminalNodes; ++iNode)
     {
         // Get a reference to the EdgesIndices list
@@ -1099,11 +1104,11 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
             }
         }
 #endif
-        LOOP_PROGRESS(PROGRESS, numberTerminalNodes);
-        PROGRESS_UPDATE;
+        VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, numberTerminalNodes), verbose);
+        VERBOSE_LOG(PROGRESS_UPDATE, verbose);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Clear the terminal nodes list
     terminalNodes.clear();
@@ -1116,7 +1121,7 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
     // The indices of all the edges that have been traversed
     EdgesIndices edgesIndices;
     PROGRESS_RESET;
-    LOOP_STARTS("Composing Path Edges");
+    VERBOSE_LOG(LOOP_STARTS("Composing Path Edges"), verbose);
     for (size_t i = 0; i < edgesIndicesList.size(); ++i)
     {
         // Get the terminal edge identified per terminal
@@ -1132,8 +1137,8 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
             perTerminalEdgesIndices.shrink_to_fit();
         }
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Clean the list used to collect the edges in parallel
     edgesIndicesList.clear();
@@ -1144,10 +1149,9 @@ EdgesIndices NeuronSkeletonizer::_findShortestPathsFromTerminalNodesToSoma(
 }
 
 GraphBranches NeuronSkeletonizer::_constructGraphBranchesFromGraphNodes(
-        GraphNodes &graphNodes, const int64_t& somaNodeIndex)
+        GraphNodes &graphNodes, const int64_t& somaNodeIndex, const bool verbose)
 {
-    TIMER_SET;
-    LOG_STATUS("Constructing Graph Branches");
+    VERBOSE_LOG(LOG_STATUS("Constructing Graph Branches"), verbose);
 
     // Use a new index to label graph branches
     size_t branchGraphIndex = 0;
@@ -1156,9 +1160,9 @@ GraphBranches NeuronSkeletonizer::_constructGraphBranchesFromGraphNodes(
     GraphBranches graphBranches;
 
     // Construct the valid branches at the end
+    TIMER_SET;
     for (size_t i = 0; i < graphNodes.size(); i++)
     {
-         LOOP_PROGRESS(i, graphNodes.size());
         if (graphNodes[i]->children.size() > 0)
         {
             // This graph node is always the first node, becuase all the other nodes are children
@@ -1196,21 +1200,20 @@ GraphBranches NeuronSkeletonizer::_constructGraphBranchesFromGraphNodes(
                 }
             }
         }
+        VERBOSE_LOG(LOOP_PROGRESS(i, graphNodes.size()), verbose);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     return graphBranches;
 }
 
-void NeuronSkeletonizer::_constructGraphHierarchy(GraphBranches& graphBranches)
+void NeuronSkeletonizer::_constructGraphHierarchy(GraphBranches& graphBranches, const bool verbose)
 {
+    VERBOSE_LOG(LOG_STATUS("Constructing Graph Hierarchy"), verbose);
     TIMER_SET;
-    LOG_STATUS("Constructing Graph Hierarchy");
-
     for (size_t i = 0; i < graphBranches.size(); ++i)
     {
-        LOOP_PROGRESS(i, graphBranches.size());
         auto& iBranch = graphBranches[i];
 
         // Get the last node of the iBranch
@@ -1232,20 +1235,20 @@ void NeuronSkeletonizer::_constructGraphHierarchy(GraphBranches& graphBranches)
                 iBranch->children.push_back(jBranch);
             }
         }
+
+        VERBOSE_LOG(LOOP_PROGRESS(i, graphBranches.size()), verbose);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
-void NeuronSkeletonizer::_constructSkeletonHierarchy(GraphBranches& graphBranches)
+void NeuronSkeletonizer::_constructSkeletonHierarchy(GraphBranches& graphBranches, const bool verbose)
 {
-    TIMER_SET;
-    LOG_STATUS("Constructing Skeleton Hierarchy");
+    VERBOSE_LOG(LOG_STATUS("Constructing Skeleton Hierarchy"), verbose);
 
+    TIMER_SET;
     for(size_t i = 0; i < graphBranches.size(); ++i)
     {
-        LOOP_PROGRESS(i, graphBranches.size());
-
         // Reference to the GraphBranch
         const auto& graphBranch = graphBranches[i];
 
@@ -1264,9 +1267,11 @@ void NeuronSkeletonizer::_constructSkeletonHierarchy(GraphBranches& graphBranche
             skeletonBranch->logicalChildren.push_back(
                         _branches[graphBranch->children[j]->skeletonIndex]);
         }
+
+        VERBOSE_LOG(LOOP_PROGRESS(i, graphBranches.size()), verbose);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
 void NeuronSkeletonizer::_mergeBranchesAfterFilteringSpines()

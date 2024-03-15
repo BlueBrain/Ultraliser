@@ -10,7 +10,7 @@ VasculatureSkeletonizer::VasculatureSkeletonizer(Volume* volume, const bool &use
     /// EMPTY CONSTRUCTOR
 }
 
-void VasculatureSkeletonizer::skeletonizeVolumeToCenterLines()
+void VasculatureSkeletonizer::skeletonizeVolumeToCenterLines(const bool verbose)
 {
     // Start the timer
     TIMER_SET;
@@ -23,7 +23,7 @@ void VasculatureSkeletonizer::skeletonizeVolumeToCenterLines()
     LOG_STATS(GET_TIME_SECONDS);
 }
 
-void VasculatureSkeletonizer::segmentComponents()
+void VasculatureSkeletonizer::segmentComponents(const bool verbose)
 {
     // Start the timer
     TIMER_SET;

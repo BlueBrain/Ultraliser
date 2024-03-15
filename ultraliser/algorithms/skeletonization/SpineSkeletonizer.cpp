@@ -72,18 +72,22 @@ void SpineSkeletonizer::run(const bool verbose)
 
     // exportBranches(_debuggingPrefix, verbose);
 
-    // Check how many branches are in the spine
-    if (_branches.size() == 1)
-    {
-        std::cout << "1 branch spine \n";
-    }
-
 
     // Identify the connections at the terminals of each branch
     identifyTerminalConnections(_branches);
 
     //
-    confirmTerminalsBranches(_branches);
+    identifyTerminalBranchesForSpine(_branches);
+
+    auto rootBranch = identifyRootBranchForSpine(_branches, _basePoint);
+
+    // Identify the root node along the branch
+
+    // Identify the paths of the morphology
+
+    // Construct the tree of the spine
+
+    // Compute the orientation of the spine
 
     // exportSWCFile(_debuggingPrefix, false, SILENT);
 

@@ -972,9 +972,10 @@ public:
     void projectYZ(const std::string& prefix, const bool &projectColorCoded = false) const;
     void projectXZ(const std::string& prefix, const bool &projectColorCoded = false) const;
 
-    ThinningVoxelsUI16List& getThinningVoxelsList(const bool &rebuild = false)
+    ThinningVoxelsUI16List& getThinningVoxelsList(const bool &rebuild = false,
+                                                  const bool verbose = VERBOSE)
     {
-        return _grid->getThinningVoxelsList(rebuild);
+        return _grid->getThinningVoxelsList(rebuild, verbose);
     }
 
     size_t getBaseResolution() const

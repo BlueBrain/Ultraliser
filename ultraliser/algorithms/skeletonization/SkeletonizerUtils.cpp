@@ -195,6 +195,73 @@ void identifyTerminalConnections(SkeletonBranches& branches)
     }
 }
 
+void identifyTerminalBranchesForSpine(SkeletonBranches& branches)
+{
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        // Reference to the branch
+        auto& branch = branches[i];
+
+        // Invalid branches, next
+        if (!branch->isValid()) continue;
+
+        // If root branch, then next
+        if (branch->isRoot()) continue;
+
+        // If terminal branch, then adjust the samples
+        if (branch->t1Connections.size() == 0 || branch->t2Connections.size() == 0)
+        {
+            // Update the status
+            branch->setTerminal();
+        }
+    }
+}
+
+SkeletonBranch* identifyRootBranchForSpine(SkeletonBranches& branches,
+                                           const Vector3f basePoint)
+{
+    // The skeleton branch to be identified later
+    SkeletonBranch* rootBranch = nullptr;
+
+    // The shortest distance between a terminal branch and the base point
+    float shortestDistance = std::numeric_limits< float >::max();
+
+    // Select the terminal branch from the list of branches
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        // Reference to the branch
+        auto& branch = branches[i];
+
+        // The branch must be terminal , otherwise next
+        if (!branch->isTerminal()) continue;
+
+        // Invalid branches, next
+        if (!branch->isValid()) continue;
+
+        // Get the first and last sample of the branch
+        auto firstSample = branch->nodes.front();
+        auto lastSample = branch->nodes.back();
+
+        // Compute the distance to the front and back nodes
+        auto distanceToFirstSample = firstSample->point.distance(basePoint);
+        auto distanceToLastSample = lastSample->point.distance(basePoint);
+
+        if (distanceToFirstSample < shortestDistance)
+        {
+            shortestDistance = distanceToFirstSample;
+            rootBranch = branch;
+        }
+
+        if (distanceToLastSample < shortestDistance)
+        {
+            shortestDistance = distanceToLastSample;
+            rootBranch = branch;
+        }
+    }
+
+    return rootBranch;
+}
+
 void confirmTerminalsBranches(SkeletonBranches& branches)
 {
     for (size_t i = 0; i < branches.size(); ++i)

@@ -52,13 +52,15 @@ public:
 
     /**
      * @brief constructGraph
+     * @param verbose
      */
     void constructGraph(const bool verbose = VERBOSE) override;
 
     /**
      * @brief segmentComponents
+     * @param verbose
      */
-    void segmentComponents() override;
+    void segmentComponents(const bool verbose = VERBOSE) override;
 
     /**
       * @brief exportIndividualBranches
@@ -188,13 +190,15 @@ private:
 
     /**
      * @brief _segmentSomaMesh
+     * @param verbose
      */
-    void _segmentSomaMesh();
+    void _segmentSomaMesh(const bool verbose = VERBOSE);
 
     /**
      * @brief _identifySomaticNodes
+     * @param verbose
      */
-    void _identifySomaticNodes();
+    void _identifySomaticNodes(const bool verbose = VERBOSE);
 
     /**
      * @brief _removeBranchesInsideSoma
@@ -209,7 +213,7 @@ private:
     /**
      * @brief _filterLoopsBetweenTwoBranchingPoints
      */
-    void _filterLoopsBetweenTwoBranchingPoints();
+    void _filterLoopsBetweenTwoBranchingPoints(const bool verbose = VERBOSE);
 
     /**
      * @brief _filterLoopsAtSingleBranchingPoint
@@ -234,14 +238,15 @@ private:
      * @brief _reduceSkeletonToWeightedEdges
      * @return
      */
-    SkeletonWeightedEdges _reduceSkeletonToWeightedEdges();
+    SkeletonWeightedEdges _reduceSkeletonToWeightedEdges(const bool verbose = VERBOSE);
 
     /**
      * @brief _selectBranchingNodesFromWeightedEdges
      * @param edges
      * @return
      */
-    SkeletonNodes _selectBranchingNodesFromWeightedEdges(const SkeletonWeightedEdges& edges);
+    SkeletonNodes _selectBranchingNodesFromWeightedEdges(const SkeletonWeightedEdges& edges,
+                                                         const bool verbose = VERBOSE);
 
     /**
      * @brief _getSomaIndexFromGraphNodes
@@ -270,7 +275,8 @@ private:
     EdgesIndices _findShortestPathsFromTerminalNodesToSoma(SkeletonWeightedEdges& edges,
                                                            SkeletonNodes& skeletonBranchingNodes,
                                                            GraphNodes &graphNodes,
-                                                           const int64_t& somaNodeIndex);
+                                                           const int64_t& somaNodeIndex,
+                                                           const bool verbose = VERBOSE);
 
     /**
      * @brief _constructGraphBranchesFromGraphNodes
@@ -278,14 +284,15 @@ private:
      * @param somaNodeIndex
      * @return
      */
-    GraphBranches _constructGraphBranchesFromGraphNodes(
-            GraphNodes &graphNodes, const int64_t& somaNodeIndex);
+    GraphBranches _constructGraphBranchesFromGraphNodes(GraphNodes &graphNodes,
+                                                        const int64_t& somaNodeIndex,
+                                                        const bool verbose = VERBOSE);
 
     /**
      * @brief _constructGraphHierarchy
      * @param graphBranches
      */
-    void _constructGraphHierarchy(GraphBranches& graphBranches);
+    void _constructGraphHierarchy(GraphBranches& graphBranches, const bool verbose = VERBOSE);
 
     /**
      * @brief _constructSkeletonHierarchy
@@ -293,7 +300,7 @@ private:
      * the parent ones.
      * @param graphBranches
      */
-    void _constructSkeletonHierarchy(GraphBranches& graphBranches);
+    void _constructSkeletonHierarchy(GraphBranches& graphBranches, const bool verbose = VERBOSE);
 
     /**
      * @brief _mergeBranchesWithSingleChild
@@ -342,7 +349,7 @@ private:
      */
     void _adjustSomaRadius();
 
-    void _reconstructSomaMeshFromProxy();
+    void _reconstructSomaMeshFromProxy(const bool verbose = VERBOSE);
 
     void _exportBranches(const std::string &prefix, const SkeletonBranch::BRANCH_STATE state);
 

@@ -45,7 +45,7 @@ public:
     /**
      * @brief skeletonizeVolume
      */
-    void skeletonizeVolumeToCenterLines() override;
+    void skeletonizeVolumeToCenterLines(const bool verbose = VERBOSE) override;
 
     /**
      * @brief segmentComponents
@@ -55,7 +55,7 @@ public:
      * Therefore, branches are only the available components to be segmented from the graph.
      * This is indeed unlike neurons that can have somata, branches and spines.
      */
-    void segmentComponents() override;
+    void segmentComponents(const bool verbose = VERBOSE) override;
 
     /**
      * @brief exportSkeletonVMV

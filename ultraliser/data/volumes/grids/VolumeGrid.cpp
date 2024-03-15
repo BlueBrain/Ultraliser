@@ -72,18 +72,17 @@ size_t VolumeGrid::getNumberVoxels() const
     return _numberVoxels;
 }
 
-void VolumeGrid::_buildThinningVoxelsList()
+void VolumeGrid::_buildThinningVoxelsList(const bool verbose)
 {
-    TIMER_SET;
-
     if (_thinningVoxels.size() > 0)
         _thinningVoxels.clear();
 
     std::vector< ThinningVoxelsUI16List > perSlice;
     perSlice.resize(getWidth());
 
+    TIMER_SET;
     PROGRESS_SET;
-    LOOP_STARTS("Building Thinning Voxels List");
+    VERBOSE_LOG(LOOP_STARTS("Building Thinning Voxels List"), verbose);
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < getWidth(); ++i)
     {
@@ -99,11 +98,11 @@ void VolumeGrid::_buildThinningVoxelsList()
         }
 
         // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, getWidth());
+        VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, getWidth()), verbose);
         PROGRESS_UPDATE;
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     for (size_t i = 0; i < perSlice.size(); ++i)
     {
@@ -117,10 +116,10 @@ void VolumeGrid::_buildThinningVoxelsList()
     perSlice.shrink_to_fit();
 }
 
-ThinningVoxelsUI16List& VolumeGrid::getThinningVoxelsList(const bool& rebuild)
+ThinningVoxelsUI16List& VolumeGrid::getThinningVoxelsList(const bool& rebuild, const bool verbose)
 {
     if (_thinningVoxels.size() == 0 || rebuild)
-        _buildThinningVoxelsList();
+        _buildThinningVoxelsList(verbose);
 
     return _thinningVoxels;
 }
@@ -211,8 +210,6 @@ size_t VolumeGrid::computeNumberNonZeroVoxelsPerSlice(int64_t z) const
 
     return numberNonZeroVoxels;
 }
-
-
 
 void VolumeGrid::_floodFillAlongX(const int64_t &sliceIndex,
                                   const size_t &padding)
@@ -433,7 +430,6 @@ void VolumeGrid::floodFillSliceAlongAxis(const int64_t &sliceIndex,
 
     delete slice;
 }
-
 
 void VolumeGrid::floodFillSliceAlongAxisROI(const int64_t &sliceIndex,
                                             const AXIS &axis,

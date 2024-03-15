@@ -176,3 +176,7 @@ static inline void logTitle(std::string title, const uint64_t& titleLength = 80)
 
 // Print the title
 #define LOG_TITLE(STRING) logTitle(STRING)
+
+// Print a conditioned message
+#define VERBOSE_LOG(LOG_MESSAGE, CONDITION) ({ if (CONDITION) { LOG_MESSAGE; }})
+

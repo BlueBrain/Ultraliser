@@ -527,7 +527,14 @@ public:
      */
     virtual void writeRAWVolume(const std::string &prefix) const = 0;
 
-    ThinningVoxelsUI16List& getThinningVoxelsList(const bool& rebuild = false);
+    /**
+     * @brief getThinningVoxelsList
+     * @param rebuild
+     * @param verbose
+     * @return
+     */
+    ThinningVoxelsUI16List& getThinningVoxelsList(const bool& rebuild = false,
+                                                  const bool verbose = VERBOSE);
 
 private:
 
@@ -538,7 +545,11 @@ private:
 
 protected:
 
-    void _buildThinningVoxelsList();
+    /**
+     * @brief _buildThinningVoxelsList
+     * @param verbose
+     */
+    void _buildThinningVoxelsList(const bool verbose = VERBOSE);
 
 
 

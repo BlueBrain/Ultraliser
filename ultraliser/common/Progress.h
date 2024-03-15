@@ -35,8 +35,9 @@
  * @param barLength
  * The total langth of the progress bar.
  */
-static inline void printProgressBar(
-        const size_t& current, const size_t& total, const size_t barLength = 50)
+static inline void printProgressBar(const size_t& current,
+                                    const size_t& total,
+                                    const size_t barLength = 50)
 {
     float percentage = ((100.f * current) / (1.f * total));
     float starts = std::floor((percentage * barLength) / 100.f);
@@ -46,6 +47,7 @@ static inline void printProgressBar(
     for(int _i_ = 0; _i_ < int(spaces); _i_++) bar += " "; bar+= "│";
     printf("\r\t%s (%2.2f %%)", bar.c_str(), percentage);
     fflush(stdout);
+
 }
 
 /**
@@ -59,11 +61,11 @@ static inline void printProgressBar(
  * @param barLength
  * The total langth of the progress bar.
  */
-static inline void printFractionProgressBar(
-        const size_t& current, const size_t& total, const size_t barLength = 50)
+static inline void printFractionProgressBar(const size_t& current,
+                                            const size_t& total,
+                                            const size_t barLength = 50)
 {
     float percentage = ((100.f * current) / (1.f * total));
-
     if (static_cast< size_t >(percentage) % 10 == 0)
     {
         float starts = std::floor((percentage * barLength) / 100.f);

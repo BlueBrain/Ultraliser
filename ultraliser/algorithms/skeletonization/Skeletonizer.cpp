@@ -127,53 +127,36 @@ void Skeletonizer::_computeVolumeFromMesh()
 
 void Skeletonizer::initialize(const bool verbose)
 {
-    if (verbose)
+    TIMER_SET;
+    VERBOSE_LOG(LOG_TITLE("Ultraliser Skeletonization"), verbose);
+    VERBOSE_LOG(LOG_SUCCESS("Voxel Size [%f] μm", _volume->getVoxelSize()), verbose);
+    VERBOSE_LOG(LOG_STATUS("Initialization - Building Structures"), verbose);
+
+    // Compute the shell points either natively or by using the acceleration structures
+    if (_useAcceleration)
     {
-        TIMER_SET;
-        LOG_TITLE("Ultraliser Skeletonization");
-        LOG_SUCCESS("Voxel Size [%f] μm", _volume->getVoxelSize());
-        LOG_STATUS("Initialization - Building Structures");
+        // Build the ThinningVoxels acceleration structure from the input solid volume
+        // NOTE: We do not rebuild the ThinningVoxels structure!
+        auto thinningVoxels = _volume->getThinningVoxelsList(false, verbose);
 
-        // Compute the shell points either natively or by using the acceleration structures
-        if (_useAcceleration)
-        {
-            // Build the ThinningVoxels acceleration structure from the input solid volume
-            // NOTE: We do not rebuild the ThinningVoxels structure!
-            auto thinningVoxels = _volume->getThinningVoxelsList(false);
-
-            // Compute the surface shell from the pre-built ThinningVoxels structure
-            _computeShellPointsUsingAcceleration(thinningVoxels);
-        }
-        else { _computeShellPoints(); }
-
-        LOG_STATUS_IMPORTANT("Initialization Stats.");
-        LOG_STATS(GET_TIME_SECONDS);
+        // Compute the surface shell from the pre-built ThinningVoxels structure
+        _computeShellPointsUsingAcceleration(thinningVoxels, verbose);
     }
-    else
-    {
-        // Compute the shell points either natively or by using the acceleration structures
-        if (_useAcceleration)
-        {
-            // Build the ThinningVoxels acceleration structure from the input solid volume
-            // NOTE: We do not rebuild the ThinningVoxels structure!
-            auto thinningVoxels = _volume->getThinningVoxelsList(false);
+    else { _computeShellPoints(verbose); }
 
-            // Compute the surface shell from the pre-built ThinningVoxels structure
-            _computeShellPointsUsingAcceleration(thinningVoxels);
-        }
-        else { _computeShellPoints(); }
-    }
+    VERBOSE_LOG(LOG_STATUS_IMPORTANT("Initialization Stats."), verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
-void Skeletonizer::_scaleShellPoints()
+void Skeletonizer::_scaleShellPoints(const bool verbose)
 {
-    // Initialize the time
+    // Initialize the timer
     TIMER_SET;
 
     // TODO: Adjust the voxel slight shift
     // Adjust the locations of the shell points taking into consideration the mesh coordinates
     PROGRESS_SET;
-    LOOP_STARTS("Mapping Shell Points");
+    VERBOSE_LOG(LOOP_STARTS("Mapping Shell Points"), verbose);
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < _shellPoints.size(); ++i)
     {
@@ -188,20 +171,21 @@ void Skeletonizer::_scaleShellPoints()
         // Translate to the center of the mesh
         _shellPoints[i] += _centerMesh;
 
-        LOOP_PROGRESS(PROGRESS, _shellPoints.size());
+        VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, _shellPoints.size()), verbose);
         PROGRESS_UPDATE;
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
-void Skeletonizer::_computeShellPointsUsingAcceleration(ThinningVoxelsUI16List &thinningVoxels)
+void Skeletonizer::_computeShellPointsUsingAcceleration(ThinningVoxelsUI16List &thinningVoxels,
+                                                        const bool verbose)
 {
     // Initialize the timer
     TIMER_SET;
 
     PROGRESS_SET;
-    LOOP_STARTS("Computing Shell Points *");
+    VERBOSE_LOG(LOOP_STARTS("Computing Shell Points *"), verbose);
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < thinningVoxels.size(); ++i)
     {
@@ -211,11 +195,11 @@ void Skeletonizer::_computeShellPointsUsingAcceleration(ThinningVoxelsUI16List &
             voxel->border = true;
         }
 
-        LOOP_PROGRESS(PROGRESS, thinningVoxels.size());
+        VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, thinningVoxels.size()), verbose);
         PROGRESS_UPDATE;
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Add all the obtained voxels in a single list
     for (size_t i = 0; i < thinningVoxels.size(); ++i)
@@ -228,18 +212,20 @@ void Skeletonizer::_computeShellPointsUsingAcceleration(ThinningVoxelsUI16List &
     }
 
     // Scale the shell points to match the extent of the input data
-    _scaleShellPoints();
+    _scaleShellPoints(verbose);
 }
 
-void Skeletonizer::_computeShellPoints()
+void Skeletonizer::_computeShellPoints(const bool verbose)
 {
     // Initialize the time
     TIMER_SET;
 
     // Search for the border voxels (the shell voxels) of the volume
-    std::vector< std::vector< Vec3ui_64 > > perSlice = _volume->searchForBorderVoxels();
+    std::vector< std::vector< Vec3ui_64 > > perSlice = _volume->searchForBorderVoxels(verbose);
 
     // Concatinate the points in a single list
+    PROGRESS_SET;
+    VERBOSE_LOG(LOOP_STARTS("Computing Shell Points"), verbose);
     for (size_t i = 0; i < perSlice.size(); ++i)
     {
         for (size_t j = 0; j < perSlice[i].size(); ++j)
@@ -249,17 +235,20 @@ void Skeletonizer::_computeShellPoints()
         }
         perSlice[i].clear();
         perSlice[i].shrink_to_fit();
+        VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, perSlice.size()), verbose);
     }
     perSlice.clear();
     perSlice.shrink_to_fit();
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Scale the shell points to match the extent of the input data
-    _scaleShellPoints();
+    _scaleShellPoints(verbose);
 }
 
-void Skeletonizer::_applyVolumeThinning()
+void Skeletonizer::_applyVolumeThinning(const bool verbose)
 {
-    LOG_STATUS("Volume Thinning");
+    VERBOSE_LOG(LOG_STATUS("Volume Thinning"), verbose);
 
     // The thinning kernel that will be used to thin the volume
     std::unique_ptr< Thinning6Iterations > thinningKernel =
@@ -270,29 +259,29 @@ void Skeletonizer::_applyVolumeThinning()
     size_t loopCounter = 0;
 
     TIMER_SET;
-    LOOP_STARTS("Thinning Loop");
-    LOOP_PROGRESS(0, 100);
+    VERBOSE_LOG(LOOP_STARTS("Thinning Loop"), verbose);
+    VERBOSE_LOG(LOOP_PROGRESS(0, 100), verbose);
     while(1)
     {
         size_t numberDeletedVoxels = _volume->deleteCandidateVoxelsParallel(thinningKernel);
 
         // Updating the progess bar
-       if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
-       LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
-                     initialNumberVoxelsToBeDeleted);
+        if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
+        VERBOSE_LOG(LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
+                      initialNumberVoxelsToBeDeleted), verbose);
 
-       if (numberDeletedVoxels == 0)
-           break;
+        if (numberDeletedVoxels == 0)
+            break;
 
-       loopCounter++;
+        loopCounter++;
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
-void Skeletonizer::_applyVolumeThinningUsingAcceleration()
+void Skeletonizer::_applyVolumeThinningUsingAcceleration(const bool verbose)
 {
-    LOG_STATUS("Volume Thinning *");
+    VERBOSE_LOG(LOG_STATUS("Volume Thinning *"), verbose);
 
     // The thinning kernel that will be used to thin the volume
     std::unique_ptr< Thinning6Iterations > thinningKernel =
@@ -302,11 +291,11 @@ void Skeletonizer::_applyVolumeThinningUsingAcceleration()
     size_t initialNumberVoxelsToBeDeleted = 0;
     size_t loopCounter = 0;
 
-    auto thinningVoxels = _volume->getThinningVoxelsList(false);
+    auto thinningVoxels = _volume->getThinningVoxelsList(false, verbose);
 
     TIMER_SET;
-    LOOP_STARTS("Thinning Loop");
-    LOOP_PROGRESS(0, 100);
+    VERBOSE_LOG(LOOP_STARTS("Thinning Loop"), verbose);
+    VERBOSE_LOG(LOOP_PROGRESS(0, 100), verbose);
     while(1)
     {
         // Delete the border voxels based on the ThinningVoxels acceleration structure
@@ -314,35 +303,38 @@ void Skeletonizer::_applyVolumeThinningUsingAcceleration()
                     thinningKernel, thinningVoxels);
 
         // Updating the progess bar
-       if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
-       LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
-                     initialNumberVoxelsToBeDeleted);
+        if (loopCounter == 0) initialNumberVoxelsToBeDeleted = numberDeletedVoxels;
+        VERBOSE_LOG(LOOP_PROGRESS(initialNumberVoxelsToBeDeleted - numberDeletedVoxels,
+                                  initialNumberVoxelsToBeDeleted), verbose);
 
-       if (numberDeletedVoxels == 0)
-           break;
+        // No more voxels to be deleted
+        if (numberDeletedVoxels == 0)
+            break;
 
-       loopCounter++;
+        loopCounter++;
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
-void Skeletonizer::skeletonizeVolumeToCenterLines()
-{
-    if (_useAcceleration) _applyVolumeThinningUsingAcceleration(); else _applyVolumeThinning();
-}
-
-std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels()
+void Skeletonizer::skeletonizeVolumeToCenterLines(const bool verbose)
 {
     if (_useAcceleration)
-        return _extractNodesFromVoxelsUsingAcceleration();
+        _applyVolumeThinningUsingAcceleration(verbose);
     else
-        return _extractNodesFromVoxelsUsingSlicing();
+        _applyVolumeThinning(verbose);
 }
 
-std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsNaive()
+std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxels(const bool verbose)
 {
-    TIMER_SET;
+    if (_useAcceleration)
+        return _extractNodesFromVoxelsUsingAcceleration(verbose);
+    else
+        return _extractNodesFromVoxelsUsingSlicing(verbose);
+}
+
+std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsNaive(const bool verbose)
+{
     LOG_STATUS("Mapping Voxels to Nodes");
 
     // Every constructed node must have an identifier, or index.
@@ -355,8 +347,9 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsNaive()
     std::vector< Vec4ui_64 > indicesFilledVoxels;
 
     // Search the filled voxels in the volume
+    TIMER_SET;
     PROGRESS_SET;
-    LOOP_STARTS("Detecting Filled Voxels");
+    VERBOSE_LOG(LOOP_STARTS("Detecting Filled Voxels"), verbose);
     for (size_t i = 0; i < _volume->getWidth(); ++i)
     {
         for (size_t j = 0; j < _volume->getHeight(); ++j)
@@ -380,16 +373,16 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsNaive()
                 }
             }
         }
-        LOOP_PROGRESS(i, _volume->getWidth());
+        VERBOSE_LOG(LOOP_PROGRESS(i, _volume->getWidth()), verbose);
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Resize the nodes
     _nodes.resize(indicesFilledVoxels.size());
 
     PROGRESS_RESET;
-    LOOP_STARTS("Building Graph Nodes");
+    VERBOSE_LOG(LOOP_STARTS("Building Graph Nodes"), verbose);
     OMP_PARALLEL_FOR
     for (size_t n = 0; n < indicesFilledVoxels.size(); ++n)
     {
@@ -413,11 +406,11 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsNaive()
         _nodes[n] = new SkeletonNode(voxelIndex, nodePosition, voxelPosition);
 
         // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, indicesFilledVoxels.size());
+        VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, indicesFilledVoxels.size()), verbose);
         PROGRESS_UPDATE;
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Clear the auxiliary lists
     indicesFilledVoxels.clear();
@@ -426,11 +419,13 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsNaive()
     return indicesMapper;
 }
 
-std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingSlicing()
+std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingSlicing(const bool verbose)
 {
-    LOG_STATUS("Mapping Voxels to Nodes");
-    TIMER_SET;
+    VERBOSE_LOG(LOG_STATUS("Mapping Voxels to Nodes"), verbose);
 
+    /**
+     * @brief The FilledVoxel struct
+     */
     struct FilledVoxel
     {
         size_t i, j, k, idx;
@@ -439,12 +434,16 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingSlicing()
         { i = ii; j = jj; k = kk; idx = index; }
     };
 
+    /**
+     * @brief FilledVoxels
+     */
     typedef std::vector< FilledVoxel > FilledVoxels;
 
     // Make a per-slice list
     std::vector< FilledVoxels > allFilledVoxels;
     allFilledVoxels.resize(_volume->getWidth());
 
+    TIMER_SET;
     OMP_PARALLEL_FOR
     for (size_t i = 0; i < _volume->getWidth(); ++i)
     {
@@ -512,11 +511,11 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingSlicing()
         _nodes[n] = new SkeletonNode(filledVoxels[n].idx, nodePosition, voxelPosition);
 
         // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, filledVoxels.size());
+        VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, filledVoxels.size()), verbose);
         PROGRESS_UPDATE;
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     filledVoxels.clear();
     filledVoxels.shrink_to_fit();
@@ -526,14 +525,14 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingSlicing()
 
 std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleration(const bool verbose)
 {
-    LOG_STATUS("Mapping Voxels to Nodes *");
-    TIMER_SET;
+    VERBOSE_LOG(LOG_STATUS("Mapping Voxels to Nodes *"), verbose);
 
     // Get all the center-line voxels from the volume
-    auto thinningVoxels = _volume->getThinningVoxelsList(false);
+    auto thinningVoxels = _volume->getThinningVoxelsList(false, verbose);
 
     // Construct the NodeVoxels list
-    LOOP_STARTS("Constructing Node Voxels");
+    TIMER_SET;
+    VERBOSE_LOG(LOOP_STARTS("Constructing Node Voxels"), verbose);
     PROGRESS_SET;
     NodeVoxelsUI16 nodeVoxels;
     for (size_t i = 0; i < thinningVoxels.size(); ++i)
@@ -548,9 +547,7 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleratio
             NodeVoxelUI16 nodeVoxel;
 
             // Get the location based on the voxel XYZ coordinates
-            nodeVoxel.x = voxel->x;
-            nodeVoxel.y = voxel->y;
-            nodeVoxel.z = voxel->z;
+            nodeVoxel.x = voxel->x; nodeVoxel.y = voxel->y; nodeVoxel.z = voxel->z;
 
             // Update the voxel index (used later to map the voxels to nodes)
             nodeVoxel.voxelIndex = _volume->mapTo1DIndexWithoutBoundCheck(
@@ -559,8 +556,13 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleratio
             // Add th node voxel to the list
             nodeVoxels.push_back(nodeVoxel);
         }
+
+        // Update the progress bar
+        VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, thinningVoxels.size()), verbose);
+        PROGRESS_UPDATE;
     }
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Every constructed node must have an identifier, or index.
     size_t nodeIndex = 0;
@@ -576,7 +578,7 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleratio
     _nodes.resize(nodeVoxels.size());
 
     PROGRESS_RESET;
-    LOOP_STARTS("Building Graph Nodes");
+    VERBOSE_LOG(LOOP_STARTS("Building Graph Nodes"), verbose);
     OMP_PARALLEL_FOR
     for (size_t n = 0; n < nodeVoxels.size(); ++n)
     {
@@ -600,15 +602,14 @@ std::map< size_t, size_t > Skeletonizer::_extractNodesFromVoxelsUsingAcceleratio
         _nodes[n] = new SkeletonNode(n, nodeVoxels[n].voxelIndex, nodePosition, voxelPosition);
 
         // Update the progress bar
-        LOOP_PROGRESS(PROGRESS, nodeVoxels.size());
+        VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, nodeVoxels.size()), verbose);
         PROGRESS_UPDATE;
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     return indicesMapper;
 }
-
 
 void Skeletonizer::_inflateNodes(const bool verbose)
 {
@@ -620,329 +621,185 @@ void Skeletonizer::_inflateNodes(const bool verbose)
 
 void Skeletonizer::_inflateNodesUsingAcceleration(const bool verbose)
 {
-    if (verbose)
+    VERBOSE_LOG(LOG_STATUS("Inflating Graph Nodes - Mapping to Surface"), verbose);
+
+    auto kdtree = KdTree::from(_shellPoints);
+
+    TIMER_SET;
+    PROGRESS_SET;
+    VERBOSE_LOG(LOOP_STARTS("Inflating Nodes"), verbose);
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _nodes.size(); ++i)
     {
-        TIMER_SET;
-        LOG_STATUS("Inflating Graph Nodes - Mapping to Surface");
+        auto &node = *_nodes[i];
 
-        auto kdtree = KdTree::from(_shellPoints);
+        auto nearestPoint = kdtree.findNearestPoint(node.point);
+        auto minimumDistance = nearestPoint.distance;
 
-        PROGRESS_SET;
-        OMP_PARALLEL_FOR
-        for (size_t i = 0; i < _nodes.size(); ++i)
+        // TODO: Make some logic to detect the actual radius based on the voxel size
+        if (minimumDistance > _volume->getVoxelSize())
         {
-            auto &node = *_nodes[i];
-
-            auto nearestPoint = kdtree.findNearestPoint(node.point);
-            auto minimumDistance = nearestPoint.distance;
-
-            // TODO: Make some logic to detect the actual radius based on the voxel size
-            if (minimumDistance > _volume->getVoxelSize())
-            {
-                node.radius = minimumDistance * 1.2;
-            }
-            else
-            {
-                node.radius = _volume->getVoxelSize() * 0.5;
-            }
-
-            // Update the progress bar
-            LOOP_PROGRESS(PROGRESS, _nodes.size());
-            PROGRESS_UPDATE;
+            node.radius = minimumDistance * 1.2;
         }
-        LOOP_DONE;
-        LOG_STATS(GET_TIME_SECONDS);
-    }
-    else
-    {
-        auto kdtree = KdTree::from(_shellPoints);
-        for (size_t i = 0; i < _nodes.size(); ++i)
+        else
         {
-            auto &node = *_nodes[i];
-
-            auto nearestPoint = kdtree.findNearestPoint(node.point);
-            auto minimumDistance = nearestPoint.distance;
-
-            // TODO: Make some logic to detect the actual radius based on the voxel size
-            if (minimumDistance > _volume->getVoxelSize())
-            { node.radius = minimumDistance * 1.2; }
-            else
-            { node.radius = _volume->getVoxelSize() * 0.5; }
+            node.radius = _volume->getVoxelSize() * 0.5;
         }
+
+        // Update the progress bar
+        VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, _nodes.size()), verbose);
+        PROGRESS_UPDATE;
     }
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
 void Skeletonizer::_inflateNodesNatively(const bool verbose)
 {
-    if (verbose)
+    VERBOSE_LOG(LOG_STATUS("Inflating Graph Nodes - Mapping to Surface"), verbose);
+
+    TIMER_SET;
+    PROGRESS_SET;
+    VERBOSE_LOG(LOOP_STARTS("Inflating Nodes"), verbose);
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < _nodes.size(); ++i)
     {
-        TIMER_SET;
-        LOG_STATUS("Inflating Graph Nodes - Mapping to Surface");
-
-        PROGRESS_SET;
-        OMP_PARALLEL_FOR
-            for (size_t i = 0; i < _nodes.size(); ++i)
+        float minimumDistance = std::numeric_limits< float >::max();
+        for (size_t j = 0; j < _shellPoints.size(); ++j)
         {
-            float minimumDistance = std::numeric_limits< float >::max();
-            for (size_t j = 0; j < _shellPoints.size(); ++j)
-            {
-                const float distance = (_nodes[i]->point - _shellPoints[j]).abs();
-                if (distance < minimumDistance) { minimumDistance = distance; }
-            }
-
-            // TODO: Make some logic to detect the actual radius based on the voxel size
-            if (minimumDistance > 0.01)
-            {
-                _nodes[i]->radius = minimumDistance * 1.2;
-            }
-            else
-            {
-                _nodes[i]->radius = 0.1;
-            }
-
-            // Update the progress bar
-            LOOP_PROGRESS(PROGRESS, _nodes.size());
-            PROGRESS_UPDATE;
+            const float distance = (_nodes[i]->point - _shellPoints[j]).abs();
+            if (distance < minimumDistance) { minimumDistance = distance; }
         }
-        LOOP_DONE;
-        LOG_STATS(GET_TIME_SECONDS);
-    }
-    else
-    {
-        OMP_PARALLEL_FOR
-        for (size_t i = 0; i < _nodes.size(); ++i)
+
+        // TODO: Make some logic to detect the actual radius based on the voxel size
+        if (minimumDistance > 0.01)
         {
-            float minimumDistance = std::numeric_limits< float >::max();
-            for (size_t j = 0; j < _shellPoints.size(); ++j)
-            {
-                const float distance = (_nodes[i]->point - _shellPoints[j]).abs();
-                if (distance < minimumDistance) { minimumDistance = distance; }
-            }
-
-            // TODO: Make some logic to detect the actual radius based on the voxel size
-            if (minimumDistance > 0.01)
-            {
-                _nodes[i]->radius = minimumDistance * 1.2;
-            }
-            else
-            {
-                _nodes[i]->radius = 0.1;
-            }
+            _nodes[i]->radius = minimumDistance * 1.2;
         }
-    }
+        else
+        {
+            _nodes[i]->radius = 0.1;
+        }
 
+        // Update the progress bar
+        VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, _nodes.size()), verbose);
+        PROGRESS_UPDATE;
+    }
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
 void Skeletonizer::_connectNodesToBuildEdges(const std::map< size_t, size_t >& indicesMapper,
                                              const bool verbose)
 {
-    if (verbose)
+    VERBOSE_LOG(LOG_STATUS("Connecting Graph Nodes"), verbose);
+
+    size_t numberEdges;
+    TIMER_SET;
+    VERBOSE_LOG(LOOP_STARTS("Building & Linking Edges"), verbose);
+    PROGRESS_SET;
+    for (size_t i = 0; i < _nodes.size(); ++i)
     {
-        TIMER_SET;
-        LOG_STATUS("Connecting Graph Nodes");
+        // Check if the node has been visited before
+        SkeletonNode* node = _nodes[i];
 
-        size_t numberEdges;
-        LOOP_STARTS("Building & Linking Edges");
-        PROGRESS_SET;
-        for (size_t i = 0; i < _nodes.size(); ++i)
+        // Count the number of the connected edges to the node
+        size_t connectedEdges = 0;
+
+        // Search for the neighbours
+        for (size_t l = 0; l < 26; l++)
         {
-            // Check if the node has been visited before
-            SkeletonNode* node = _nodes[i];
+            size_t idx = node->voxel.x() + VDX[l];
+            size_t idy = node->voxel.y() + VDY[l];
+            size_t idz = node->voxel.z() + VDZ[l];
 
-            // Count the number of the connected edges to the node
-            size_t connectedEdges = 0;
-
-            // Search for the neighbours
-            for (size_t l = 0; l < 26; l++)
+            if (_volume->isFilled(idx, idy, idz))
             {
-                size_t idx = node->voxel.x() + VDX[l];
-                size_t idy = node->voxel.y() + VDY[l];
-                size_t idz = node->voxel.z() + VDZ[l];
+                // Increment the number of conected edges along this node
+                connectedEdges++;
 
-                if (_volume->isFilled(idx, idy, idz))
-                {
-                    // Increment the number of conected edges along this node
-                    connectedEdges++;
+                // Find the index of the voxel
+                const auto& vIndex = _volume->mapTo1DIndexWithoutBoundCheck(idx, idy, idz);
 
-                    // Find the index of the voxel
-                    const auto& vIndex = _volume->mapTo1DIndexWithoutBoundCheck(idx, idy, idz);
+                // Find the corresponding index of the node to access the node from the nodes list
+                const auto& nIndex = indicesMapper.find(vIndex)->second;
 
-                    // Find the corresponding index of the node to access the node from the nodes list
-                    const auto& nIndex = indicesMapper.find(vIndex)->second;
+                // Add the node to the edgeNodes, only to be able to access it later
+                SkeletonNode* edgeNode = _nodes[nIndex];
+                node->edgeNodes.push_back(edgeNode);
 
-                    // Add the node to the edgeNodes, only to be able to access it later
-                    SkeletonNode* edgeNode = _nodes[nIndex];
-                    node->edgeNodes.push_back(edgeNode);
+                // Construct the edge
+                SkeletonEdge* edge = new SkeletonEdge(numberEdges, node, edgeNode);
 
-                    // Construct the edge
-                    SkeletonEdge* edge = new SkeletonEdge(numberEdges, node, edgeNode);
+                // Add the constructed edge to the list
+                _edges.push_back(edge);
 
-                    // Add the constructed edge to the list
-                    _edges.push_back(edge);
-
-                    // Increment the number of edges
-                    numberEdges++;
-                }
+                // Increment the number of edges
+                numberEdges++;
             }
-
-            if (connectedEdges == 1)
-                node->terminal = true;
-
-            if (connectedEdges > 2)
-                node->branching = true;
-
-            // Update the progress bar
-            LOOP_PROGRESS(PROGRESS, _nodes.size());
-            PROGRESS_UPDATE;
         }
-        LOOP_DONE;
-        LOG_STATS(GET_TIME_SECONDS);
+
+        if (connectedEdges == 1)
+            node->terminal = true;
+
+        if (connectedEdges > 2)
+            node->branching = true;
+
+        // Update the progress bar
+        VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, _nodes.size()), verbose);
+        PROGRESS_UPDATE;
     }
-    else
-    {
-        size_t numberEdges;
-        for (size_t i = 0; i < _nodes.size(); ++i)
-        {
-            // Check if the node has been visited before
-            SkeletonNode* node = _nodes[i];
-
-            // Count the number of the connected edges to the node
-            size_t connectedEdges = 0;
-
-            // Search for the neighbours
-            for (size_t l = 0; l < 26; l++)
-            {
-                size_t idx = node->voxel.x() + VDX[l];
-                size_t idy = node->voxel.y() + VDY[l];
-                size_t idz = node->voxel.z() + VDZ[l];
-
-                if (_volume->isFilled(idx, idy, idz))
-                {
-                    // Increment the number of conected edges along this node
-                    connectedEdges++;
-
-                    // Find the index of the voxel
-                    const auto& vIndex = _volume->mapTo1DIndexWithoutBoundCheck(idx, idy, idz);
-
-                    // Find the corresponding index of the node to access the node from the nodes list
-                    const auto& nIndex = indicesMapper.find(vIndex)->second;
-
-                    // Add the node to the edgeNodes, only to be able to access it later
-                    SkeletonNode* edgeNode = _nodes[nIndex];
-                    node->edgeNodes.push_back(edgeNode);
-
-                    // Construct the edge
-                    SkeletonEdge* edge = new SkeletonEdge(numberEdges, node, edgeNode);
-
-                    // Add the constructed edge to the list
-                    _edges.push_back(edge);
-
-                    // Increment the number of edges
-                    numberEdges++;
-                }
-            }
-
-            if (connectedEdges == 1)
-                node->terminal = true;
-
-            if (connectedEdges > 2)
-                node->branching = true;
-        }
-    }
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
 void Skeletonizer::_removeTriangleLoops(const bool verbose)
 {
-    if (verbose)
+    TIMER_SET;
+    VERBOSE_LOG(LOG_STATUS("Removing Triangle Loops"), verbose);
+
+    const size_t currentNodesSize = _nodes.size();
+    for (size_t i = 0; i < currentNodesSize; ++i)
     {
-
-        TIMER_SET;
-        LOG_STATUS("Removing Triangle Loops");
-
-        const size_t currentNodesSize = _nodes.size();
-        for (size_t i = 0; i < currentNodesSize; ++i)
+        if (_nodes[i]->branching)
         {
-            if (_nodes[i]->branching)
+            SkeletonNodes sideNodes;
+            if (isTriangleNode(_nodes[i], sideNodes))
             {
-                SkeletonNodes sideNodes;
-                if (isTriangleNode(_nodes[i], sideNodes))
-                {
-                    if (_nodes[i]->visited) continue;
+                if (_nodes[i]->visited) continue;
 
-                    auto& n1 = _nodes[i];
-                    auto& n2 = sideNodes[0];
-                    auto& n3 = sideNodes[1];
+                auto& n1 = _nodes[i];
+                auto& n2 = sideNodes[0];
+                auto& n3 = sideNodes[1];
 
-                    // Collapse a triangle into a single node
-                    collapseTriangleIntoNode(_nodes, n1, n2, n3);
+                // Collapse a triangle into a single node
+                collapseTriangleIntoNode(_nodes, n1, n2, n3);
 
-                    if (n1->edgeNodes.size() > 2)
-                        n1->branching = true;
-                    else
-                        n1->branching = false;
+                if (n1->edgeNodes.size() > 2)
+                    n1->branching = true;
+                else
+                    n1->branching = false;
 
-                    if (n2->edgeNodes.size() > 2)
-                        n2->branching = true;
-                    else
-                        n2->branching = false;
+                if (n2->edgeNodes.size() > 2)
+                    n2->branching = true;
+                else
+                    n2->branching = false;
 
-                    if (n3->edgeNodes.size() > 2)
-                        n3->branching = true;
-                    else
-                        n3->branching = false;
+                if (n3->edgeNodes.size() > 2)
+                    n3->branching = true;
+                else
+                    n3->branching = false;
 
-                    n1->visited = true;
-                    n2->visited = true;
-                    n3->visited = true;
-                }
-            }
-
-            LOOP_PROGRESS(i, currentNodesSize);
-        }
-        LOOP_DONE;
-        LOG_STATS(GET_TIME_SECONDS);
-    }
-    else
-    {
-        const size_t currentNodesSize = _nodes.size();
-        for (size_t i = 0; i < currentNodesSize; ++i)
-        {
-            if (_nodes[i]->branching)
-            {
-                SkeletonNodes sideNodes;
-                if (isTriangleNode(_nodes[i], sideNodes))
-                {
-                    if (_nodes[i]->visited) continue;
-
-                    auto& n1 = _nodes[i];
-                    auto& n2 = sideNodes[0];
-                    auto& n3 = sideNodes[1];
-
-                    // Collapse a triangle into a single node
-                    collapseTriangleIntoNode(_nodes, n1, n2, n3);
-
-                    if (n1->edgeNodes.size() > 2)
-                        n1->branching = true;
-                    else
-                        n1->branching = false;
-
-                    if (n2->edgeNodes.size() > 2)
-                        n2->branching = true;
-                    else
-                        n2->branching = false;
-
-                    if (n3->edgeNodes.size() > 2)
-                        n3->branching = true;
-                    else
-                        n3->branching = false;
-
-                    n1->visited = true;
-                    n2->visited = true;
-                    n3->visited = true;
-                }
+                n1->visited = true;
+                n2->visited = true;
+                n3->visited = true;
             }
         }
+
+        VERBOSE_LOG(LOOP_PROGRESS(i, currentNodesSize), verbose);
     }
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Reset the visiting state
     OMP_PARALLEL_FOR
@@ -954,13 +811,13 @@ void Skeletonizer::constructGraph(const bool verbose)
     std::map< size_t, size_t > indicesMapper = _extractNodesFromVoxels();
 
     // Assign accurate radii to the nodes of the graph, i.e. inflate the nodes
-    _inflateNodes();
+    _inflateNodes(verbose);
 
     // Connect the nodes to construct the edges of the graph
     _connectNodesToBuildEdges(indicesMapper);
 
     // Remove the triangular configurations
-    _removeTriangleLoops();
+    _removeTriangleLoops(verbose);
 
     // Re-index the samples, for simplicity
     OMP_PARALLEL_FOR for (size_t i = 1; i <= _nodes.size(); ++i) { _nodes[i - 1]->index = i; }
@@ -1073,7 +930,6 @@ void Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& nodes)
                             branchIndex++;
                             _branches.push_back(branch);
                         }
-
                     }
                 }
             }
@@ -1083,10 +939,11 @@ void Skeletonizer::_buildBranchesFromNodes(const SkeletonNodes& nodes)
 
 void Skeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
                                                  const size_t& numberOverlappingVoxels,
-                                                 const size_t& numberZeroVoxels)
+                                                 const size_t& numberZeroVoxels,
+                                                 const bool verbose)
 {
     thinVolumeBlockByBlock(blockSize, numberOverlappingVoxels, numberZeroVoxels);
-    constructGraph();
+    constructGraph(verbose);
     segmentComponents();
 }
 
@@ -1095,31 +952,31 @@ std::vector< Vector3f > Skeletonizer::getShellPoints()
     return _shellPoints;
 }
 
-void Skeletonizer::_exportGraphNodes(const std::string prefix)
+void Skeletonizer::_exportGraphNodes(const std::string prefix, const bool verbose)
 {
-    // Start the timer
-    TIMER_SET;
-
     // Construct the file path
     std::string filePath = prefix + NODES_EXTENSION;
-    LOG_STATUS("Exporting Nodes : [ %s ]", filePath.c_str());
+    VERBOSE_LOG(LOG_STATUS("Exporting Nodes : [ %s ]", filePath.c_str()), verbose);
 
     std::fstream stream;
     stream.open(filePath, std::ios::out);
 
-    LOOP_STARTS("Writing Nodes");
+    TIMER_SET;
+    VERBOSE_LOG(LOOP_STARTS("Writing Nodes"), verbose);
     size_t progress = 0;
     for (size_t i = 0; i < _nodes.size(); ++i)
     {
         auto& node = _nodes[i];
-        stream << node->point.x() << " " << node->point.y() << " " << node->point.z() << " "
-               << node->radius << "\n";
+        stream << node->point.x() << " "
+               << node->point.y() << " "
+               << node->point.z() << " "
+               << node->radius << NEW_LINE;
 
-        LOOP_PROGRESS(progress, _nodes.size());
+        VERBOSE_LOG(LOOP_PROGRESS(progress, _nodes.size()), verbose);
         ++progress;
     }
-    LOOP_DONE;
-    LOG_STATS(GET_TIME_SECONDS);
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Close the file
     stream.close();
