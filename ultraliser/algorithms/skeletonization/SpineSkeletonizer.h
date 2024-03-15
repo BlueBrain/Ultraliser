@@ -90,7 +90,7 @@ public:
     /**
      * @brief segmentComponents
      */
-    void segmentComponents();
+    void segmentComponents(const bool verbose = VERBOSE) override;
 
 private:
 

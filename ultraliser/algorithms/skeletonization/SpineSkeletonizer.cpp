@@ -54,15 +54,15 @@ void SpineSkeletonizer::run(const bool verbose)
     // Initialize
     initialize(verbose);
 
-    skeletonizeVolumeToCenterLines();
+    skeletonizeVolumeToCenterLines(verbose);
 
     /// Extract the nodes of the skeleton from the center-line "thinned" voxels and return a
     /// mapper that maps the indices of the voxels in the volume and the nodes in the skeleton
-    auto indicesMapper = _extractNodesFromVoxels();
+    auto indicesMapper = _extractNodesFromVoxels(verbose);
 
     /// Connect the nodes of the skeleton to construct its edges. This operation will not connect
     /// any gaps, it will just connect the nodes extracted from the voxels.
-    _connectNodesToBuildEdges(indicesMapper);
+    _connectNodesToBuildEdges(indicesMapper, verbose);
 
     /// Inflate the nodes, i.e. adjust their radii
     _inflateNodes(verbose);
@@ -95,7 +95,7 @@ void SpineSkeletonizer::run(const bool verbose)
 
 }
 
-void SpineSkeletonizer::segmentComponents()
+void SpineSkeletonizer::segmentComponents(const bool verbose)
 {
 
 }
