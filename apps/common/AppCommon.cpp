@@ -385,11 +385,6 @@ void generateOptimizedMesh(Mesh *mesh, const AppOptions* options)
 Volume* reconstructVolumeFromMesh(Mesh* inputMesh, const AppOptions* options,
                                   const bool& releaseInputMesh)
 {
-    // Scale the mesh
-    inputMesh->scale(options->xScaleFactor,
-                     options->yScaleFactor,
-                     options->zScaleFactor);
-
     // Create the volume from the mesh
     auto volume = createVolumeGrid(inputMesh, options);
 
