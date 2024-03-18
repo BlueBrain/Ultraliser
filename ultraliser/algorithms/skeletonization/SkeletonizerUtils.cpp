@@ -476,7 +476,6 @@ SkeletonBranch* segmentSpineFromBranch(SkeletonBranch* spineBranch, const size_t
         // If the branch is a spine but the parent is not a spine
         if (!parent->isSpine())
         {
-
             spineRoot = spineBranch;
 
             // Traverse the forward tree to label the spine

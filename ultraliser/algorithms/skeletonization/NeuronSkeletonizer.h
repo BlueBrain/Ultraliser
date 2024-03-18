@@ -161,7 +161,7 @@ public:
      */
     Mesh* getSomaMesh() const { return _somaMesh; }
 
-    void segmentSpines();
+    void segmentSpines(const bool verbose = VERBOSE);
 
     /**
      * @brief reconstructSpineProxyMorphologies
@@ -258,7 +258,7 @@ private:
     /**
      * @brief _updateParents
      */
-    void _updateParents();
+    void _updateParents(const bool verbose = VERBOSE);
 
     /**
      * @brief _reduceSkeletonToWeightedEdges
@@ -368,12 +368,13 @@ private:
      * @param visitedEdgesIndices
      */
     void _detectInactiveBranches(SkeletonWeightedEdges& graphEdges,
-                                 EdgesIndices& visitedEdgesIndices);
+                                 EdgesIndices& visitedEdgesIndices,
+                                 const bool verbose = VERBOSE);
 
     /**
      * @brief _adjustSomaRadius
      */
-    void _adjustSomaRadius();
+    void _adjustSomaRadius(const bool verbose = VERBOSE);
 
     void _reconstructSomaMeshFromProxy(const bool verbose = VERBOSE);
 

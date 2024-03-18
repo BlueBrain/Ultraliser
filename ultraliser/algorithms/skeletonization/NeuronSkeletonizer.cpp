@@ -158,19 +158,22 @@ void NeuronSkeletonizer::segmentComponents(const bool verbose)
     _constructSkeletonHierarchy(graphBranches, verbose);
 
     // Invalidate the inactive branches
-    _detectInactiveBranches(weighteEdges, edgeIndices);
+    _detectInactiveBranches(weighteEdges, edgeIndices, verbose);
 
     // Adkjust the soma radius
-    _adjustSomaRadius();
+    _adjustSomaRadius(verbose);
 
     // Update all the parents
-    _updateParents();
+    _updateParents(verbose);
 
     // Remove the spines from the skeleton
     if (_removeSpines)
     {
+        std::cout << 1 << "\n";
         // Remove root spines around the soma
         _removeRootSpines();
+
+        std::cout << 2 << "\n";
 
         // Remove the branches that have 2 samples along the terminals
         for(size_t i = 0; i < 25; ++i)
@@ -179,11 +182,17 @@ void NeuronSkeletonizer::segmentComponents(const bool verbose)
             _mergeBranchesAfterFilteringSpines();
         }
 
+        std::cout << 3 << "\n";
+
         /// DEBUG: Export the somatic branches
         if (_debugSkeleton && _debuggingPrefix != NONE)
         { exportBranches(_debuggingPrefix, SkeletonBranch::TWO_SAMPLE_AND_VALID, verbose); }
 
+        std::cout << 4 << "\n";
+
         _detectBasePaths();
+
+        std::cout << 5 << "\n";
 
         for(size_t i = 0; i < 5; ++i)
         {
@@ -191,6 +200,9 @@ void NeuronSkeletonizer::segmentComponents(const bool verbose)
             _detectSpines();
             _mergeBranchesAfterFilteringSpines();
         }
+
+        std::cout << 6 << "\n";
+
 
         // Remove the branches that have 2 samples along the terminals
         for(size_t i = 0; i < 5; ++i)
@@ -200,8 +212,13 @@ void NeuronSkeletonizer::segmentComponents(const bool verbose)
             _mergeBranchesAfterFilteringSpines();
         }
 
+        std::cout << 7 << "\n";
+
+
         // Segment the spines and label (count) them
         segmentSpines();
+
+        std::cout << 8 << "\n";
 
         /// DEBUG: Export the somatic branches
         if (_debugSkeleton && _debuggingPrefix != NONE)
@@ -526,7 +543,7 @@ void NeuronSkeletonizer::_segmentSomaMesh(const bool verbose)
 
         /// TODO: This is a magic value, it works now, but we need to find an optimum value based
         /// on some statistical analysis.
-        if (node->radius >= 2.0)
+        if (node->radius >= 3.0)
         {
             interSomaticNodes.insert({node->index, node->radius});
             interSomaticNodesCount++;
@@ -1326,9 +1343,13 @@ void NeuronSkeletonizer::_mergeBranchesAfterFilteringSpines()
 }
 
 void NeuronSkeletonizer::_detectInactiveBranches(SkeletonWeightedEdges& graphEdges,
-                                                 EdgesIndices& visitedEdgesIndices)
+                                                 EdgesIndices& visitedEdgesIndices,
+                                                 const bool verbose)
 {
+
     // For every edge in the graph, verifiy if this edge contains the nodes that are visited
+    TIMER_SET;
+    VERBOSE_LOG(LOG_STATUS("Detecting Inactive Branches"), verbose);
     for (size_t i = 0; i < graphEdges.size(); i++)
     {
         // Get a reference to the edge
@@ -1354,7 +1375,10 @@ void NeuronSkeletonizer::_detectInactiveBranches(SkeletonWeightedEdges& graphEdg
                 }
             }
         }
+        VERBOSE_LOG(LOOP_PROGRESS(i, graphEdges.size()), verbose);
     }
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Update the skeleton using the SkeletonWeightedEdges list
     for (size_t i = 0; i < graphEdges.size(); ++i)
@@ -1363,18 +1387,19 @@ void NeuronSkeletonizer::_detectInactiveBranches(SkeletonWeightedEdges& graphEdg
         if (!graphEdges[i]->visited)
         {
             graphEdges[i]->branch->setInvalid();
-            // graphEdges[i]->branch->setInactive();
         }
     }
 }
 
-void NeuronSkeletonizer::_adjustSomaRadius()
+void NeuronSkeletonizer::_adjustSomaRadius(const bool verbose)
 {
     // Only count the valid roots to normalize the size of the soma
     size_t numberValidRoots = 0;
 
     // Calculate the actual radius of the soma from the valid roots
     float somaRadius = 0.;
+    TIMER_SET;
+    VERBOSE_LOG(LOG_STATUS("Adjusting Soma Radius"), verbose);
     for(size_t i = 0; i < _branches.size(); ++i)
     {
         // Get the branch
@@ -1388,7 +1413,10 @@ void NeuronSkeletonizer::_adjustSomaRadius()
             somaRadius += branch->nodes[1]->point.distance(_somaNode->point);
             numberValidRoots++;
         }
+        VERBOSE_LOG(LOOP_PROGRESS(i, _branches.size()), verbose);
     }
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
     // Normalize and update the soma node
     somaRadius /= numberValidRoots;
@@ -1413,8 +1441,10 @@ void NeuronSkeletonizer::_updateParent(SkeletonBranch* branch)
     }
 }
 
-void NeuronSkeletonizer::_updateParents()
+void NeuronSkeletonizer::_updateParents(const bool verbose)
 {
+    TIMER_SET;
+    VERBOSE_LOG(LOG_STATUS("Updating Parents"), verbose);
     for (size_t i = 0; i < _branches.size(); ++i)
     {
         auto& branch = _branches[i];
@@ -1437,6 +1467,8 @@ void NeuronSkeletonizer::_updateParents()
             }
         }
     }
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
 void NeuronSkeletonizer::_removeRootSpines()
@@ -1501,19 +1533,18 @@ void NeuronSkeletonizer::_removeSpinesss()
     }
 }
 
-void NeuronSkeletonizer::segmentSpines()
+void NeuronSkeletonizer::segmentSpines(const bool verbose)
 {
     // Unset the visited flag for all the spines
-    for (size_t i = 0; i < _branches.size(); ++i)
-    {
-        auto branch = _branches[i];
-        branch->setUnvisited();
-    }
+    for (size_t i = 0; i < _branches.size(); ++i) { _branches[i]->setUnvisited(); }
 
     // An index that will be assigned to the spine
     size_t spineIndex = 1;
 
     /// NOTE: This function must be called after the labeling of the spines.
+
+    TIMER_SET;
+    VERBOSE_LOG(LOOP_STARTS("Segmenting Spine Morphologies"), verbose);
     for (size_t i = 0; i < _branches.size(); ++i)
     {
         auto branch = _branches[i];
@@ -1525,15 +1556,19 @@ void NeuronSkeletonizer::segmentSpines()
             if (!branch->visited())
             {
                 // Do the traversal logical and segment the spine
-                _spineRoots.push_back(segmentSpineFromBranch(branch, spineIndex));
+                auto spineRoot = segmentSpineFromBranch(branch, spineIndex);
+                if (spineRoot != nullptr) _spineRoots.push_back(spineRoot);
 
                 // Next spine
                 spineIndex++;
             }
         }
+        VERBOSE_LOG(LOOP_PROGRESS(i, _branches.size()), verbose);
     }
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 
-    LOG_SUCCESS("[%ld] spine were segmented!", spineIndex - 1);
+    LOG_SUCCESS("[ %ld ] Spine Morphologies were Segmented!", spineIndex - 1);
 }
 
 SpineMorphologies NeuronSkeletonizer::reconstructSpineProxyMorphologies()
@@ -1645,7 +1680,7 @@ Meshes NeuronSkeletonizer::reconstructSpineMeshes(Mesh* neuronMesh,
         auto spinePointCloud = mesh->constructPointCloud();
 
         // Map the spine model mesh to the KdTree of the neuron
-        spineModelMesh->kdTreeMapping(spinePointCloud, SILENT);
+        // spineModelMesh->kdTreeMapping(spinePointCloud, SILENT);
 
         // Add the mesh to the list
         spineMeshes[i] = spineModelMesh;

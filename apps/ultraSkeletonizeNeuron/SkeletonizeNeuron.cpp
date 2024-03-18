@@ -282,11 +282,12 @@ void run(int argc , const char** argv)
             std::stringstream stream;
             stream << options->morphologyPrefix << "_spine_" << i;
             spineMesh->exportMesh(stream.str(), true, false, false, false, SILENT);
-
+            continue;
             auto remeshedSpine = remeshSpine(spineMesh, 50, SILENT);
             stream << "_refined";
             remeshedSpine->exportMesh(stream.str(), true, false, false, false, SILENT);
             remeshedSpines[i] = remeshedSpine;
+
             LOOP_PROGRESS(PROGRESS, spineMeshes.size());
             PROGRESS_UPDATE;
         }
