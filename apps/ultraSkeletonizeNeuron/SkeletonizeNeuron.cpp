@@ -27,7 +27,7 @@
 
 
 // Defines
-#define NEURON_SMOOTHING_ITERATIONS 10
+#define NEURON_SMOOTHING_ITERATIONS 25
 
 namespace Ultraliser
 {
@@ -112,6 +112,8 @@ Mesh* remeshSpine(Mesh* inputSpineMesh, const float voxelsPerMicron = 50,
 
     // Smooth the resulting surface mesh
     reconstructedSpineMesh->smoothSurface(NEURON_SMOOTHING_ITERATIONS, SILENT);
+
+     reconstructedSpineMesh->optimizeAdaptively(5, 5, 0.05, 5.0, SILENT);
 
     // Return a pointer to the resulting neuron
     return reconstructedSpineMesh;
@@ -295,18 +297,27 @@ void run(int argc , const char** argv)
         TIMER_RESET;
         LOOP_STARTS("Spine Re-skeltonization");
         PROGRESS_RESET;
-        OMP_PARALLEL_FOR
+        // OMP_PARALLEL_FOR
         for (size_t i = 0; i < spineMeshes.size(); ++i)
         {
             auto basePoint = proxySpineMorphologies[i]->getBasePoint();
 
-            Skeletonizer::VoxelizationOptions options;
-            options.voxelizationAxis = Volume::SOLID_VOXELIZATION_AXIS::XYZ;
-            options.volumeResolution = 80;
-            options.verbose = SILENT;
+            std::stringstream stream;
+            stream << options->morphologyPrefix << "_spine_" << i;
+
+            Skeletonizer::VoxelizationOptions skeletonizerOptions;
+            skeletonizerOptions.voxelizationAxis = Volume::SOLID_VOXELIZATION_AXIS::XYZ;
+            skeletonizerOptions.volumeResolution = 80;
+            skeletonizerOptions.verbose = SILENT;
+
             std::unique_ptr< SpineSkeletonizer > spineSkeletonizer =
-                std::make_unique< SpineSkeletonizer >(remeshedSpines[i], basePoint, options, false, false, NONE);
+                std::make_unique< SpineSkeletonizer >(remeshedSpines[i], basePoint, skeletonizerOptions,
+                                                      true, true, stream.str());
             spineSkeletonizer->run(SILENT);
+
+
+
+
             LOOP_PROGRESS(PROGRESS, spineMeshes.size());
             PROGRESS_UPDATE;
         }

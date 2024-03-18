@@ -217,8 +217,38 @@ void identifyTerminalBranchesForSpine(SkeletonBranches& branches)
     }
 }
 
-SkeletonBranch* identifyRootBranchForSpine(SkeletonBranches& branches,
-                                           const Vector3f basePoint)
+SkeletonNode* identifyRootNodeForSpine(SkeletonBranch* rootBranch, const Vector3f basePoint)
+{
+    // The skeleton node to be identified later
+    SkeletonNode* rootNode = nullptr;
+
+    // The shortest distance between a terminal branch and the base point
+    float shortestDistance = std::numeric_limits< float >::max();
+
+    // Get the first and last sample of the branch
+    auto firstSample = rootBranch->nodes.front();
+    auto lastSample = rootBranch->nodes.back();
+
+    // Compute the distance to the front and back nodes
+    auto distanceToFirstSample = firstSample->point.distance(basePoint);
+    auto distanceToLastSample = lastSample->point.distance(basePoint);
+
+    if (distanceToFirstSample < shortestDistance)
+    {
+        shortestDistance = distanceToFirstSample;
+        rootNode = firstSample;
+    }
+
+    if (distanceToLastSample < shortestDistance)
+    {
+        shortestDistance = distanceToLastSample;
+        rootNode = lastSample;
+    }
+
+    return rootNode;
+}
+
+SkeletonBranch* identifyRootBranchForSpine(SkeletonBranches& branches, const Vector3f basePoint)
 {
     // The skeleton branch to be identified later
     SkeletonBranch* rootBranch = nullptr;
@@ -226,17 +256,20 @@ SkeletonBranch* identifyRootBranchForSpine(SkeletonBranches& branches,
     // The shortest distance between a terminal branch and the base point
     float shortestDistance = std::numeric_limits< float >::max();
 
+    std::cout << branches.size() << "\n";
     // Select the terminal branch from the list of branches
     for (size_t i = 0; i < branches.size(); ++i)
     {
+        // std::cout << i << " ";
+
         // Reference to the branch
         auto& branch = branches[i];
 
         // The branch must be terminal , otherwise next
-        if (!branch->isTerminal()) continue;
+        // if (!branch->isTerminal()) continue;
 
         // Invalid branches, next
-        if (!branch->isValid()) continue;
+        // if (!branch->isValid()) continue;
 
         // Get the first and last sample of the branch
         auto firstSample = branch->nodes.front();
@@ -250,6 +283,7 @@ SkeletonBranch* identifyRootBranchForSpine(SkeletonBranches& branches,
         {
             shortestDistance = distanceToFirstSample;
             rootBranch = branch;
+
         }
 
         if (distanceToLastSample < shortestDistance)

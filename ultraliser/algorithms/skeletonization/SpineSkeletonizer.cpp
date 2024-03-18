@@ -49,12 +49,77 @@ SpineSkeletonizer::SpineSkeletonizer(Mesh* spineMesh,
     _computeVolumeFromMesh();
 }
 
+void adjustRootBranchOrientation(SkeletonBranch* rootBranch, const SkeletonNode* rootNode)
+{
+    // We can rely on the front node only to verify
+    auto firstNode = rootBranch->nodes.front();
+
+    // If the first node of the branch is the root node, then return as nothing to be fixed
+    if (firstNode->index == rootNode->index)
+        return;
+
+    // Otherwise, reverse the order of the nodes
+    std::reverse(std::begin(rootBranch->nodes), std::end(rootBranch->nodes));
+}
+
+void adjustChildrenBranchOrientation(SkeletonBranch* rootBranch, SkeletonBranches& branches)
+{
+    // The root branch should be okay
+    // Get the last sample of the root branch
+    auto lastNodeRootBranch = rootBranch->nodes.back();
+
+    // If the last node has no edge nodes, return
+    if (lastNodeRootBranch->edgeNodes.size() == 0)
+        return;
+
+    // Find the branches that have the same terminal node
+    for (size_t i = 0; i < branches.size(); ++i)
+    {
+        auto branch = branches[i];
+
+        // If the same branch, then continue
+        if (branch->index == rootBranch->index) continue;
+
+        // If the first node of the branch matches the last node of the root branch, this is a direct child
+        auto firstNode = branch->nodes.front();
+        if (lastNodeRootBranch->index == firstNode->index)
+        {
+            rootBranch->children.push_back(branch);
+            branch->parents.push_back(rootBranch);
+
+            // Continue
+            continue;
+        }
+
+        // Otherwise, check if the last node
+        auto lastNode = branch->nodes.back();
+        if (lastNodeRootBranch->index == lastNode->index)
+        {
+            // We must fix the branch first
+            std::reverse(std::begin(branch->nodes), std::end(branch->nodes));
+
+            // Then we can append
+            rootBranch->children.push_back(branch);
+            branch->parents.push_back(rootBranch);
+        }
+    }
+
+    // Do it recursively
+    for (size_t i = 0; i < rootBranch->children.size(); ++i)
+    {
+        adjustChildrenBranchOrientation(rootBranch->children[i], branches);
+    }
+}
+
 void SpineSkeletonizer::run(const bool verbose)
 {
     // Initialize
     initialize(verbose);
 
     skeletonizeVolumeToCenterLines(verbose);
+
+    const std::string prefix = _debuggingPrefix + SKELETON_SUFFIX;
+    _volume->project(prefix, true);
 
     /// Extract the nodes of the skeleton from the center-line "thinned" voxels and return a
     /// mapper that maps the indices of the voxels in the volume and the nodes in the skeleton
@@ -70,18 +135,36 @@ void SpineSkeletonizer::run(const bool verbose)
     /// Reconstruct the sections "or branches" from the nodes using the edges data
     _buildBranchesFromNodes(_nodes);
 
-    // exportBranches(_debuggingPrefix, verbose);
+
+    // exportBranches(_debuggingPrefix , verbose);
 
 
     // Identify the connections at the terminals of each branch
-    identifyTerminalConnections(_branches);
+    // identifyTerminalConnections(_branches);
 
     //
-    identifyTerminalBranchesForSpine(_branches);
+    // identifyTerminalBranchesForSpine(_branches);
 
-    auto rootBranch = identifyRootBranchForSpine(_branches, _basePoint);
+    // Identify the root branch
+//    auto rootBranch = identifyRootBranchForSpine(_branches, _basePoint);
+//    if (rootBranch == nullptr)
+//        std::cout << "NULL ROOT BRANCH \n";
 
-    // Identify the root node along the branch
+//    // Identify the root node
+//    auto rootNode = identifyRootNodeForSpine(rootBranch, _basePoint);
+//    if (rootNode == nullptr)
+//        std::cout << "NULL ROOT NODE\n";
+
+//    // Verify the orientation of the root branch
+//    // mainly for the root branch
+//    adjustRootBranchOrientation(rootBranch, rootNode);
+
+
+//    // If the spine has more than one branch
+//    adjustChildrenBranchOrientation(rootBranch, _branches);
+
+
+
 
     // Identify the paths of the morphology
 

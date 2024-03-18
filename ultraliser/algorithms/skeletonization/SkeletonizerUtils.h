@@ -89,6 +89,14 @@ void getTerminals(SkeletonBranch* root, SkeletonBranches& terminals);
 SkeletonBranches _detectChildren(SkeletonBranch* currentBranch, SkeletonBranches& allBranches);
 
 /**
+ * @brief identifyRootNodeForSpine
+ * @param rootBranch
+ * @param basePoint
+ * @return
+ */
+SkeletonNode* identifyRootNodeForSpine(SkeletonBranch* rootBranch, const Vector3f basePoint);
+
+/**
  * @brief identifyTerminalConnections
  * @param branches
  */
