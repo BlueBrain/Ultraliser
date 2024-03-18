@@ -204,6 +204,8 @@ Mesh* reconstructNeuronMeshFromVolume(Volume* neuronVolume,
 
 void run(int argc , const char** argv)
 {
+    std::cout << "Neuron Skeletonization \n";
+
     // Parse the arguments and get the tool options
     auto options = parseArguments(argc, argv);
 
