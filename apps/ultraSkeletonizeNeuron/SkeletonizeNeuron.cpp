@@ -267,7 +267,7 @@ void run(int argc , const char** argv)
 
         auto proxySpineMorphologies = skeletonizer->reconstructSpineProxyMorphologies();
 
-        auto spineMeshes = skeletonizer->reconstructSpineMeshes(inputMesh, 50, 0.5);
+        auto spineMeshes = skeletonizer->reconstructSpineMeshes(inputMesh, 25, 0.5);
 
         std::vector<Mesh*> remeshedSpines;
         remeshedSpines.resize(proxySpineMorphologies.size());
@@ -283,7 +283,7 @@ void run(int argc , const char** argv)
             stream << options->morphologyPrefix << "_spine_" << i;
             spineMesh->exportMesh(stream.str(), true, false, false, false, SILENT);
             continue;
-            auto remeshedSpine = remeshSpine(spineMesh, 50, SILENT);
+            auto remeshedSpine = remeshSpine(spineMesh, 25, SILENT);
             stream << "_refined";
             remeshedSpine->exportMesh(stream.str(), true, false, false, false, SILENT);
             remeshedSpines[i] = remeshedSpine;

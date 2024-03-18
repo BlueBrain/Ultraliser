@@ -169,11 +169,9 @@ void NeuronSkeletonizer::segmentComponents(const bool verbose)
     // Remove the spines from the skeleton
     if (_removeSpines)
     {
-        std::cout << 1 << "\n";
         // Remove root spines around the soma
         _removeRootSpines();
 
-        std::cout << 2 << "\n";
 
         // Remove the branches that have 2 samples along the terminals
         for(size_t i = 0; i < 25; ++i)
@@ -182,17 +180,14 @@ void NeuronSkeletonizer::segmentComponents(const bool verbose)
             _mergeBranchesAfterFilteringSpines();
         }
 
-        std::cout << 3 << "\n";
 
         /// DEBUG: Export the somatic branches
         if (_debugSkeleton && _debuggingPrefix != NONE)
         { exportBranches(_debuggingPrefix, SkeletonBranch::TWO_SAMPLE_AND_VALID, verbose); }
 
-        std::cout << 4 << "\n";
 
         _detectBasePaths();
 
-        std::cout << 5 << "\n";
 
         for(size_t i = 0; i < 5; ++i)
         {
@@ -200,9 +195,6 @@ void NeuronSkeletonizer::segmentComponents(const bool verbose)
             _detectSpines();
             _mergeBranchesAfterFilteringSpines();
         }
-
-        std::cout << 6 << "\n";
-
 
         // Remove the branches that have 2 samples along the terminals
         for(size_t i = 0; i < 5; ++i)
@@ -212,13 +204,8 @@ void NeuronSkeletonizer::segmentComponents(const bool verbose)
             _mergeBranchesAfterFilteringSpines();
         }
 
-        std::cout << 7 << "\n";
-
-
         // Segment the spines and label (count) them
         segmentSpines();
-
-        std::cout << 8 << "\n";
 
         /// DEBUG: Export the somatic branches
         if (_debugSkeleton && _debuggingPrefix != NONE)
@@ -1680,7 +1667,7 @@ Meshes NeuronSkeletonizer::reconstructSpineMeshes(Mesh* neuronMesh,
         auto spinePointCloud = mesh->constructPointCloud();
 
         // Map the spine model mesh to the KdTree of the neuron
-        // spineModelMesh->kdTreeMapping(spinePointCloud, SILENT);
+        spineModelMesh->kdTreeMapping(spinePointCloud, SILENT);
 
         // Add the mesh to the list
         spineMeshes[i] = spineModelMesh;
