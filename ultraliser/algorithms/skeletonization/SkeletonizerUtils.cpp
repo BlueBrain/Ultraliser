@@ -101,7 +101,7 @@ bool isTriangleNode(const SkeletonNode* n, SkeletonNodes& connectedEdgeNodes)
     return false;
 }
 
-void constructPathFromBranchToSoma(SkeletonBranch* branch,
+void updateTraversalCountAlongPathFromBranchToSoma(SkeletonBranch* branch,
                                    SkeletonBranches& path,
                                    std::vector< size_t >& pathIndices)
 {
@@ -113,7 +113,7 @@ void constructPathFromBranchToSoma(SkeletonBranch* branch,
     // Ensure that the branch has a single parent
     if (branch->parents.size() == 1)
     {
-        constructPathFromBranchToSoma(branch->parents[0], path, pathIndices);
+        updateTraversalCountAlongPathFromBranchToSoma(branch->parents[0], path, pathIndices);
     }
 }
 

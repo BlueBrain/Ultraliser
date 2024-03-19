@@ -161,8 +161,6 @@ public:
      */
     Mesh* getSomaMesh() const { return _somaMesh; }
 
-    void segmentSpines(const bool verbose = VERBOSE);
-
     /**
      * @brief reconstructSpineProxyMorphologies
      * @return
@@ -219,6 +217,12 @@ private:
      * @param verbose
      */
     void _segmentSomaMesh(const bool verbose = VERBOSE);
+
+    /**
+     * @brief _segmentSpinesSkeletons
+     * @param verbose
+     */
+    void _segmentSpinesSkeletons(const bool verbose = VERBOSE);
 
     /**
      * @brief _identifySomaticNodes
@@ -339,24 +343,42 @@ private:
 
     void _filterSpineCandidates();
 
-    void _removeSpinesss();
 
     size_t _estimateNumberSpineCandidates();
 
-    void _removeRootSpines();
+    /**
+     * @brief _detachSpinesFromSkeleton
+     * Splits the spine branches from the reconstructed skeleton.
+     * @param verbose
+     */
+    void _detachSpinesFromSkeleton(const bool verbose);
 
+    /**
+     * @brief _removeRootSpinesOnSoma
+     * Seggregates the root branches that emanate from the soma and have the possibility of
+     * being dendritic spines. This routine removes all short root branches, that either have no
+     * children branches or have short terminal children.
+     * @note The algorithm can be improved by labeling short branches (2-samples) from the
+     * terminals and removing them in an iterative fashion.
+     * @param verbose
+     */
+    void _removeRootSpinesOnSoma(const bool verbose = VERBOSE);
 
-
-    void _detectBasePaths();
+    /**
+     * @brief _updateBranchesTraversalCounts
+     */
+    void _updateBranchesTraversalCounts();
 
     void _filterShortTerminalBranches();
 
-
+    /**
+     * @brief _detectSpines
+     * This is the magic function that detects if a branch is considered a spine or not. The
+     * current algorithm uses length data combined with the traversal counts. After several trials,
+     * we managed to segment like 99% of all the spines of several neurons. But indeed, this
+     * function can be updated with more advanced logic that uses the radius information as well.
+     */
     void _detectSpines();
-
-
-
-
 
     void _mergeBranchesAfterFilteringSpines();
 

@@ -167,73 +167,73 @@ void NeuronSkeletonizer::segmentComponents(const bool verbose)
     _updateParents(verbose);
 
     // Remove the spines from the skeleton
-    if (_removeSpines)
-    {
-        // Remove root spines around the soma
-        _removeRootSpines();
-
-
-        // Remove the branches that have 2 samples along the terminals
-        for(size_t i = 0; i < 25; ++i)
-        {
-            _filterShortTerminalBranches();
-            _mergeBranchesAfterFilteringSpines();
-        }
-
-
-        /// DEBUG: Export the somatic branches
-        if (_debugSkeleton && _debuggingPrefix != NONE)
-        { exportBranches(_debuggingPrefix, SkeletonBranch::TWO_SAMPLE_AND_VALID, verbose); }
-
-
-        _detectBasePaths();
-
-
-        for(size_t i = 0; i < 5; ++i)
-        {
-            // Filter the synapses
-            _detectSpines();
-            _mergeBranchesAfterFilteringSpines();
-        }
-
-        // Remove the branches that have 2 samples along the terminals
-        for(size_t i = 0; i < 5; ++i)
-        {
-            // Filter the terminal branches that have two branches
-            _filterShortTerminalBranches();
-            _mergeBranchesAfterFilteringSpines();
-        }
-
-        // Segment the spines and label (count) them
-        segmentSpines();
-
-        /// DEBUG: Export the somatic branches
-        if (_debugSkeleton && _debuggingPrefix != NONE)
-        { exportBranches(_debuggingPrefix, SkeletonBranch::SPINE, verbose); }
-
-        /// DEBUG: Export the spine locations
-        if (_debugSkeleton && _debuggingPrefix != NONE)
-        { exportSpineLocations(_debuggingPrefix, verbose); }
-
-        /// DEBUG: Export the spine extents
-        if (_debugSkeleton && _debuggingPrefix != NONE)
-        { exportSpineExtents(_debuggingPrefix, verbose); }
-    }
+    if (_removeSpines) { _detachSpinesFromSkeleton(verbose); }
 }
 
-void NeuronSkeletonizer::_detectBasePaths()
+void NeuronSkeletonizer::_detachSpinesFromSkeleton(const bool verbose)
+{
+    // Remove root spines around the soma
+    _removeRootSpinesOnSoma(verbose);
+
+    // Remove the branches that have 2 samples along the terminals
+    for(size_t i = 0; i < 25; ++i)
+    {
+        _filterShortTerminalBranches();
+        _mergeBranchesAfterFilteringSpines();
+    }
+
+    /// DEBUG: Export the somatic branches
+    if (_debugSkeleton && _debuggingPrefix != NONE)
+    { exportBranches(_debuggingPrefix, SkeletonBranch::TWO_SAMPLE_AND_VALID, verbose); }
+
+    // Update the traversal counts of the branches to be able to detect, lable and split the spines
+    _updateBranchesTraversalCounts();
+
+    for(size_t i = 0; i < 5; ++i)
+    {
+        // Filter the synapses
+        _detectSpines();
+        _mergeBranchesAfterFilteringSpines();
+    }
+
+    // Remove the branches that have 2 samples along the terminals
+    for(size_t i = 0; i < 5; ++i)
+    {
+        // Filter the terminal branches that have two branches
+        _filterShortTerminalBranches();
+        _mergeBranchesAfterFilteringSpines();
+    }
+
+    // Segment the spines and label (count) them
+    _segmentSpinesSkeletons(verbose);
+
+    /// DEBUG: Export the spine branches
+    if (_debugSkeleton && _debuggingPrefix != NONE)
+    { exportBranches(_debuggingPrefix, SkeletonBranch::SPINE, verbose); }
+
+    /// DEBUG: Export the spine locations
+    if (_debugSkeleton && _debuggingPrefix != NONE)
+    { exportSpineLocations(_debuggingPrefix, verbose); }
+
+    /// DEBUG: Export the spine extents
+    if (_debugSkeleton && _debuggingPrefix != NONE)
+    { exportSpineExtents(_debuggingPrefix, verbose); }
+}
+
+void NeuronSkeletonizer::_updateBranchesTraversalCounts()
 {
     for (size_t i = 0; i < _roots.size(); ++i)
     {
+        // Obtain 'all' the terminal branches for a certain root
         SkeletonBranches terminals;
         getTerminals(_roots[i], terminals);
 
+        // Construct the path between each terminal and the root
         for (size_t j = 0; j < terminals.size(); ++j)
         {
-            auto& terminal = terminals[j];
             SkeletonBranches path;
             std::vector< size_t > pathIndices;
-            constructPathFromBranchToSoma(terminal, path, pathIndices);
+            updateTraversalCountAlongPathFromBranchToSoma(terminals[j], path, pathIndices);
         }
     }
 }
@@ -1314,7 +1314,6 @@ void NeuronSkeletonizer::_mergeBranchesAfterFilteringSpines()
                     parent->children.push_back(newChildren[k]);
                 }
             }
-
         }
     }
 
@@ -1453,13 +1452,16 @@ void NeuronSkeletonizer::_updateParents(const bool verbose)
                 _updateParent(child);
             }
         }
+        VERBOSE_LOG(LOOP_PROGRESS(i, _branches.size()), verbose);
     }
     VERBOSE_LOG(LOOP_DONE, verbose);
     VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
-void NeuronSkeletonizer::_removeRootSpines()
+void NeuronSkeletonizer::_removeRootSpinesOnSoma(const bool verbose)
 {
+    TIMER_SET;
+    VERBOSE_LOG(LOG_STATUS("Removing Root Spines from Soma"), verbose);
     for (size_t i = 0; i < _branches.size(); ++i)
     {
         auto& branch = _branches[i];
@@ -1468,11 +1470,14 @@ void NeuronSkeletonizer::_removeRootSpines()
             branch->isTerminal() &&
             branch->computeLength() < 6.0)
         {
-            // This is a spine on the soma
+            // This branch is indeed a spine that is emerging from the soma
             branch->setSpine();
             branch->setInvalid();
         }
+        VERBOSE_LOG(LOOP_PROGRESS(i, _branches.size()), verbose);
     }
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
 size_t NeuronSkeletonizer::_estimateNumberSpineCandidates()
@@ -1496,31 +1501,9 @@ size_t NeuronSkeletonizer::_estimateNumberSpineCandidates()
     return numberSpineCandidates;
 }
 
-void NeuronSkeletonizer::_removeSpinesss()
-{
-
-    size_t iterations = 0;
-    while (true)
-    {
-        // Filter terminal candidates that could be spines
-        _filterSpineCandidates();
-        iterations++;
 
 
-        auto numberSpinesEstimated = _estimateNumberSpineCandidates();
-        if (numberSpinesEstimated == 0 || iterations > 5)
-        {
-            LOG_SUCCESS("Spines are completely eliminated");
-            return;
-        }
-        else
-        {
-            LOG_WARNING("Estimated Spines to Eliminate %d", numberSpinesEstimated);
-        }
-    }
-}
-
-void NeuronSkeletonizer::segmentSpines(const bool verbose)
+void NeuronSkeletonizer::_segmentSpinesSkeletons(const bool verbose)
 {
     // Unset the visited flag for all the spines
     for (size_t i = 0; i < _branches.size(); ++i) { _branches[i]->setUnvisited(); }
@@ -1997,33 +1980,42 @@ void NeuronSkeletonizer::exportBranches(const std::string& prefix,
 {
     // Construct the file path
     std::string filePath = prefix;
+    std::string branchType;
+
     if (state == SkeletonBranch::INVALID)
     {
         filePath += "-invalid";
+        branchType = "Invalid";
     }
     else if (state == SkeletonBranch::VALID)
     {
         filePath += "-valid";
+        branchType = "Valid";
     }
     else if (state == SkeletonBranch::TWO_SAMPLE)
     {
         filePath += "-two-sample";
+        branchType = "Two-sample";
     }
     else if (state == SkeletonBranch::TWO_SAMPLE_AND_VALID)
     {
         filePath += "-two-sample-valid";
+        branchType = "Two-sample and Valid";
     }
     else if (state == SkeletonBranch::TWO_SAMPLE_AND_INVALID)
     {
         filePath += "-two-sample-invalid";
+        branchType = "Two-sample and Invalid";
     }
     else if (state == SkeletonBranch::SOMATIC)
     {
         filePath += "-somatic";
+        branchType = "Somatic";
     }
     else if (state == SkeletonBranch::SPINE)
     {
         filePath += "-spines";
+        branchType = "Spine";
     }
     else
     {
@@ -2032,7 +2024,8 @@ void NeuronSkeletonizer::exportBranches(const std::string& prefix,
 
     filePath += BRANCHES_EXTENSION;
 
-    VERBOSE_LOG(LOG_STATUS("Exporting Neuron Branches: [ %s ]", filePath.c_str()), verbose);
+    VERBOSE_LOG(LOG_STATUS("Exporting %s Branches: [ %s ]",
+                           branchType.c_str(), filePath.c_str()), verbose);
 
     std::fstream stream;
     stream.open(filePath, std::ios::out);
@@ -2171,9 +2164,7 @@ void NeuronSkeletonizer::exportSpineLocations(const std::string& prefix, const b
     {
         auto node = _spineRoots[i]->nodes[0];
 
-        stream << node->point.x() << " "
-               << node->point.y() << " "
-               << node->point.z() << NEW_LINE;
+        stream << node->point.x() << " " << node->point.y() << " " << node->point.z() << NEW_LINE;
 
         VERBOSE_LOG(LOOP_PROGRESS(i, _spineRoots.size()), verbose);
     }

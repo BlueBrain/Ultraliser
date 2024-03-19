@@ -64,14 +64,14 @@ bool areConnected(const SkeletonNode* n1, const SkeletonNode* n2);
 bool isTriangleNode(const SkeletonNode* n, SkeletonNodes& connectedEdgeNodes);
 
 /**
- * @brief constructPathFromBranchToSoma
+ * @brief updateTraversalCountAlongPathFromBranchToSoma
  * @param branch
  * @param path
  * @param pathIndices
  */
-void constructPathFromBranchToSoma(SkeletonBranch* branch,
-                                   SkeletonBranches& path,
-                                   std::vector< size_t >& pathIndices);
+void updateTraversalCountAlongPathFromBranchToSoma(SkeletonBranch* branch,
+                                                   SkeletonBranches& path,
+                                                   std::vector< size_t >& pathIndices);
 
 /**
  * @brief getTerminals
