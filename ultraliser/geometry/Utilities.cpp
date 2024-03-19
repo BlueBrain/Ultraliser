@@ -184,10 +184,6 @@ void printBoundingBoxData(const Vector3f &pMin, const Vector3f &pMax,
     Vector3f pMinCenter = -bound / 2.0;
     Vector3f pMaxCenter = bound / 2.0;
 
-    //    std::cout << "Center BB" << std::endl;
-    //    std::cout << "\t"; pMinCenter.print();
-    //    std::cout << "\t"; pMaxCenter.print();
-
     std::string fileName = prefix + std::string(BOUNDS_EXTENSION);
     std::fstream header;
     header.open(fileName.c_str(), std::ios::out);
@@ -223,6 +219,14 @@ void printVoxelData(const Vector3f &pMin, const Vector3f &pMax,
            << voxelSize.y() << " "
            << voxelSize.z() << std::endl;
     header.close();
+}
+
+bool isPointInsideSphere(const Vector3f point, const Vector3f sphereCenter, const float sphereRadius)
+{
+    auto pointToCenter = point.distance(sphereCenter);
+    if (pointToCenter < sphereRadius)
+        return true;
+    return false;
 }
 
 }

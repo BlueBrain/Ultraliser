@@ -1501,8 +1501,6 @@ size_t NeuronSkeletonizer::_estimateNumberSpineCandidates()
     return numberSpineCandidates;
 }
 
-
-
 void NeuronSkeletonizer::_segmentSpinesSkeletons(const bool verbose)
 {
     // Unset the visited flag for all the spines

@@ -51,6 +51,11 @@ SpineMorphology::SpineMorphology(SkeletonBranch* root, const bool includeDendrit
     // Update the base point
     _basePoint = root->nodes[0]->point;
 
+    _rootSample = new Sample(root->nodes[0]->point, root->nodes[0]->radius, 0);
+
+    auto dendriteCenter = root->nodes[0]->point;
+    auto dendriteExtent = root->nodes[0]->radius;
+
     // Set the spine index
     _spineIndex = root->index;
 
@@ -60,13 +65,19 @@ SpineMorphology::SpineMorphology(SkeletonBranch* root, const bool includeDendrit
     // Add the root to the list of the sections
     Section* section = new Section(sectionIndex++);
 
-    const size_t startingIndex = includeDendriticSample ? 0 : 1;
-    if (root->nodes.size() > 2)
+    ///// At the root, simply check where does it start
+    if (root->nodes.size() > 5)
     {
-        for (size_t i = 1; i < root->nodes.size(); ++i)
+        size_t nodeIndex = 0;
+        for (size_t i = 0; i < root->nodes.size(); ++i)
         {
             auto node = root->nodes[i];
-            section->addSample(new Sample(node->point, node->radius * _radfiusScaleFactor, i - 1));
+            // Ensure that the sample is located outside the root extent
+            if (!Utilities::isPointInsideSphere(root->nodes[i]->point, dendriteCenter, dendriteExtent))
+            {
+                section->addSample(new Sample(node->point, node->radius * _radfiusScaleFactor, nodeIndex));
+                nodeIndex++;
+            }
         }
     }
     else
@@ -75,8 +86,44 @@ SpineMorphology::SpineMorphology(SkeletonBranch* root, const bool includeDendrit
         {
             auto node = root->nodes[i];
             section->addSample(new Sample(node->point, node->radius * _radfiusScaleFactor, i));
+
         }
     }
+
+    // if (section->getSamples().size() == 2)
+    // {
+    //     std::cout << "2-samples \n";
+
+    //     // dendriteCenter.print();
+    //     // root->nodes[0]->point.print();
+    //     // printf("%f \n", dendriteExtent);
+    //     // LOG_ERROR("Section has Zero samples");
+    // }
+
+    // for (size_t i = 0; i < root->nodes.size(); ++i)
+    // {
+    //     auto node = root->nodes[i];
+    //     section->addSample(new Sample(node->point, node->radius * _radfiusScaleFactor, i));
+    // }
+
+
+    // const size_t startingIndex = includeDendriticSample ? 0 : 1;
+    // if (root->nodes.size() > 2)
+    // {
+    //     for (size_t i = 1; i < root->nodes.size(); ++i)
+    //     {
+    //         auto node = root->nodes[i];
+    //         section->addSample(new Sample(node->point, node->radius * _radfiusScaleFactor, i - 1));
+    //     }
+    // }
+    // else
+    // {
+    //     for (size_t i = 0; i < root->nodes.size(); ++i)
+    //     {
+    //         auto node = root->nodes[i];
+    //         section->addSample(new Sample(node->point, node->radius * _radfiusScaleFactor, i));
+    //     }
+    // }
     _sections.push_back(section);
 
     _constructTreeFromLogicalBranches(root, sectionIndex);

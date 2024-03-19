@@ -130,5 +130,14 @@ void printVoxelData(const Vector3f &pMin, const Vector3f &pMax,
                     const Vector3f volumeSize,
                     std::string prefix = "volume");
 
+/**
+ * @brief isPointInsideSphere
+ * @param point
+ * @param sphereCenter
+ * @param sphereRadius
+ * @return
+ */
+bool isPointInsideSphere(const Vector3f point, const Vector3f sphereCenter, const float sphereRadius);
+
 }
 }

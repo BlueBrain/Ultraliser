@@ -106,7 +106,11 @@ private:
      */
     size_t _spineIndex;
 
-    float _radfiusScaleFactor = 2.0;
+    float _radfiusScaleFactor = 1.0;
+
+    Sample* _rootSample;
+
+
 
 private:
 

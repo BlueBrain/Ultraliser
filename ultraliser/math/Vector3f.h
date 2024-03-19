@@ -180,7 +180,7 @@ public:
      * @param rhs
      * @return
      */
-    float distance(Vector3f rhs);
+    float distance(Vector3f rhs) const;
 
     /**
      * @brief getLargestDimension

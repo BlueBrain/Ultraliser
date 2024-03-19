@@ -192,7 +192,7 @@ void Vector3f::negate()
     _elements[2] = -_elements[2];
 }
 
-float Vector3f::distance(Vector3f rhs)
+float Vector3f::distance(Vector3f rhs) const
 {
     return sqrt(sqr(x() - rhs.x()) + sqr(y() - rhs.y()) + sqr(z() - rhs.z()));
 }
