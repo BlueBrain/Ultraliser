@@ -58,6 +58,11 @@ public:
     void addInputMeshesDirectoryArguments();
 
     /**
+     * @brief addMeshMappingArguments
+     */
+    void addMeshMappingArguments();
+
+    /**
      * @brief addInputMorphologyArguments
      */
     void addInputMorphologyArguments();

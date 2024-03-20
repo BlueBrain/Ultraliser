@@ -47,7 +47,7 @@ void NeuronSkeletonizer::constructGraph(const bool verbose)
     auto indicesMapper = _extractNodesFromVoxels(verbose);
 
     /// DEBUG: Export the nodes file
-    if (_debugSkeleton && _debuggingPrefix != NONE) { _exportGraphNodes(_debuggingPrefix, verbose); }
+    if (_debug) { _exportGraphNodes(_debuggingPrefix, verbose); }
 
     /// Connect the nodes of the skeleton to construct its edges. This operation will not connect
     /// any gaps, it will just connect the nodes extracted from the voxels.
@@ -57,8 +57,7 @@ void NeuronSkeletonizer::constructGraph(const bool verbose)
     _inflateNodes(verbose);
 
     /// DEBUG: Export the inflated nodes file
-    if (_debugSkeleton && _debuggingPrefix != NONE)
-    { _exportGraphNodes(_debuggingPrefix + "-inflated", verbose); }
+    if (_debug) { _exportGraphNodes(_debuggingPrefix + "-inflated", verbose); }
 
     /// Add a virtual soma node, until the soma is reconstructed later
     _addSomaNode();
@@ -74,8 +73,7 @@ void NeuronSkeletonizer::constructGraph(const bool verbose)
     _identifySomaticNodes(verbose);
 
     /// DEBUG: Export the somatic branches
-    if (_debugSkeleton && _debuggingPrefix != NONE)
-    { exportBranches(_debuggingPrefix + "-1", SkeletonBranch::SOMATIC, verbose); }
+    if (_debug) { exportBranches(_debuggingPrefix + "-1", SkeletonBranch::SOMATIC, verbose); }
 
     // Verify graph connectivity
     _verifyGraphConnectivityToClosestPartition(_edges);
@@ -88,20 +86,17 @@ void NeuronSkeletonizer::constructGraph(const bool verbose)
     _buildBranchesFromNodes(_nodes);
 
     /// DEBUG: Export all the branches
-    if (_debugSkeleton && _debuggingPrefix != NONE)
-    { exportBranches(_debuggingPrefix, SkeletonBranch::ALL, verbose); }
+    if (_debug) { exportBranches(_debuggingPrefix, SkeletonBranch::ALL, verbose); }
 
     /// Validate the branches, and remove the branches inside the soma, i.e. consider them to
     /// be invalid
     _removeBranchesInsideSoma();
 
     /// DEBUG: Export the somatic branches
-    if (_debugSkeleton && _debuggingPrefix != NONE)
-    { exportBranches(_debuggingPrefix + "-2", SkeletonBranch::SOMATIC, verbose); }
+    if (_debug) { exportBranches(_debuggingPrefix + "-2", SkeletonBranch::SOMATIC, verbose); }
 
     /// DEBUG: Export the valid branches
-    if (_debugSkeleton && _debuggingPrefix != NONE)
-    { exportBranches(_debuggingPrefix, SkeletonBranch::VALID, verbose); }
+    if (_debug) { exportBranches(_debuggingPrefix, SkeletonBranch::VALID, verbose); }
 
     /// Connect all the skeleton branches since the roots have been identified after the
     /// soma segmentation
@@ -183,8 +178,7 @@ void NeuronSkeletonizer::_detachSpinesFromSkeleton(const bool verbose)
     }
 
     /// DEBUG: Export the somatic branches
-    if (_debugSkeleton && _debuggingPrefix != NONE)
-    { exportBranches(_debuggingPrefix, SkeletonBranch::TWO_SAMPLE_AND_VALID, verbose); }
+    if (_debug) { exportBranches(_debuggingPrefix, SkeletonBranch::TWO_SAMPLE_AND_VALID, verbose); }
 
     // Update the traversal counts of the branches to be able to detect, lable and split the spines
     _updateBranchesTraversalCounts();
@@ -208,16 +202,13 @@ void NeuronSkeletonizer::_detachSpinesFromSkeleton(const bool verbose)
     _segmentSpinesSkeletons(verbose);
 
     /// DEBUG: Export the spine branches
-    if (_debugSkeleton && _debuggingPrefix != NONE)
-    { exportBranches(_debuggingPrefix, SkeletonBranch::SPINE, verbose); }
+    if (_debug) { exportBranches(_debuggingPrefix, SkeletonBranch::SPINE, verbose); }
 
     /// DEBUG: Export the spine locations
-    if (_debugSkeleton && _debuggingPrefix != NONE)
-    { exportSpineLocations(_debuggingPrefix, verbose); }
+    if (_debug) { exportSpineLocations(_debuggingPrefix, verbose); }
 
     /// DEBUG: Export the spine extents
-    if (_debugSkeleton && _debuggingPrefix != NONE)
-    { exportSpineExtents(_debuggingPrefix, verbose); }
+    if (_debug) { exportSpineExtents(_debuggingPrefix, verbose); }
 }
 
 void NeuronSkeletonizer::_updateBranchesTraversalCounts()
@@ -1610,7 +1601,7 @@ Meshes NeuronSkeletonizer::reconstructSpineMeshes(Mesh* neuronMesh,
     auto neuronKdTree = KdTree::from(neuronPointCloud);
     LOG_STATS(GET_TIME_SECONDS);
 
-    spineMeshes.resize(_spineRoots.size());
+    // spineMeshes.resize(_spineRoots.size());
 
     auto spineProxyMorphologies = reconstructSpineProxyMorphologies();
 
@@ -1622,36 +1613,42 @@ Meshes NeuronSkeletonizer::reconstructSpineMeshes(Mesh* neuronMesh,
         auto spineProxyMorphology = spineProxyMorphologies[i];
 
         // Get the mesh of the spine model
-        auto spineModelMesh = spineProxyMorphology->reconstructMesh(voxelsPerMicron, edgeGap, SILENT);
+        // auto spineModelMesh = spineProxyMorphology->reconstructMesh(voxelsPerMicron, edgeGap, SILENT);
+        auto spineModelMesh = spineProxyMorphology->reconstructNonDendriticMesh(voxelsPerMicron, edgeGap, SILENT);
 
-        // Get relaxed bounding box to build the volume
-        Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
-        spineProxyMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
+        if (spineModelMesh != nullptr)
+        {
+            // Get relaxed bounding box to build the volume
+            Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
+            spineProxyMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
 
-        // Get the largest dimension
-        float largestDimension = inputBB.getLargestDimension();
-        size_t resolution = static_cast< size_t >(voxelsPerMicron * largestDimension);
+            // Get the largest dimension
+            float largestDimension = inputBB.getLargestDimension();
+            size_t resolution = static_cast< size_t >(voxelsPerMicron * largestDimension);
 
-        // Construct the volume
-        Volume* volume = new Volume(pMinInput, pMaxInput, resolution, edgeGap,
-                                    VOLUME_TYPE::BIT, SILENT);
+            // Construct the volume
+            Volume* volume = new Volume(pMinInput, pMaxInput, resolution, edgeGap,
+                                        VOLUME_TYPE::BIT, SILENT);
 
-        // Rasterize the neuron mesh within the bounding box
-        volume->surfaceVoxelization(neuronMesh);
+            // Rasterize the neuron mesh within the bounding box
+            volume->surfaceVoxelization(neuronMesh);
 
-        auto mesh = DualMarchingCubes::generateMeshFromVolume(volume, SILENT);
+            auto mesh = DualMarchingCubes::generateMeshFromVolume(volume, SILENT);
 
-        // Smooth the mesh to be able to have correct mapping
-        mesh->smoothSurface(10, SILENT);
+            // Smooth the mesh to be able to have correct mapping
+            mesh->smoothSurface(10, SILENT);
 
-        // Construct the neuron spine point cloud
-        auto spinePointCloud = mesh->constructPointCloud();
+            // Construct the neuron spine point cloud
+            auto spinePointCloud = mesh->constructPointCloud();
 
-        // Map the spine model mesh to the KdTree of the neuron
-        spineModelMesh->kdTreeMapping(spinePointCloud, SILENT);
+            // Map the spine model mesh to the KdTree of the neuron
+            spineModelMesh->kdTreeMapping(spinePointCloud, SILENT);
 
-        // Add the mesh to the list
-        spineMeshes[i] = spineModelMesh;
+            // Add the mesh to the list
+            spineMeshes.push_back(spineModelMesh);
+        }
+
+
 
         // Update the progress bar
         LOOP_PROGRESS(i, _spineRoots.size());

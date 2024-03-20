@@ -33,6 +33,9 @@ endif(${ULTRALISER_USE_TIFF})
 # ultraMesh2Mesh
 add_subdirectory(ultraMesh2Mesh)
 
+# ultraMeshMapper
+add_subdirectory(ultraMeshMapper)
+
 # Skeletonization
 add_subdirectory(ultraSkeletonizeNeuron)
 add_subdirectory(ultraSkeletonizeVasculature)

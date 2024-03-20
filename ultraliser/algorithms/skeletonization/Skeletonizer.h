@@ -313,6 +313,11 @@ protected:
     const std::string _debuggingPrefix;
 
     /**
+     * @brief _debug
+     */
+    const bool _debug;
+
+    /**
      * @brief _shellPoints
      * A list of the poins (or voxels) that represent the shell of the given volume.
      */

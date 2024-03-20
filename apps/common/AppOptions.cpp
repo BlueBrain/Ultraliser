@@ -68,6 +68,43 @@ void AppOptions::verifyInputMeshArgument()
     }
 }
 
+void AppOptions::verifyMeshMappingArgument()
+{
+    if (!File::exists(sourceMesh))
+    {
+        LOG_ERROR("The file [ %s ] does NOT exist! ", sourceMesh.c_str());
+    }
+
+    std::string path = sourceMesh;
+    String::toLower(path);
+    if (!(String::subStringFound(path, ".obj") || String::subStringFound(path, ".ply") ||
+          String::subStringFound(path, ".stl") || String::subStringFound(path, ".off") ||
+          String::subStringFound(path, ".h5")))
+    {
+        LOG_ERROR("Unsupported mesh type [%s]!", sourceMesh.c_str());
+    }
+
+    if (!File::exists(destinationMesh))
+    {
+        LOG_ERROR("The file [ %s ] does NOT exist! ", destinationMesh.c_str());
+    }
+
+    path = destinationMesh;
+    String::toLower(path);
+    if (!(String::subStringFound(path, ".obj") || String::subStringFound(path, ".ply") ||
+          String::subStringFound(path, ".stl") || String::subStringFound(path, ".off") ||
+          String::subStringFound(path, ".h5")))
+    {
+        LOG_ERROR("Unsupported mesh type [%s]!", destinationMesh.c_str());
+    }
+
+    // If no prefix is given, use the file name
+    if (prefix == NO_DEFAULT_VALUE)
+    {
+        prefix = File::getName(sourceMesh);
+    }
+}
+
 void AppOptions::verifyInputMeshesDirectoryArgument()
 {
     if (!Directory::exists(inputMeshesDirectory))

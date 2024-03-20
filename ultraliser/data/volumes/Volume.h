@@ -31,6 +31,7 @@
 #include <data/volumes/utilities/VolumeData.hh>
 #include <algorithms/skeletonization/thinning/Thinning6Iterations.h>
 #include <data/volumes/voxels/CandiateVoxel.h>
+#include <data/fields/Field.h>
 
 namespace Ultraliser
 {
@@ -949,16 +950,25 @@ public:
     bool isBorderVoxel(const int64_t& x, const int64_t& y,const int64_t& z) const;
 
     /**
-     * @brief surfaceVoxelizationReion
+     * @brief surfaceVoxelizeSections
+     * @param section
+     * @param verbose
+     */
+    void surfaceVoxelizeSections(const Sections &section, const bool& verbose = VERBOSE);
+
+
+
+    /**
+     * @brief surfaceVoxelizationRegion
      * @param mesh
      * @param pMinRegion
      * @param pMaxRegion
      * @param verbose
      */
-    void surfaceVoxelizationReion(Mesh* mesh,
-                                  const Vector3f& pMinRegion,
-                                  const Vector3f& pMaxRegion,
-                                  const bool& verbose = false);
+    void surfaceVoxelizationRegion(Mesh* mesh,
+                                   const Vector3f& pMinRegion,
+                                   const Vector3f& pMaxRegion,
+                                   const bool& verbose = false);
 
 
     float getExpansionRatio() const { return _expansionRatio; }

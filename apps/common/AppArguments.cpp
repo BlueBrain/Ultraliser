@@ -58,6 +58,27 @@ void AppArguments::addInputMeshesDirectoryArguments()
     _options->inputMeshesDirectory = _args->getStringValue(&inputMeshesDirectory);
 }
 
+void AppArguments::addMeshMappingArguments()
+{
+    Argument sourceMesh(
+                "--source-mesh",
+                ARGUMENT_TYPE::STRING,
+                "The absolute path to the source mesh. "
+                "Supported mesh types: .OBJ, .PLY, .STL, .OFF, .H5",
+                ARGUMENT_PRESENCE::MANDATORY);
+    _args->addArgument(&sourceMesh);
+    _options->sourceMesh = _args->getStringValue(&sourceMesh);
+
+    Argument destinationMesh(
+                "--destination-mesh",
+                ARGUMENT_TYPE::STRING,
+                "The absolute path to the destination mesh. "
+                "Supported mesh types: .OBJ, .PLY, .STL, .OFF, .H5",
+                ARGUMENT_PRESENCE::MANDATORY);
+    _args->addArgument(&destinationMesh);
+    _options->destinationMesh = _args->getStringValue(&destinationMesh);
+}
+
 void AppArguments::addInputMorphologyArguments()
 {
     Argument inputMorphology(

@@ -64,72 +64,64 @@ SpineMorphology::SpineMorphology(SkeletonBranch* root, const bool includeDendrit
 
     // Add the root to the list of the sections
     Section* section = new Section(sectionIndex++);
-
-    ///// At the root, simply check where does it start
-    if (root->nodes.size() > 5)
+    for (size_t i = 0; i < root->nodes.size(); ++i)
     {
-        size_t nodeIndex = 0;
-        for (size_t i = 0; i < root->nodes.size(); ++i)
-        {
-            auto node = root->nodes[i];
-            // Ensure that the sample is located outside the root extent
-            if (!Utilities::isPointInsideSphere(root->nodes[i]->point, dendriteCenter, dendriteExtent))
-            {
-                section->addSample(new Sample(node->point, node->radius * _radfiusScaleFactor, nodeIndex));
-                nodeIndex++;
-            }
-        }
+        auto node = root->nodes[i];
+        section->addSample(new Sample(node->point, node->radius * _radfiusScaleFactor, i));
+
     }
-    else
-    {
-        for (size_t i = 0; i < root->nodes.size(); ++i)
-        {
-            auto node = root->nodes[i];
-            section->addSample(new Sample(node->point, node->radius * _radfiusScaleFactor, i));
-
-        }
-    }
-
-    // if (section->getSamples().size() == 2)
-    // {
-    //     std::cout << "2-samples \n";
-
-    //     // dendriteCenter.print();
-    //     // root->nodes[0]->point.print();
-    //     // printf("%f \n", dendriteExtent);
-    //     // LOG_ERROR("Section has Zero samples");
-    // }
-
-    // for (size_t i = 0; i < root->nodes.size(); ++i)
-    // {
-    //     auto node = root->nodes[i];
-    //     section->addSample(new Sample(node->point, node->radius * _radfiusScaleFactor, i));
-    // }
-
-
-    // const size_t startingIndex = includeDendriticSample ? 0 : 1;
-    // if (root->nodes.size() > 2)
-    // {
-    //     for (size_t i = 1; i < root->nodes.size(); ++i)
-    //     {
-    //         auto node = root->nodes[i];
-    //         section->addSample(new Sample(node->point, node->radius * _radfiusScaleFactor, i - 1));
-    //     }
-    // }
-    // else
-    // {
-    //     for (size_t i = 0; i < root->nodes.size(); ++i)
-    //     {
-    //         auto node = root->nodes[i];
-    //         section->addSample(new Sample(node->point, node->radius * _radfiusScaleFactor, i));
-    //     }
-    // }
     _sections.push_back(section);
 
     _constructTreeFromLogicalBranches(root, sectionIndex);
 
     // Compute the bounding box of the entire morphology
     _computeBoundingBox();
+}
+
+Sections SpineMorphology::_getNonDendrticSections() const
+{
+    Sections nonDendriticSections;
+
+    auto dendriticCenter = _rootSample[0].getPosition();
+    auto dendriticExtent = _rootSample[0].getRadius();
+
+    size_t validSectionIndex = 0;
+
+    for (size_t i = 0; i < _sections.size(); ++i)
+    {
+        auto section = _sections[i];
+        size_t numberValidSamples = 0;
+        for (size_t j = 0; j < section->getSamples().size(); ++j)
+        {
+            auto sample = section->getSamples()[j];
+            auto sampleCenter = sample->getPosition();
+            if (!Utilities::isPointInsideSphere(sampleCenter, dendriticCenter, dendriticExtent))
+            {
+                numberValidSamples++;
+            }
+        }
+
+        // If more than a sample, then it is a valid section
+        if (numberValidSamples > 1)
+        {
+            // Construct the section
+            Section* validSection = new Section(validSectionIndex);
+            validSectionIndex++;
+
+            for (size_t j = 0; j < section->getSamples().size(); ++j)
+            {
+                auto sample = section->getSamples()[j];
+                auto sampleCenter = sample->getPosition();
+                if (!Utilities::isPointInsideSphere(sampleCenter, dendriticCenter, dendriticExtent))
+                {
+                    validSection->addSample(sample);
+                }
+            }
+            nonDendriticSections.push_back(validSection);
+        }
+    }
+
+    return nonDendriticSections;
 }
 
 SpineMorphology::SpineMorphology(SkeletonBranches branches, const size_t &index)
@@ -184,6 +176,63 @@ void SpineMorphology::_computeBoundingBox()
     }
 }
 
+Volume* SpineMorphology::reconstructNonDendriticVolume(const float& voxelsPerMicron,
+                                                       const float& edgeGap,
+                                                       const bool & verbose)
+{
+    auto nonDendriticSections = _getNonDendrticSections();
+
+    std::cout << nonDendriticSections.size() << " Non dendritic sections\n";
+
+    if (nonDendriticSections.size() == 0)
+        return nullptr;
+
+    // Bounding box data
+    Vector3f pMinInput = Vector3f(std::numeric_limits<float>::max());
+    Vector3f pMaxInput = Vector3f(-1 * std::numeric_limits<float>::max());
+
+    for (const auto& section: nonDendriticSections)
+    {
+        for (const auto& sample: section->getSamples())
+        {
+            const auto position = sample->getPosition();
+            const auto radius = sample->getRadius();
+
+            Vector3f pMaxSample = position + Vector3f(radius);
+            Vector3f pMinSample = position - Vector3f(radius);
+
+            if (pMaxSample.x() > pMaxInput.x()) pMaxInput.x() = pMaxSample.x();
+            if (pMaxSample.y() > pMaxInput.y()) pMaxInput.y() = pMaxSample.y();
+            if (pMaxSample.z() > pMaxInput.z()) pMaxInput.z() = pMaxSample.z();
+
+            if (pMinSample.x() < pMinInput.x()) pMinInput.x() = pMinSample.x();
+            if (pMinSample.y() < pMinInput.y()) pMinInput.y() = pMinSample.y();
+            if (pMinSample.z() < pMinInput.z()) pMinInput.z() = pMinSample.z();
+        }
+    }
+
+    Vector3f inputBB = pMaxInput - pMinInput;
+    Vector3f inputCenter = pMinInput + (0.5f * inputBB);
+
+    // Expand the bounding box to be able to caprture all the details missed
+    pMinInput -= edgeGap * inputBB;
+    pMaxInput += edgeGap * inputBB;
+    inputBB = pMaxInput - pMinInput;
+    inputCenter = pMinInput + (0.5f * inputBB);
+
+    // Get the largest dimension
+    float largestDimension = inputBB.getLargestDimension();
+    size_t resolution = static_cast< size_t >(voxelsPerMicron * largestDimension);
+
+    // Construct the volume
+    Volume* volume = new Volume(pMinInput, pMaxInput, resolution, edgeGap, VOLUME_TYPE::BIT, verbose);
+
+    // Rasterize the morphologies into the volume
+    volume->surfaceVoxelizeSections(nonDendriticSections, verbose);
+
+    // Return the volume
+    return volume;
+}
 Volume* SpineMorphology::reconstructVolume(const float& voxelsPerMicron,
                                            const float& edgeGap,
                                            const bool & verbose)
@@ -218,6 +267,29 @@ Mesh* SpineMorphology::reconstructMesh(const float &voxelsPerMicron,
 {
     // Reconstruct the volume
     auto volume = reconstructVolume(voxelsPerMicron, edgeGap, verbose);
+
+    // Use the DMC algorithm to reconstruct a mesh
+    auto mesh = DualMarchingCubes::generateMeshFromVolume(volume, verbose);
+
+    // Smooth the mesh to be able to have correct mapping
+    mesh->smoothSurface(10, verbose);
+
+    // Return the mesh
+    return mesh;
+}
+
+Mesh* SpineMorphology::reconstructNonDendriticMesh(const float &voxelsPerMicron,
+                                                   const float& edgeGap,
+                                                   const bool &verbose)
+{
+    // Reconstruct the volume
+    auto volume = reconstructNonDendriticVolume(voxelsPerMicron, edgeGap, verbose);
+
+    if (volume == nullptr)
+    {
+        std::cout << "return null ptr\n";
+        return nullptr;
+    }
 
     // Use the DMC algorithm to reconstruct a mesh
     auto mesh = DualMarchingCubes::generateMeshFromVolume(volume, verbose);

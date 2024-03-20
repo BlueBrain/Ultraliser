@@ -127,6 +127,7 @@
 #define OPTIMIZED_SUFFIX                        STRING("-optimized")
 #define MANIFOLD_SUFFIX                         STRING("-advanced")
 #define WATERTIGHT_SUFFIX                       STRING("-watertight")
+#define MAPPED_SUFFIX                           STRING("-mapped")
 #define VOLUME_MESH_SUFFIX                      STRING("-volume-mesh")
 #define VOLUME_BOUNDING_BOX_MESH_SUFFIX         STRING("-volume-bbox-mesh")
 #define VOLUME_GRID_MESH_SUFFIX                 STRING("-volume-grid-mesh")

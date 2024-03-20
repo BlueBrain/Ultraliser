@@ -57,6 +57,11 @@ public:
     void verifyInputMeshArgument();
 
     /**
+     * @brief verifyMeshMappingArgument
+     */
+    void verifyMeshMappingArgument();
+
+    /**
      * @brief verifyInputMeshesDirectoryArgument
      * Verifies the directory that contains a list of meshes.
      */
@@ -781,6 +786,19 @@ public:
      * Exports the astrocyte mesh at the origin, where the soma is located.
      */
     bool exportAstrocyteAtOrigin = false;
+
+    /**
+     * @brief sourceMesh
+     * Source mesh for the mesh mapper.
+     */
+    std::string sourceMesh;
+
+    /**
+     * @brief destinationMesh
+     * Destination mesh for the mesh mapper.
+     */
+    std::string destinationMesh;
+
 };
 
 }

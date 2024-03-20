@@ -81,6 +81,8 @@ Mesh* remeshSpine(Mesh* inputSpineMesh, const float voxelsPerMicron = 50,
     Vector3f pMinInput, pMaxInput;
     inputSpineMesh->computeBoundingBox(pMinInput, pMaxInput);
     const auto& meshBoundingBox = pMaxInput - pMinInput;
+//    pMinInput.print();
+//    pMaxInput.print();
 
     // Compute the resolution of the volume
     const auto largestDimension = meshBoundingBox.getLargestDimension();
@@ -93,18 +95,6 @@ Mesh* remeshSpine(Mesh* inputSpineMesh, const float voxelsPerMicron = 50,
     // Apply surface and solid voxelization to the input neuron mesh
     volume->surfaceVoxelization(inputSpineMesh, SILENT, false, 1.0);
     volume->solidVoxelization(Volume::SOLID_VOXELIZATION_AXIS::XYZ, SILENT);
-
-    // Remove the border voxels that span less than half the voxel
-    auto bordeVoxels = volume->searchForBorderVoxels(SILENT);
-    for (size_t i = 0; i < bordeVoxels.size(); ++i)
-    {
-        for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
-        {
-            auto voxel = bordeVoxels[i][j]; volume->clear(voxel.x(), voxel.y(), voxel.z());
-        }
-        bordeVoxels[i].clear();
-    }
-    bordeVoxels.clear();
     volume->surfaceVoxelization(inputSpineMesh, SILENT, false, 0.5);
 
     // Construct the mesh using the DMC technique
@@ -269,10 +259,10 @@ void run(int argc , const char** argv)
 
         auto proxySpineMorphologies = skeletonizer->reconstructSpineProxyMorphologies();
 
-        auto spineMeshes = skeletonizer->reconstructSpineMeshes(inputMesh, 25, 0.5);
+        auto spineMeshes = skeletonizer->reconstructSpineMeshes(inputMesh, 50, 0.5);
 
         std::vector<Mesh*> remeshedSpines;
-        remeshedSpines.resize(proxySpineMorphologies.size());
+        remeshedSpines.resize(spineMeshes.size());
 
         TIMER_SET;
         LOOP_STARTS("Spine Remeshing");
@@ -284,8 +274,9 @@ void run(int argc , const char** argv)
             std::stringstream stream;
             stream << options->morphologyPrefix << "_spine_" << i;
             spineMesh->exportMesh(stream.str(), true, false, false, false, SILENT);
-            continue;
-            auto remeshedSpine = remeshSpine(spineMesh, 25, SILENT);
+
+
+            auto remeshedSpine = remeshSpine(spineMesh, 50, VERBOSE);
             stream << "_refined";
             remeshedSpine->exportMesh(stream.str(), true, false, false, false, SILENT);
             remeshedSpines[i] = remeshedSpine;

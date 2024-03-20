@@ -68,6 +68,10 @@ public:
                               const float &edgeGap = 0.1,
                               const bool &verbose = false);
 
+    Volume* reconstructNonDendriticVolume(const float& voxelsPerMicron,
+                                          const float& edgeGap,
+                                          const bool & verbose);
+
     /**
      * @brief getBasePoint
      * @return
@@ -84,6 +88,10 @@ public:
     Mesh* reconstructMesh(const float& voxelsPerMicron,
                           const float& edgeGap = 0.1,
                           const bool &verbose = false);
+
+    Mesh* reconstructNonDendriticMesh(const float &voxelsPerMicron,
+                                                       const float& edgeGap,
+                                                       const bool &verbose);
 
     /**
      * @brief exportBranches
@@ -113,6 +121,8 @@ private:
 
 
 private:
+
+    Sections _getNonDendrticSections() const;
 
     /**
      * @brief _constructTreeFromLogicalBranches

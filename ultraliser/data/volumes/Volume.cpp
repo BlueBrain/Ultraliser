@@ -594,10 +594,10 @@ void Volume::surfaceVoxelization(Mesh* mesh,
     VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
-void Volume::surfaceVoxelizationReion(Mesh* mesh,
-                                      const Vector3f& pMinRegion,
-                                      const Vector3f& pMaxRegion,
-                                      const bool& verbose)
+void Volume::surfaceVoxelizationRegion(Mesh* mesh,
+                                       const Vector3f& pMinRegion,
+                                       const Vector3f& pMaxRegion,
+                                       const bool& verbose)
 {
     TIMER_SET;
     VERBOSE_LOG(LOG_TITLE("Surface Voxelization"), verbose);
@@ -610,6 +610,41 @@ void Volume::surfaceVoxelizationReion(Mesh* mesh,
     // Statistics
     VERBOSE_LOG(LOG_STATUS_IMPORTANT("Rasterization Stats."), verbose);
         VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
+}
+
+void Volume::surfaceVoxelizeSections(const Sections& sections, const bool& verbose)
+{
+    VERBOSE_LOG(LOG_TITLE("Surface Voxelization"), verbose);
+
+    // Start the timer
+    TIMER_SET;
+
+    VERBOSE_LOG(LOG_STATUS("Creating Volume Shell from Sections"), verbose);
+    VERBOSE_LOG(LOOP_STARTS("Rasterization"), verbose);
+
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < sections.size(); ++i)
+    {
+        auto section = sections[i];
+        auto samples = section->getSamples();
+
+        // Rasterize each segment of the section samples
+        for (size_t i = 0; i < samples.size() - 1; ++i)
+            _rasterize(samples[i], samples[i + 1], _grid);
+
+        // Update the progress bar
+        VERBOSE_LOG(LOOP_PROGRESS(PROGRESS, sections.size()), verbose);
+        PROGRESS_UPDATE;
+    }
+
+    _surfaceVoxelizationTime = GET_TIME_SECONDS;
+    VERBOSE_LOG(LOOP_DONE, verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
+
+    // Statistics
+    VERBOSE_LOG(LOG_STATUS_IMPORTANT("Rasterization Stats."), verbose);
+    VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
 void Volume::surfaceVoxelizeNeuronMorphology(NeuronMorphology* neuronMorphology,
