@@ -114,6 +114,7 @@ Sections SpineMorphology::_getNonDendrticSections() const
                 auto sampleCenter = sample->getPosition();
                 if (!Utilities::isPointInsideSphere(sampleCenter, dendriticCenter, dendriticExtent))
                 {
+                    Sample* newSample = new Sample(sample->getPosition(), sample->getRadius() * 2, j);
                     validSection->addSample(sample);
                 }
             }

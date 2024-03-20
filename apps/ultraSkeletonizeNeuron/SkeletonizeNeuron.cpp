@@ -274,6 +274,7 @@ void run(int argc , const char** argv)
             std::stringstream stream;
             stream << options->morphologyPrefix << "_spine_" << i;
             spineMesh->exportMesh(stream.str(), true, false, false, false, SILENT);
+            continue;
 
 
             auto remeshedSpine = remeshSpine(spineMesh, 50, VERBOSE);
