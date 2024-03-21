@@ -53,9 +53,6 @@ SpineMorphology::SpineMorphology(SkeletonBranch* root, const bool includeDendrit
 
     _rootSample = new Sample(root->nodes[0]->point, root->nodes[0]->radius, 0);
 
-    auto dendriteCenter = root->nodes[0]->point;
-    auto dendriteExtent = root->nodes[0]->radius;
-
     // Set the spine index
     _spineIndex = root->index;
 
@@ -114,8 +111,8 @@ Sections SpineMorphology::_getNonDendrticSections() const
                 auto sampleCenter = sample->getPosition();
                 if (!Utilities::isPointInsideSphere(sampleCenter, dendriticCenter, dendriticExtent))
                 {
-                    Sample* newSample = new Sample(sample->getPosition(), sample->getRadius() * 2, j);
-                    validSection->addSample(sample);
+                    Sample* newSample = new Sample(sample->getPosition(), sample->getRadius() * 1, j);
+                    validSection->addSample(newSample);
                 }
             }
             nonDendriticSections.push_back(validSection);

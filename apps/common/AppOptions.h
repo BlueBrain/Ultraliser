@@ -374,7 +374,7 @@ public:
 
     /**
      * @brief voxelsPerMicron
-     * Number of voxels per micron in case of auto resolution.
+     * Number of voxels per micron in case of scaled resolution.
      */
     float voxelsPerMicron;
 
@@ -798,6 +798,12 @@ public:
      * Destination mesh for the mesh mapper.
      */
     std::string destinationMesh;
+
+    /**
+     * @brief voxelsPerMicron
+     * Number of voxels per micron in case of auto resolution.
+     */
+    float voxelsPerMicronSpines;
 
 };
 

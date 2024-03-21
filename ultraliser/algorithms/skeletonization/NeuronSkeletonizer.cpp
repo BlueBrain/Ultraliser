@@ -563,8 +563,9 @@ void NeuronSkeletonizer::_segmentSomaMesh(const bool verbose)
     estimatedSomaCenter /= numberSamples;
 
     // Update the location of the soma point, the radius will be updated after detecting root arbors
+    // TODO: Fix me
     _somaNode->point = estimatedSomaCenter;
-    _somaNode->radius = 0.5; /// TODO: Fix me
+    _somaNode->radius = 0.5;
 }
 
 void NeuronSkeletonizer::_identifySomaticNodes(const bool verbose)
@@ -1618,31 +1619,36 @@ Meshes NeuronSkeletonizer::reconstructSpineMeshes(Mesh* neuronMesh,
 
         if (spineModelMesh != nullptr)
         {
-            // Get relaxed bounding box to build the volume
-            Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
-            spineProxyMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
+            // Simply map the spine model mesh to the neuron
+            // spineModelMesh->kdTreeMapping(neuronKdTree, SILENT);
 
-            // Get the largest dimension
-            float largestDimension = inputBB.getLargestDimension();
-            size_t resolution = static_cast< size_t >(voxelsPerMicron * largestDimension);
 
-            // Construct the volume
-            Volume* volume = new Volume(pMinInput, pMaxInput, resolution, edgeGap,
-                                        VOLUME_TYPE::BIT, SILENT);
 
-            // Rasterize the neuron mesh within the bounding box
-            volume->surfaceVoxelization(neuronMesh);
+            // // Get relaxed bounding box to build the volume
+            // Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
+            // spineProxyMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
 
-            auto mesh = DualMarchingCubes::generateMeshFromVolume(volume, SILENT);
+            // // Get the largest dimension
+            // float largestDimension = inputBB.getLargestDimension();
+            // size_t resolution = static_cast< size_t >(voxelsPerMicron * largestDimension);
 
-            // Smooth the mesh to be able to have correct mapping
-            mesh->smoothSurface(10, SILENT);
+            // // Construct the volume
+            // Volume* volume = new Volume(pMinInput, pMaxInput, resolution, edgeGap,
+            //                             VOLUME_TYPE::BIT, SILENT);
 
-            // Construct the neuron spine point cloud
-            auto spinePointCloud = mesh->constructPointCloud();
+            // // Rasterize the neuron mesh within the bounding box
+            // volume->surfaceVoxelization(neuronMesh);
 
-            // Map the spine model mesh to the KdTree of the neuron
-            spineModelMesh->kdTreeMapping(spinePointCloud, SILENT);
+            // auto mesh = DualMarchingCubes::generateMeshFromVolume(volume, SILENT);
+
+            // // Smooth the mesh to be able to have correct mapping
+            // mesh->smoothSurface(10, SILENT);
+
+            // // Construct the neuron spine point cloud
+            // auto spinePointCloud = mesh->constructPointCloud();
+
+            // // Map the spine model mesh to the KdTree of the neuron
+            // spineModelMesh->kdTreeMapping(spinePointCloud, SILENT);
 
             // Add the mesh to the list
             spineMeshes.push_back(spineModelMesh);
@@ -1679,6 +1685,8 @@ void NeuronSkeletonizer::_filterSpineCandidates()
                 {
                     // This is a spine
                     branch->setSpine();
+                    branch->nodes.back()->radius *= 2.5;
+
 
                     // It is indeed an invalid neuronal branch
                     branch->setInvalid();
@@ -1760,6 +1768,8 @@ void NeuronSkeletonizer::_filterShortTerminalBranches()
 
                     // Set the branch to be a spine
                     _branches[i]->setSpine();
+
+                    _branches[i]->nodes.back()->radius *= 2.5;
                 }
             }
         }
@@ -1783,6 +1793,9 @@ void NeuronSkeletonizer::_detectSpines()
 
                         // Set the branch to be a spine
                         _branches[i]->setSpine();
+
+                        _branches[i]->nodes.back()->radius *= 2.5;
+
                     }
                 }
 
@@ -1795,6 +1808,9 @@ void NeuronSkeletonizer::_detectSpines()
 
                         // Set the branch to be a spine
                         _branches[i]->setSpine();
+
+                        _branches[i]->nodes.back()->radius *= 2.5;
+
                     }
                 }
             }
