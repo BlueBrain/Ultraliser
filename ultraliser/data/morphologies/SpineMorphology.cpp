@@ -180,8 +180,6 @@ Volume* SpineMorphology::reconstructNonDendriticVolume(const float& voxelsPerMic
 {
     auto nonDendriticSections = _getNonDendrticSections();
 
-    std::cout << nonDendriticSections.size() << " Non dendritic sections\n";
-
     if (nonDendriticSections.size() == 0)
         return nullptr;
 
@@ -285,7 +283,6 @@ Mesh* SpineMorphology::reconstructNonDendriticMesh(const float &voxelsPerMicron,
 
     if (volume == nullptr)
     {
-        std::cout << "return null ptr\n";
         return nullptr;
     }
 

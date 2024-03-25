@@ -24,6 +24,7 @@
 #include <AppArguments.h>
 #include <algorithms/skeletonization/NeuronSkeletonizer.h>
 #include <algorithms/skeletonization/SpineSkeletonizer.h>
+#include <data/morphologies/Utilities.h>
 
 
 // Defines
@@ -151,6 +152,47 @@ Mesh* remeshNeuron(Mesh* inputNeuronMesh, AppOptions* options, const bool verbos
     return reconstructedNeuronMesh;
 }
 
+
+Mesh* createMeshFromSections(Sections& sections, AppOptions* options)
+{
+    Vector3f pMinInput, pMaxInput;
+    computeSectionsBoundingBox(sections, pMinInput, pMaxInput);
+    const auto& bounds = pMaxInput - pMinInput;
+
+    // Compute the resolution of the volume
+    const auto largestDimension = bounds.getLargestDimension();
+    size_t resolution = static_cast< size_t >(options->voxelsPerMicron * largestDimension);
+
+    // Construct the volume from the input mesh
+    auto volume = new Volume(pMinInput, pMaxInput, resolution, options->edgeGap,
+                             VolumeGrid::getType(options->volumeType), SILENT);
+
+    volume->surfaceVoxelizeSections(sections);
+    volume->solidVoxelization(options->voxelizationAxis);
+
+    // Remove the border voxels that span less than half the voxel
+    auto bordeVoxels = volume->searchForBorderVoxels(true);
+    for (size_t i = 0; i < bordeVoxels.size(); ++i)
+    {
+        for (size_t j = 0; j < bordeVoxels[i].size(); ++j)
+        {
+            auto voxel = bordeVoxels[i][j]; volume->clear(voxel.x(), voxel.y(), voxel.z());
+        }
+        bordeVoxels[i].clear();
+    }
+    bordeVoxels.clear();
+
+    // Construct the mesh using the DMC technique
+    auto resultMesh = DualMarchingCubes::generateMeshFromVolume(volume);
+
+    // Smooth the resulting surface mesh
+    resultMesh->smoothSurface(NEURON_SMOOTHING_ITERATIONS, true);
+
+    // Return a pointer to the resulting neuron
+    return resultMesh;
+
+}
+
 Volume* createNeuronVolume(Mesh* neuronMesh, AppOptions* options, const bool verbose = VERBOSE)
 {
     // Create the volume from the mesh
@@ -205,6 +247,9 @@ void run(int argc , const char** argv)
     // Construct the neuron volume
     auto neuronVolume = createNeuronVolume(inputMesh, options, VERBOSE);
 
+    // Extract the mesh from the volume again
+    auto exampleMesh = reconstructMeshFromVolume(neuronVolume, options);
+
     // TODO: Make this as an option
     // auto remeshedNeuron = reconstructNeuronMeshFromVolume(neuronVolume, options, VERBOSE);
 
@@ -255,6 +300,29 @@ void run(int argc , const char** argv)
         skeletonizer->exportSWCFile(options->morphologyPrefix, options->resampleSkeleton, false);
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /// the other approach for creating spine geometries
+    if (true)
     {
 
         auto proxySpineMorphologies = skeletonizer->reconstructSpineProxyMorphologies();

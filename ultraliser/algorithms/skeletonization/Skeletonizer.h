@@ -134,6 +134,9 @@ public:
 
     std::vector< Vector3f > getShellPoints();
 
+    Sections getValidSections() const;
+
+
 
 
 

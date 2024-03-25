@@ -150,6 +150,27 @@ void Skeletonizer::initialize(const bool verbose)
     VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
+Sections Skeletonizer::getValidSections() const
+{
+    Sections sections;
+    size_t sectionIndex = 0;
+    for (size_t i = 0; i < _branches.size(); ++i)
+    {
+        if (_branches[i]->isValid())
+        {
+            Section* section = new Section(sectionIndex++);
+            for (size_t j = 0; j < _branches[i]->nodes.size(); ++j)
+            {
+                auto node = _branches[i]->nodes[j];
+                section->addSample(new Sample(node->point, node->radius, j));
+            }
+            sections.push_back(section);
+        }
+    }
+
+    return sections;
+}
+
 void Skeletonizer::_scaleShellPoints(const bool verbose)
 {
     // Initialize the timer

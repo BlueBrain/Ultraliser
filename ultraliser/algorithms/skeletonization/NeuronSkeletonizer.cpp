@@ -1620,7 +1620,7 @@ Meshes NeuronSkeletonizer::reconstructSpineMeshes(Mesh* neuronMesh,
         if (spineModelMesh != nullptr)
         {
             // Simply map the spine model mesh to the neuron
-            // spineModelMesh->kdTreeMapping(neuronKdTree, SILENT);
+            spineModelMesh->kdTreeMapping(neuronKdTree, SILENT);
 
 
 
@@ -1685,7 +1685,7 @@ void NeuronSkeletonizer::_filterSpineCandidates()
                 {
                     // This is a spine
                     branch->setSpine();
-                    branch->nodes.back()->radius *= 2.5;
+                    branch->nodes.back()->radius *= 1.0;
 
 
                     // It is indeed an invalid neuronal branch
@@ -1769,7 +1769,7 @@ void NeuronSkeletonizer::_filterShortTerminalBranches()
                     // Set the branch to be a spine
                     _branches[i]->setSpine();
 
-                    _branches[i]->nodes.back()->radius *= 2.5;
+                    _branches[i]->nodes.back()->radius *= 1.0;
                 }
             }
         }
@@ -1794,7 +1794,7 @@ void NeuronSkeletonizer::_detectSpines()
                         // Set the branch to be a spine
                         _branches[i]->setSpine();
 
-                        _branches[i]->nodes.back()->radius *= 2.5;
+                        _branches[i]->nodes.back()->radius *= 1.0;
 
                     }
                 }
@@ -1809,7 +1809,7 @@ void NeuronSkeletonizer::_detectSpines()
                         // Set the branch to be a spine
                         _branches[i]->setSpine();
 
-                        _branches[i]->nodes.back()->radius *= 2.5;
+                        _branches[i]->nodes.back()->radius *= 1.0;
 
                     }
                 }
