@@ -317,7 +317,7 @@ void AppOptions::verifyVascularMorphologyExportArguments()
 void AppOptions::verifyNeuronalMorphologyExportArguments()
 {
     // Exporting formats, at least one of them must be there
-    if (!exportSWC)
+    if (!exportSWCNeuron)
     {
         LOG_ERROR("You must specify at least one valid morphology format to export:"
                   "[--export-swc-morphology]");
@@ -378,7 +378,7 @@ void AppOptions::createRespectiveDirectories()
     }
 
     // Morphology directory
-    if (exportVMV || exportSWC || exportBranches)
+    if (exportVMV || exportSWCNeuron || exportBranches)
     {
         std::stringstream path;
         path << outputDirectory << "/" << MORPHOLOGIES_DIRECTORY;
@@ -400,6 +400,32 @@ void AppOptions::createRespectiveDirectories()
         path << outputDirectory << "/" << DISTRIBUTIONS_DIRECTORY;
         mkdir(path.str().c_str(), 0777);
     }
+
+    // Spine meshes
+    if (exportSpineMeshes)
+    {
+        // Spine meshes directory
+        std::stringstream path;
+        path << outputDirectory << "/" << SPINE_MESHES_DIRECTORY;
+        mkdir(path.str().c_str(), 0777);
+
+        // Case-specific spine meshes directory
+        path << "/" << prefix;
+        mkdir(path.str().c_str(), 0777);
+    }
+
+    // Spine morphologies
+    if (exportSWCSpines)
+    {
+        // Spine morphologies directory
+        std::stringstream path;
+        path << outputDirectory << "/" << SPINE_MORPHOLOGIES_DIRECTORY;
+        mkdir(path.str().c_str(), 0777);
+
+        // Case-specific spine morphologies directory
+        path << "/" << prefix;
+        mkdir(path.str().c_str(), 0777);
+    }
 }
 
 void AppOptions::initializeContext()
@@ -419,6 +445,11 @@ void AppOptions::initializeContext()
             outputDirectory + "/" + STATISTICS_DIRECTORY +  "/" + prefix;
     distributionsPrefix =
             outputDirectory + "/" + DISTRIBUTIONS_DIRECTORY +  "/" + prefix;
+
+    spinesMeshPrefix =
+            outputDirectory + "/" +  SPINE_MESHES_DIRECTORY +  "/" + prefix + "/" + prefix;
+    spinesMorphologyPrefix =
+            outputDirectory + "/" +  SPINE_MORPHOLOGIES_DIRECTORY +  "/" + prefix + "/" + prefix;
 
     // Create the respective directories
     createRespectiveDirectories();

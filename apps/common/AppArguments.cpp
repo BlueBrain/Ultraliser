@@ -656,12 +656,12 @@ void AppArguments::addVascularMorphologyExportArguments()
 
 void AppArguments::addNeuronalMorphologyExportArguments()
 {
-    Argument exportSWC(
+    Argument exportSWCNeuron(
                 "--export-swc-morphology",
                 ARGUMENT_TYPE::BOOL,
                 "Exports the neuronal morphology to .SWC file.");
-    _args->addArgument(&exportSWC);
-    _options->exportSWC = _args->getBoolValue(&exportSWC);
+    _args->addArgument(&exportSWCNeuron);
+    _options->exportSWCNeuron = _args->getBoolValue(&exportSWCNeuron);
 
     Argument exportOptimizedNeuronMesh(
                 "--export-optimized-neuron-mesh",
@@ -708,6 +708,21 @@ void AppArguments::addNeuronalMorphologyExportArguments()
                 "to the .SWC file.");
     _args->addArgument(&reomveSpines);
     _options->removeSpines = _args->getBoolValue(&reomveSpines);
+
+
+    Argument exportSpineMorphologies(
+                "--export-spine-morphologies",
+                ARGUMENT_TYPE::BOOL,
+                "Exports the morphologies of the spines to .SWC files.");
+    _args->addArgument(&exportSpineMorphologies);
+    _options->exportSpineMorphologies= _args->getBoolValue(&exportSpineMorphologies);
+
+    Argument exportSpineMeshes(
+                "--export-spine-meshes",
+                ARGUMENT_TYPE::BOOL,
+                "Exports the meshes of the segmented spines.");
+    _args->addArgument(&exportSpineMeshes);
+    _options->exportSpineMeshes= _args->getBoolValue(&exportSpineMeshes);
 }
 
 void AppArguments::addMeshExportArguments()

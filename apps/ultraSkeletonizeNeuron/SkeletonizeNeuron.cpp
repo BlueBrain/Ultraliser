@@ -61,6 +61,11 @@ AppOptions* parseArguments(const int& argc , const char** argv)
 
     // Verify the arguments after parsing them and extracting the application options.
     options->verifyInputMeshArgument();
+
+
+
+
+
     options->verifyOutputDirectoryArgument();
     options->verifyBoudsFileArgument();
     options->verifyMeshPrefixArgument();
@@ -152,7 +157,6 @@ Mesh* remeshNeuron(Mesh* inputNeuronMesh, AppOptions* options, const bool verbos
     return reconstructedNeuronMesh;
 }
 
-
 Mesh* createMeshFromSections(Sections& sections, AppOptions* options)
 {
     Vector3f pMinInput, pMaxInput;
@@ -190,7 +194,6 @@ Mesh* createMeshFromSections(Sections& sections, AppOptions* options)
 
     // Return a pointer to the resulting neuron
     return resultMesh;
-
 }
 
 Volume* createNeuronVolume(Mesh* neuronMesh, AppOptions* options, const bool verbose = VERBOSE)
@@ -295,7 +298,7 @@ void run(int argc , const char** argv)
     skeletonizer->segmentComponents(VERBOSE);
 
     // Export the SWC file of the neuron
-    if (options->exportSWC)
+    if (options->exportSWCNeuron)
     {
         skeletonizer->exportSWCFile(options->morphologyPrefix, options->resampleSkeleton, false);
     }
@@ -322,7 +325,7 @@ void run(int argc , const char** argv)
 
 
     /// the other approach for creating spine geometries
-    if (true)
+    if (options->exportSpineMeshes)
     {
 
         auto proxySpineMorphologies = skeletonizer->reconstructSpineProxyMorphologies();
@@ -340,7 +343,7 @@ void run(int argc , const char** argv)
         {
             auto spineMesh = spineMeshes[i];
             std::stringstream stream;
-            stream << options->morphologyPrefix << "_spine_" << i;
+            stream << options->spinesMeshPrefix << "_spine_" << i;
             spineMesh->exportMesh(stream.str(), true, false, false, false, SILENT);
 
 

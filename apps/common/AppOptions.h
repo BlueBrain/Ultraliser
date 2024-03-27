@@ -265,6 +265,16 @@ public:
     std::string distributionsPrefix;
 
     /**
+     * @brief spineMorphologyPrefix
+     */
+    std::string spinesMorphologyPrefix;
+
+    /**
+     * @brief spinesMeshPrefix
+     */
+    std::string spinesMeshPrefix;
+
+    /**
      * @brief maskWidth
      */
     size_t maskWidth;
@@ -623,10 +633,20 @@ public:
     bool exportVMV = false;
 
     /**
-     * @brief exportSWC
+     * @brief exportSWCNeuron
      * Exports the neuronal morphology into an SWC file.
      */
-    bool exportSWC = false;
+    bool exportSWCNeuron = false;
+
+    /**
+     * @brief exportSWCSpines
+     * Exports the reconstructed spines into SWC skeletons.
+     */
+    bool exportSWCSpines = false;
+
+    bool exportSpineMeshes = false;
+
+    bool exportSpineMorphologies = false;
 
     /**
      * @brief removeSpines

@@ -149,6 +149,11 @@
 #define STACKS_SIRECTORY                        STRING("stacks")
 #define STATISTICS_DIRECTORY                    STRING("statistics")
 #define DISTRIBUTIONS_DIRECTORY                 STRING("distributions")
+#define SPINE_MORPHOLOGIES_DIRECTORY            STRING("spine-morphologies")
+#define SPINE_MESHES_DIRECTORY                  STRING("spine-meshes")
+#define SKELETONIZATION_DIRECTORY               STRING("skeletonization")
+#define NEURON_MORPHOLOGY_DIRECTORY             STRING("neuron-morphology")
+
 
 // Distributions stats
 #define DISTRIBUTION_EXTENSION                  STRING(".dist")

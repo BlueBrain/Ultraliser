@@ -465,6 +465,30 @@ private:
 
 
     SkeletonBranches _spineRoots;
+
+
+
+
+
+
+
+
+
+
+
+private:
+
+    size_t _numberNodes;
+
+    size_t _totalNumberBranches;
+
+    size_t _numberSomaticBranches;
+
+    size_t
+
+
+
+
 };
 
 }
