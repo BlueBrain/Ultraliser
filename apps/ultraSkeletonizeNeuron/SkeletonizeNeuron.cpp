@@ -61,11 +61,6 @@ AppOptions* parseArguments(const int& argc , const char** argv)
 
     // Verify the arguments after parsing them and extracting the application options.
     options->verifyInputMeshArgument();
-
-
-
-
-
     options->verifyOutputDirectoryArgument();
     options->verifyBoudsFileArgument();
     options->verifyMeshPrefixArgument();
@@ -87,8 +82,6 @@ Mesh* remeshSpine(Mesh* inputSpineMesh, const float voxelsPerMicron = 50,
     Vector3f pMinInput, pMaxInput;
     inputSpineMesh->computeBoundingBox(pMinInput, pMaxInput);
     const auto& meshBoundingBox = pMaxInput - pMinInput;
-//    pMinInput.print();
-//    pMaxInput.print();
 
     // Compute the resolution of the volume
     const auto largestDimension = meshBoundingBox.getLargestDimension();
@@ -255,12 +248,16 @@ void exportSpineMeshes(NeuronSkeletonizer* skeletonizer, const Mesh* inputMesh, 
         auto spineMesh = spineMeshes[i];
         std::stringstream stream;
         stream << options->spinesMeshPrefix << "_spine_" << i;
-        spineMesh->exportMesh(stream.str(), true, false, false, false, SILENT);
+        spineMesh->exportMesh(stream.str(),
+                              options->exportOBJ, options->exportPLY,
+                              options->exportOFF, options->exportSTL, SILENT);
 
 
         auto remeshedSpine = remeshSpine(spineMesh, 50, VERBOSE);
         stream << "_refined";
-        remeshedSpine->exportMesh(stream.str(), true, false, false, false, SILENT);
+        remeshedSpine->exportMesh(stream.str(),
+                                  options->exportOBJ, options->exportPLY,
+                                  options->exportOFF, options->exportSTL, SILENT);
         remeshedSpines[i] = remeshedSpine;
 
         LOOP_PROGRESS(PROGRESS, spineMeshes.size());

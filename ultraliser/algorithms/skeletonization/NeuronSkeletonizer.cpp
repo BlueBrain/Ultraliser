@@ -1264,7 +1264,8 @@ void NeuronSkeletonizer::_constructGraphHierarchy(GraphBranches& graphBranches, 
     VERBOSE_LOG(LOG_STATS(GET_TIME_SECONDS), verbose);
 }
 
-void NeuronSkeletonizer::_constructSkeletonHierarchy(GraphBranches& graphBranches, const bool verbose)
+void NeuronSkeletonizer::_constructSkeletonHierarchy(GraphBranches& graphBranches,
+                                                     const bool verbose)
 {
     VERBOSE_LOG(LOG_STATUS("Constructing Skeleton Hierarchy"), verbose);
 
@@ -1350,7 +1351,6 @@ void NeuronSkeletonizer::_detectInactiveBranches(SkeletonWeightedEdges& graphEdg
                                                  EdgesIndices& visitedEdgesIndices,
                                                  const bool verbose)
 {
-
     // For every edge in the graph, verifiy if this edge contains the nodes that are visited
     TIMER_SET;
     VERBOSE_LOG(LOG_STATUS("Detecting Inactive Branches"), verbose);
@@ -1641,46 +1641,17 @@ Meshes NeuronSkeletonizer::reconstructSpineMeshes(const Mesh* neuronMesh,
 
         // Get the mesh of the spine model
         // auto spineModelMesh = spineProxyMorphology->reconstructMesh(voxelsPerMicron, edgeGap, SILENT);
-        auto spineModelMesh = spineProxyMorphology->reconstructNonDendriticMesh(voxelsPerMicron, edgeGap, SILENT);
+        auto spineModelMesh = spineProxyMorphology->reconstructNonDendriticMesh(
+                    voxelsPerMicron, edgeGap, SILENT);
 
         if (spineModelMesh != nullptr)
         {
             // Simply map the spine model mesh to the neuron
             spineModelMesh->kdTreeMapping(neuronKdTree, SILENT);
 
-
-
-            // // Get relaxed bounding box to build the volume
-            // Vector3f pMinInput, pMaxInput, inputBB, inputCenter;
-            // spineProxyMorphology->getBoundingBox(pMinInput, pMaxInput, inputBB, inputCenter);
-
-            // // Get the largest dimension
-            // float largestDimension = inputBB.getLargestDimension();
-            // size_t resolution = static_cast< size_t >(voxelsPerMicron * largestDimension);
-
-            // // Construct the volume
-            // Volume* volume = new Volume(pMinInput, pMaxInput, resolution, edgeGap,
-            //                             VOLUME_TYPE::BIT, SILENT);
-
-            // // Rasterize the neuron mesh within the bounding box
-            // volume->surfaceVoxelization(neuronMesh);
-
-            // auto mesh = DualMarchingCubes::generateMeshFromVolume(volume, SILENT);
-
-            // // Smooth the mesh to be able to have correct mapping
-            // mesh->smoothSurface(10, SILENT);
-
-            // // Construct the neuron spine point cloud
-            // auto spinePointCloud = mesh->constructPointCloud();
-
-            // // Map the spine model mesh to the KdTree of the neuron
-            // spineModelMesh->kdTreeMapping(spinePointCloud, SILENT);
-
             // Add the mesh to the list
             spineMeshes.push_back(spineModelMesh);
         }
-
-
 
         // Update the progress bar
         LOOP_PROGRESS(i, _spineRoots.size());
@@ -1696,10 +1667,8 @@ Meshes NeuronSkeletonizer::reconstructSpineMeshes(const Mesh* neuronMesh,
 void NeuronSkeletonizer::_filterSpineCandidates()
 {
     /// NOTE: Spine branches must be terminals and can have branching.
-    for (size_t i = 0; i < _branches.size(); ++i)
+    for (auto& branch : _branches)
     {
-        // The spine is always a valid branch
-        auto& branch = _branches[i];
         if (branch->isValid())
         {
             // The spine is always a terminal branch
@@ -1711,8 +1680,6 @@ void NeuronSkeletonizer::_filterSpineCandidates()
                 {
                     // This is a spine
                     branch->setSpine();
-                    branch->nodes.back()->radius *= 1.0;
-
 
                     // It is indeed an invalid neuronal branch
                     branch->setInvalid();
@@ -1733,6 +1700,7 @@ void NeuronSkeletonizer::_filterSpineCandidates()
                         // Clear the old children and add the new list
                         parent->children.clear();
                         parent->children.shrink_to_fit();
+
                         for (size_t k = 0; k < newChildren.size(); ++k)
                         {
                             parent->children.push_back(newChildren[k]);
@@ -1768,34 +1736,27 @@ void NeuronSkeletonizer::_filterSpineCandidates()
     }
 
     /// Label the new terminals
-    for (size_t i = 0; i < _branches.size(); ++i)
+    for (auto& branch : _branches)
     {
-        auto& branch = _branches[i];
-        if (branch->isValid() && branch->children.size() == 0)
-        {
-            std::cout << "Terminal: " << branch->index << std::endl;
-            branch->setTerminal();
-        }
+        if (branch->isValid() && branch->children.size() == 0) { branch->setTerminal(); }
     }
 }
 
 void NeuronSkeletonizer::_filterShortTerminalBranches()
 {
-    for (size_t i = 0; i < _branches.size(); ++i)
+    for (auto& branch : _branches)
     {
-        if (_branches[i]->isTerminal())
+        if (branch->isTerminal())
         {
-            if (_branches[i]->isValid())
+            if (branch->isValid())
             {
-                if (_branches[i]->nodes.size() == 2)
+                if (branch->nodes.size() == 2)
                 {
                     // Set the branch to invalid
-                    _branches[i]->setInvalid();
+                    branch->setInvalid();
 
                     // Set the branch to be a spine
-                    _branches[i]->setSpine();
-
-                    _branches[i]->nodes.back()->radius *= 1.0;
+                    branch->setSpine();
                 }
             }
         }
@@ -1804,39 +1765,33 @@ void NeuronSkeletonizer::_filterShortTerminalBranches()
 
 void NeuronSkeletonizer::_detectSpines()
 {
-    for (size_t i = 0; i < _branches.size(); ++i)
+    for (auto& branch : _branches)
     {
-        if (_branches[i]->isTerminal())
+        if (branch->isTerminal())
         {
-            if (_branches[i]->isValid())
+            if (branch->isValid())
             {
-                if (_branches[i]->traversalCount == 1)
+                if (branch->traversalCount == 1)
                 {
-                    if (_branches[i]->computeLength() < 6.0)
+                    if (branch->computeLength() < 6.0)
                     {
                         // Set the branch to invalid
-                        _branches[i]->setInvalid();
+                        branch->setInvalid();
 
                         // Set the branch to be a spine
-                        _branches[i]->setSpine();
-
-                        _branches[i]->nodes.back()->radius *= 1.0;
-
+                        branch->setSpine();
                     }
                 }
 
-                if (_branches[i]->traversalCount == 2)
+                if (branch->traversalCount == 2)
                 {
-                    if (_branches[i]->computeLength() < 4.0)
+                    if (branch->computeLength() < 4.0)
                     {
                         // Set the branch to invalid
-                        _branches[i]->setInvalid();
+                        branch->setInvalid();
 
                         // Set the branch to be a spine
-                        _branches[i]->setSpine();
-
-                        _branches[i]->nodes.back()->radius *= 1.0;
-
+                        branch->setSpine();
                     }
                 }
             }

@@ -324,11 +324,11 @@ void AppOptions::verifyNeuronalMorphologyExportArguments()
     }
 
     // If the soma will be exported, make sure that at least one mesh format must be exported.
-    if (exportSomaMesh || exportProxySomaMesh || exportOptimizedNeuronMesh)
+    if (exportSomaMesh || exportProxySomaMesh || exportOptimizedNeuronMesh || exportSpineMeshes)
     {
         if (!(exportOBJ || exportPLY || exportOFF || exportSTL))
         {
-            LOG_ERROR("You must specify at least one valid mesh format to export the soma mesh:"
+            LOG_ERROR("You must specify at least one valid mesh format to export any mesh:"
                 "[--export-obj-mesh, --export-ply-mesh, --export-off-mesh, --export-stl-mesh]");
         }
     }
