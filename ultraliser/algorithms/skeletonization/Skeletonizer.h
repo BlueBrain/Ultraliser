@@ -277,6 +277,16 @@ protected:
      */
     void _exportGraphNodes(const std::string prefix, const bool verbose = VERBOSE);
 
+    /**
+     * @brief _verifySkeletonNodes
+     */
+    void _verifySkeletonNodes();
+
+    /**
+     * @brief _verifySkeletonEdges
+     */
+    void _verifySkeletonEdges();
+
 
 protected:
 
@@ -393,6 +403,18 @@ protected:
      * The branches of the skeleton representing the reconstructed graph.
      */
     SkeletonBranches _branches;
+
+    /**
+     * @brief _totalNumberNodes
+     * Total number of nodes in the detected skeleton.
+     */
+    size_t _totalNumberNodes;
+
+    /**
+     * @brief _totalNumberEdges
+     * Total number of edges in the detected skeleton.
+     */
+    size_t _totalNumberEdges;
 };
 
 }

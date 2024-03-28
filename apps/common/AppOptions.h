@@ -275,6 +275,12 @@ public:
     std::string spinesMeshPrefix;
 
     /**
+     * @brief debuggingPrefix
+     * This directory will be used to debug the skeletonization results.
+     */
+    std::string debuggingPrefix;
+
+    /**
      * @brief maskWidth
      */
     size_t maskWidth;

@@ -45,6 +45,12 @@ public:
         /// EMPTY CONSTRUCTOR
     }
 
+    /**
+     * @brief SkeletonNode
+     * @param index
+     * @param point
+     * @param radius
+     */
     SkeletonNode(const size_t& index, const Vector3f& point, const float radius)
     {
         this->index = index;
@@ -65,6 +71,13 @@ public:
         this->voxel = voxel;
     }
 
+    /**
+     * @brief SkeletonNode
+     * @param index
+     * @param voxelIndex
+     * @param point
+     * @param voxel
+     */
     SkeletonNode(const size_t& index, const int64_t voxelIndex,
                  const Vector3f& point, const Vector3f& voxel)
     {
@@ -95,10 +108,15 @@ public:
      */
     int64_t graphIndex = -1;
 
+    /**
+     * @brief swcIndex
+     */
     int64_t swcIndex = -1;
 
+    /**
+     * @brief prevSampleSWCIndex
+     */
     int64_t prevSampleSWCIndex = -1;
-
 
     /**
      * @brief point
@@ -116,7 +134,7 @@ public:
      * @brief radius
      * The radius of the node;
      */
-    float radius;
+    float radius = 0.f;
 
     /**
      * @brief visited
@@ -125,6 +143,9 @@ public:
      */
     bool visited = false;
 
+    /**
+     * @brief iVisit
+     */
     size_t iVisit = 0;
 
     /**

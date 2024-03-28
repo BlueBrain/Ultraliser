@@ -174,7 +174,7 @@ public:
      * @param edgeGap
      * @return
      */
-    Meshes reconstructSpineMeshes(Mesh* neuronMesh,
+    Meshes reconstructSpineMeshes(const Mesh* neuronMesh,
                                   const float& voxelsPerMicron,
                                   const float& edgeGap = 0.1);
 
@@ -204,6 +204,11 @@ public:
 
 
 private:
+
+    /**
+     * @brief _verifySomaticBranches
+     */
+    void _verifySomaticBranches();
 
     /**
      * @brief _addSomaNode
@@ -478,13 +483,19 @@ private:
 
 private:
 
-    size_t _numberNodes;
-
+    /**
+     * @brief _totalNumberBranches
+     * Total number of branches, or sections, in the detected skeleton.
+     */
     size_t _totalNumberBranches;
 
+    /**
+     * @brief _numberSomaticBranches
+     * The number of detected branches inside the soma. These branches are invalid, but this
+     * value must be greater than one to have a successful reconstruction.
+     */
     size_t _numberSomaticBranches;
 
-    size_t
 
 
 

@@ -970,6 +970,18 @@ void Skeletonizer::skeletonizeVolumeBlockByBlock(const size_t& blockSize,
     segmentComponents();
 }
 
+void Skeletonizer::_verifySkeletonNodes()
+{
+    _totalNumberNodes = _nodes.size();
+    LOG_SUCCESS("The skeleton has [ %ld ] centerline connected nodes. OK.", _totalNumberNodes);
+}
+
+void Skeletonizer::_verifySkeletonEdges()
+{
+    _totalNumberEdges = _edges.size();
+    LOG_SUCCESS("The skeleton has [ %ld ] centerline edges. OK.", _totalNumberEdges);
+}
+
 std::vector< Vector3f > Skeletonizer::getShellPoints()
 {
     return _shellPoints;

@@ -426,6 +426,19 @@ void AppOptions::createRespectiveDirectories()
         path << "/" << prefix;
         mkdir(path.str().c_str(), 0777);
     }
+
+    // Skeletonization debugging
+    if (debugSkeletonization)
+    {
+        // Spine morphologies directory
+        std::stringstream path;
+        path << outputDirectory << "/" << SKELETONIZATION_DIRECTORY;
+        mkdir(path.str().c_str(), 0777);
+
+        // Case-specific spine morphologies directory
+        path << "/" << prefix;
+        mkdir(path.str().c_str(), 0777);
+    }
 }
 
 void AppOptions::initializeContext()
@@ -445,11 +458,12 @@ void AppOptions::initializeContext()
             outputDirectory + "/" + STATISTICS_DIRECTORY +  "/" + prefix;
     distributionsPrefix =
             outputDirectory + "/" + DISTRIBUTIONS_DIRECTORY +  "/" + prefix;
-
     spinesMeshPrefix =
             outputDirectory + "/" +  SPINE_MESHES_DIRECTORY +  "/" + prefix + "/" + prefix;
     spinesMorphologyPrefix =
             outputDirectory + "/" +  SPINE_MORPHOLOGIES_DIRECTORY +  "/" + prefix + "/" + prefix;
+    debuggingPrefix =
+            outputDirectory + "/" +  SKELETONIZATION_DIRECTORY +  "/" + prefix + "/" + prefix;
 
     // Create the respective directories
     createRespectiveDirectories();

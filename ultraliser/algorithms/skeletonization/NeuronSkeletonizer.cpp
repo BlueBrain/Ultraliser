@@ -27,6 +27,9 @@
 #include <algorithms/skeletonization/graphs/Graphs.h>
 #include <algorithms/skeletonization/SkeletonizerUtils.h>
 
+// Print a conditioned message
+#define DEBUG_STEP(FUNCTION, CONDITION) ({ if (CONDITION) { FUNCTION; }})
+
 namespace Ultraliser
 {
 NeuronSkeletonizer::NeuronSkeletonizer(Volume* volume,
@@ -42,38 +45,39 @@ NeuronSkeletonizer::NeuronSkeletonizer(Volume* volume,
 
 void NeuronSkeletonizer::constructGraph(const bool verbose)
 {
-    /// Extract the nodes of the skeleton from the center-line "thinned" voxels and return a
-    /// mapper that maps the indices of the voxels in the volume and the nodes in the skeleton
+    /// Node extraction from the volume
+    // Extract the nodes of the skeleton from the center-line "thinned" voxels and return a
+    // mapper that maps the indices of the voxels in the volume and the nodes in the skeleton
     auto indicesMapper = _extractNodesFromVoxels(verbose);
 
-    /// DEBUG: Export the nodes file
-    if (_debug) { _exportGraphNodes(_debuggingPrefix, verbose); }
+    // Verify the count of the skeleton nodes
+    _verifySkeletonNodes();
 
-    /// Connect the nodes of the skeleton to construct its edges. This operation will not connect
-    /// any gaps, it will just connect the nodes extracted from the voxels.
+    // Export skeleton nodes
+    DEBUG_STEP(_exportGraphNodes(_debuggingPrefix, verbose), _debug);
+
+    /// Building edges
+    // Connect the nodes of the skeleton to construct its edges. This operation will not connect
+    // any gaps, it will just connect the nodes extracted from the voxels.
     _connectNodesToBuildEdges(indicesMapper, verbose);
+
+    // Verify the count of the skeleton edges
+    _verifySkeletonEdges();
 
     /// Inflate the nodes, i.e. adjust their radii
     _inflateNodes(verbose);
 
-    /// DEBUG: Export the inflated nodes file
-    if (_debug) { _exportGraphNodes(_debuggingPrefix + "-inflated", verbose); }
+    // Export the inflated nodes file
+    DEBUG_STEP( _exportGraphNodes(_debuggingPrefix + "-inflated", verbose), _debug);
 
-    /// Add a virtual soma node, until the soma is reconstructed later
+    // Add a virtual soma node to the graph, until the soma is reconstructed later
     _addSomaNode();
 
-    /// Re-index the nodes, for simplicity, i.e. the index of the node represents its location in
-    /// the _nodes list
-    // OMP_PARALLEL_FOR for (size_t i = 1; i <= _nodes.size(); ++i) { _nodes[i - 1]->index = i; }
-
-    /// Segmentthe soma mesh from the branches
+    // Segmentthe soma mesh from the branches
     _segmentSomaMesh(verbose);
 
-    /// Identify the somatic nodes in the skeleton
+    // Identify the somatic nodes in the skeleton
     _identifySomaticNodes(verbose);
-
-    /// DEBUG: Export the somatic branches
-    if (_debug) { exportBranches(_debuggingPrefix + "-1", SkeletonBranch::SOMATIC, verbose); }
 
     // Verify graph connectivity
     _verifyGraphConnectivityToClosestPartition(_edges);
@@ -82,20 +86,23 @@ void NeuronSkeletonizer::constructGraph(const bool verbose)
     /// these loops are removed automatically during the path construction phase
     // _removeTriangleLoops();
 
-    /// Reconstruct the sections "or branches" from the nodes using the edges data
+    // Reconstruct the sections "or branches" from the nodes using the edges data
     _buildBranchesFromNodes(_nodes);
 
-    /// DEBUG: Export all the branches
-    if (_debug) { exportBranches(_debuggingPrefix, SkeletonBranch::ALL, verbose); }
+    // Export all the branches
+    DEBUG_STEP( exportBranches(_debuggingPrefix, SkeletonBranch::ALL, verbose), _debug);
 
     /// Validate the branches, and remove the branches inside the soma, i.e. consider them to
     /// be invalid
     _removeBranchesInsideSoma();
 
-    /// DEBUG: Export the somatic branches
-    if (_debug) { exportBranches(_debuggingPrefix + "-2", SkeletonBranch::SOMATIC, verbose); }
+    // Verify the somatic branches
+    _verifySomaticBranches();
 
-    /// DEBUG: Export the valid branches
+    // Export the somatic branches
+    DEBUG_STEP(exportBranches(_debuggingPrefix, SkeletonBranch::SOMATIC, verbose), _debug);
+
+    // Export the valid branches
     if (_debug) { exportBranches(_debuggingPrefix, SkeletonBranch::VALID, verbose); }
 
     /// Connect all the skeleton branches since the roots have been identified after the
@@ -163,6 +170,25 @@ void NeuronSkeletonizer::segmentComponents(const bool verbose)
 
     // Remove the spines from the skeleton
     if (_removeSpines) { _detachSpinesFromSkeleton(verbose); }
+}
+
+void NeuronSkeletonizer::_verifySomaticBranches()
+{
+    // In case we need to re-initialize
+    _numberSomaticBranches = 0;
+
+    // Count the number of somatic branches.
+    for(const auto& branch: _branches) { if (branch->isInsideSoma()) { _numberSomaticBranches++; } }
+
+    // If the count of the somatic branches is Zero, report the error
+    if (_numberSomaticBranches == 0)
+    {
+        LOG_ERROR("No somatic segments were detected! Terminating!");
+    }
+    else
+    {
+        LOG_SUCCESS("The skeleton has [ %ld ] somatic segments. OK.", _numberSomaticBranches);
+    }
 }
 
 void NeuronSkeletonizer::_detachSpinesFromSkeleton(const bool verbose)
@@ -1564,7 +1590,7 @@ SpineMorphologies NeuronSkeletonizer::reconstructSpineProxyMorphologies()
     return spineProxyMorphologies;
 }
 
-Meshes NeuronSkeletonizer::reconstructSpineMeshes(Mesh* neuronMesh,
+Meshes NeuronSkeletonizer::reconstructSpineMeshes(const Mesh* neuronMesh,
                                                   const float& voxelsPerMicron,
                                                   const float& edgeGap)
 {
@@ -2045,79 +2071,58 @@ void NeuronSkeletonizer::exportBranches(const std::string& prefix,
     SkeletonBranches toWrite;
     if (state == SkeletonBranch::INVALID)
     {
-        for (size_t i = 0; i < _branches.size(); ++i)
+        for (const auto& branch : _branches)
         {
-            if (!_branches[i]->isValid())
-            {
-                toWrite.push_back(_branches[i]);
-            }
+            if (branch->isValid()) { toWrite.push_back(branch); }
         }
     }
     else if (state == SkeletonBranch::TWO_SAMPLE)
     {
-        for (size_t i = 0; i < _branches.size(); ++i)
+        for (const auto& branch : _branches)
         {
-            if (_branches[i]->nodes.size() == 2)
-            {
-                toWrite.push_back(_branches[i]);
-            }
+            if (branch->nodes.size() == 2) { toWrite.push_back(branch); }
         }
     }
     else if (state == SkeletonBranch::TWO_SAMPLE_AND_VALID)
     {
-        for (size_t i = 0; i < _branches.size(); ++i)
+        for (const auto& branch : _branches)
         {
-            if (_branches[i]->nodes.size() == 2 && _branches[i]->isValid())
-            {
-                toWrite.push_back(_branches[i]);
-            }
+            if (branch->nodes.size() == 2 && branch->isValid()) { toWrite.push_back(branch); }
         }
     }
     else if (state == SkeletonBranch::TWO_SAMPLE_AND_INVALID)
     {
-        for (size_t i = 0; i < _branches.size(); ++i)
+        for (const auto& branch : _branches)
         {
-            if (_branches[i]->nodes.size() == 2 && !_branches[i]->isValid())
-            {
-                toWrite.push_back(_branches[i]);
-            }
+             if (branch->nodes.size() == 2 && !branch->isValid()) { toWrite.push_back(branch); }
         }
     }
     else if (state == SkeletonBranch::SOMATIC)
     {
-        for (size_t i = 0; i < _branches.size(); ++i)
+        for (const auto& branch : _branches)
         {
-            if (_branches[i]->isInsideSoma())
-            {
-                toWrite.push_back(_branches[i]);
-            }
+            if (branch->isInsideSoma()) { toWrite.push_back(branch); }
         }
     }
     else if (state == SkeletonBranch::SPINE)
     {
-        for (size_t i = 0; i < _branches.size(); ++i)
+        for (const auto& branch : _branches)
         {
-            if (_branches[i]->isSpine())
-            {
-                toWrite.push_back(_branches[i]);
-            }
+            if (branch->isSpine()) { toWrite.push_back(branch); }
         }
     }
     else if (state == SkeletonBranch::VALID)
     {
-        for (size_t i = 0; i < _branches.size(); ++i)
+        for (const auto& branch : _branches)
         {
-            if (_branches[i]->isValid())
-            {
-                toWrite.push_back(_branches[i]);
-            }
+            if (branch->isValid()) { toWrite.push_back(branch); }
         }
     }
     else
     {
-        for (size_t i = 0; i < _branches.size(); ++i)
+        for (const auto& branch : _branches)
         {
-            toWrite.push_back(_branches[i]);
+            toWrite.push_back(branch);
         }
     }
 

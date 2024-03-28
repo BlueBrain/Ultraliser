@@ -237,6 +237,39 @@ Mesh* reconstructNeuronMeshFromVolume(Volume* neuronVolume,
     return reconstructedNeuronMesh;
 }
 
+void exportSpineMeshes(NeuronSkeletonizer* skeletonizer, const Mesh* inputMesh, const AppOptions* options)
+{
+    auto proxySpineMorphologies = skeletonizer->reconstructSpineProxyMorphologies();
+
+    auto spineMeshes = skeletonizer->reconstructSpineMeshes(inputMesh, 50, 0.5);
+
+    std::vector<Mesh*> remeshedSpines;
+    remeshedSpines.resize(spineMeshes.size());
+
+    TIMER_SET;
+    LOOP_STARTS("Spine Remeshing");
+    PROGRESS_SET;
+    OMP_PARALLEL_FOR
+    for (size_t i = 0; i < spineMeshes.size(); ++i)
+    {
+        auto spineMesh = spineMeshes[i];
+        std::stringstream stream;
+        stream << options->spinesMeshPrefix << "_spine_" << i;
+        spineMesh->exportMesh(stream.str(), true, false, false, false, SILENT);
+
+
+        auto remeshedSpine = remeshSpine(spineMesh, 50, VERBOSE);
+        stream << "_refined";
+        remeshedSpine->exportMesh(stream.str(), true, false, false, false, SILENT);
+        remeshedSpines[i] = remeshedSpine;
+
+        LOOP_PROGRESS(PROGRESS, spineMeshes.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+}
+
 void run(int argc , const char** argv)
 {
     std::cout << "Neuron Skeletonization \n";
@@ -276,7 +309,7 @@ void run(int argc , const char** argv)
     // Create a skeletonization object
     NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(
                 neuronVolume, options->removeSpines, options->useAccelerationStructures,
-                options->debugSkeletonization, options->morphologyPrefix);
+                options->debugSkeletonization, options->debuggingPrefix);
 
     // Initialize the skeltonizer
     skeletonizer->initialize(VERBOSE);
@@ -300,96 +333,14 @@ void run(int argc , const char** argv)
     // Export the SWC file of the neuron
     if (options->exportSWCNeuron)
     {
-        skeletonizer->exportSWCFile(options->morphologyPrefix, options->resampleSkeleton, false);
+        skeletonizer->exportSWCFile(options->morphologyPrefix, options->resampleSkeleton, VERBOSE);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /// the other approach for creating spine geometries
+    // Export the spine meshes
     if (options->exportSpineMeshes)
     {
-
-        auto proxySpineMorphologies = skeletonizer->reconstructSpineProxyMorphologies();
-
-        auto spineMeshes = skeletonizer->reconstructSpineMeshes(inputMesh, 50, 0.5);
-
-        std::vector<Mesh*> remeshedSpines;
-        remeshedSpines.resize(spineMeshes.size());
-
-        TIMER_SET;
-        LOOP_STARTS("Spine Remeshing");
-        PROGRESS_SET;
-        OMP_PARALLEL_FOR
-        for (size_t i = 0; i < spineMeshes.size(); ++i)
-        {
-            auto spineMesh = spineMeshes[i];
-            std::stringstream stream;
-            stream << options->spinesMeshPrefix << "_spine_" << i;
-            spineMesh->exportMesh(stream.str(), true, false, false, false, SILENT);
-
-
-            auto remeshedSpine = remeshSpine(spineMesh, 50, VERBOSE);
-            stream << "_refined";
-            remeshedSpine->exportMesh(stream.str(), true, false, false, false, SILENT);
-            remeshedSpines[i] = remeshedSpine;
-
-            LOOP_PROGRESS(PROGRESS, spineMeshes.size());
-            PROGRESS_UPDATE;
-        }
-        LOOP_DONE;
-        LOG_STATS(GET_TIME_SECONDS);
-
-
-        // TIMER_RESET;
-        // LOOP_STARTS("Spine Re-skeltonization");
-        // PROGRESS_RESET;
-        // // OMP_PARALLEL_FOR
-        // for (size_t i = 0; i < spineMeshes.size(); ++i)
-        // {
-        //     auto basePoint = proxySpineMorphologies[i]->getBasePoint();
-
-        //     std::stringstream stream;
-        //     stream << options->morphologyPrefix << "_spine_" << i;
-
-        //     Skeletonizer::VoxelizationOptions skeletonizerOptions;
-        //     skeletonizerOptions.voxelizationAxis = Volume::SOLID_VOXELIZATION_AXIS::XYZ;
-        //     skeletonizerOptions.volumeResolution = 80;
-        //     skeletonizerOptions.verbose = SILENT;
-
-        //     std::unique_ptr< SpineSkeletonizer > spineSkeletonizer =
-        //         std::make_unique< SpineSkeletonizer >(remeshedSpines[i], basePoint, skeletonizerOptions,
-        //                                               true, true, stream.str());
-        //     spineSkeletonizer->run(SILENT);
-
-
-
-
-        //     LOOP_PROGRESS(PROGRESS, spineMeshes.size());
-        //     PROGRESS_UPDATE;
-        // }
-        // LOOP_DONE;
-        // LOG_STATS(GET_TIME_SECONDS);
-
-//        skeletonizer->exportSpineExtents(options->morphologyPrefix);
+        exportSpineMeshes(skeletonizer, inputMesh, options);
+        skeletonizer->exportSpineExtents(options->debuggingPrefix);
     }
 
     // Export the somatic proxy mesh
