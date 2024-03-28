@@ -90,7 +90,7 @@ void NeuronSkeletonizer::constructGraph(const bool verbose)
     _buildBranchesFromNodes(_nodes);
 
     // Export all the branches
-    DEBUG_STEP( exportBranches(_debuggingPrefix, SkeletonBranch::ALL, verbose), _debug);
+    DEBUG_STEP(exportBranches(_debuggingPrefix, SkeletonBranch::ALL, verbose), _debug);
 
     /// Validate the branches, and remove the branches inside the soma, i.e. consider them to
     /// be invalid
@@ -103,7 +103,7 @@ void NeuronSkeletonizer::constructGraph(const bool verbose)
     DEBUG_STEP(exportBranches(_debuggingPrefix, SkeletonBranch::SOMATIC, verbose), _debug);
 
     // Export the valid branches
-    if (_debug) { exportBranches(_debuggingPrefix, SkeletonBranch::VALID, verbose); }
+    DEBUG_STEP(exportBranches(_debuggingPrefix, SkeletonBranch::VALID, verbose), _debug);
 
     /// Connect all the skeleton branches since the roots have been identified after the
     /// soma segmentation
@@ -203,8 +203,8 @@ void NeuronSkeletonizer::_detachSpinesFromSkeleton(const bool verbose)
         _mergeBranchesAfterFilteringSpines();
     }
 
-    /// DEBUG: Export the somatic branches
-    if (_debug) { exportBranches(_debuggingPrefix, SkeletonBranch::TWO_SAMPLE_AND_VALID, verbose); }
+    // Export two samples valid branches
+    DEBUG_STEP(exportBranches(_debuggingPrefix, SkeletonBranch::TWO_SAMPLE_AND_VALID, verbose), _debug);
 
     // Update the traversal counts of the branches to be able to detect, lable and split the spines
     _updateBranchesTraversalCounts();
@@ -227,14 +227,14 @@ void NeuronSkeletonizer::_detachSpinesFromSkeleton(const bool verbose)
     // Segment the spines and label (count) them
     _segmentSpinesSkeletons(verbose);
 
-    /// DEBUG: Export the spine branches
-    if (_debug) { exportBranches(_debuggingPrefix, SkeletonBranch::SPINE, verbose); }
+    // Export the spine branches
+    DEBUG_STEP(exportBranches(_debuggingPrefix, SkeletonBranch::SPINE, verbose), _debug);
 
-    /// DEBUG: Export the spine locations
-    if (_debug) { exportSpineLocations(_debuggingPrefix, verbose); }
+    // Export the spine locations
+    DEBUG_STEP(exportSpineLocations(_debuggingPrefix, verbose), _debug);
 
-    /// DEBUG: Export the spine extents
-    if (_debug) { exportSpineExtents(_debuggingPrefix, verbose); }
+    // Export the spine extents
+    DEBUG_STEP(exportSpineExtents(_debuggingPrefix, verbose), _debug);
 }
 
 void NeuronSkeletonizer::_updateBranchesTraversalCounts()
@@ -2021,37 +2021,37 @@ void NeuronSkeletonizer::exportBranches(const std::string& prefix,
 
     if (state == SkeletonBranch::INVALID)
     {
-        filePath += "-invalid";
+        filePath += INVALID_BRANCH;
         branchType = "Invalid";
     }
     else if (state == SkeletonBranch::VALID)
     {
-        filePath += "-valid";
+        filePath += VALID_BRANCH;
         branchType = "Valid";
     }
     else if (state == SkeletonBranch::TWO_SAMPLE)
     {
-        filePath += "-two-sample";
+        filePath += TWO_SAMPLE_BRANCH;
         branchType = "Two-sample";
     }
     else if (state == SkeletonBranch::TWO_SAMPLE_AND_VALID)
     {
-        filePath += "-two-sample-valid";
+        filePath += TWO_SAMPLE_VALID_BRANCH;
         branchType = "Two-sample and Valid";
     }
     else if (state == SkeletonBranch::TWO_SAMPLE_AND_INVALID)
     {
-        filePath += "-two-sample-invalid";
+        filePath += TWO_SAMPLE_INVALID_BRANCH;
         branchType = "Two-sample and Invalid";
     }
     else if (state == SkeletonBranch::SOMATIC)
     {
-        filePath += "-somatic";
+        filePath += SOMATIC_BRANCH;
         branchType = "Somatic";
     }
     else if (state == SkeletonBranch::SPINE)
     {
-        filePath += "-spines";
+        filePath += SPINE_BRANCH;
         branchType = "Spine";
     }
     else

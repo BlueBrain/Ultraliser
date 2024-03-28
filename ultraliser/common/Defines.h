@@ -140,6 +140,13 @@
 #define NODES_SUFFIX                            STRING("-nodes")
 #define PROXY_SOMA_MESH_SUFFIX                  STRING("-proxy-soma")
 #define SOMA_MESH_SUFFIX                        STRING("-soma")
+#define VALID_BRANCH                            STRING("-valid")
+#define INVALID_BRANCH                          STRING("-invalid")
+#define TWO_SAMPLE_BRANCH                       STRING("-two-sample")
+#define TWO_SAMPLE_VALID_BRANCH                 STRING("-two-sample-valid")
+#define TWO_SAMPLE_INVALID_BRANCH               STRING("-two-sample-invalid")
+#define SOMATIC_BRANCH                          STRING("-somatic")
+#define SPINE_BRANCH                            STRING("-spine")
 
 // Directories where the artifacts will be generated
 #define MORPHOLOGIES_DIRECTORY                  STRING("morphologies")
@@ -153,7 +160,6 @@
 #define SPINE_MESHES_DIRECTORY                  STRING("spine-meshes")
 #define SKELETONIZATION_DIRECTORY               STRING("skeletonization-debugging")
 #define NEURON_MORPHOLOGY_DIRECTORY             STRING("neuron-morphology")
-
 
 // Distributions stats
 #define DISTRIBUTION_EXTENSION                  STRING(".dist")
