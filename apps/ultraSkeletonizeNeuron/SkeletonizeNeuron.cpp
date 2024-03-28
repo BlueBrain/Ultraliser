@@ -83,6 +83,11 @@ Mesh* remeshSpine(Mesh* inputSpineMesh, const float voxelsPerMicron = 50,
     inputSpineMesh->computeBoundingBox(pMinInput, pMaxInput);
     const auto& meshBoundingBox = pMaxInput - pMinInput;
 
+    if (meshBoundingBox.x() < 1e-16 || meshBoundingBox.y() < 1e-16 || meshBoundingBox.z() < 1e-16)
+    {
+        return nullptr;
+    }
+
     // Compute the resolution of the volume
     const auto largestDimension = meshBoundingBox.getLargestDimension();
     size_t resolution = static_cast< size_t >(voxelsPerMicron * largestDimension);
@@ -230,11 +235,16 @@ Mesh* reconstructNeuronMeshFromVolume(Volume* neuronVolume,
     return reconstructedNeuronMesh;
 }
 
-void exportSpineMeshes(NeuronSkeletonizer* skeletonizer, const Mesh* inputMesh, const AppOptions* options)
+void exportSpineMeshes(NeuronSkeletonizer* skeletonizer,
+                       const Mesh* inputMesh,
+                       const AppOptions* options)
 {
+    LOG_TITLE("Spine Segmentation");
+
     auto proxySpineMorphologies = skeletonizer->reconstructSpineProxyMorphologies();
 
-    auto spineMeshes = skeletonizer->reconstructSpineMeshes(inputMesh, 50, 0.5);
+    auto spineMeshes = skeletonizer->reconstructSpineMeshes(inputMesh,
+                                                            options->spinesVoxelsPerMicron, 0.2);
 
     std::vector<Mesh*> remeshedSpines;
     remeshedSpines.resize(spineMeshes.size());
@@ -242,22 +252,10 @@ void exportSpineMeshes(NeuronSkeletonizer* skeletonizer, const Mesh* inputMesh, 
     TIMER_SET;
     LOOP_STARTS("Spine Remeshing");
     PROGRESS_SET;
-    OMP_PARALLEL_FOR
+    // OMP_PARALLEL_FOR
     for (size_t i = 0; i < spineMeshes.size(); ++i)
     {
-        auto spineMesh = spineMeshes[i];
-        std::stringstream stream;
-        stream << options->spinesMeshPrefix << "_spine_" << i;
-        spineMesh->exportMesh(stream.str(),
-                              options->exportOBJ, options->exportPLY,
-                              options->exportOFF, options->exportSTL, SILENT);
-
-
-        auto remeshedSpine = remeshSpine(spineMesh, 50, VERBOSE);
-        stream << "_refined";
-        remeshedSpine->exportMesh(stream.str(),
-                                  options->exportOBJ, options->exportPLY,
-                                  options->exportOFF, options->exportSTL, SILENT);
+        auto remeshedSpine = remeshSpine(spineMeshes[i], options->spinesVoxelsPerMicron, VERBOSE);
         remeshedSpines[i] = remeshedSpine;
 
         LOOP_PROGRESS(PROGRESS, spineMeshes.size());
@@ -265,6 +263,38 @@ void exportSpineMeshes(NeuronSkeletonizer* skeletonizer, const Mesh* inputMesh, 
     }
     LOOP_DONE;
     LOG_STATS(GET_TIME_SECONDS);
+
+    // Exporting the spines
+    TIMER_RESET;
+    LOOP_STARTS("Exporting Segmented Spines");
+    for (size_t i = 0; i < spineMeshes.size(); ++i)
+    {
+        auto spineMesh = spineMeshes[i];
+        std::stringstream stream;
+        stream << options->spinesMeshPrefix << SPINE_MESH_SUFFIX << "-" << i;
+        spineMesh->exportMesh(stream.str(),
+                              options->exportOBJ, options->exportPLY,
+                              options->exportOFF, options->exportSTL, SILENT);
+
+        auto& remeshedSpine = remeshedSpines[i];
+        if (remeshedSpine == nullptr) continue;
+
+        stream << REFINED_SPINE_MESH_SUFFIX;
+        remeshedSpine->exportMesh(stream.str(),
+                                  options->exportOBJ, options->exportPLY,
+                                  options->exportOFF, options->exportSTL, SILENT);
+
+        LOOP_PROGRESS(i, spineMeshes.size());
+        PROGRESS_UPDATE;
+    }
+    LOOP_DONE;
+    LOG_STATS(GET_TIME_SECONDS);
+
+    // Clear the spines
+    for (auto& mesh : spineMeshes) { if (mesh != nullptr) mesh->~Mesh();  }
+
+    // Clear the re-meshed spines
+    for (auto& mesh : remeshedSpines) { if (mesh != nullptr) mesh->~Mesh(); }
 }
 
 void run(int argc , const char** argv)
@@ -305,7 +335,7 @@ void run(int argc , const char** argv)
 
     // Create a skeletonization object
     NeuronSkeletonizer* skeletonizer = new NeuronSkeletonizer(
-                neuronVolume, options->removeSpines, options->useAccelerationStructures,
+                neuronVolume, options->removeSpinesFromSkeleton, options->useAccelerationStructures,
                 options->debugSkeletonization, options->debuggingPrefix);
 
     // Initialize the skeltonizer
@@ -336,8 +366,16 @@ void run(int argc , const char** argv)
     // Export the spine meshes
     if (options->exportSpineMeshes)
     {
-        exportSpineMeshes(skeletonizer, inputMesh, options);
-        skeletonizer->exportSpineExtents(options->debuggingPrefix);
+        if (!options->removeSpinesFromSkeleton)
+        {
+            LOG_WARNING("To export the spine meshes, add the flag --remove-spines-from-skeleton "
+                        "to segment the spines!");
+        }
+        else
+        {
+            exportSpineMeshes(skeletonizer, inputMesh, options);
+            skeletonizer->exportSpineExtents(options->debuggingPrefix);
+        }
     }
 
     // Export the somatic proxy mesh

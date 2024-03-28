@@ -701,14 +701,23 @@ void AppArguments::addNeuronalMorphologyExportArguments()
     _args->addArgument(&resampleSkeleton);
     _options->resampleSkeleton = _args->getBoolValue(&resampleSkeleton);
 
-    Argument reomveSpines(
-                "--remove-spines",
+    Argument removeSpinesFromSkeleton(
+                "--remove-spines-from-skeleton",
                 ARGUMENT_TYPE::BOOL,
                 "Removes the spines and export only the branches of the the neuronal morphology "
                 "to the .SWC file.");
-    _args->addArgument(&reomveSpines);
-    _options->removeSpines = _args->getBoolValue(&reomveSpines);
+    _args->addArgument(&removeSpinesFromSkeleton);
+    _options->removeSpinesFromSkeleton = _args->getBoolValue(&removeSpinesFromSkeleton);
 
+    Argument spinesVPM(
+                "--spines-vpm",
+                ARGUMENT_TYPE::FLOAT,
+                "Number of voxels per micron used to segment the spines. "
+                "If this flag is set, then resolution will be ignored. Default value 25 vpm.",
+                ARGUMENT_PRESENCE::OPTIONAL,
+                "25");
+    _args->addArgument(&spinesVPM);
+    _options->spinesVoxelsPerMicron = _args->getFloatValue(&spinesVPM);
 
     Argument exportSpineMorphologies(
                 "--export-spine-morphologies",

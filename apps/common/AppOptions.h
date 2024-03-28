@@ -655,10 +655,10 @@ public:
     bool exportSpineMorphologies = false;
 
     /**
-     * @brief removeSpines
+     * @brief reomveSpinesFromSkeleton
      * Segments and removes the spines from the neuronal mesh.
      */
-    bool removeSpines = false;
+    bool removeSpinesFromSkeleton = false;
 
     /**
      * @brief exportBranches
@@ -826,10 +826,10 @@ public:
     std::string destinationMesh;
 
     /**
-     * @brief voxelsPerMicron
+     * @brief spinesVoxelsPerMicron
      * Number of voxels per micron in case of auto resolution.
      */
-    float voxelsPerMicronSpines;
+    float spinesVoxelsPerMicron = DEFAULT_SPINES_VOXELS_PER_MICRON;
 
 };
 

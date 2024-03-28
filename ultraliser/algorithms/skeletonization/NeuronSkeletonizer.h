@@ -39,12 +39,17 @@ namespace Ultraliser
 class NeuronSkeletonizer : public Skeletonizer
 {
 public:
+
     /**
      * @brief NeuronSkeletonizer
      * @param volume
+     * @param removeSpinesFromSkeleton
+     * @param useAcceleration
+     * @param debugSkeleton
+     * @param debuggingPrefix
      */
     NeuronSkeletonizer(Volume *volume,
-                       const bool &removeSpines = true,
+                       const bool &removeSpinesFromSkeleton = true,
                        const bool &useAcceleration = true,
                        const bool &debugSkeleton = false,
                        const std::string debuggingPrefix = NONE);
@@ -201,8 +206,6 @@ public:
      */
     void exportSpineExtents(const std::string& prefix, const bool verbose = VERBOSE) const;
 
-
-
 private:
 
     /**
@@ -345,10 +348,15 @@ private:
      */
     void _mergeBranchesWithSingleChild();
 
-
+    /**
+     * @brief _filterSpineCandidates
+     */
     void _filterSpineCandidates();
 
-
+    /**
+     * @brief _estimateNumberSpineCandidates
+     * @return
+     */
     size_t _estimateNumberSpineCandidates();
 
     /**
@@ -374,6 +382,9 @@ private:
      */
     void _updateBranchesTraversalCounts();
 
+    /**
+     * @brief _filterShortTerminalBranches
+     */
     void _filterShortTerminalBranches();
 
     /**
@@ -385,6 +396,9 @@ private:
      */
     void _detectSpines();
 
+    /**
+     * @brief _mergeBranchesAfterFilteringSpines
+     */
     void _mergeBranchesAfterFilteringSpines();
 
     /**
@@ -403,8 +417,11 @@ private:
      */
     void _adjustSomaRadius(const bool verbose = VERBOSE);
 
+    /**
+     * @brief _reconstructSomaMeshFromProxy
+     * @param verbose
+     */
     void _reconstructSomaMeshFromProxy(const bool verbose = VERBOSE);
-
 
     /**
      * @brief _verifyGraphConnectivity
@@ -417,27 +434,44 @@ private:
      */
     void _verifyGraphConnectivityToMainPartition(GraphComponents &components, SkeletonEdges& edges);
 
+    /**
+     * @brief _verifyGraphConnectivityToClosestPartition
+     * @param edges
+     */
     void _verifyGraphConnectivityToClosestPartition(SkeletonEdges& edges);
 
-
+    /**
+     * @brief _findClosestNodesInTwoPartitions
+     * @param partition1
+     * @param partition2
+     * @param partition1NodeIndex
+     * @param partition2NodeIndex
+     * @param distance
+     */
     void _findClosestNodesInTwoPartitions(GraphComponent& partition1, GraphComponent& partition2,
                                           size_t* partition1NodeIndex, size_t* partition2NodeIndex,
                                           float* distance);
+    /**
+     * @brief _connectPartition
+     * @param partitions
+     * @param partitionIndex
+     * @param edges
+     */
     void _connectPartition(GraphComponents& partitions, const size_t &partitionIndex,
                            SkeletonEdges &edges);
 
+    /**
+     * @brief _exportSomaticNodes
+     * @param prefix
+     */
     void _exportSomaticNodes(const std::string prefix);
 
-
-
-
-
-
 private:
+
     /**
-     * @brief _removeSpines
+     * @brief _removeSpinesFromSkeleton
      */
-    const bool _removeSpines;
+    const bool _removeSpinesFromSkeleton;
 
     /**
      * @brief _somaProxyMesh
@@ -468,18 +502,10 @@ private:
      */
     std::vector< SkeletonBranches > _spines;
 
-
+    /**
+     * @brief _spineRoots
+     */
     SkeletonBranches _spineRoots;
-
-
-
-
-
-
-
-
-
-
 
 private:
 
@@ -495,11 +521,6 @@ private:
      * value must be greater than one to have a successful reconstruction.
      */
     size_t _numberSomaticBranches;
-
-
-
-
-
 };
 
 }

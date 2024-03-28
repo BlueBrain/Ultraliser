@@ -33,12 +33,12 @@
 namespace Ultraliser
 {
 NeuronSkeletonizer::NeuronSkeletonizer(Volume* volume,
-                                       const bool &removeSpines,
+                                       const bool &removeSpinesFromSkeleton,
                                        const bool &useAcceleration,
                                        const bool &debugSkeleton,
                                        const std::string debuggingPrefix)
     : Skeletonizer(volume, useAcceleration, debugSkeleton, debuggingPrefix)
-    , _removeSpines(removeSpines)
+    , _removeSpinesFromSkeleton(removeSpinesFromSkeleton)
 {
     /// EMPTY CONSTRUCTOR
 }
@@ -169,7 +169,7 @@ void NeuronSkeletonizer::segmentComponents(const bool verbose)
     _updateParents(verbose);
 
     // Remove the spines from the skeleton
-    if (_removeSpines) { _detachSpinesFromSkeleton(verbose); }
+    if (_removeSpinesFromSkeleton) { _detachSpinesFromSkeleton(verbose); }
 }
 
 void NeuronSkeletonizer::_verifySomaticBranches()
@@ -1567,7 +1567,8 @@ SpineMorphologies NeuronSkeletonizer::reconstructSpineProxyMorphologies()
     SpineMorphologies spineProxyMorphologies;
     if (_spineRoots.size() == 0)
     {
-        LOG_WARNING("The neuron has Zero segmented spines!");
+        LOG_WARNING("The neuron has Zero segmented spines! "
+                    "Add the flag --remove-spines-from-skeleton to segment the spines!");
         return spineProxyMorphologies;
     }
 
@@ -1603,7 +1604,8 @@ Meshes NeuronSkeletonizer::reconstructSpineMeshes(const Mesh* neuronMesh,
 
     if (_spineRoots.size() == 0)
     {
-        LOG_WARNING("The neuron has Zero segmented spines!");
+        LOG_WARNING("The neuron has Zero segmented spines!"
+                    "Add the flag --remove-spines-from-skeleton to segment the spines!");
         return spineMeshes;
     }
 

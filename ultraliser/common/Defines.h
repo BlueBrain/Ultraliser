@@ -147,6 +147,8 @@
 #define TWO_SAMPLE_INVALID_BRANCH               STRING("-two-sample-invalid")
 #define SOMATIC_BRANCH                          STRING("-somatic")
 #define SPINE_BRANCH                            STRING("-spine")
+#define SPINE_MESH_SUFFIX                       STRING("-spine")
+#define REFINED_SPINE_MESH_SUFFIX               STRING("-refined")
 
 // Directories where the artifacts will be generated
 #define MORPHOLOGIES_DIRECTORY                  STRING("morphologies")
@@ -269,6 +271,8 @@
 #define TIME_STAMP_CHAR_LENGTH                  128
 #define PROGRESS_BAR_LENGTH                     50
 #define TITLE_LENGTH                            80
+
+#define DEFAULT_SPINES_VOXELS_PER_MICRON        25
 
 // Application done
 #define ULTRALISER_DONE                         printf("\n"); return EXIT_SUCCESS;

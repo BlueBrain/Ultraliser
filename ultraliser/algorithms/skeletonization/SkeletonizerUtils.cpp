@@ -415,6 +415,9 @@ SkeletonBranch* findEmanatingBranchOfSpine(SkeletonBranch *spine)
     // This is the branch, from which the spine emanates
     SkeletonBranch* spineEmanatingBranch = spine;
 
+    if (spine->logicalParents.size() == 0)
+        return spine;
+
     // Get the parent (processed neurons will have indeed a single parent)
     auto parent = spine->logicalParents[0];
     if (parent->isSpine())
@@ -449,7 +452,7 @@ void segmentSpine(SkeletonBranch* spineTerminal, const size_t& spineIndex)
 
 SkeletonBranch* segmentSpineFromBranch(SkeletonBranch* spineBranch, const size_t& spineIndex)
 {
-    SkeletonBranch* spineRoot;
+    SkeletonBranch* spineRoot = nullptr;
 
     // If the spine branch does not have any parent
     if (spineBranch->logicalParents.size() == 0)
@@ -470,6 +473,10 @@ SkeletonBranch* segmentSpineFromBranch(SkeletonBranch* spineBranch, const size_t
     // If the spine branch has a parent
     else
     {
+        // Ensure that the spine branch has a parent
+        if (spineBranch->parents.size() == 0)
+            return nullptr;
+
         // Get this parent
         auto parent = spineBranch->logicalParents[0];
 
